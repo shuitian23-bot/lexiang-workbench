@@ -1,0 +1,2432 @@
+[
+  {
+    "spu_id": "SPU-笔记本-001",
+    "short_name": "YOGA Air 14 Ultra Aura",
+    "category": "笔记本",
+    "folder": "笔记本/01_SPU_YOGA_Air_14_Ultra_Aura",
+    "configuration_count": 4,
+    "representative_files": {
+      "copywriting": "笔记本/01_SPU_YOGA_Air_14_Ultra_Aura/商品文案.md",
+      "white_image": "笔记本/01_SPU_YOGA_Air_14_Ultra_Aura/白底图.jpg",
+      "detail_image": "笔记本/01_SPU_YOGA_Air_14_Ultra_Aura/详情图.jpg"
+    },
+    "configurations": [
+      {
+        "configuration_id": "SPU-笔记本-001-SKU-01",
+        "configuration_name": "英特尔®酷睿™Ultra X7 358H / Windows 11 家庭中文版 / 14英寸 / 32GB / 1TB SSD / 集成显卡 / 触控 / 烟绫",
+        "sku_id": "1053895",
+        "original_name": "YOGA Air 14 Ultra Aura 2026 14英寸轻薄笔记本电脑",
+        "description": "英特尔®酷睿™Ultra X7 358H丨Windows 11 家庭中文版丨14英寸丨32GB丨1TB SSD丨集成显卡丨触控丨烟绫",
+        "original_price": "16999",
+        "sale_price": "16999",
+        "tags": [
+          "自营",
+          "领国补至高减15%"
+        ],
+        "source": "https://item.lenovo.com.cn/product/1053895.html",
+        "files": {
+          "copywriting": "笔记本/01_SPU_YOGA_Air_14_Ultra_Aura/商品文案.md",
+          "white_image": "笔记本/01_SPU_YOGA_Air_14_Ultra_Aura/白底图.jpg",
+          "detail_image": "笔记本/01_SPU_YOGA_Air_14_Ultra_Aura/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      },
+      {
+        "configuration_id": "SPU-笔记本-001-SKU-02",
+        "configuration_name": "英特尔®酷睿™Ultra X9 378H / Windows 11 家庭中文版 / 14英寸 / 32GB / 2TB SSD / 集成显卡 / 触控 / 夜缎",
+        "sku_id": "1054444",
+        "original_name": "YOGA Air 14 Ultra Aura 2026 14英寸轻薄笔记本电脑 夜缎",
+        "description": "英特尔®酷睿™Ultra X9 378H丨Windows 11 家庭中文版丨14英寸丨32GB丨2TB SSD丨集成显卡丨触控丨夜缎",
+        "original_price": "21499",
+        "sale_price": "21499",
+        "tags": [
+          "自营",
+          "领国补至高减15%"
+        ],
+        "source": "https://item.lenovo.com.cn/product/1054444.html",
+        "files": {
+          "copywriting": "笔记本/01_SPU_YOGA_Air_14_Ultra_Aura/商品文案.md",
+          "white_image": "笔记本/01_SPU_YOGA_Air_14_Ultra_Aura/白底图.jpg",
+          "detail_image": "笔记本/01_SPU_YOGA_Air_14_Ultra_Aura/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      },
+      {
+        "configuration_id": "SPU-笔记本-001-SKU-03",
+        "configuration_name": "英特尔®酷睿™Ultra 5 338H / Windows 11 家庭中文版 / 14英寸 / 32GB / 1TB SSD / 集成显卡 / 触控 / 云绢",
+        "sku_id": "1053874",
+        "original_name": "YOGA Air 14 Ultra Aura 2026 14英寸轻薄笔记本电脑 云绢",
+        "description": "英特尔®酷睿™Ultra 5 338H丨Windows 11 家庭中文版丨14英寸丨32GB丨1TB SSD丨集成显卡丨触控丨云绢",
+        "original_price": "14999",
+        "sale_price": "14999",
+        "tags": [
+          "自营",
+          "领国补至高减15%"
+        ],
+        "source": "https://item.lenovo.com.cn/product/1053874.html",
+        "files": {
+          "copywriting": "笔记本/01_SPU_YOGA_Air_14_Ultra_Aura/商品文案.md",
+          "white_image": "笔记本/01_SPU_YOGA_Air_14_Ultra_Aura/白底图.jpg",
+          "detail_image": "笔记本/01_SPU_YOGA_Air_14_Ultra_Aura/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      },
+      {
+        "configuration_id": "SPU-笔记本-001-SKU-04",
+        "configuration_name": "英特尔®酷睿™Ultra X7 358H / Windows 11 家庭中文版 / 14英寸 / 32GB / 1TB SSD / 集成显卡 / 触控 / 夜缎",
+        "sku_id": "1053875",
+        "original_name": "YOGA Air 14 Ultra Aura 2026 14英寸轻薄笔记本电脑 夜缎",
+        "description": "英特尔®酷睿™Ultra X7 358H丨Windows 11 家庭中文版丨14英寸丨32GB丨1TB SSD丨集成显卡丨触控丨夜缎",
+        "original_price": "16999",
+        "sale_price": "16999",
+        "tags": [
+          "自营",
+          "领国补至高减15%"
+        ],
+        "source": "https://item.lenovo.com.cn/product/1053875.html",
+        "files": {
+          "copywriting": "笔记本/01_SPU_YOGA_Air_14_Ultra_Aura/商品文案.md",
+          "white_image": "笔记本/01_SPU_YOGA_Air_14_Ultra_Aura/白底图.jpg",
+          "detail_image": "笔记本/01_SPU_YOGA_Air_14_Ultra_Aura/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      }
+    ],
+    "asset_mode": "shared_spu_assets"
+  },
+  {
+    "spu_id": "SPU-笔记本-002",
+    "short_name": "YOGA Air 14s",
+    "category": "笔记本",
+    "folder": "笔记本/02_SPU_YOGA_Air_14s",
+    "configuration_count": 3,
+    "representative_files": {
+      "copywriting": "笔记本/02_SPU_YOGA_Air_14s/商品文案.md",
+      "white_image": "笔记本/02_SPU_YOGA_Air_14s/白底图.jpg",
+      "detail_image": "笔记本/02_SPU_YOGA_Air_14s/详情图.jpg"
+    },
+    "configurations": [
+      {
+        "configuration_id": "SPU-笔记本-002-SKU-01",
+        "configuration_name": "高通骁龙 X Elite / Windows 11 家庭中文版 / 32G / 1T SSD / 集成显卡 / 浅海贝",
+        "sku_id": "1038684",
+        "original_name": "联想 YOGA Air 14s 骁龙 AI元启 14.5英寸轻薄笔记本电脑 浅海贝",
+        "description": "高通骁龙 X Elite/Windows 11 家庭中文版/32G/1T SSD/集成显卡/浅海贝",
+        "original_price": "9999",
+        "sale_price": "9999",
+        "tags": [
+          "以旧换新",
+          "官方正品"
+        ],
+        "source": "https://item.lenovo.com.cn/product/1038684.html",
+        "files": {
+          "copywriting": "笔记本/02_SPU_YOGA_Air_14s/商品文案.md",
+          "white_image": "笔记本/02_SPU_YOGA_Air_14s/白底图.jpg",
+          "detail_image": "笔记本/02_SPU_YOGA_Air_14s/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      },
+      {
+        "configuration_id": "SPU-笔记本-002-SKU-02",
+        "configuration_name": "AMD Ryzen 7 7840S / Windows 11 家庭中文版 / 32G / 1T SSD / 触控屏 / 日光映潮",
+        "sku_id": "1030688",
+        "original_name": "联想YOGA Air14s 2023款14.5英寸轻薄笔记本电脑 日光映潮",
+        "description": "AMD Ryzen 7 7840S/Windows 11 家庭中文版/32G/1T SSD/触控屏/日光映潮",
+        "original_price": "8299",
+        "sale_price": "8299",
+        "tags": [
+          "以旧换新",
+          "官方正品"
+        ],
+        "source": "https://item.lenovo.com.cn/product/1030688.html",
+        "files": {
+          "copywriting": "笔记本/02_SPU_YOGA_Air_14s/商品文案.md",
+          "white_image": "笔记本/02_SPU_YOGA_Air_14s/白底图.jpg",
+          "detail_image": "笔记本/02_SPU_YOGA_Air_14s/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      },
+      {
+        "configuration_id": "SPU-笔记本-002-SKU-03",
+        "configuration_name": "AMD Ryzen 7 7840S / Windows 11 家庭中文版 / 16G / 1T SSD / 触控屏 / 日光映潮",
+        "sku_id": "1030691",
+        "original_name": "联想YOGA Air14s 2023款14.5英寸轻薄笔记本电脑 日光映潮",
+        "description": "AMD Ryzen 7 7840S/Windows 11 家庭中文版/16G/1T SSD/触控屏/日光映潮",
+        "original_price": "7999",
+        "sale_price": "7999",
+        "tags": [
+          "以旧换新",
+          "官方正品"
+        ],
+        "source": "https://item.lenovo.com.cn/product/1030691.html",
+        "files": {
+          "copywriting": "笔记本/02_SPU_YOGA_Air_14s/商品文案.md",
+          "white_image": "笔记本/02_SPU_YOGA_Air_14s/白底图.jpg",
+          "detail_image": "笔记本/02_SPU_YOGA_Air_14s/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      }
+    ],
+    "asset_mode": "shared_spu_assets"
+  },
+  {
+    "spu_id": "SPU-笔记本-003",
+    "short_name": "YOGA Pro 15",
+    "category": "笔记本",
+    "folder": "笔记本/03_SPU_YOGA_Pro_15",
+    "configuration_count": 1,
+    "representative_files": {
+      "copywriting": "笔记本/03_SPU_YOGA_Pro_15/商品文案.md",
+      "white_image": "笔记本/03_SPU_YOGA_Pro_15/白底图.jpg",
+      "detail_image": "笔记本/03_SPU_YOGA_Pro_15/详情图.jpg"
+    },
+    "configurations": [
+      {
+        "configuration_id": "SPU-笔记本-003-SKU-01",
+        "configuration_name": "AMD锐龙 AI Max+ 388 / Windows 11 家庭中文版 / 15.3英寸 / 64GB / 1TB SSD / 集成显卡 / 触控OLED / 雷霆灰",
+        "sku_id": "1056246",
+        "original_name": "联想YOGA Pro 15 锐龙 15.3英寸轻薄创作笔记本电脑 雷霆灰",
+        "description": "AMD锐龙 AI Max+ 388丨Windows 11 家庭中文版丨15.3英寸丨64GB丨1TB SSD丨集成显卡丨触控OLED丨雷霆灰",
+        "original_price": "19999",
+        "sale_price": "19999",
+        "tags": [
+          "自营",
+          "领国补至高减15%"
+        ],
+        "source": "https://item.lenovo.com.cn/product/1056246.html",
+        "files": {
+          "copywriting": "笔记本/03_SPU_YOGA_Pro_15/商品文案.md",
+          "white_image": "笔记本/03_SPU_YOGA_Pro_15/白底图.jpg",
+          "detail_image": "笔记本/03_SPU_YOGA_Pro_15/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      }
+    ],
+    "asset_mode": "shared_spu_assets"
+  },
+  {
+    "spu_id": "SPU-笔记本-004",
+    "short_name": "YOGA Pro 15 Aura",
+    "category": "笔记本",
+    "folder": "笔记本/04_SPU_YOGA_Pro_15_Aura",
+    "configuration_count": 1,
+    "representative_files": {
+      "copywriting": "笔记本/04_SPU_YOGA_Pro_15_Aura/商品文案.md",
+      "white_image": "笔记本/04_SPU_YOGA_Pro_15_Aura/白底图.jpg",
+      "detail_image": "笔记本/04_SPU_YOGA_Pro_15_Aura/详情图.jpg"
+    },
+    "configurations": [
+      {
+        "configuration_id": "SPU-笔记本-004-SKU-01",
+        "configuration_name": "英特尔酷睿Ultra 7 356H / Windows 11 家庭中文版 / 32GB / 1T SSD / RTX™ 5060 / 信风灰",
+        "sku_id": "1053096",
+        "original_name": "联想YOGA Pro 15 Aura 15.3英寸轻薄创作笔记本电脑 信风灰",
+        "description": "英特尔酷睿Ultra 7 356H丨Windows 11 家庭中文版丨32GB丨1T SSD丨RTX™ 5060丨信风灰",
+        "original_price": "14999",
+        "sale_price": "14999",
+        "tags": [
+          "自营",
+          "领国补至高减15%"
+        ],
+        "source": "https://item.lenovo.com.cn/product/1053096.html",
+        "files": {
+          "copywriting": "笔记本/04_SPU_YOGA_Pro_15_Aura/商品文案.md",
+          "white_image": "笔记本/04_SPU_YOGA_Pro_15_Aura/白底图.jpg",
+          "detail_image": "笔记本/04_SPU_YOGA_Pro_15_Aura/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      }
+    ],
+    "asset_mode": "shared_spu_assets"
+  },
+  {
+    "spu_id": "SPU-笔记本-005",
+    "short_name": "YOGA Air 14c",
+    "category": "笔记本",
+    "folder": "笔记本/05_SPU_YOGA_Air_14c",
+    "configuration_count": 1,
+    "representative_files": {
+      "copywriting": "笔记本/05_SPU_YOGA_Air_14c/商品文案.md",
+      "white_image": "笔记本/05_SPU_YOGA_Air_14c/白底图.jpg",
+      "detail_image": "笔记本/05_SPU_YOGA_Air_14c/详情图.jpg"
+    },
+    "configurations": [
+      {
+        "configuration_id": "SPU-笔记本-005-SKU-01",
+        "configuration_name": "英特尔酷睿 Ultra 7 / Windows 11 家庭中文版 / 14英寸 / 32GB / 1T SSD / 集成显卡 / 雾海蓝",
+        "sku_id": "1038683",
+        "original_name": "联想 YOGA Air 14c AI元启 14英寸轻薄360°翻转笔记本 雾海蓝",
+        "description": "英特尔酷睿 Ultra 7/Windows 11 家庭中文版/14英寸/32GB/1T SSD/集成显卡/雾海蓝",
+        "original_price": "8499",
+        "sale_price": "8499",
+        "tags": [
+          "以旧换新",
+          "官方正品"
+        ],
+        "source": "https://item.lenovo.com.cn/product/1038683.html",
+        "files": {
+          "copywriting": "笔记本/05_SPU_YOGA_Air_14c/商品文案.md",
+          "white_image": "笔记本/05_SPU_YOGA_Air_14c/白底图.jpg",
+          "detail_image": "笔记本/05_SPU_YOGA_Air_14c/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      }
+    ],
+    "asset_mode": "shared_spu_assets"
+  },
+  {
+    "spu_id": "SPU-笔记本-006",
+    "short_name": "YOGA Pro 16 Aura",
+    "category": "笔记本",
+    "folder": "笔记本/06_SPU_YOGA_Pro_16_Aura",
+    "configuration_count": 1,
+    "representative_files": {
+      "copywriting": "笔记本/06_SPU_YOGA_Pro_16_Aura/商品文案.md",
+      "white_image": "笔记本/06_SPU_YOGA_Pro_16_Aura/白底图.jpg",
+      "detail_image": "笔记本/06_SPU_YOGA_Pro_16_Aura/详情图.jpg"
+    },
+    "configurations": [
+      {
+        "configuration_id": "SPU-笔记本-006-SKU-01",
+        "configuration_name": "英特尔酷睿Ultra 7 356H / Windows 11 家庭中文版 / 32GB / 1T SSD / RTX™ 5060 / 触控OLED / 灵感妙笔 / 雷霆灰",
+        "sku_id": "1052919",
+        "original_name": "联想YOGA Pro 16 Aura 16英寸轻薄创作笔记本电脑 雷霆灰",
+        "description": "英特尔酷睿Ultra 7 356H丨Windows 11 家庭中文版丨32GB丨1T SSD丨RTX™ 5060丨触控OLED丨灵感妙笔丨雷霆灰",
+        "original_price": "23999",
+        "sale_price": "23999",
+        "tags": [
+          "自营",
+          "领国补至高减15%"
+        ],
+        "source": "https://item.lenovo.com.cn/product/1052919.html",
+        "files": {
+          "copywriting": "笔记本/06_SPU_YOGA_Pro_16_Aura/商品文案.md",
+          "white_image": "笔记本/06_SPU_YOGA_Pro_16_Aura/白底图.jpg",
+          "detail_image": "笔记本/06_SPU_YOGA_Pro_16_Aura/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      }
+    ],
+    "asset_mode": "shared_spu_assets"
+  },
+  {
+    "spu_id": "SPU-笔记本-007",
+    "short_name": "YOGA Air 14 Aura",
+    "category": "笔记本",
+    "folder": "笔记本/07_SPU_YOGA_Air_14_Aura",
+    "configuration_count": 1,
+    "representative_files": {
+      "copywriting": "笔记本/07_SPU_YOGA_Air_14_Aura/商品文案.md",
+      "white_image": "笔记本/07_SPU_YOGA_Air_14_Aura/白底图.jpg",
+      "detail_image": "笔记本/07_SPU_YOGA_Air_14_Aura/详情图.jpg"
+    },
+    "configurations": [
+      {
+        "configuration_id": "SPU-笔记本-007-SKU-01",
+        "configuration_name": "英特尔® 酷睿™ Ultra 7 258V / Windows 11 家庭中文版 / office 2024 / 14英寸 / 32GB / 1TB SSD / 集成显卡 / 触控 / 霁空蓝",
+        "sku_id": "1053892",
+        "original_name": "YOGA Air 14 Aura 14英寸轻薄笔记本电脑 霁空蓝",
+        "description": "英特尔® 酷睿™ Ultra 7 258V丨Windows 11 家庭中文版丨office 2024丨14英寸丨32GB丨1TB SSD丨集成显卡丨触控丨霁空蓝",
+        "original_price": "11499",
+        "sale_price": "11499",
+        "tags": [
+          "自营",
+          "领国补至高减15%"
+        ],
+        "source": "https://item.lenovo.com.cn/product/1053892.html",
+        "files": {
+          "copywriting": "笔记本/07_SPU_YOGA_Air_14_Aura/商品文案.md",
+          "white_image": "笔记本/07_SPU_YOGA_Air_14_Aura/白底图.jpg",
+          "detail_image": "笔记本/07_SPU_YOGA_Air_14_Aura/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      }
+    ],
+    "asset_mode": "shared_spu_assets"
+  },
+  {
+    "spu_id": "SPU-笔记本-008",
+    "short_name": "联想小新 Air 13",
+    "category": "笔记本",
+    "folder": "笔记本/08_SPU_联想小新_Air_13",
+    "configuration_count": 1,
+    "representative_files": {
+      "copywriting": "笔记本/08_SPU_联想小新_Air_13/商品文案.md",
+      "white_image": "笔记本/08_SPU_联想小新_Air_13/白底图.jpg",
+      "detail_image": "笔记本/08_SPU_联想小新_Air_13/详情图.jpg"
+    },
+    "configurations": [
+      {
+        "configuration_id": "SPU-笔记本-008-SKU-01",
+        "configuration_name": "英特尔® 酷睿™ 5 320 / Windows 11 家庭中文版 / 13.3英寸 / 16GB / 512GB SSD / 集成显卡",
+        "sku_id": "1053879",
+        "original_name": "联想 小新Air13 13.3英寸轻薄笔记本电脑",
+        "description": "英特尔® 酷睿™ 5 320丨Windows 11 家庭中文版丨13.3英寸丨16GB丨512GB SSD丨集成显卡",
+        "original_price": "5499",
+        "sale_price": "5499",
+        "tags": [
+          "自营",
+          "领国补至高减15%"
+        ],
+        "source": "https://item.lenovo.com.cn/product/1053879.html",
+        "files": {
+          "copywriting": "笔记本/08_SPU_联想小新_Air_13/商品文案.md",
+          "white_image": "笔记本/08_SPU_联想小新_Air_13/白底图.jpg",
+          "detail_image": "笔记本/08_SPU_联想小新_Air_13/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      }
+    ],
+    "asset_mode": "shared_spu_assets"
+  },
+  {
+    "spu_id": "SPU-笔记本-009",
+    "short_name": "联想小新 16",
+    "category": "笔记本",
+    "folder": "笔记本/09_SPU_联想小新_16",
+    "configuration_count": 1,
+    "representative_files": {
+      "copywriting": "笔记本/09_SPU_联想小新_16/商品文案.md",
+      "white_image": "笔记本/09_SPU_联想小新_16/白底图.jpg",
+      "detail_image": "笔记本/09_SPU_联想小新_16/详情图.jpg"
+    },
+    "configurations": [
+      {
+        "configuration_id": "SPU-笔记本-009-SKU-01",
+        "configuration_name": "AMD Ryzen 7 8745HS / Windows 11 家庭中文版 / 16英寸 / 16GB / 512G SSD / 集成显卡 / 深灰",
+        "sku_id": "1048565",
+        "original_name": "联想小新16 2025 锐龙版16英寸轻薄笔记本电脑 深灰",
+        "description": "AMD Ryzen 7 8745HS/Windows 11 家庭中文版/16英寸/16GB/512G SSD/集成显卡/深灰",
+        "original_price": "5299",
+        "sale_price": "5299",
+        "tags": [
+          "官方正品",
+          "联想商城"
+        ],
+        "source": "https://item.lenovo.com.cn/product/1048565.html",
+        "files": {
+          "copywriting": "笔记本/09_SPU_联想小新_16/商品文案.md",
+          "white_image": "笔记本/09_SPU_联想小新_16/白底图.jpg",
+          "detail_image": "笔记本/09_SPU_联想小新_16/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      }
+    ],
+    "asset_mode": "shared_spu_assets"
+  },
+  {
+    "spu_id": "SPU-笔记本-010",
+    "short_name": "联想小新 Air 14",
+    "category": "笔记本",
+    "folder": "笔记本/10_SPU_联想小新_Air_14",
+    "configuration_count": 1,
+    "representative_files": {
+      "copywriting": "笔记本/10_SPU_联想小新_Air_14/商品文案.md",
+      "white_image": "笔记本/10_SPU_联想小新_Air_14/白底图.jpg",
+      "detail_image": "笔记本/10_SPU_联想小新_Air_14/详情图.jpg"
+    },
+    "configurations": [
+      {
+        "configuration_id": "SPU-笔记本-010-SKU-01",
+        "configuration_name": "英特尔® 酷睿™ Ultra 5 226V / Windows 11 家庭中文版 / office 2024 / 14英寸 / 16GB / 512GB SSD / 集成显卡 / 海盐",
+        "sku_id": "1053886",
+        "original_name": "联想小新Air14 14英寸轻薄笔记本电脑 海盐",
+        "description": "英特尔® 酷睿™ Ultra 5 226V丨Windows 11 家庭中文版丨office 2024丨14英寸丨16GB丨512GB SSD丨集成显卡丨海盐",
+        "original_price": "6499",
+        "sale_price": "6499",
+        "tags": [
+          "自营",
+          "领国补至高减15%"
+        ],
+        "source": "https://item.lenovo.com.cn/product/1053886.html",
+        "files": {
+          "copywriting": "笔记本/10_SPU_联想小新_Air_14/商品文案.md",
+          "white_image": "笔记本/10_SPU_联想小新_Air_14/白底图.jpg",
+          "detail_image": "笔记本/10_SPU_联想小新_Air_14/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      }
+    ],
+    "asset_mode": "shared_spu_assets"
+  },
+  {
+    "spu_id": "SPU-笔记本-011",
+    "short_name": "联想拯救者 Y7000X",
+    "category": "笔记本",
+    "folder": "笔记本/11_SPU_联想拯救者_Y7000X",
+    "configuration_count": 2,
+    "representative_files": {
+      "copywriting": "笔记本/11_SPU_联想拯救者_Y7000X/商品文案.md",
+      "white_image": "笔记本/11_SPU_联想拯救者_Y7000X/白底图.jpg",
+      "detail_image": "笔记本/11_SPU_联想拯救者_Y7000X/详情图.jpg"
+    },
+    "configurations": [
+      {
+        "configuration_id": "SPU-笔记本-011-SKU-01",
+        "configuration_name": "英特尔® 酷睿™ 7 245HX / Windows 11 家庭中文版 / 15.3英寸 / 32GB(16x2) / 512GB+1TB SSD / RTX5060 8G / 碳晶黑",
+        "sku_id": "1055587",
+        "original_name": "【定制款】联想拯救者Y7000X 2026 15.3英寸电竞游戏笔记本电脑 碳晶黑",
+        "description": "英特尔® 酷睿™ 7 245HX丨Windows 11 家庭中文版丨15.3英寸丨32GB(16x2)丨512GB+1TB SSD丨RTX5060 8G丨碳晶黑",
+        "original_price": "15448",
+        "sale_price": "15448",
+        "tags": [
+          "自营",
+          "领国补至高减15%"
+        ],
+        "source": "https://item.lenovo.com.cn/product/1055587.html",
+        "files": {
+          "copywriting": "笔记本/11_SPU_联想拯救者_Y7000X/商品文案.md",
+          "white_image": "笔记本/11_SPU_联想拯救者_Y7000X/白底图.jpg",
+          "detail_image": "笔记本/11_SPU_联想拯救者_Y7000X/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      },
+      {
+        "configuration_id": "SPU-笔记本-011-SKU-02",
+        "configuration_name": "英特尔® 酷睿™ 7 245HX / Windows 11 家庭中文版 / 15.3英寸 / 32G(16Gx2) / 512GB SSD / RTX5060 8G / 冰魄白",
+        "sku_id": "1055589",
+        "original_name": "【定制款】联想拯救者Y7000X 2026 15.3英寸电竞游戏笔记本电脑 冰魄白",
+        "description": "英特尔® 酷睿™ 7 245HX丨Windows 11 家庭中文版丨15.3英寸丨32G(16Gx2)丨512GB SSD丨RTX5060 8G丨冰魄白",
+        "original_price": "14398",
+        "sale_price": "14398",
+        "tags": [
+          "自营",
+          "领国补至高减15%"
+        ],
+        "source": "https://item.lenovo.com.cn/product/1055589.html",
+        "files": {
+          "copywriting": "笔记本/11_SPU_联想拯救者_Y7000X/商品文案.md",
+          "white_image": "笔记本/11_SPU_联想拯救者_Y7000X/白底图.jpg",
+          "detail_image": "笔记本/11_SPU_联想拯救者_Y7000X/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      }
+    ],
+    "asset_mode": "shared_spu_assets"
+  },
+  {
+    "spu_id": "SPU-笔记本-012",
+    "short_name": "联想拯救者 Y9000P",
+    "category": "笔记本",
+    "folder": "笔记本/12_SPU_联想拯救者_Y9000P",
+    "configuration_count": 1,
+    "representative_files": {
+      "copywriting": "笔记本/12_SPU_联想拯救者_Y9000P/商品文案.md",
+      "white_image": "笔记本/12_SPU_联想拯救者_Y9000P/白底图.jpg",
+      "detail_image": "笔记本/12_SPU_联想拯救者_Y9000P/详情图.jpg"
+    },
+    "configurations": [
+      {
+        "configuration_id": "SPU-笔记本-012-SKU-01",
+        "configuration_name": "英特尔® 酷睿™ Ultra 9 / Windows 11 家庭中文版 / 16英寸 / 64GB(32GB+32GB) / 1TB SSD / RTX™ 5060 8G独显 / 冰魄白",
+        "sku_id": "1054054",
+        "original_name": "【定制款】联想拯救者Y9000P 16英寸笔记本电脑 冰魄白",
+        "description": "英特尔® 酷睿™ Ultra 9丨Windows 11 家庭中文版丨16英寸丨64GB(32GB+32GB)丨1TB SSD丨RTX™ 5060 8G独显丨冰魄白",
+        "original_price": "21998",
+        "sale_price": "21998",
+        "tags": [
+          "自营",
+          "高配定制"
+        ],
+        "source": "https://item.lenovo.com.cn/product/1054054.html",
+        "files": {
+          "copywriting": "笔记本/12_SPU_联想拯救者_Y9000P/商品文案.md",
+          "white_image": "笔记本/12_SPU_联想拯救者_Y9000P/白底图.jpg",
+          "detail_image": "笔记本/12_SPU_联想拯救者_Y9000P/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      }
+    ],
+    "asset_mode": "shared_spu_assets"
+  },
+  {
+    "spu_id": "SPU-台式机-001",
+    "short_name": "联想 GeekPro",
+    "category": "台式机",
+    "folder": "台式机/01_SPU_联想_GeekPro",
+    "configuration_count": 5,
+    "representative_files": {
+      "copywriting": "台式机/01_SPU_联想_GeekPro/商品文案.md",
+      "white_image": "台式机/01_SPU_联想_GeekPro/白底图.jpg",
+      "detail_image": "台式机/01_SPU_联想_GeekPro/详情图.jpg"
+    },
+    "configurations": [
+      {
+        "configuration_id": "SPU-台式机-001-SKU-01",
+        "configuration_name": "14代英特尔酷睿i5-14400(F) / Windows 11 家庭中文版 / RTX5060 Ti / 16G / 1T SSD【超核卖点】白色可调呼吸式光柱 | 免工具安装HDD | DIY级丰富接口",
+        "sku_id": "1052465",
+        "original_name": "【游戏办公双全】联想GeekPro 酷睿i5 RTX5060 Ti 高性能台机",
+        "description": "14代英特尔酷睿i5-14400(F)丨Windows 11 家庭中文版 丨RTX5060 Ti丨16G丨1T SSD【超核卖点】白色可调呼吸式光柱 | 免工具安装HDD | DIY级丰富接口",
+        "original_price": "10499",
+        "sale_price": "10499",
+        "tags": [
+          "自营",
+          "领国补至高减15%"
+        ],
+        "source": "https://item.lenovo.com.cn/product/1052465.html",
+        "files": {
+          "copywriting": "台式机/01_SPU_联想_GeekPro/商品文案.md",
+          "white_image": "台式机/01_SPU_联想_GeekPro/白底图.jpg",
+          "detail_image": "台式机/01_SPU_联想_GeekPro/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      },
+      {
+        "configuration_id": "SPU-台式机-001-SKU-02",
+        "configuration_name": "14代英特尔酷睿i5-14400F / Windows 11 家庭中文版 / RTX5060 8G / 32GB(16*2) / 1T SSD【超核卖点】白色可调呼吸式光柱 | 免工具安装HDD",
+        "sku_id": "1053694",
+        "original_name": "【游戏办公双全】联想 GeekPro 酷睿i5 RTX5060 8G高性能台机",
+        "description": "14代英特尔酷睿i5-14400F丨Windows 11 家庭中文版丨RTX5060 8G丨32GB(16*2)丨1T SSD【超核卖点】白色可调呼吸式光柱 | 免工具安装HDD",
+        "original_price": "11499",
+        "sale_price": "11499",
+        "tags": [
+          "自营",
+          "领国补至高减15%"
+        ],
+        "source": "https://item.lenovo.com.cn/product/1053694.html",
+        "files": {
+          "copywriting": "台式机/01_SPU_联想_GeekPro/商品文案.md",
+          "white_image": "台式机/01_SPU_联想_GeekPro/白底图.jpg",
+          "detail_image": "台式机/01_SPU_联想_GeekPro/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      },
+      {
+        "configuration_id": "SPU-台式机-001-SKU-03",
+        "configuration_name": "14代英特尔酷睿i5-14400 / Windows 11 家庭中文版 / RTX5050 8GB / 24G DDR5 / 1T SSD【超核卖点】白色可调呼吸式光柱 | 免工具安装HDD | DIY级丰富接口",
+        "sku_id": "1052942",
+        "original_name": "联想GeekPro 14代英特尔酷睿i5 分体式台式机",
+        "description": "14代英特尔酷睿i5-14400/Windows 11 家庭中文版 /RTX5050 8GB/24G DDR5/1T SSD【超核卖点】白色可调呼吸式光柱 | 免工具安装HDD | DIY级丰富接口",
+        "original_price": "8999",
+        "sale_price": "8999",
+        "tags": [
+          "自营",
+          "领国补至高减15%"
+        ],
+        "source": "https://item.lenovo.com.cn/product/1052942.html",
+        "files": {
+          "copywriting": "台式机/01_SPU_联想_GeekPro/商品文案.md",
+          "white_image": "台式机/01_SPU_联想_GeekPro/白底图.jpg",
+          "detail_image": "台式机/01_SPU_联想_GeekPro/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      },
+      {
+        "configuration_id": "SPU-台式机-001-SKU-04",
+        "configuration_name": "Core7 245HX / Windows 11 家庭中文版 / RTX5060 8GB / 16G / 1T SSD",
+        "sku_id": "1055673",
+        "original_name": "【游戏办公双全】联想GeekPro Core7 245HX 分体式台式机",
+        "description": "Core7 245HX丨Windows 11 家庭中文版 丨RTX5060 8GB丨16G丨1T SSD",
+        "original_price": "9999",
+        "sale_price": "9999",
+        "tags": [
+          "自营",
+          "领国补至高减15%"
+        ],
+        "source": "https://item.lenovo.com.cn/product/1055673.html",
+        "files": {
+          "copywriting": "台式机/01_SPU_联想_GeekPro/商品文案.md",
+          "white_image": "台式机/01_SPU_联想_GeekPro/白底图.jpg",
+          "detail_image": "台式机/01_SPU_联想_GeekPro/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      },
+      {
+        "configuration_id": "SPU-台式机-001-SKU-05",
+        "configuration_name": "14代英特尔酷睿i5-14400F / Windows 11 家庭中文版 / RTX3050 6GB / 16G / 512G SSD【超核卖点】白色可调呼吸式光柱 | 免工具安装HDD | DIY级丰富接口",
+        "sku_id": "1044290",
+        "original_name": "【游戏办公双全】联想GeekPro 酷睿i5 RTX3050 高性能台机",
+        "description": "14代英特尔酷睿i5-14400F/Windows 11 家庭中文版 /RTX3050 6GB/16G /512G SSD【超核卖点】白色可调呼吸式光柱 | 免工具安装HDD | DIY级丰富接口",
+        "original_price": "8499",
+        "sale_price": "8499",
+        "tags": [
+          "自营",
+          "领国补至高减15%"
+        ],
+        "source": "https://item.lenovo.com.cn/product/1044290.html",
+        "files": {
+          "copywriting": "台式机/01_SPU_联想_GeekPro/商品文案.md",
+          "white_image": "台式机/01_SPU_联想_GeekPro/白底图.jpg",
+          "detail_image": "台式机/01_SPU_联想_GeekPro/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      }
+    ],
+    "asset_mode": "shared_spu_assets"
+  },
+  {
+    "spu_id": "SPU-台式机-002",
+    "short_name": "联想小新 27 一体机",
+    "category": "台式机",
+    "folder": "台式机/02_SPU_联想小新_27_一体机",
+    "configuration_count": 3,
+    "representative_files": {
+      "copywriting": "台式机/02_SPU_联想小新_27_一体机/商品文案.md",
+      "white_image": "台式机/02_SPU_联想小新_27_一体机/白底图.jpg",
+      "detail_image": "台式机/02_SPU_联想小新_27_一体机/详情图.jpg"
+    },
+    "configurations": [
+      {
+        "configuration_id": "SPU-台式机-002-SKU-01",
+        "configuration_name": "英特尔酷睿Ultra 7 256V / Windows 11 家庭中文版 / 16GB / 1TB SSD / 集成显卡",
+        "sku_id": "1052472",
+        "original_name": "小新27 酷睿Ultra 7 256V 16G 1T 27英寸一体台式电脑 深空色",
+        "description": "英特尔酷睿Ultra 7 256V丨Windows 11 家庭中文版丨16GB丨1TB SSD丨集成显卡",
+        "original_price": "7499",
+        "sale_price": "7499",
+        "tags": [
+          "自营",
+          "领国补至高减15%"
+        ],
+        "source": "https://item.lenovo.com.cn/product/1052472.html",
+        "files": {
+          "copywriting": "台式机/02_SPU_联想小新_27_一体机/商品文案.md",
+          "white_image": "台式机/02_SPU_联想小新_27_一体机/白底图.jpg",
+          "detail_image": "台式机/02_SPU_联想小新_27_一体机/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      },
+      {
+        "configuration_id": "SPU-台式机-002-SKU-02",
+        "configuration_name": "英特尔酷睿Ultra5 226V / Windows 11 家庭中文版 / 16GB / 512GB SSD / 集成显卡",
+        "sku_id": "1052478",
+        "original_name": "小新27 酷睿Ultra 5 226V 16G 512G 27英寸一体台式电脑 云影色",
+        "description": "英特尔酷睿Ultra5 226V丨Windows 11 家庭中文版丨16GB丨512GB SSD丨集成显卡",
+        "original_price": "6499",
+        "sale_price": "6499",
+        "tags": [
+          "自营",
+          "领国补至高减15%"
+        ],
+        "source": "https://item.lenovo.com.cn/product/1052478.html",
+        "files": {
+          "copywriting": "台式机/02_SPU_联想小新_27_一体机/商品文案.md",
+          "white_image": "台式机/02_SPU_联想小新_27_一体机/白底图.jpg",
+          "detail_image": "台式机/02_SPU_联想小新_27_一体机/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      },
+      {
+        "configuration_id": "SPU-台式机-002-SKU-03",
+        "configuration_name": "英特尔® 酷睿™ Ultra 7 256V / Windows 11 家庭中文版 / 27英寸 / 16G / 512G SSD / 集成显卡",
+        "sku_id": "1056942",
+        "original_name": "联想Lenovo小新 27 英特尔® 酷睿Ultra 7 家庭娱乐27英寸一体机电脑 云影",
+        "description": "英特尔® 酷睿™ Ultra 7 256V丨Windows 11 家庭中文版丨27英寸丨16G丨512G SSD丨集成显卡",
+        "original_price": "6299",
+        "sale_price": "6299",
+        "tags": [
+          "以旧换新",
+          "官方正品"
+        ],
+        "source": "https://item.lenovo.com.cn/product/1056942.html",
+        "files": {
+          "copywriting": "台式机/02_SPU_联想小新_27_一体机/商品文案.md",
+          "white_image": "台式机/02_SPU_联想小新_27_一体机/白底图.jpg",
+          "detail_image": "台式机/02_SPU_联想小新_27_一体机/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      }
+    ],
+    "asset_mode": "shared_spu_assets"
+  },
+  {
+    "spu_id": "SPU-台式机-003",
+    "short_name": "联想拯救者 刃7000K 超能版",
+    "category": "台式机",
+    "folder": "台式机/03_SPU_联想拯救者_刃7000K_超能版",
+    "configuration_count": 2,
+    "representative_files": {
+      "copywriting": "台式机/03_SPU_联想拯救者_刃7000K_超能版/商品文案.md",
+      "white_image": "台式机/03_SPU_联想拯救者_刃7000K_超能版/白底图.jpg",
+      "detail_image": "台式机/03_SPU_联想拯救者_刃7000K_超能版/详情图.jpg"
+    },
+    "configurations": [
+      {
+        "configuration_id": "SPU-台式机-003-SKU-01",
+        "configuration_name": "英特尔酷睿Ultra 7 251HX / Windows 11 家庭中文版 / RTX 5060 Ti 8G / 16(16x1) / 1T SSD",
+        "sku_id": "1053079",
+        "original_name": "【专业电竞】拯救者刃7000K 超能版 英特尔酷睿Ultra 7 5060 Ti 游戏台机",
+        "description": "英特尔酷睿Ultra 7 251HX丨Windows 11 家庭中文版丨RTX 5060 Ti 8G丨16(16x1)丨1T SSD",
+        "original_price": "12999",
+        "sale_price": "12999",
+        "tags": [
+          "自营",
+          "领国补至高减15%"
+        ],
+        "source": "https://item.lenovo.com.cn/product/1053079.html",
+        "files": {
+          "copywriting": "台式机/03_SPU_联想拯救者_刃7000K_超能版/商品文案.md",
+          "white_image": "台式机/03_SPU_联想拯救者_刃7000K_超能版/白底图.jpg",
+          "detail_image": "台式机/03_SPU_联想拯救者_刃7000K_超能版/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      },
+      {
+        "configuration_id": "SPU-台式机-003-SKU-02",
+        "configuration_name": "英特尔酷睿i7-14650HX / Windows 11 家庭中文版 / RTX5060Ti 8G / 32G（16*2） / 1T SSD 非侧透 | 乾坤散热架构",
+        "sku_id": "1053860",
+        "original_name": "【专业电竞】拯救者刃7000K 超能版 酷睿i7 5060Ti 游戏台机",
+        "description": "英特尔酷睿i7-14650HX/Windows 11 家庭中文版/RTX5060Ti 8G/32G（16*2）/1T SSD 非侧透 | 乾坤散热架构",
+        "original_price": "13299",
+        "sale_price": "13299",
+        "tags": [
+          "以旧换新",
+          "官方正品"
+        ],
+        "source": "https://item.lenovo.com.cn/product/1053860.html",
+        "files": {
+          "copywriting": "台式机/03_SPU_联想拯救者_刃7000K_超能版/商品文案.md",
+          "white_image": "台式机/03_SPU_联想拯救者_刃7000K_超能版/白底图.jpg",
+          "detail_image": "台式机/03_SPU_联想拯救者_刃7000K_超能版/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      }
+    ],
+    "asset_mode": "shared_spu_assets"
+  },
+  {
+    "spu_id": "SPU-台式机-004",
+    "short_name": "联想天逸 510 Pro",
+    "category": "台式机",
+    "folder": "台式机/04_SPU_联想天逸_510_Pro",
+    "configuration_count": 1,
+    "representative_files": {
+      "copywriting": "台式机/04_SPU_联想天逸_510_Pro/商品文案.md",
+      "white_image": "台式机/04_SPU_联想天逸_510_Pro/白底图.jpg",
+      "detail_image": "台式机/04_SPU_联想天逸_510_Pro/详情图.jpg"
+    },
+    "configurations": [
+      {
+        "configuration_id": "SPU-台式机-004-SKU-01",
+        "configuration_name": "14代英特尔酷睿i5-14400 / Windows 11 家庭中文版 / 16G / 2T+512G SSD / 集成显卡【超核卖点】稳定高效商用台机 | 14L机箱 | 标配原厂键鼠",
+        "sku_id": "1056661",
+        "original_name": "【专业高效办公】天逸510Pro 英特尔14代酷睿i5台式机电脑",
+        "description": "14代英特尔酷睿i5-14400丨Windows 11 家庭中文版丨16G丨2T+512G SSD丨集成显卡【超核卖点】稳定高效商用台机 | 14L机箱 | 标配原厂键鼠",
+        "original_price": "6999",
+        "sale_price": "6999",
+        "tags": [
+          "下单立减",
+          "以旧换新"
+        ],
+        "source": "https://item.lenovo.com.cn/product/1056661.html",
+        "files": {
+          "copywriting": "台式机/04_SPU_联想天逸_510_Pro/商品文案.md",
+          "white_image": "台式机/04_SPU_联想天逸_510_Pro/白底图.jpg",
+          "detail_image": "台式机/04_SPU_联想天逸_510_Pro/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      }
+    ],
+    "asset_mode": "shared_spu_assets"
+  },
+  {
+    "spu_id": "SPU-台式机-005",
+    "short_name": "联想拯救者 刃7000P",
+    "category": "台式机",
+    "folder": "台式机/05_SPU_联想拯救者_刃7000P",
+    "configuration_count": 1,
+    "representative_files": {
+      "copywriting": "台式机/05_SPU_联想拯救者_刃7000P/商品文案.md",
+      "white_image": "台式机/05_SPU_联想拯救者_刃7000P/白底图.jpg",
+      "detail_image": "台式机/05_SPU_联想拯救者_刃7000P/详情图.jpg"
+    },
+    "configurations": [
+      {
+        "configuration_id": "SPU-台式机-005-SKU-01",
+        "configuration_name": "RYZEN 9 8945HX / Windows 11 家庭中文版 / 16G / 1TB SSD / RTX5060Ti 8G 独显",
+        "sku_id": "1054435",
+        "original_name": "联想 刃7000P AMD锐龙9 RTX5060Ti 8G 专业游戏台机",
+        "description": "RYZEN 9 8945HX丨Windows 11 家庭中文版丨16G丨1TB SSD丨RTX5060Ti 8G 独显",
+        "original_price": "11499",
+        "sale_price": "11499",
+        "tags": [
+          "自营",
+          "领国补至高减15%"
+        ],
+        "source": "https://item.lenovo.com.cn/product/1054435.html",
+        "files": {
+          "copywriting": "台式机/05_SPU_联想拯救者_刃7000P/商品文案.md",
+          "white_image": "台式机/05_SPU_联想拯救者_刃7000P/白底图.jpg",
+          "detail_image": "台式机/05_SPU_联想拯救者_刃7000P/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      }
+    ],
+    "asset_mode": "shared_spu_assets"
+  },
+  {
+    "spu_id": "SPU-手机-001",
+    "short_name": "联想 moto razr 70 Ultra",
+    "category": "手机",
+    "folder": "手机/01_SPU_联想_moto_razr_70_Ultra",
+    "configuration_count": 2,
+    "representative_files": {
+      "copywriting": "手机/01_SPU_联想_moto_razr_70_Ultra/商品文案.md",
+      "white_image": "手机/01_SPU_联想_moto_razr_70_Ultra/白底图.jpg",
+      "detail_image": "手机/01_SPU_联想_moto_razr_70_Ultra/详情图.jpg"
+    },
+    "configurations": [
+      {
+        "configuration_id": "SPU-手机-001-SKU-01",
+        "configuration_name": "AI掌镜 | 超“合拍”",
+        "sku_id": "1054543",
+        "original_name": "联想moto razr 70 Ultra 16GB+512GB 檀棕椴木",
+        "description": "AI掌镜 | 超“合拍”",
+        "original_price": "7999",
+        "sale_price": "7999",
+        "tags": [
+          "自营",
+          "以旧换新"
+        ],
+        "source": "https://item.lenovo.com.cn/product/1054543.html",
+        "files": {
+          "copywriting": "手机/01_SPU_联想_moto_razr_70_Ultra/商品文案.md",
+          "white_image": "手机/01_SPU_联想_moto_razr_70_Ultra/白底图.jpg",
+          "detail_image": "手机/01_SPU_联想_moto_razr_70_Ultra/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      },
+      {
+        "configuration_id": "SPU-手机-001-SKU-02",
+        "configuration_name": "AI掌镜 | 超“合拍”",
+        "sku_id": "1054545",
+        "original_name": "联想moto razr 70 Ultra 12GB+256GB 雾绒紫薇",
+        "description": "AI掌镜 | 超“合拍”",
+        "original_price": "7499",
+        "sale_price": "7499",
+        "tags": [
+          "自营",
+          "以旧换新"
+        ],
+        "source": "https://item.lenovo.com.cn/product/1054545.html",
+        "files": {
+          "copywriting": "手机/01_SPU_联想_moto_razr_70_Ultra/商品文案.md",
+          "white_image": "手机/01_SPU_联想_moto_razr_70_Ultra/白底图.jpg",
+          "detail_image": "手机/01_SPU_联想_moto_razr_70_Ultra/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      }
+    ],
+    "asset_mode": "shared_spu_assets"
+  },
+  {
+    "spu_id": "SPU-手机-002",
+    "short_name": "联想 moto razr Fold",
+    "category": "手机",
+    "folder": "手机/02_SPU_联想_moto_razr_Fold",
+    "configuration_count": 3,
+    "representative_files": {
+      "copywriting": "手机/02_SPU_联想_moto_razr_Fold/商品文案.md",
+      "white_image": "手机/02_SPU_联想_moto_razr_Fold/白底图.jpg",
+      "detail_image": "手机/02_SPU_联想_moto_razr_Fold/详情图.jpg"
+    },
+    "configurations": [
+      {
+        "configuration_id": "SPU-手机-002-SKU-01",
+        "configuration_name": "口袋AI笔记本 | 一爪跨全端 | 万事AI接管",
+        "sku_id": "1054557",
+        "original_name": "联想moto razr Fold 12GB+256GB 珠光锦白",
+        "description": "口袋AI笔记本 | 一爪跨全端 | 万事AI接管",
+        "original_price": "9999",
+        "sale_price": "9999",
+        "tags": [
+          "自营",
+          "12期免息"
+        ],
+        "source": "https://item.lenovo.com.cn/product/1054557.html",
+        "files": {
+          "copywriting": "手机/02_SPU_联想_moto_razr_Fold/商品文案.md",
+          "white_image": "手机/02_SPU_联想_moto_razr_Fold/白底图.jpg",
+          "detail_image": "手机/02_SPU_联想_moto_razr_Fold/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      },
+      {
+        "configuration_id": "SPU-手机-002-SKU-02",
+        "configuration_name": "口袋AI笔记本 | 一爪跨全端 | 万事AI接管",
+        "sku_id": "1054546",
+        "original_name": "联想moto razr Fold 12GB+256GB 绅墨雅黑",
+        "description": "口袋AI笔记本 | 一爪跨全端 | 万事AI接管",
+        "original_price": "9999",
+        "sale_price": "9999",
+        "tags": [
+          "自营",
+          "12期免息"
+        ],
+        "source": "https://item.lenovo.com.cn/product/1054546.html",
+        "files": {
+          "copywriting": "手机/02_SPU_联想_moto_razr_Fold/商品文案.md",
+          "white_image": "手机/02_SPU_联想_moto_razr_Fold/白底图.jpg",
+          "detail_image": "手机/02_SPU_联想_moto_razr_Fold/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      },
+      {
+        "configuration_id": "SPU-手机-002-SKU-03",
+        "configuration_name": "折叠屏AI手机 / 满足更多想象力",
+        "sku_id": "1053465",
+        "original_name": "联想moto razr Fold 16GB+512GB 珠光锦白",
+        "description": "折叠屏AI手机丨满足更多想象力",
+        "original_price": "10999",
+        "sale_price": "10999",
+        "tags": [
+          "自营",
+          "12期免息"
+        ],
+        "source": "https://item.lenovo.com.cn/product/1053465.html",
+        "files": {
+          "copywriting": "手机/02_SPU_联想_moto_razr_Fold/商品文案.md",
+          "white_image": "手机/02_SPU_联想_moto_razr_Fold/白底图.jpg",
+          "detail_image": "手机/02_SPU_联想_moto_razr_Fold/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      }
+    ],
+    "asset_mode": "shared_spu_assets"
+  },
+  {
+    "spu_id": "SPU-手机-003",
+    "short_name": "联想 moto g100",
+    "category": "手机",
+    "folder": "手机/03_SPU_联想_moto_g100",
+    "configuration_count": 1,
+    "representative_files": {
+      "copywriting": "手机/03_SPU_联想_moto_g100/商品文案.md",
+      "white_image": "手机/03_SPU_联想_moto_g100/白底图.jpg",
+      "detail_image": "手机/03_SPU_联想_moto_g100/详情图.jpg"
+    },
+    "configurations": [
+      {
+        "configuration_id": "SPU-手机-003-SKU-01",
+        "configuration_name": "7000mAh星海电池 / 高通骁龙7系 / 多摄多能 影像无忧",
+        "sku_id": "1049837",
+        "original_name": "联想moto g100 8+256 青峰绿",
+        "description": "7000mAh星海电池丨高通骁龙7系丨多摄多能 影像无忧",
+        "original_price": "1239",
+        "sale_price": "1239",
+        "tags": [
+          "自营",
+          "领国补至高减15%"
+        ],
+        "source": "https://item.lenovo.com.cn/product/1049837.html",
+        "files": {
+          "copywriting": "手机/03_SPU_联想_moto_g100/商品文案.md",
+          "white_image": "手机/03_SPU_联想_moto_g100/白底图.jpg",
+          "detail_image": "手机/03_SPU_联想_moto_g100/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      }
+    ],
+    "asset_mode": "shared_spu_assets"
+  },
+  {
+    "spu_id": "SPU-手机-004",
+    "short_name": "联想 moto razr 60",
+    "category": "手机",
+    "folder": "手机/04_SPU_联想_moto_razr_60",
+    "configuration_count": 2,
+    "representative_files": {
+      "copywriting": "手机/04_SPU_联想_moto_razr_60/商品文案.md",
+      "white_image": "手机/04_SPU_联想_moto_razr_60/白底图.jpg",
+      "detail_image": "手机/04_SPU_联想_moto_razr_60/详情图.jpg"
+    },
+    "configurations": [
+      {
+        "configuration_id": "SPU-手机-004-SKU-01",
+        "configuration_name": "湿手触控强劲防水 5000万自由悬停拍 IP48级防尘抗水",
+        "sku_id": "1047358",
+        "original_name": "【张凌赫同款】联想moto razr 60 12+512 星际陨黑",
+        "description": "湿手触控强劲防水 5000万自由悬停拍 IP48级防尘抗水",
+        "original_price": "4299",
+        "sale_price": "4299",
+        "tags": [
+          "自营",
+          "领国补至高减15%"
+        ],
+        "source": "https://item.lenovo.com.cn/product/1047358.html",
+        "files": {
+          "copywriting": "手机/04_SPU_联想_moto_razr_60/商品文案.md",
+          "white_image": "手机/04_SPU_联想_moto_razr_60/白底图.jpg",
+          "detail_image": "手机/04_SPU_联想_moto_razr_60/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      },
+      {
+        "configuration_id": "SPU-手机-004-SKU-02",
+        "configuration_name": "湿手触控强劲防水 5000万自由悬停拍 IP48级防尘抗水",
+        "sku_id": "1045234",
+        "original_name": "【张凌赫同款】联想moto razr 60 12GB+256GB 棉花糖白",
+        "description": "湿手触控强劲防水 5000万自由悬停拍 IP48级防尘抗水",
+        "original_price": "3899",
+        "sale_price": "3899",
+        "tags": [
+          "自营",
+          "领国补至高减15%"
+        ],
+        "source": "https://item.lenovo.com.cn/product/1045234.html",
+        "files": {
+          "copywriting": "手机/04_SPU_联想_moto_razr_60/商品文案.md",
+          "white_image": "手机/04_SPU_联想_moto_razr_60/白底图.jpg",
+          "detail_image": "手机/04_SPU_联想_moto_razr_60/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      }
+    ],
+    "asset_mode": "shared_spu_assets"
+  },
+  {
+    "spu_id": "SPU-手机-005",
+    "short_name": "联想 moto g100 Pro",
+    "category": "手机",
+    "folder": "手机/05_SPU_联想_moto_g100_Pro",
+    "configuration_count": 2,
+    "representative_files": {
+      "copywriting": "手机/05_SPU_联想_moto_g100_Pro/商品文案.md",
+      "white_image": "手机/05_SPU_联想_moto_g100_Pro/白底图.jpg",
+      "detail_image": "手机/05_SPU_联想_moto_g100_Pro/详情图.jpg"
+    },
+    "configurations": [
+      {
+        "configuration_id": "SPU-手机-005-SKU-01",
+        "configuration_name": "6720mAh大电池强续航 / 杜比双扬1.5K高刷超清屏 / 湿手触控防水防污",
+        "sku_id": "1047216",
+        "original_name": "联想moto g100 Pro 12+256 绫罗紫",
+        "description": "6720mAh大电池强续航/杜比双扬1.5K高刷超清屏/湿手触控防水防污",
+        "original_price": "1699",
+        "sale_price": "1699",
+        "tags": [
+          "自营",
+          "领国补至高减15%"
+        ],
+        "source": "https://item.lenovo.com.cn/product/1047216.html",
+        "files": {
+          "copywriting": "手机/05_SPU_联想_moto_g100_Pro/商品文案.md",
+          "white_image": "手机/05_SPU_联想_moto_g100_Pro/白底图.jpg",
+          "detail_image": "手机/05_SPU_联想_moto_g100_Pro/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      },
+      {
+        "configuration_id": "SPU-手机-005-SKU-02",
+        "configuration_name": "6720mAh大电池强续航 / 杜比双扬1.5K高刷超清屏 / 湿手触控防水防污",
+        "sku_id": "1047218",
+        "original_name": "联想moto g100 Pro 12+256 云墨黑",
+        "description": "6720mAh大电池强续航/杜比双扬1.5K高刷超清屏/湿手触控防水防污",
+        "original_price": "1699",
+        "sale_price": "1699",
+        "tags": [
+          "自营",
+          "领国补至高减15%"
+        ],
+        "source": "https://item.lenovo.com.cn/product/1047218.html",
+        "files": {
+          "copywriting": "手机/05_SPU_联想_moto_g100_Pro/商品文案.md",
+          "white_image": "手机/05_SPU_联想_moto_g100_Pro/白底图.jpg",
+          "detail_image": "手机/05_SPU_联想_moto_g100_Pro/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      }
+    ],
+    "asset_mode": "shared_spu_assets"
+  },
+  {
+    "spu_id": "SPU-手机-006",
+    "short_name": "联想拯救者手机 Y70",
+    "category": "手机",
+    "folder": "手机/06_SPU_联想拯救者手机_Y70",
+    "configuration_count": 2,
+    "representative_files": {
+      "copywriting": "手机/06_SPU_联想拯救者手机_Y70/商品文案.md",
+      "white_image": "手机/06_SPU_联想拯救者手机_Y70/白底图.jpg",
+      "detail_image": "手机/06_SPU_联想拯救者手机_Y70/详情图.jpg"
+    },
+    "configurations": [
+      {
+        "configuration_id": "SPU-手机-006-SKU-01",
+        "configuration_name": "拯救者生态 | 掌心玩端游",
+        "sku_id": "1054673",
+        "original_name": "联想拯救者手机 Y70 新一代 16GB+512GB 冰魄白",
+        "description": "拯救者生态 | 掌心玩端游",
+        "original_price": "4099",
+        "sale_price": "4099",
+        "tags": [
+          "自营",
+          "领国补至高减15%"
+        ],
+        "source": "https://item.lenovo.com.cn/product/1054673.html",
+        "files": {
+          "copywriting": "手机/06_SPU_联想拯救者手机_Y70/商品文案.md",
+          "white_image": "手机/06_SPU_联想拯救者手机_Y70/白底图.jpg",
+          "detail_image": "手机/06_SPU_联想拯救者手机_Y70/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      },
+      {
+        "configuration_id": "SPU-手机-006-SKU-02",
+        "configuration_name": "拯救者生态 | 掌心玩端游",
+        "sku_id": "1054687",
+        "original_name": "联想拯救者手机 Y70 新一代 12GB+256GB 碳晶黑",
+        "description": "拯救者生态 | 掌心玩端游",
+        "original_price": "3099",
+        "sale_price": "3099",
+        "tags": [
+          "自营",
+          "领国补至高减15%"
+        ],
+        "source": "https://item.lenovo.com.cn/product/1054687.html",
+        "files": {
+          "copywriting": "手机/06_SPU_联想拯救者手机_Y70/商品文案.md",
+          "white_image": "手机/06_SPU_联想拯救者手机_Y70/白底图.jpg",
+          "detail_image": "手机/06_SPU_联想拯救者手机_Y70/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      }
+    ],
+    "asset_mode": "shared_spu_assets"
+  },
+  {
+    "spu_id": "SPU-平板-001",
+    "short_name": "联想小新平板 11",
+    "category": "平板",
+    "folder": "平板/01_SPU_联想小新平板_11",
+    "configuration_count": 3,
+    "representative_files": {
+      "copywriting": "平板/01_SPU_联想小新平板_11/商品文案.md",
+      "white_image": "平板/01_SPU_联想小新平板_11/白底图.jpg",
+      "detail_image": "平板/01_SPU_联想小新平板_11/详情图.jpg"
+    },
+    "configurations": [
+      {
+        "configuration_id": "SPU-平板-001-SKU-01",
+        "configuration_name": "天玑6300 / 8GB / 128GB / WIFI / 天青色",
+        "sku_id": "1045775",
+        "original_name": "【张凌赫同款】联想小新平板11 11英寸 影音娱乐网课学习 AI平板电脑 天青色",
+        "description": "天玑6300/8GB/128GB/WIFI/天青色",
+        "original_price": "1499",
+        "sale_price": "1499",
+        "tags": [
+          "自营",
+          "领国补至高减15%"
+        ],
+        "source": "https://item.lenovo.com.cn/product/1045775.html",
+        "files": {
+          "copywriting": "平板/01_SPU_联想小新平板_11/商品文案.md",
+          "white_image": "平板/01_SPU_联想小新平板_11/白底图.jpg",
+          "detail_image": "平板/01_SPU_联想小新平板_11/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      },
+      {
+        "configuration_id": "SPU-平板-001-SKU-02",
+        "configuration_name": "天玑6300 / 8GB / 128GB / WIFI / 深空灰",
+        "sku_id": "1052830",
+        "original_name": "联想小新平板11 11英寸2.5K护眼超清大屏 天玑6300 影音娱乐网课学习 AI平板电脑",
+        "description": "天玑6300/8GB/128GB/WIFI/深空灰",
+        "original_price": "1499",
+        "sale_price": "1499",
+        "tags": [
+          "下单立减",
+          "以旧换新"
+        ],
+        "source": "https://item.lenovo.com.cn/product/1052830.html",
+        "files": {
+          "copywriting": "平板/01_SPU_联想小新平板_11/商品文案.md",
+          "white_image": "平板/01_SPU_联想小新平板_11/白底图.jpg",
+          "detail_image": "平板/01_SPU_联想小新平板_11/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      },
+      {
+        "configuration_id": "SPU-平板-001-SKU-03",
+        "configuration_name": "天玑6300 / Android / 11英寸 / 8G / 256G / 5G / WIFI / 深空灰",
+        "sku_id": "1047563",
+        "original_name": "【张凌赫同款】联想小新平板 11 2025款 5G版 11英寸旗舰性能 AI平板电脑 深空灰",
+        "description": "天玑6300/Android/11英寸/8G/256G/5G/WIFI/深空灰",
+        "original_price": "1999",
+        "sale_price": "1999",
+        "tags": [
+          "自营",
+          "领国补至高减15%"
+        ],
+        "source": "https://item.lenovo.com.cn/product/1047563.html",
+        "files": {
+          "copywriting": "平板/01_SPU_联想小新平板_11/商品文案.md",
+          "white_image": "平板/01_SPU_联想小新平板_11/白底图.jpg",
+          "detail_image": "平板/01_SPU_联想小新平板_11/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      }
+    ],
+    "asset_mode": "shared_spu_assets"
+  },
+  {
+    "spu_id": "SPU-平板-002",
+    "short_name": "联想拯救者 Y900 13",
+    "category": "平板",
+    "folder": "平板/02_SPU_联想拯救者_Y900_13",
+    "configuration_count": 5,
+    "representative_files": {
+      "copywriting": "平板/02_SPU_联想拯救者_Y900_13/商品文案.md",
+      "white_image": "平板/02_SPU_联想拯救者_Y900_13/白底图.jpg",
+      "detail_image": "平板/02_SPU_联想拯救者_Y900_13/详情图.jpg"
+    },
+    "configurations": [
+      {
+        "configuration_id": "SPU-平板-002-SKU-01",
+        "configuration_name": "骁龙8至尊版 / 8核 / Android 16操作系统 / 13英寸 / 16GB / 512GB / 星光紫",
+        "sku_id": "1054297",
+        "original_name": "【张凌赫同款】联想 拯救者Y900 13 AI平板 骁龙8至尊版 16GB+512GB Wi-Fi 星光紫",
+        "description": "骁龙8至尊版丨8核丨Android 16操作系统丨13英寸丨16GB丨512GB丨星光紫",
+        "original_price": "4699",
+        "sale_price": "4699",
+        "tags": [
+          "自营",
+          "外观定制"
+        ],
+        "source": "https://item.lenovo.com.cn/product/1054297.html",
+        "files": {
+          "copywriting": "平板/02_SPU_联想拯救者_Y900_13/商品文案.md",
+          "white_image": "平板/02_SPU_联想拯救者_Y900_13/白底图.jpg",
+          "detail_image": "平板/02_SPU_联想拯救者_Y900_13/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      },
+      {
+        "configuration_id": "SPU-平板-002-SKU-02",
+        "configuration_name": "骁龙8至尊版 / 8核 / Android 16操作系统 / 13英寸 / 8GB / 256GB / 星光紫",
+        "sku_id": "1054294",
+        "original_name": "【张凌赫同款】联想 拯救者Y900 13 AI平板 骁龙8至尊版 8GB+256GB Wi-Fi 星光紫",
+        "description": "骁龙8至尊版丨8核丨Android 16操作系统丨13英寸丨8GB丨256GB丨星光紫",
+        "original_price": "3799",
+        "sale_price": "3799",
+        "tags": [
+          "自营",
+          "外观定制"
+        ],
+        "source": "https://item.lenovo.com.cn/product/1054294.html",
+        "files": {
+          "copywriting": "平板/02_SPU_联想拯救者_Y900_13/商品文案.md",
+          "white_image": "平板/02_SPU_联想拯救者_Y900_13/白底图.jpg",
+          "detail_image": "平板/02_SPU_联想拯救者_Y900_13/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      },
+      {
+        "configuration_id": "SPU-平板-002-SKU-03",
+        "configuration_name": "骁龙8至尊版 / 8核 / Android 16操作系统 / 13英寸 / 12GB / 256GB / 星光紫",
+        "sku_id": "1054299",
+        "original_name": "【张凌赫同款】联想 拯救者Y900 13 AI平板 骁龙8至尊版 12GB+256GB Wi-Fi 星光紫",
+        "description": "骁龙8至尊版丨8核丨Android 16操作系统丨13英寸丨12GB丨256GB丨星光紫",
+        "original_price": "4199",
+        "sale_price": "4199",
+        "tags": [
+          "自营",
+          "外观定制"
+        ],
+        "source": "https://item.lenovo.com.cn/product/1054299.html",
+        "files": {
+          "copywriting": "平板/02_SPU_联想拯救者_Y900_13/商品文案.md",
+          "white_image": "平板/02_SPU_联想拯救者_Y900_13/白底图.jpg",
+          "detail_image": "平板/02_SPU_联想拯救者_Y900_13/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      },
+      {
+        "configuration_id": "SPU-平板-002-SKU-04",
+        "configuration_name": "骁龙8至尊版 / 8核 / Android 16操作系统 / 13英寸 / 16GB / 512GB / 冰魄白",
+        "sku_id": "1054302",
+        "original_name": "【张凌赫同款】联想 拯救者Y900 13 AI平板 骁龙8至尊版 16GB+512GB Wi-Fi 冰魄白",
+        "description": "骁龙8至尊版丨8核丨Android 16操作系统丨13英寸丨16GB丨512GB丨冰魄白",
+        "original_price": "4699",
+        "sale_price": "4699",
+        "tags": [
+          "自营",
+          "外观定制"
+        ],
+        "source": "https://item.lenovo.com.cn/product/1054302.html",
+        "files": {
+          "copywriting": "平板/02_SPU_联想拯救者_Y900_13/商品文案.md",
+          "white_image": "平板/02_SPU_联想拯救者_Y900_13/白底图.jpg",
+          "detail_image": "平板/02_SPU_联想拯救者_Y900_13/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      },
+      {
+        "configuration_id": "SPU-平板-002-SKU-05",
+        "configuration_name": "骁龙8至尊版 / 8核 / Android 16操作系统 / 13英寸 / 8GB / 256GB / 碳晶黑",
+        "sku_id": "1054305",
+        "original_name": "【张凌赫同款】联想 拯救者Y900 13 AI平板 骁龙8至尊版 8GB+256GB Wi-Fi 碳晶黑",
+        "description": "骁龙8至尊版丨8核丨Android 16操作系统丨13英寸丨8GB丨256GB丨碳晶黑",
+        "original_price": "3799",
+        "sale_price": "3799",
+        "tags": [
+          "自营",
+          "外观定制"
+        ],
+        "source": "https://item.lenovo.com.cn/product/1054305.html",
+        "files": {
+          "copywriting": "平板/02_SPU_联想拯救者_Y900_13/商品文案.md",
+          "white_image": "平板/02_SPU_联想拯救者_Y900_13/白底图.jpg",
+          "detail_image": "平板/02_SPU_联想拯救者_Y900_13/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      }
+    ],
+    "asset_mode": "shared_spu_assets"
+  },
+  {
+    "spu_id": "SPU-平板-003",
+    "short_name": "联想拯救者平板 Y700 五代",
+    "category": "平板",
+    "folder": "平板/03_SPU_联想拯救者平板_Y700_五代",
+    "configuration_count": 3,
+    "representative_files": {
+      "copywriting": "平板/03_SPU_联想拯救者平板_Y700_五代/商品文案.md",
+      "white_image": "平板/03_SPU_联想拯救者平板_Y700_五代/白底图.jpg",
+      "detail_image": "平板/03_SPU_联想拯救者平板_Y700_五代/详情图.jpg"
+    },
+    "configurations": [
+      {
+        "configuration_id": "SPU-平板-003-SKU-01",
+        "configuration_name": "第五代骁龙8至尊版 / 8核 / Android 16操作系统 / 8.8英寸 / 16GB / 512GB / WIFI版 / 冰魄白",
+        "sku_id": "1053100",
+        "original_name": "【张凌赫同款】联想拯救者平板Y700 五代 8.8英寸AI游戏平板 骁龙8至尊版 冰魄白",
+        "description": "第五代骁龙8至尊版丨8核丨Android 16操作系统丨8.8英寸丨16GB丨512GB丨WIFI版丨冰魄白",
+        "original_price": "5099",
+        "sale_price": "5099",
+        "tags": [
+          "自营",
+          "领国补至高减15%"
+        ],
+        "source": "https://item.lenovo.com.cn/product/1053100.html",
+        "files": {
+          "copywriting": "平板/03_SPU_联想拯救者平板_Y700_五代/商品文案.md",
+          "white_image": "平板/03_SPU_联想拯救者平板_Y700_五代/白底图.jpg",
+          "detail_image": "平板/03_SPU_联想拯救者平板_Y700_五代/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      },
+      {
+        "configuration_id": "SPU-平板-003-SKU-02",
+        "configuration_name": "第五代骁龙8至尊版 / 8核 / Android 16操作系统 / 8.8英寸 / 16GB / 512GB / WIFI版 / 莱茵绿 / 2026FIFA世界杯限量版",
+        "sku_id": "1054296",
+        "original_name": "联想AI平板 拯救者Y700 五代 2026FIFA世界杯限量版 8.8英寸游戏平板 第五代骁龙8至尊版 莱茵绿",
+        "description": "第五代骁龙8至尊版丨8核丨Android 16操作系统丨8.8英寸丨16GB丨512GB丨WIFI版丨莱茵绿丨2026FIFA世界杯限量版",
+        "original_price": "5499",
+        "sale_price": "5499",
+        "tags": [
+          "自营",
+          "领国补至高减15%"
+        ],
+        "source": "https://item.lenovo.com.cn/product/1054296.html",
+        "files": {
+          "copywriting": "平板/03_SPU_联想拯救者平板_Y700_五代/商品文案.md",
+          "white_image": "平板/03_SPU_联想拯救者平板_Y700_五代/白底图.jpg",
+          "detail_image": "平板/03_SPU_联想拯救者平板_Y700_五代/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      },
+      {
+        "configuration_id": "SPU-平板-003-SKU-03",
+        "configuration_name": "第五代骁龙8至尊版 / 8核 / Android 16操作系统 / 8.8英寸 / 16GB / 512GB / WIFI版 / 星光紫",
+        "sku_id": "1054309",
+        "original_name": "【张凌赫同款】联想拯救者平板Y700 五代 8.8英寸AI游戏平板 骁龙8至尊版 星光紫",
+        "description": "第五代骁龙8至尊版丨8核丨Android 16操作系统丨8.8英寸丨16GB丨512GB丨WIFI版丨星光紫",
+        "original_price": "5099",
+        "sale_price": "5099",
+        "tags": [
+          "自营",
+          "领国补至高减15%"
+        ],
+        "source": "https://item.lenovo.com.cn/product/1054309.html",
+        "files": {
+          "copywriting": "平板/03_SPU_联想拯救者平板_Y700_五代/商品文案.md",
+          "white_image": "平板/03_SPU_联想拯救者平板_Y700_五代/白底图.jpg",
+          "detail_image": "平板/03_SPU_联想拯救者平板_Y700_五代/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      }
+    ],
+    "asset_mode": "shared_spu_assets"
+  },
+  {
+    "spu_id": "SPU-平板-004",
+    "short_name": "联想小新 Pad Pro 13",
+    "category": "平板",
+    "folder": "平板/04_SPU_联想小新_Pad_Pro_13",
+    "configuration_count": 4,
+    "representative_files": {
+      "copywriting": "平板/04_SPU_联想小新_Pad_Pro_13/商品文案.md",
+      "white_image": "平板/04_SPU_联想小新_Pad_Pro_13/白底图.jpg",
+      "detail_image": "平板/04_SPU_联想小新_Pad_Pro_13/详情图.jpg"
+    },
+    "configurations": [
+      {
+        "configuration_id": "SPU-平板-004-SKU-01",
+        "configuration_name": "骁龙8s / Android 16操作系统 / 13英寸 / 12GB / 512GB / WIFI版 / 凝雾灰",
+        "sku_id": "1053094",
+        "original_name": "【张凌赫同款】联想AI平板小新 Pro 13 13英寸3.5K护眼超清大屏 AI学习平板电脑 凝雾灰",
+        "description": "骁龙8s丨Android 16操作系统丨13英寸丨12GB丨512GB丨WIFI版丨凝雾灰",
+        "original_price": "3399",
+        "sale_price": "3399",
+        "tags": [
+          "自营",
+          "领国补至高减15%"
+        ],
+        "source": "https://item.lenovo.com.cn/product/1053094.html",
+        "files": {
+          "copywriting": "平板/04_SPU_联想小新_Pad_Pro_13/商品文案.md",
+          "white_image": "平板/04_SPU_联想小新_Pad_Pro_13/白底图.jpg",
+          "detail_image": "平板/04_SPU_联想小新_Pad_Pro_13/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      },
+      {
+        "configuration_id": "SPU-平板-004-SKU-02",
+        "configuration_name": "骁龙8s / Android 16操作系统 / 13英寸 / 12GB / 256GB / WIFI版 / 霜雪银",
+        "sku_id": "1053099",
+        "original_name": "【张凌赫同款】联想小新Pad Pro 13英寸3.5K护眼超清大屏 AI学习平板电脑 霜雪银",
+        "description": "骁龙8s丨Android 16操作系统丨13英寸丨12GB丨256GB丨WIFI版丨霜雪银",
+        "original_price": "2999",
+        "sale_price": "2999",
+        "tags": [
+          "自营",
+          "领国补至高减15%"
+        ],
+        "source": "https://item.lenovo.com.cn/product/1053099.html",
+        "files": {
+          "copywriting": "平板/04_SPU_联想小新_Pad_Pro_13/商品文案.md",
+          "white_image": "平板/04_SPU_联想小新_Pad_Pro_13/白底图.jpg",
+          "detail_image": "平板/04_SPU_联想小新_Pad_Pro_13/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      },
+      {
+        "configuration_id": "SPU-平板-004-SKU-03",
+        "configuration_name": "天玑8300 / Android 操作系统 / 8G / 128G / WIFI / 小青新",
+        "sku_id": "1038490",
+        "original_name": "【张凌赫同款】联想小新Pad Pro 12.7英寸 影音娱乐办公学习游戏平板电脑 小青新",
+        "description": "天玑8300/Android 操作系统/8G/128G/WIFI/小青新",
+        "original_price": "1799",
+        "sale_price": "1799",
+        "tags": [
+          "自营",
+          "领国补至高减15%"
+        ],
+        "source": "https://item.lenovo.com.cn/product/1038490.html",
+        "files": {
+          "copywriting": "平板/04_SPU_联想小新_Pad_Pro_13/商品文案.md",
+          "white_image": "平板/04_SPU_联想小新_Pad_Pro_13/白底图.jpg",
+          "detail_image": "平板/04_SPU_联想小新_Pad_Pro_13/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      },
+      {
+        "configuration_id": "SPU-平板-004-SKU-04",
+        "configuration_name": "骁龙8s / Android 16操作系统 / 13英寸 / 8GB / 256GB / WIFI版 / 霜雪银",
+        "sku_id": "1053087",
+        "original_name": "【张凌赫同款】联想小新Pad Pro 13英寸3.5K护眼超清大屏 AI学习平板电脑 霜雪银",
+        "description": "骁龙8s丨Android 16操作系统丨13英寸丨8GB丨256GB丨WIFI版丨霜雪银",
+        "original_price": "2599",
+        "sale_price": "2599",
+        "tags": [
+          "自营",
+          "领国补至高减15%"
+        ],
+        "source": "https://item.lenovo.com.cn/product/1053087.html",
+        "files": {
+          "copywriting": "平板/04_SPU_联想小新_Pad_Pro_13/商品文案.md",
+          "white_image": "平板/04_SPU_联想小新_Pad_Pro_13/白底图.jpg",
+          "detail_image": "平板/04_SPU_联想小新_Pad_Pro_13/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      }
+    ],
+    "asset_mode": "shared_spu_assets"
+  },
+  {
+    "spu_id": "SPU-平板-005",
+    "short_name": "联想拯救者 Y900 11",
+    "category": "平板",
+    "folder": "平板/05_SPU_联想拯救者_Y900_11",
+    "configuration_count": 2,
+    "representative_files": {
+      "copywriting": "平板/05_SPU_联想拯救者_Y900_11/商品文案.md",
+      "white_image": "平板/05_SPU_联想拯救者_Y900_11/白底图.jpg",
+      "detail_image": "平板/05_SPU_联想拯救者_Y900_11/详情图.jpg"
+    },
+    "configurations": [
+      {
+        "configuration_id": "SPU-平板-005-SKU-01",
+        "configuration_name": "天玑9500s / Android 16操作系统 / 12GB / 256GB / 冰魄白",
+        "sku_id": "1054314",
+        "original_name": "【张凌赫同款】联想 拯救者Y900 11 AI平板 天玑9500s 12GB+256GB Wi-Fi 冰魄白",
+        "description": "天玑9500s丨Android 16操作系统丨12GB丨256GB丨冰魄白",
+        "original_price": "3399",
+        "sale_price": "3399",
+        "tags": [
+          "自营",
+          "外观定制"
+        ],
+        "source": "https://item.lenovo.com.cn/product/1054314.html",
+        "files": {
+          "copywriting": "平板/05_SPU_联想拯救者_Y900_11/商品文案.md",
+          "white_image": "平板/05_SPU_联想拯救者_Y900_11/白底图.jpg",
+          "detail_image": "平板/05_SPU_联想拯救者_Y900_11/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      },
+      {
+        "configuration_id": "SPU-平板-005-SKU-02",
+        "configuration_name": "天玑9500s / Android 16操作系统 / 12GB / 256GB / 碳晶黑",
+        "sku_id": "1054327",
+        "original_name": "【张凌赫同款】联想 拯救者Y900 11 AI平板 天玑9500s 12GB+256GB Wi-Fi 碳晶黑",
+        "description": "天玑9500s丨Android 16操作系统丨12GB丨256GB丨碳晶黑",
+        "original_price": "3399",
+        "sale_price": "3399",
+        "tags": [
+          "自营",
+          "外观定制"
+        ],
+        "source": "https://item.lenovo.com.cn/product/1054327.html",
+        "files": {
+          "copywriting": "平板/05_SPU_联想拯救者_Y900_11/商品文案.md",
+          "white_image": "平板/05_SPU_联想拯救者_Y900_11/白底图.jpg",
+          "detail_image": "平板/05_SPU_联想拯救者_Y900_11/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      }
+    ],
+    "asset_mode": "shared_spu_assets"
+  },
+  {
+    "spu_id": "SPU-平板-006",
+    "short_name": "来酷平板 P131B",
+    "category": "平板",
+    "folder": "平板/06_SPU_来酷平板_P131B",
+    "configuration_count": 1,
+    "representative_files": {
+      "copywriting": "平板/06_SPU_来酷平板_P131B/商品文案.md",
+      "white_image": "平板/06_SPU_来酷平板_P131B/白底图.jpg",
+      "detail_image": "平板/06_SPU_来酷平板_P131B/详情图.jpg"
+    },
+    "configurations": [
+      {
+        "configuration_id": "SPU-平板-006-SKU-01",
+        "configuration_name": "12.7英寸 2.1K高刷护眼屏|8GB|128GB|10200mAh超大电池|G99 八核心处理器",
+        "sku_id": "1051249",
+        "original_name": "来酷(Lecoo)平板 P131B 12.7英寸护眼高清大屏大电池长续航",
+        "description": "12.7英寸 2.1K高刷护眼屏|8GB|128GB|10200mAh超大电池|G99 八核心处理器",
+        "original_price": "1299",
+        "sale_price": "1299",
+        "tags": [
+          "以旧换新",
+          "官方正品"
+        ],
+        "source": "https://item.lenovo.com.cn/product/1051249.html",
+        "files": {
+          "copywriting": "平板/06_SPU_来酷平板_P131B/商品文案.md",
+          "white_image": "平板/06_SPU_来酷平板_P131B/白底图.jpg",
+          "detail_image": "平板/06_SPU_来酷平板_P131B/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      }
+    ],
+    "asset_mode": "shared_spu_assets"
+  },
+  {
+    "spu_id": "SPU-选件-001",
+    "short_name": "联想拯救者无线电竞耳机 R360",
+    "category": "选件",
+    "folder": "选件/01_SPU_联想拯救者无线电竞耳机_R360",
+    "configuration_count": 1,
+    "representative_files": {
+      "copywriting": "选件/01_SPU_联想拯救者无线电竞耳机_R360/商品文案.md",
+      "white_image": "选件/01_SPU_联想拯救者无线电竞耳机_R360/白底图.jpg",
+      "detail_image": "选件/01_SPU_联想拯救者无线电竞耳机_R360/详情图.jpg"
+    },
+    "configurations": [
+      {
+        "configuration_id": "SPU-选件-001-SKU-01",
+        "configuration_name": "7.1环绕升级音效 / 50mm游戏大单元 / ENC通话数字降噪",
+        "sku_id": "1045990",
+        "original_name": "联想拯救者无线电竞耳机R360 粉色",
+        "description": "7.1环绕升级音效丨50mm游戏大单元丨ENC通话数字降噪",
+        "original_price": "149",
+        "sale_price": "149",
+        "tags": [
+          "自营",
+          "以旧换新"
+        ],
+        "source": "https://item.lenovo.com.cn/product/1045990.html",
+        "files": {
+          "copywriting": "选件/01_SPU_联想拯救者无线电竞耳机_R360/商品文案.md",
+          "white_image": "选件/01_SPU_联想拯救者无线电竞耳机_R360/白底图.jpg",
+          "detail_image": "选件/01_SPU_联想拯救者无线电竞耳机_R360/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      }
+    ],
+    "asset_mode": "shared_spu_assets"
+  },
+  {
+    "spu_id": "SPU-选件-002",
+    "short_name": "联想 AC310B 数据线",
+    "category": "选件",
+    "folder": "选件/02_SPU_联想_AC310B_数据线",
+    "configuration_count": 1,
+    "representative_files": {
+      "copywriting": "选件/02_SPU_联想_AC310B_数据线/商品文案.md",
+      "white_image": "选件/02_SPU_联想_AC310B_数据线/白底图.jpg",
+      "detail_image": "选件/02_SPU_联想_AC310B_数据线/详情图.jpg"
+    },
+    "configurations": [
+      {
+        "configuration_id": "SPU-选件-002-SKU-01",
+        "configuration_name": "买联想USB转TYPE-C数据线 / 1米 / AC310B 白色就到联想官方商城，为您介绍联想USB转TYPE-C数据线 / 1米 / AC310B 白色的价格、参数、图片及用户评价等详细信息。官方正品，欢迎选购！",
+        "sku_id": "1046597",
+        "original_name": "联想USB转TYPE-C数据线/1米/AC310B 白色",
+        "description": "买联想USB转TYPE-C数据线/1米/AC310B 白色就到联想官方商城，为您介绍联想USB转TYPE-C数据线/1米/AC310B 白色的价格、参数、图片及用户评价等详细信息。官方正品，欢迎选购！",
+        "original_price": "29",
+        "sale_price": "29",
+        "tags": [
+          "官方正品",
+          "联想商城"
+        ],
+        "source": "https://item.lenovo.com.cn/product/1046597.html",
+        "files": {
+          "copywriting": "选件/02_SPU_联想_AC310B_数据线/商品文案.md",
+          "white_image": "选件/02_SPU_联想_AC310B_数据线/白底图.jpg",
+          "detail_image": "选件/02_SPU_联想_AC310B_数据线/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      }
+    ],
+    "asset_mode": "shared_spu_assets"
+  },
+  {
+    "spu_id": "SPU-选件-003",
+    "short_name": "联想拯救者 M7X 游戏鼠标",
+    "category": "选件",
+    "folder": "选件/03_SPU_联想拯救者_M7X_游戏鼠标",
+    "configuration_count": 1,
+    "representative_files": {
+      "copywriting": "选件/03_SPU_联想拯救者_M7X_游戏鼠标/商品文案.md",
+      "white_image": "选件/03_SPU_联想拯救者_M7X_游戏鼠标/白底图.jpg",
+      "detail_image": "选件/03_SPU_联想拯救者_M7X_游戏鼠标/详情图.jpg"
+    },
+    "configurations": [
+      {
+        "configuration_id": "SPU-选件-003-SKU-01",
+        "configuration_name": "2.4G+蓝牙+有线三链接 / 高性价比 游戏办公全能 / 电竞级传感器 / 5档DPI调节",
+        "sku_id": "1050794",
+        "original_name": "拯救者 M7X 游戏鼠标_黑色",
+        "description": "2.4G+蓝牙+有线三链接丨高性价比 游戏办公全能丨电竞级传感器丨5档DPI调节",
+        "original_price": "189",
+        "sale_price": "189",
+        "tags": [
+          "自营",
+          "以旧换新"
+        ],
+        "source": "https://item.lenovo.com.cn/product/1050794.html",
+        "files": {
+          "copywriting": "选件/03_SPU_联想拯救者_M7X_游戏鼠标/商品文案.md",
+          "white_image": "选件/03_SPU_联想拯救者_M7X_游戏鼠标/白底图.jpg",
+          "detail_image": "选件/03_SPU_联想拯救者_M7X_游戏鼠标/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      }
+    ],
+    "asset_mode": "shared_spu_assets"
+  },
+  {
+    "spu_id": "SPU-选件-004",
+    "short_name": "联想小新 K2-82 三模键盘",
+    "category": "选件",
+    "folder": "选件/04_SPU_联想小新_K2-82_三模键盘",
+    "configuration_count": 1,
+    "representative_files": {
+      "copywriting": "选件/04_SPU_联想小新_K2-82_三模键盘/商品文案.md",
+      "white_image": "选件/04_SPU_联想小新_K2-82_三模键盘/白底图.jpg",
+      "detail_image": "选件/04_SPU_联想小新_K2-82_三模键盘/详情图.jpg"
+    },
+    "configurations": [
+      {
+        "configuration_id": "SPU-选件-004-SKU-01",
+        "configuration_name": "三模连接 / 82keys 配列 / 混彩灯光 / 红轴手感",
+        "sku_id": "1050756",
+        "original_name": "联想小新K2-82三模游戏键盘_雾海蓝",
+        "description": "三模连接丨82keys 配列丨混彩灯光丨红轴手感",
+        "original_price": "129",
+        "sale_price": "129",
+        "tags": [
+          "自营",
+          "以旧换新"
+        ],
+        "source": "https://item.lenovo.com.cn/product/1050756.html",
+        "files": {
+          "copywriting": "选件/04_SPU_联想小新_K2-82_三模键盘/商品文案.md",
+          "white_image": "选件/04_SPU_联想小新_K2-82_三模键盘/白底图.jpg",
+          "detail_image": "选件/04_SPU_联想小新_K2-82_三模键盘/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      }
+    ],
+    "asset_mode": "shared_spu_assets"
+  },
+  {
+    "spu_id": "SPU-选件-005",
+    "short_name": "联想 MK9 机械键盘",
+    "category": "选件",
+    "folder": "选件/05_SPU_联想_MK9_机械键盘",
+    "configuration_count": 2,
+    "representative_files": {
+      "copywriting": "选件/05_SPU_联想_MK9_机械键盘/商品文案.md",
+      "white_image": "选件/05_SPU_联想_MK9_机械键盘/白底图.jpg",
+      "detail_image": "选件/05_SPU_联想_MK9_机械键盘/详情图.jpg"
+    },
+    "configurations": [
+      {
+        "configuration_id": "SPU-选件-005-SKU-01",
+        "configuration_name": "买联想 MK9 98键机械键盘青轴 曜石黑就到联想官方商城，为您介绍联想 MK9 98键机械键盘青轴 曜石黑的价格、参数、图片及用户评价等详细信息。官方正品，欢迎选购！",
+        "sku_id": "1055727",
+        "original_name": "联想 MK9 98键机械键盘青轴 曜石黑",
+        "description": "买联想 MK9 98键机械键盘青轴 曜石黑就到联想官方商城，为您介绍联想 MK9 98键机械键盘青轴 曜石黑的价格、参数、图片及用户评价等详细信息。官方正品，欢迎选购！",
+        "original_price": "0642",
+        "sale_price": "119",
+        "tags": [
+          "官方正品",
+          "联想商城"
+        ],
+        "source": "https://item.lenovo.com.cn/product/1055727.html",
+        "files": {
+          "copywriting": "选件/05_SPU_联想_MK9_机械键盘/商品文案.md",
+          "white_image": "选件/05_SPU_联想_MK9_机械键盘/白底图.jpg",
+          "detail_image": "选件/05_SPU_联想_MK9_机械键盘/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      },
+      {
+        "configuration_id": "SPU-选件-005-SKU-02",
+        "configuration_name": "Gasket结构 / 98键布局 / 环诺红轴 / 音量旋钮",
+        "sku_id": "1036988",
+        "original_name": "【Gasket结构】联想MK9 98键机械键盘有线红轴键盘游戏电竞曜石黑",
+        "description": "Gasket结构丨98键布局丨环诺红轴丨音量旋钮",
+        "original_price": "139",
+        "sale_price": "139",
+        "tags": [
+          "自营",
+          "以旧换新"
+        ],
+        "source": "https://item.lenovo.com.cn/product/1036988.html",
+        "files": {
+          "copywriting": "选件/05_SPU_联想_MK9_机械键盘/商品文案.md",
+          "white_image": "选件/05_SPU_联想_MK9_机械键盘/白底图.jpg",
+          "detail_image": "选件/05_SPU_联想_MK9_机械键盘/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      }
+    ],
+    "asset_mode": "shared_spu_assets"
+  },
+  {
+    "spu_id": "SPU-选件-006",
+    "short_name": "联想小新 Pad 钢化膜",
+    "category": "选件",
+    "folder": "选件/06_SPU_联想小新_Pad_钢化膜",
+    "configuration_count": 1,
+    "representative_files": {
+      "copywriting": "选件/06_SPU_联想小新_Pad_钢化膜/商品文案.md",
+      "white_image": "选件/06_SPU_联想小新_Pad_钢化膜/白底图.jpg",
+      "detail_image": "选件/06_SPU_联想小新_Pad_钢化膜/详情图.jpg"
+    },
+    "configurations": [
+      {
+        "configuration_id": "SPU-选件-006-SKU-01",
+        "configuration_name": "买小新Pad 2024钢化膜就到联想官方商城，为您介绍小新Pad 2024钢化膜的价格、参数、图片及用户评价等详细信息。官方正品，欢迎选购！",
+        "sku_id": "1033479",
+        "original_name": "小新Pad 2024钢化膜",
+        "description": "买小新Pad 2024钢化膜就到联想官方商城，为您介绍小新Pad 2024钢化膜的价格、参数、图片及用户评价等详细信息。官方正品，欢迎选购！",
+        "original_price": "39",
+        "sale_price": "39",
+        "tags": [
+          "自营",
+          "以旧换新"
+        ],
+        "source": "https://item.lenovo.com.cn/product/1033479.html",
+        "files": {
+          "copywriting": "选件/06_SPU_联想小新_Pad_钢化膜/商品文案.md",
+          "white_image": "选件/06_SPU_联想小新_Pad_钢化膜/白底图.jpg",
+          "detail_image": "选件/06_SPU_联想小新_Pad_钢化膜/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      }
+    ],
+    "asset_mode": "shared_spu_assets"
+  },
+  {
+    "spu_id": "SPU-选件-007",
+    "short_name": "联想小新 Pro 13 钢化膜",
+    "category": "选件",
+    "folder": "选件/07_SPU_联想小新_Pro_13_钢化膜",
+    "configuration_count": 1,
+    "representative_files": {
+      "copywriting": "选件/07_SPU_联想小新_Pro_13_钢化膜/商品文案.md",
+      "white_image": "选件/07_SPU_联想小新_Pro_13_钢化膜/白底图.jpg",
+      "detail_image": "选件/07_SPU_联想小新_Pro_13_钢化膜/详情图.jpg"
+    },
+    "configurations": [
+      {
+        "configuration_id": "SPU-选件-007-SKU-01",
+        "configuration_name": "钻石级硬度 / 高透材质 / 疏油涂层 / 精细曲面贴合",
+        "sku_id": "1053454",
+        "original_name": "联想平板 小新 Pro 13系列钢化膜",
+        "description": "钻石级硬度丨高透材质丨疏油涂层丨精细曲面贴合",
+        "original_price": "59",
+        "sale_price": "59",
+        "tags": [
+          "自营",
+          "以旧换新"
+        ],
+        "source": "https://item.lenovo.com.cn/product/1053454.html",
+        "files": {
+          "copywriting": "选件/07_SPU_联想小新_Pro_13_钢化膜/商品文案.md",
+          "white_image": "选件/07_SPU_联想小新_Pro_13_钢化膜/白底图.jpg",
+          "detail_image": "选件/07_SPU_联想小新_Pro_13_钢化膜/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      }
+    ],
+    "asset_mode": "shared_spu_assets"
+  },
+  {
+    "spu_id": "SPU-选件-008",
+    "short_name": "联想 Air Pro 双模鼠标",
+    "category": "选件",
+    "folder": "选件/08_SPU_联想_Air_Pro_双模鼠标",
+    "configuration_count": 1,
+    "representative_files": {
+      "copywriting": "选件/08_SPU_联想_Air_Pro_双模鼠标/商品文案.md",
+      "white_image": "选件/08_SPU_联想_Air_Pro_双模鼠标/白底图.jpg",
+      "detail_image": "选件/08_SPU_联想_Air_Pro_双模鼠标/详情图.jpg"
+    },
+    "configurations": [
+      {
+        "configuration_id": "SPU-选件-008-SKU-01",
+        "configuration_name": "2.4G+蓝牙双通道 / 三档DPI可调 / 轻薄便携 / 智能休眠 长久续航",
+        "sku_id": "1050750",
+        "original_name": "联想 Air Pro双模金属鼠标锂电版_樱花白",
+        "description": "2.4G+蓝牙双通道丨三档DPI可调丨轻薄便携丨智能休眠 长久续航",
+        "original_price": "99.9",
+        "sale_price": "99.9",
+        "tags": [
+          "自营",
+          "以旧换新"
+        ],
+        "source": "https://item.lenovo.com.cn/product/1050750.html",
+        "files": {
+          "copywriting": "选件/08_SPU_联想_Air_Pro_双模鼠标/商品文案.md",
+          "white_image": "选件/08_SPU_联想_Air_Pro_双模鼠标/白底图.jpg",
+          "detail_image": "选件/08_SPU_联想_Air_Pro_双模鼠标/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      }
+    ],
+    "asset_mode": "shared_spu_assets"
+  },
+  {
+    "spu_id": "SPU-选件-009",
+    "short_name": "联想拯救者 Z7 增高支架",
+    "category": "选件",
+    "folder": "选件/09_SPU_联想拯救者_Z7_增高支架",
+    "configuration_count": 1,
+    "representative_files": {
+      "copywriting": "选件/09_SPU_联想拯救者_Z7_增高支架/商品文案.md",
+      "white_image": "选件/09_SPU_联想拯救者_Z7_增高支架/白底图.jpg",
+      "detail_image": "选件/09_SPU_联想拯救者_Z7_增高支架/详情图.jpg"
+    },
+    "configurations": [
+      {
+        "configuration_id": "SPU-选件-009-SKU-01",
+        "configuration_name": "双层增高设计 / 航空级全铝支架 / 大面积通透风道 / 多设备兼容",
+        "sku_id": "1055217",
+        "original_name": "拯救者增高支架 Z7",
+        "description": "双层增高设计丨航空级全铝支架丨大面积通透风道丨多设备兼容",
+        "original_price": "199",
+        "sale_price": "199",
+        "tags": [
+          "自营",
+          "以旧换新"
+        ],
+        "source": "https://item.lenovo.com.cn/product/1055217.html",
+        "files": {
+          "copywriting": "选件/09_SPU_联想拯救者_Z7_增高支架/商品文案.md",
+          "white_image": "选件/09_SPU_联想拯救者_Z7_增高支架/白底图.jpg",
+          "detail_image": "选件/09_SPU_联想拯救者_Z7_增高支架/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      }
+    ],
+    "asset_mode": "shared_spu_assets"
+  },
+  {
+    "spu_id": "SPU-选件-010",
+    "short_name": "联想小新蓝牙无线鼠标 Plus",
+    "category": "选件",
+    "folder": "选件/10_SPU_联想小新蓝牙无线鼠标_Plus",
+    "configuration_count": 1,
+    "representative_files": {
+      "copywriting": "选件/10_SPU_联想小新蓝牙无线鼠标_Plus/商品文案.md",
+      "white_image": "选件/10_SPU_联想小新蓝牙无线鼠标_Plus/白底图.jpg",
+      "detail_image": "选件/10_SPU_联想小新蓝牙无线鼠标_Plus/详情图.jpg"
+    },
+    "configurations": [
+      {
+        "configuration_id": "SPU-选件-010-SKU-01",
+        "configuration_name": "蓝牙连接 / 多档可调DPI / 高精度引擎 / 人体工学",
+        "sku_id": "1046511",
+        "original_name": "小新 蓝牙无线鼠标Plus 暮霭深灰",
+        "description": "蓝牙连接丨多档可调DPI丨高精度引擎丨人体工学",
+        "original_price": "59",
+        "sale_price": "59",
+        "tags": [
+          "自营",
+          "以旧换新"
+        ],
+        "source": "https://item.lenovo.com.cn/product/1046511.html",
+        "files": {
+          "copywriting": "选件/10_SPU_联想小新蓝牙无线鼠标_Plus/商品文案.md",
+          "white_image": "选件/10_SPU_联想小新蓝牙无线鼠标_Plus/白底图.jpg",
+          "detail_image": "选件/10_SPU_联想小新蓝牙无线鼠标_Plus/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      }
+    ],
+    "asset_mode": "shared_spu_assets"
+  },
+  {
+    "spu_id": "SPU-选件-011",
+    "short_name": "联想 USB-C 标准电源适配器",
+    "category": "选件",
+    "folder": "选件/11_SPU_联想_USB-C_标准电源适配器",
+    "configuration_count": 1,
+    "representative_files": {
+      "copywriting": "选件/11_SPU_联想_USB-C_标准电源适配器/商品文案.md",
+      "white_image": "选件/11_SPU_联想_USB-C_标准电源适配器/白底图.jpg",
+      "detail_image": "选件/11_SPU_联想_USB-C_标准电源适配器/详情图.jpg"
+    },
+    "configurations": [
+      {
+        "configuration_id": "SPU-选件-011-SKU-01",
+        "configuration_name": "官方防伪标签 / USB-C通用接口兼容主流数码设备 / 100WMax大功率 / 小巧便携 出行无负担",
+        "sku_id": "1050929",
+        "original_name": "联想USB-C标准电源适配器100W（白色）",
+        "description": "官方防伪标签丨USB-C通用接口兼容主流数码设备丨100WMax大功率丨小巧便携 出行无负担",
+        "original_price": "149",
+        "sale_price": "149",
+        "tags": [
+          "自营",
+          "以旧换新"
+        ],
+        "source": "https://item.lenovo.com.cn/product/1050929.html",
+        "files": {
+          "copywriting": "选件/11_SPU_联想_USB-C_标准电源适配器/商品文案.md",
+          "white_image": "选件/11_SPU_联想_USB-C_标准电源适配器/白底图.jpg",
+          "detail_image": "选件/11_SPU_联想_USB-C_标准电源适配器/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      }
+    ],
+    "asset_mode": "shared_spu_assets"
+  },
+  {
+    "spu_id": "SPU-服务-001",
+    "short_name": "联想原厂风扇维修服务",
+    "category": "服务",
+    "folder": "服务/01_SPU_联想原厂风扇维修服务",
+    "configuration_count": 1,
+    "representative_files": {
+      "copywriting": "服务/01_SPU_联想原厂风扇维修服务/商品文案.md",
+      "white_image": "服务/01_SPU_联想原厂风扇维修服务/白底图.jpg",
+      "detail_image": "服务/01_SPU_联想原厂风扇维修服务/详情图.jpg"
+    },
+    "configurations": [
+      {
+        "configuration_id": "SPU-服务-001-SKU-01",
+        "configuration_name": "此服务适用于“风扇 / 散热模组”部件的维修，适用机型：Lenovo笔记本、台式机或一体机。下单后可预约在附近指定服务中心使用，此膨胀金可双倍抵扣单台电脑的单次维修费用，不可叠加使用；过期退，未服务可退。下单后务必及时预约。",
+        "sku_id": "1040515",
+        "original_name": "联想保外原厂风扇/散热模组维修服务膨胀金 -仅限阳光雨露服务站",
+        "description": "此服务适用于“风扇/散热模组”部件的维修，适用机型：Lenovo笔记本、台式机或一体机。下单后可预约在附近指定服务中心使用，此膨胀金可双倍抵扣单台电脑的单次维修费用，不可叠加使用；过期退，未服务可退。下单后务必及时预约。",
+        "original_price": "30",
+        "sale_price": "30",
+        "tags": [
+          "官方正品",
+          "联想商城"
+        ],
+        "source": "https://item.lenovo.com.cn/product/1040515.html",
+        "files": {
+          "copywriting": "服务/01_SPU_联想原厂风扇维修服务/商品文案.md",
+          "white_image": "服务/01_SPU_联想原厂风扇维修服务/白底图.jpg",
+          "detail_image": "服务/01_SPU_联想原厂风扇维修服务/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      }
+    ],
+    "asset_mode": "shared_spu_assets"
+  },
+  {
+    "spu_id": "SPU-服务-002",
+    "short_name": "Lenovo Care 智臻服务包",
+    "category": "服务",
+    "folder": "服务/02_SPU_Lenovo_Care_智臻服务包",
+    "configuration_count": 2,
+    "representative_files": {
+      "copywriting": "服务/02_SPU_Lenovo_Care_智臻服务包/商品文案.md",
+      "white_image": "服务/02_SPU_Lenovo_Care_智臻服务包/白底图.jpg",
+      "detail_image": "服务/02_SPU_Lenovo_Care_智臻服务包/详情图.jpg"
+    },
+    "configurations": [
+      {
+        "configuration_id": "SPU-服务-002-SKU-01",
+        "configuration_name": "延长至4年保修+升级至4年硬件故障上门+4年综合软件支持+4年7*24小时技术支持服务+保修期内提供1次台式机上门体检服务+4年专属人工通道+游戏专家调优+服务期内硬盘故障维修服务，适用机型：Lenovo系列台式机",
+        "sku_id": "1022688",
+        "original_name": "Lenovo Care 智臻服务-4年服务包-台式",
+        "description": "延长至4年保修+升级至4年硬件故障上门+4年综合软件支持+4年7*24小时技术支持服务+保修期内提供1次台式机上门体检服务+4年专属人工通道+游戏专家调优+服务期内硬盘故障维修服务，适用机型：Lenovo系列台式机",
+        "original_price": "499",
+        "sale_price": "499",
+        "tags": [
+          "自营",
+          "以旧换新"
+        ],
+        "source": "https://item.lenovo.com.cn/product/1022688.html",
+        "files": {
+          "copywriting": "服务/02_SPU_Lenovo_Care_智臻服务包/商品文案.md",
+          "white_image": "服务/02_SPU_Lenovo_Care_智臻服务包/白底图.jpg",
+          "detail_image": "服务/02_SPU_Lenovo_Care_智臻服务包/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      },
+      {
+        "configuration_id": "SPU-服务-002-SKU-02",
+        "configuration_name": "延长至5年保修+升级至5年硬件故障上门+5年综合软件支持+5年7*24小时技术支持服务+保修期内提供2次台式机上门体检服务+5年专属人工通道+游戏专家调优+服务期内硬盘故障维修服务，适用机型：Lenovo系列台式机",
+        "sku_id": "1022689",
+        "original_name": "Lenovo Care 智臻服务-5年服务包-台式",
+        "description": "延长至5年保修+升级至5年硬件故障上门+5年综合软件支持+5年7*24小时技术支持服务+保修期内提供2次台式机上门体检服务+5年专属人工通道+游戏专家调优+服务期内硬盘故障维修服务，适用机型：Lenovo系列台式机",
+        "original_price": "799",
+        "sale_price": "799",
+        "tags": [
+          "自营",
+          "以旧换新"
+        ],
+        "source": "https://item.lenovo.com.cn/product/1022689.html",
+        "files": {
+          "copywriting": "服务/02_SPU_Lenovo_Care_智臻服务包/商品文案.md",
+          "white_image": "服务/02_SPU_Lenovo_Care_智臻服务包/白底图.jpg",
+          "detail_image": "服务/02_SPU_Lenovo_Care_智臻服务包/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      }
+    ],
+    "asset_mode": "shared_spu_assets"
+  },
+  {
+    "spu_id": "SPU-服务-003",
+    "short_name": "联想电脑维修故障检测服务",
+    "category": "服务",
+    "folder": "服务/03_SPU_联想电脑维修故障检测服务",
+    "configuration_count": 2,
+    "representative_files": {
+      "copywriting": "服务/03_SPU_联想电脑维修故障检测服务/商品文案.md",
+      "white_image": "服务/03_SPU_联想电脑维修故障检测服务/白底图.jpg",
+      "detail_image": "服务/03_SPU_联想电脑维修故障检测服务/详情图.jpg"
+    },
+    "configurations": [
+      {
+        "configuration_id": "SPU-服务-003-SKU-01",
+        "configuration_name": "此服务包含1台联想电脑（笔记本、台式机、一体机、平板）1次上门电脑故障上门维修服务（不包含软件安装调试、硬件故障维修及换件），下单后可预约在附近指定服务中心使用，过期退，未服务可退。下单后务必及时预约。",
+        "sku_id": "1048803",
+        "original_name": "电脑维修故障检测服务（上门）-50公里 -仅限阳光雨露服务站",
+        "description": "此服务包含1台联想电脑（笔记本、台式机、一体机、平板）1次上门电脑故障上门维修服务（不包含软件安装调试、硬件故障维修及换件），下单后可预约在附近指定服务中心使用，过期退，未服务可退。下单后务必及时预约。",
+        "original_price": "99",
+        "sale_price": "99",
+        "tags": [
+          "官方正品",
+          "联想商城"
+        ],
+        "source": "https://item.lenovo.com.cn/product/1048803.html",
+        "files": {
+          "copywriting": "服务/03_SPU_联想电脑维修故障检测服务/商品文案.md",
+          "white_image": "服务/03_SPU_联想电脑维修故障检测服务/白底图.jpg",
+          "detail_image": "服务/03_SPU_联想电脑维修故障检测服务/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      },
+      {
+        "configuration_id": "SPU-服务-003-SKU-02",
+        "configuration_name": "此服务包含1台联想电脑（笔记本、台式机、一体机、平板）1次上门电脑故障上门维修服务（不包含软件安装调试、硬件故障维修及换件），下单后可预约在附近指定服务中心使用，过期退，未服务可退。下单后务必及时预约。",
+        "sku_id": "1048802",
+        "original_name": "电脑维修故障检测服务（上门）-20公里 -仅限阳光雨露服务站",
+        "description": "此服务包含1台联想电脑（笔记本、台式机、一体机、平板）1次上门电脑故障上门维修服务（不包含软件安装调试、硬件故障维修及换件），下单后可预约在附近指定服务中心使用，过期退，未服务可退。下单后务必及时预约。",
+        "original_price": "69",
+        "sale_price": "69",
+        "tags": [
+          "官方正品",
+          "联想商城"
+        ],
+        "source": "https://item.lenovo.com.cn/product/1048802.html",
+        "files": {
+          "copywriting": "服务/03_SPU_联想电脑维修故障检测服务/商品文案.md",
+          "white_image": "服务/03_SPU_联想电脑维修故障检测服务/白底图.jpg",
+          "detail_image": "服务/03_SPU_联想电脑维修故障检测服务/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      }
+    ],
+    "asset_mode": "shared_spu_assets"
+  },
+  {
+    "spu_id": "SPU-服务-004",
+    "short_name": "联想原厂外壳维修服务",
+    "category": "服务",
+    "folder": "服务/04_SPU_联想原厂外壳维修服务",
+    "configuration_count": 1,
+    "representative_files": {
+      "copywriting": "服务/04_SPU_联想原厂外壳维修服务/商品文案.md",
+      "white_image": "服务/04_SPU_联想原厂外壳维修服务/白底图.jpg",
+      "detail_image": "服务/04_SPU_联想原厂外壳维修服务/详情图.jpg"
+    },
+    "configurations": [
+      {
+        "configuration_id": "SPU-服务-004-SKU-01",
+        "configuration_name": "此服务适用于“外壳”部件的维修，适用机型：Lenovo笔记本、台式机或一体机。下单后可预约在附近指定服务中心使用，此膨胀金可双倍抵扣单台电脑的单次维修费用，不可叠加使用；过期退，未服务可退。下单后务必及时预约。",
+        "sku_id": "1040514",
+        "original_name": "联想保外原厂外壳维修服务膨胀金 -仅限阳光雨露服务站",
+        "description": "此服务适用于“外壳”部件的维修，适用机型：Lenovo笔记本、台式机或一体机。下单后可预约在附近指定服务中心使用，此膨胀金可双倍抵扣单台电脑的单次维修费用，不可叠加使用；过期退，未服务可退。下单后务必及时预约。",
+        "original_price": "40",
+        "sale_price": "40",
+        "tags": [
+          "官方正品",
+          "联想商城"
+        ],
+        "source": "https://item.lenovo.com.cn/product/1040514.html",
+        "files": {
+          "copywriting": "服务/04_SPU_联想原厂外壳维修服务/商品文案.md",
+          "white_image": "服务/04_SPU_联想原厂外壳维修服务/白底图.jpg",
+          "detail_image": "服务/04_SPU_联想原厂外壳维修服务/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      }
+    ],
+    "asset_mode": "shared_spu_assets"
+  },
+  {
+    "spu_id": "SPU-服务-005",
+    "short_name": "联想原厂电源维修服务",
+    "category": "服务",
+    "folder": "服务/05_SPU_联想原厂电源维修服务",
+    "configuration_count": 1,
+    "representative_files": {
+      "copywriting": "服务/05_SPU_联想原厂电源维修服务/商品文案.md",
+      "white_image": "服务/05_SPU_联想原厂电源维修服务/白底图.jpg",
+      "detail_image": "服务/05_SPU_联想原厂电源维修服务/详情图.jpg"
+    },
+    "configurations": [
+      {
+        "configuration_id": "SPU-服务-005-SKU-01",
+        "configuration_name": "此服务适用于“电源”部件的维修，适用机型：Lenovo笔记本、台式机或一体机。下单后可预约在附近指定服务中心使用，此膨胀金可双倍抵扣单台电脑的单次维修费用，不可叠加使用；过期退，未服务可退。下单后务必及时预约。",
+        "sku_id": "1040511",
+        "original_name": "联想保外原厂电源维修服务膨胀金 -仅限阳光雨露服务站",
+        "description": "此服务适用于“电源”部件的维修，适用机型：Lenovo笔记本、台式机或一体机。下单后可预约在附近指定服务中心使用，此膨胀金可双倍抵扣单台电脑的单次维修费用，不可叠加使用；过期退，未服务可退。下单后务必及时预约。",
+        "original_price": "30",
+        "sale_price": "30",
+        "tags": [
+          "官方正品",
+          "联想商城"
+        ],
+        "source": "https://item.lenovo.com.cn/product/1040511.html",
+        "files": {
+          "copywriting": "服务/05_SPU_联想原厂电源维修服务/商品文案.md",
+          "white_image": "服务/05_SPU_联想原厂电源维修服务/白底图.jpg",
+          "detail_image": "服务/05_SPU_联想原厂电源维修服务/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      }
+    ],
+    "asset_mode": "shared_spu_assets"
+  },
+  {
+    "spu_id": "SPU-服务-006",
+    "short_name": "联想原厂笔记本键盘维修服务",
+    "category": "服务",
+    "folder": "服务/06_SPU_联想原厂笔记本键盘维修服务",
+    "configuration_count": 1,
+    "representative_files": {
+      "copywriting": "服务/06_SPU_联想原厂笔记本键盘维修服务/商品文案.md",
+      "white_image": "服务/06_SPU_联想原厂笔记本键盘维修服务/白底图.jpg",
+      "detail_image": "服务/06_SPU_联想原厂笔记本键盘维修服务/详情图.jpg"
+    },
+    "configurations": [
+      {
+        "configuration_id": "SPU-服务-006-SKU-01",
+        "configuration_name": "此服务适用于“笔记本键盘”部件的维修，适用机型：Lenovo笔记本、台式机或一体机。下单后可预约在附近指定服务中心使用，此膨胀金可双倍抵扣单台电脑的单次维修费用，不可叠加使用；过期退，未服务可退。下单后务必及时预约。",
+        "sku_id": "1040513",
+        "original_name": "联想保外原厂笔记本键盘维修服务膨胀金 -仅限阳光雨露服务站",
+        "description": "此服务适用于“笔记本键盘”部件的维修，适用机型：Lenovo笔记本、台式机或一体机。下单后可预约在附近指定服务中心使用，此膨胀金可双倍抵扣单台电脑的单次维修费用，不可叠加使用；过期退，未服务可退。下单后务必及时预约。",
+        "original_price": "40",
+        "sale_price": "40",
+        "tags": [
+          "官方正品",
+          "联想商城"
+        ],
+        "source": "https://item.lenovo.com.cn/product/1040513.html",
+        "files": {
+          "copywriting": "服务/06_SPU_联想原厂笔记本键盘维修服务/商品文案.md",
+          "white_image": "服务/06_SPU_联想原厂笔记本键盘维修服务/白底图.jpg",
+          "detail_image": "服务/06_SPU_联想原厂笔记本键盘维修服务/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      }
+    ],
+    "asset_mode": "shared_spu_assets"
+  },
+  {
+    "spu_id": "SPU-服务-007",
+    "short_name": "联想原厂主板维修服务",
+    "category": "服务",
+    "folder": "服务/07_SPU_联想原厂主板维修服务",
+    "configuration_count": 1,
+    "representative_files": {
+      "copywriting": "服务/07_SPU_联想原厂主板维修服务/商品文案.md",
+      "white_image": "服务/07_SPU_联想原厂主板维修服务/白底图.jpg",
+      "detail_image": "服务/07_SPU_联想原厂主板维修服务/详情图.jpg"
+    },
+    "configurations": [
+      {
+        "configuration_id": "SPU-服务-007-SKU-01",
+        "configuration_name": "此服务适用于“主板”部件的维修，适用机型：Lenovo笔记本、台式机或一体机。下单后可预约在附近指定服务中心使用，此膨胀金可双倍抵扣单台电脑的单次维修费用，不可叠加使用；过期退，未服务可退。下单后务必及时预约。",
+        "sku_id": "1040508",
+        "original_name": "联想保外原厂主板维修服务膨胀金 -仅限阳光雨露服务站",
+        "description": "此服务适用于“主板”部件的维修，适用机型：Lenovo笔记本、台式机或一体机。下单后可预约在附近指定服务中心使用，此膨胀金可双倍抵扣单台电脑的单次维修费用，不可叠加使用；过期退，未服务可退。下单后务必及时预约。",
+        "original_price": "100",
+        "sale_price": "100",
+        "tags": [
+          "官方正品",
+          "联想商城"
+        ],
+        "source": "https://item.lenovo.com.cn/product/1040508.html",
+        "files": {
+          "copywriting": "服务/07_SPU_联想原厂主板维修服务/商品文案.md",
+          "white_image": "服务/07_SPU_联想原厂主板维修服务/白底图.jpg",
+          "detail_image": "服务/07_SPU_联想原厂主板维修服务/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      }
+    ],
+    "asset_mode": "shared_spu_assets"
+  },
+  {
+    "spu_id": "SPU-服务-008",
+    "short_name": "联想原厂无线网卡维修服务",
+    "category": "服务",
+    "folder": "服务/08_SPU_联想原厂无线网卡维修服务",
+    "configuration_count": 1,
+    "representative_files": {
+      "copywriting": "服务/08_SPU_联想原厂无线网卡维修服务/商品文案.md",
+      "white_image": "服务/08_SPU_联想原厂无线网卡维修服务/白底图.jpg",
+      "detail_image": "服务/08_SPU_联想原厂无线网卡维修服务/详情图.jpg"
+    },
+    "configurations": [
+      {
+        "configuration_id": "SPU-服务-008-SKU-01",
+        "configuration_name": "此服务适用于“无线网卡”部件的维修，适用机型：Lenovo笔记本、台式机或一体机。下单后可预约在附近指定服务中心使用，此膨胀金可双倍抵扣单台电脑的单次维修费用，不可叠加使用；过期退，未服务可退。下单后务必及时预约。",
+        "sku_id": "1040517",
+        "original_name": "联想保外原厂无线网卡维修服务膨胀金 -仅限阳光雨露服务站",
+        "description": "此服务适用于“无线网卡”部件的维修，适用机型：Lenovo笔记本、台式机或一体机。下单后可预约在附近指定服务中心使用，此膨胀金可双倍抵扣单台电脑的单次维修费用，不可叠加使用；过期退，未服务可退。下单后务必及时预约。",
+        "original_price": "20",
+        "sale_price": "20",
+        "tags": [
+          "官方正品",
+          "联想商城"
+        ],
+        "source": "https://item.lenovo.com.cn/product/1040517.html",
+        "files": {
+          "copywriting": "服务/08_SPU_联想原厂无线网卡维修服务/商品文案.md",
+          "white_image": "服务/08_SPU_联想原厂无线网卡维修服务/白底图.jpg",
+          "detail_image": "服务/08_SPU_联想原厂无线网卡维修服务/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      }
+    ],
+    "asset_mode": "shared_spu_assets"
+  },
+  {
+    "spu_id": "SPU-服务-009",
+    "short_name": "联想原厂屏轴维修服务",
+    "category": "服务",
+    "folder": "服务/09_SPU_联想原厂屏轴维修服务",
+    "configuration_count": 1,
+    "representative_files": {
+      "copywriting": "服务/09_SPU_联想原厂屏轴维修服务/商品文案.md",
+      "white_image": "服务/09_SPU_联想原厂屏轴维修服务/白底图.jpg",
+      "detail_image": "服务/09_SPU_联想原厂屏轴维修服务/详情图.jpg"
+    },
+    "configurations": [
+      {
+        "configuration_id": "SPU-服务-009-SKU-01",
+        "configuration_name": "此服务适用于“屏轴”部件的维修，适用机型：Lenovo笔记本、台式机或一体机。下单后可预约在附近指定服务中心使用，此膨胀金可双倍抵扣单台电脑的单次维修费用，不可叠加使用；过期退，未服务可退。下单后务必及时预约。",
+        "sku_id": "1040516",
+        "original_name": "联想保外原厂屏轴维修服务膨胀金 -仅限阳光雨露服务站",
+        "description": "此服务适用于“屏轴”部件的维修，适用机型：Lenovo笔记本、台式机或一体机。下单后可预约在附近指定服务中心使用，此膨胀金可双倍抵扣单台电脑的单次维修费用，不可叠加使用；过期退，未服务可退。下单后务必及时预约。",
+        "original_price": "20",
+        "sale_price": "20",
+        "tags": [
+          "官方正品",
+          "联想商城"
+        ],
+        "source": "https://item.lenovo.com.cn/product/1040516.html",
+        "files": {
+          "copywriting": "服务/09_SPU_联想原厂屏轴维修服务/商品文案.md",
+          "white_image": "服务/09_SPU_联想原厂屏轴维修服务/白底图.jpg",
+          "detail_image": "服务/09_SPU_联想原厂屏轴维修服务/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      }
+    ],
+    "asset_mode": "shared_spu_assets"
+  },
+  {
+    "spu_id": "SPU-服务-010",
+    "short_name": "联想原厂电池维修服务",
+    "category": "服务",
+    "folder": "服务/10_SPU_联想原厂电池维修服务",
+    "configuration_count": 1,
+    "representative_files": {
+      "copywriting": "服务/10_SPU_联想原厂电池维修服务/商品文案.md",
+      "white_image": "服务/10_SPU_联想原厂电池维修服务/白底图.jpg",
+      "detail_image": "服务/10_SPU_联想原厂电池维修服务/详情图.jpg"
+    },
+    "configurations": [
+      {
+        "configuration_id": "SPU-服务-010-SKU-01",
+        "configuration_name": "此服务适用于“电池”部件的维修，适用机型：Lenovo笔记本、台式机或一体机。下单后可预约在附近指定服务中心使用，此膨胀金可双倍抵扣单台电脑的单次维修费用，不可叠加使用；过期退，未服务可退。下单后务必及时预约。",
+        "sku_id": "1040512",
+        "original_name": "联想保外原厂电池维修服务膨胀金 -仅限阳光雨露服务站",
+        "description": "此服务适用于“电池”部件的维修，适用机型：Lenovo笔记本、台式机或一体机。下单后可预约在附近指定服务中心使用，此膨胀金可双倍抵扣单台电脑的单次维修费用，不可叠加使用；过期退，未服务可退。下单后务必及时预约。",
+        "original_price": "40",
+        "sale_price": "40",
+        "tags": [
+          "官方正品",
+          "联想商城"
+        ],
+        "source": "https://item.lenovo.com.cn/product/1040512.html",
+        "files": {
+          "copywriting": "服务/10_SPU_联想原厂电池维修服务/商品文案.md",
+          "white_image": "服务/10_SPU_联想原厂电池维修服务/白底图.jpg",
+          "detail_image": "服务/10_SPU_联想原厂电池维修服务/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      }
+    ],
+    "asset_mode": "shared_spu_assets"
+  }
+]

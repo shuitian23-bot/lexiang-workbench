@@ -798,21 +798,15 @@ body.lx-template-file .lxfd-nav-cluster:not(.open) {
         background: transparent !important;
       }
 
-      /* 首屏保留顶部安全间距；分类栏吸顶后必须归零，避免下方内容从缝隙露出。 */
+      /* 与中小企业保持相同层级：顶部间距只由广告组件自身的 18px margin 提供。 */
       body.lx-home-split[data-page="personal"] > .shell > .content.lx-shop-content {
-        padding-top: 18px !important;
         overflow-anchor: none !important;
       }
 
       /*
        * 分类切换不得改变首屏顶部节奏。
-       * 旧的商城楼层规则同时给 content 加 18px padding、给 hero 加 18px margin，
-       * sticky 状态又会把 content padding 清零，导致“推荐 / 国补 / 教育特惠 / 会员”
-       * 切换及滚动往返后出现 18px / 36px 两种高度。这里统一由 content 单独提供 18px。
+       * 与中小企业一致，不在 content 上叠加 padding；广告组件自身提供 18px margin。
        */
-      body.lx-home-split[data-page="personal"] > .shell > .content.lx-shop-content:has(> .hero) {
-        padding-top: 18px !important;
-      }
       body.lx-home-split[data-page="personal"] > .shell > .content.lx-shop-content:has(> .hero) > .hero {
         margin-top: 0 !important;
       }
