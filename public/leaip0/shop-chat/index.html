@@ -1135,16 +1135,23 @@
 
 
   const channelContent = host.closest('.content');
+  const channelHomeAnchor = nativeDocument.createComment('channel-home-commerce-anchor');
+  host.before(channelHomeAnchor);
   const channelHomeTabId = 'site:personal';
   const syncChannelHomeVisibility = () => {
     const activeTab = channelContent?.querySelector(':scope > .lx-tabbar .lx-tab.is-active');
-    const activeTabId = activeTab?.getAttribute('data-shop-tab-id') || '';
+    const activeTabId = activeTab?.getAttribute('data-tab-id') || '';
     const contentView = channelContent?.dataset.view || 'list';
     const isHomeTab = !activeTab || activeTabId === channelHomeTabId;
     const isHomeView = contentView === 'home' || contentView === 'list' || contentView === '';
-    const visible = isHomeTab && isHomeView;
-    host.hidden = !visible;
-    host.setAttribute('aria-hidden', visible ? 'false' : 'true');
+    const shouldMount = isHomeTab && isHomeView;
+    if (shouldMount && !host.isConnected) {
+      channelHomeAnchor.after(host);
+      host.removeAttribute('hidden');
+      host.removeAttribute('aria-hidden');
+    } else if (!shouldMount && host.isConnected) {
+      host.remove();
+    }
   };
   syncChannelHomeVisibility();
   if (channelContent && window.MutationObserver) {
