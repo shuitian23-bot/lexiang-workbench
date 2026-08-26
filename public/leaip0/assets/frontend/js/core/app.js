@@ -3177,14 +3177,17 @@ function openOrderDetail(orderId) {
           // 本地货盘 specs 缺硬件参数（只有运营字段）→ 从 description 配置串解析补齐，参数行才有内容
           const full = fullRaw.map((item) => ({ ...item, specs: lxSpecsFromDescription({ ...item, specs: normalizeProductSpecs(item.specs) }) }));
           state._comparePageItems = full;
-          const manage = isCustom ? "" : `<div class="lx-cmp-manage">${full.map((item) => `<span class="lx-cmp-chip">${esc(item.name?.slice(0, 22) || item.sku)}<button type="button" data-remove-compare="${esc(item.sku)}" aria-label="移除">×</button></span>`).join("")}</div>`;
           const body = full.length >= 2
             ? renderCompareTable(full, { actions: true })
             : `<p class="lx-p0-disclaimer">再加入 1 件商品即可生成并排对比表。</p>`;
+          const initialRecommended = state._compareRecommendedProduct || full[full.length - 1] || full[0];
+          const initialAdvice = initialRecommended
+            ? `当前推荐 <strong>${esc(initialRecommended.name || initialRecommended.sku)}</strong>，综合配置更均衡。建议结合实际用途与商品详情确认。`
+            : "建议结合实际用途与商品详情确认。";
           pageBox.innerHTML = `
-            <div class="reco-head"><h2>${esc(title)}</h2><span>差异项已高亮，可直接加购或下单</span></div>
-            ${manage}${body}
-            <div class="lx-cmp-advice" style="display:none;margin:12px 0;padding:12px 16px;background:#f3f0f7;border-radius:10px;font-size:13px;color:#5b1452;line-height:1.6"></div>`;
+            <div class="lx-pc-head"><h2>商品参数对比</h2><p>差异项已高亮，可直接加购或下单</p></div>
+            <section class="lx-pc-ai-suggest" aria-label="乐享建议"><span class="lx-pc-ai-avatar">${window.__lxApprovedIcon("global-sparkle")}</span><div><h4>乐享建议</h4><p class="lx-cmp-advice" aria-live="polite">${initialAdvice}</p></div></section>
+            ${body}`;
           // AI建议：异步 fetch，不阻塞渲染
           (async () => {
             try {
@@ -3196,8 +3199,7 @@ function openOrderDetail(orderId) {
               if (!r.ok) return;
               const d = await r.json();
               if (!d.pick || !d.reason) return;
-              adviceEl.innerHTML = `<strong style="display:block;margin-bottom:4px;color:#4d144a">AI 建议</strong>结合你的需求，最推荐 <strong>${esc(d.pick)}</strong>：${esc(d.reason)}`;
-              adviceEl.style.display = 'block';
+              adviceEl.innerHTML = `结合你的需求，当前推荐 <strong>${esc(d.pick)}</strong>：${esc(d.reason)}`;
               // 把 AI 最推荐那款整列高亮（区别于单项「优」）。按 pick 商品名匹配列 index
               const pick = String(d.pick || "").trim();
               let pickIdx = full.findIndex((p) => String(p.name || "").trim() === pick);
@@ -3205,14 +3207,16 @@ function openOrderDetail(orderId) {
               if (pickIdx >= 0) {
                 state._compareRecommendedSku = full[pickIdx]?.sku || "";
                 state._compareRecommendedProduct = full[pickIdx] || null;
-                const tbl = pageBox.querySelector(".lx-cmp-skin .tbl");
+                const tbl = pageBox.querySelector(".lx-product-compare .lx-pc-grid");
                 if (tbl) {
-                  tbl.querySelectorAll(`[data-col="${pickIdx}"]`).forEach((cell) => cell.classList.add("lx-cmp-pick"));
-                  // 列头加「最推荐」角标
-                  const head = tbl.querySelector(`.phead[data-col="${pickIdx}"]`);
-                  if (head && !head.querySelector(".lx-cmp-pick-flag")) {
-                    head.insertAdjacentHTML("afterbegin", `<span class="lx-cmp-pick-flag">乐享最推荐</span>`);
-                  }
+                  tbl.querySelectorAll("[data-col]").forEach((cell) => cell.classList.toggle("recommended", Number(cell.dataset.col) === pickIdx));
+                  tbl.querySelectorAll(".lx-pc-product-head").forEach((head) => head.classList.remove("top"));
+                  tbl.querySelectorAll(".lx-pc-action-cell").forEach((cell) => cell.classList.remove("bottom"));
+                  const head = tbl.querySelector(`.lx-pc-product-head[data-col="${pickIdx}"]`);
+                  const action = tbl.querySelector(`.lx-pc-action-cell[data-col="${pickIdx}"]`);
+                  head?.classList.add("top"); action?.classList.add("bottom");
+                  tbl.querySelectorAll(".lx-pc-rec-badge").forEach((badge) => badge.remove());
+                  head?.insertAdjacentHTML("afterbegin", `<span class="lx-pc-rec-badge">乐享推荐</span>`);
                 }
               }
             } catch (_) {}
@@ -10131,26 +10135,22 @@ async function openEduZone() {
         }
 
         function renderCompareTable(products, opts = {}) {
-          const keys = [];
+          const preferredLabels = ["处理器", "操作系统", "存储", "显卡", "内存", "硬盘", "屏幕尺寸", "颜色"];
+          const allKeys = [];
           const seen = new Set();
-          const seenLabel = new Set(); // ram/memory、storage/disk 中文标签相同，只留先见的一个，防「内存」行出现两次
           products.forEach((product) => Object.keys(product.specs || {}).forEach((key) => {
-            // 白名单：只展示有中文映射的参数；内部字段（materialNumber/screen_res 等）与分类行不外露
-            if (DETAIL_SPEC_SKIP_KEYS.has(key) || seen.has(key)) return;
-            if (!DETAIL_SPEC_LABELS[key] || /^lvl\d/.test(key)) return;
-            if (seenLabel.has(DETAIL_SPEC_LABELS[key])) return;
-            seen.add(key);
-            seenLabel.add(DETAIL_SPEC_LABELS[key]);
-            keys.push(key);
+            const label = DETAIL_SPEC_LABELS[key];
+            if (!label || DETAIL_SPEC_SKIP_KEYS.has(key) || /^lvl\d/.test(key) || seen.has(label)) return;
+            seen.add(label); allKeys.push(key);
           }));
+          const keys = preferredLabels.map((label) => allKeys.find((key) => DETAIL_SPEC_LABELS[key] === label)).filter(Boolean);
           const cmpPriceNum = (value) => Number(String(value ?? "").replace(/[^\d.]/g, "")) || 0;
           const prices = products.map(p => cmpPriceNum(p.price));
           const validPrices = prices.filter(p => p > 0);
           const minPrice = validPrices.length >= 2 ? Math.min(...validPrices) : -1;
           const bestPriceIdx = minPrice > 0 ? prices.indexOf(minPrice) : -1;
           const bestTag = '<span class="best-tag">优</span>';
-          const spark = window.__lxApprovedIcon("global-sparkle");
-          const cartIcon = window.__lxApprovedIcon("global-cart");
+          const spark = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.6 4.1L18 9l-4.4 1.9L12 15l-1.6-4.1L6 9l4.4-1.9L12 3Zm6 11 .7 1.8L21 17l-2.3 1.2L18 20l-.7-1.8L15 17l2.3-1.2L18 14Z"/></svg>`;
           const priceText = (value) => {
             const n = cmpPriceNum(value);
             return n > 0 ? n.toLocaleString() : "—";
@@ -10168,12 +10168,23 @@ async function openEduZone() {
             const scene = /游戏|rtx|独显/.test(text) ? "游戏创作" : /商务|thinkpad|thinkbook/.test(text) ? "办公差旅" : "学习办公";
             return `${highlights.slice(0, 3).join("，")}，适合${scene}。`;
           };
+          const recommendedSku = state._compareRecommendedSku && products.some((product) => product.sku === state._compareRecommendedSku)
+            ? state._compareRecommendedSku : products[products.length - 1]?.sku;
+          const recommendedIndex = Math.max(0, products.findIndex((product) => product.sku === recommendedSku));
+          state._compareRecommendedSku = products[recommendedIndex]?.sku || "";
+          state._compareRecommendedProduct = products[recommendedIndex] || null;
+          const labelIcon = (name) => `<span class="lx-pc-label-icon" aria-hidden="true">${name === "乐享AI解读" ? spark : ""}</span><span>${esc(name)}</span>`;
           const headCells = products.map((product, i) => {
-            const custom = /定制|定制款/.test(product.name || "") || product.custom;
+            const recommended = i === recommendedIndex;
             const cleanName = String(product.name || "").replace(/^【?定制款】?\s*/, "");
-            return `<div class="cell phead bodycell" data-col="${i}"><div class="pname lx-cmp-name" data-open-product="${esc(product.sku)}">${custom ? '<span class="cz">定制款</span>' : ""}${esc(cleanName)}</div><div class="price pr"><span class="cur">¥</span>${priceText(product.price)}${i === bestPriceIdx ? bestTag : ""}</div></div>`;
+            const image = product.image_url || product.image || "";
+            return `<div class="lx-pc-cell lx-pc-product-head lx-pc-r-product${recommended ? " recommended top" : ""}" data-col="${i}" data-cmp-recommend="${esc(product.sku)}" role="button" tabindex="0" aria-pressed="${recommended}" aria-label="${esc(cleanName)}${recommended ? "，当前推荐" : "，设为推荐商品"}">
+              <button class="lx-pc-product-close" type="button" data-remove-compare="${esc(product.sku)}" aria-label="移除 ${esc(cleanName)}"${products.length <= 2 ? " disabled" : ""}>×</button>
+              ${recommended ? '<span class="lx-pc-rec-badge">乐享推荐</span>' : ""}
+              <div class="lx-pc-product-inner"><span class="lx-pc-thumb">${image ? `<img src="${esc(image)}" alt="${esc(cleanName)}" loading="lazy">` : ""}</span><span class="lx-pc-product-copy"><span class="lx-pc-title">${esc(cleanName)}</span><span class="lx-pc-price-line"><span class="lx-pc-price">¥${priceText(product.price)}</span>${i === bestPriceIdx ? bestTag : ""}</span></span></div>
+            </div>`;
           }).join("");
-          const bodyRows = keys.slice(0, 18).map((key) => {
+          const bodyRows = keys.map((key) => {
             const values = products.map((product) => String((product.specs || {})[key] ?? "—").trim());
             const differs = new Set(values).size > 1;
             // 优势格：数值可比的行，按方向找最优列高亮（如内存大/重量轻）
@@ -10191,13 +10202,13 @@ async function openEduZone() {
               const maxScore = Math.max(...scores);
               if (maxScore > 0) bestIndex = scores.indexOf(maxScore);
             }
-            return `<div class="cell rowlabel">${esc(DETAIL_SPEC_LABELS[key] || key)}</div>${values.map((value, i) => `<div class="cell val bodycell${i === bestIndex ? ' best' : ""}" data-col="${i}">${i === bestIndex ? `<span class="v">${esc(value)} ${bestTag}</span>` : esc(value)}</div>`).join("")}`;
+            return `<div class="lx-pc-cell lx-pc-label lx-pc-r-normal">${labelIcon(DETAIL_SPEC_LABELS[key] || key)}</div>${values.map((value, i) => `<div class="lx-pc-cell lx-pc-value lx-pc-r-normal${i === recommendedIndex ? " recommended" : ""}" data-col="${i}">${i === bestIndex ? `<span class="lx-pc-value-pill">${esc(value)} ${bestTag}</span>` : esc(value)}</div>`).join("")}`;
           }).join("");
           const actionsRow = opts.actions
-            ? `<div class="cell rowlabel">操作</div>${products.map((product, i) => `<div class="cell op bodycell" data-col="${i}"><button class="buy" type="button" data-cmp-buy="${esc(product.sku)}">立即购买</button><button class="cart" type="button" data-cmp-cart="${esc(product.sku)}">${cartIcon}加购</button></div>`).join("")}`
+            ? `<div class="lx-pc-cell lx-pc-label lx-pc-r-action">${labelIcon("操作")}</div>${products.map((product, i) => `<div class="lx-pc-cell lx-pc-action-cell lx-pc-r-action${i === recommendedIndex ? " recommended bottom" : ""}" data-col="${i}"><button class="lx-pc-buy-btn" type="button" data-cmp-buy="${esc(product.sku)}">立即购买</button></div>`).join("")}`
             : "";
-          const aiRow = `<div class="cell rowlabel ai-label">${spark}<span>乐享AI解读</span></div>${products.map((product, i) => `<div class="cell ai-cell bodycell" data-col="${i}"><span class="ai-text">${esc(cmpAiText(product))}</span></div>`).join("")}`;
-          return `<div class="lx-cmp-wrap"><div class="lx-cmp-skin" data-v="1" style="--lx-cmp-cols:${products.length}"><div class="tbl"><div class="cell rowlabel" style="border-bottom:1px solid var(--border)">商品</div>${headCells}${aiRow}${bodyRows}${actionsRow}</div></div><p class="foot-note">浅紫底纹为差异项，<b>「优」</b>标记为该项最优。参数信息以商品详情页为准。</p></div>`;
+          const aiRow = `<div class="lx-pc-cell lx-pc-label lx-pc-r-ai">${labelIcon("乐享AI解读")}</div>${products.map((product, i) => `<div class="lx-pc-cell lx-pc-ai-cell lx-pc-r-ai${i === recommendedIndex ? " recommended" : ""}" data-col="${i}"><div class="lx-pc-ai-note"><span class="lx-pc-sparkle">${spark}</span><span>${esc(cmpAiText(product))}</span></div></div>`).join("")}`;
+          return `<div class="lx-product-compare"><section class="lx-pc-shell" aria-label="商品参数对比表"><div class="lx-pc-scroll" tabindex="0" aria-label="横向滚动查看全部商品参数"><div class="lx-pc-grid" style="--lx-pc-cols:${products.length}"><div class="lx-pc-cell lx-pc-label lx-pc-r-product">${labelIcon("参数对比")}</div>${headCells}${aiRow}${bodyRows}${actionsRow}</div></div></section><p class="lx-pc-foot-note">浅紫底纹为差异项，<b>「优」</b>标记为该项最优。参数信息以商品详情页为准。</p></div>`;
         }
 
         if (!window.__lxCmpSkinHoverBound) {
@@ -10210,6 +10221,24 @@ async function openEduZone() {
           document.addEventListener("pointerout", (event) => {
             const root = event.target.closest?.('.lx-cmp-skin[data-v="1"]');
             if (root && !root.contains(event.relatedTarget)) delete root.dataset.hoverCol;
+          }, true);
+          document.addEventListener("keydown", (event) => {
+            const target = event.target.closest?.("[data-cmp-recommend]");
+            if (target && (event.key === "Enter" || event.key === " ")) { event.preventDefault(); target.click(); }
+          }, true);
+        }
+
+        if (!window.__lxProductCompareHoverBound) {
+          window.__lxProductCompareHoverBound = true;
+          document.addEventListener("pointerover", (event) => {
+            const cell = event.target.closest?.(".lx-product-compare .lx-pc-cell[data-col]");
+            const grid = cell?.closest(".lx-pc-grid");
+            if (!grid) return;
+            grid.querySelectorAll(".lx-pc-cell[data-col]").forEach((item) => item.classList.toggle("column-hover", item.dataset.col === cell.dataset.col));
+          }, true);
+          document.addEventListener("pointerout", (event) => {
+            const grid = event.target.closest?.(".lx-product-compare .lx-pc-grid");
+            if (grid && !grid.contains(event.relatedTarget)) grid.querySelectorAll(".column-hover").forEach((item) => item.classList.remove("column-hover"));
           }, true);
         }
 
@@ -12312,11 +12341,41 @@ async function openEduZone() {
               openCart();
             }
 
+            const recommendCompare = event.target.closest("[data-cmp-recommend]")?.dataset.cmpRecommend;
+            if (recommendCompare && !event.target.closest("[data-remove-compare]")) {
+              const product = (state._comparePageItems || []).find((item) => item.sku === recommendCompare);
+              if (product) {
+                state._compareRecommendedSku = product.sku;
+                state._compareRecommendedProduct = product;
+                const grid = event.target.closest(".lx-pc-grid");
+                const col = event.target.closest("[data-col]")?.dataset.col;
+                if (grid && col != null) {
+                  grid.querySelectorAll("[data-col]").forEach((cell) => cell.classList.toggle("recommended", cell.dataset.col === col));
+                  grid.querySelectorAll(".lx-pc-product-head").forEach((head) => { head.classList.remove("top"); head.setAttribute("aria-pressed", String(head.dataset.col === col)); });
+                  grid.querySelectorAll(".lx-pc-action-cell").forEach((cell) => cell.classList.remove("bottom"));
+                  const head = grid.querySelector(`.lx-pc-product-head[data-col="${col}"]`);
+                  const action = grid.querySelector(`.lx-pc-action-cell[data-col="${col}"]`);
+                  head?.classList.add("top"); action?.classList.add("bottom");
+                  grid.querySelectorAll(".lx-pc-rec-badge").forEach((badge) => badge.remove());
+                  head?.insertAdjacentHTML("afterbegin", '<span class="lx-pc-rec-badge">乐享推荐</span>');
+                }
+                const advice = document.querySelector(".compare-page .lx-cmp-advice");
+                if (advice) advice.innerHTML = `当前推荐 <strong>${esc(product.name || product.sku)}</strong>，综合配置更均衡。建议结合实际用途与商品详情确认。`;
+              }
+              return;
+            }
             const removeCompare = event.target.closest("[data-remove-compare]")?.dataset.removeCompare;
             if (removeCompare) {
               state.compare = state.compare.filter((item) => item.sku !== removeCompare);
               save("lexiang.compare.v1", state.compare);
-              lxUpsertCompareTab(null, null, state.activeTabId === "compare");
+              const activeCompareTab = (state.tabs || []).find((tab) => tab.id === state.activeTabId);
+              if (activeCompareTab && Array.isArray(activeCompareTab.products)) {
+                activeCompareTab.products = activeCompareTab.products.filter((item) => item.sku !== removeCompare);
+                if (activeCompareTab.products.length >= 2) lxRenderComparePage(activeCompareTab);
+              } else {
+                lxUpsertCompareTab(null, null, state.activeTabId === "compare");
+              }
+              return;
             }
             const cmpBuy = event.target.closest("[data-cmp-buy]")?.dataset.cmpBuy;
             if (cmpBuy) {
