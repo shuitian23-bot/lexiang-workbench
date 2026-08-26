@@ -1393,7 +1393,8 @@ function compactProductSpec(description, category) {
         }
         function lxVariantLabel(variant, baseName, index = 0) {
           const specs = lxParseSpecs(variant.specs);
-          const textConfig = lxExtractConfigFromText(`${variant.name || ""} / ${variant.description || ""}`);
+          const sourceConfig = specs.configuration_name || specs.configurationName || "";
+          const textConfig = lxExtractConfigFromText(`${sourceConfig} / ${variant.name || ""} / ${variant.description || ""}`);
           const pick = (...keys) => keys.map((k) => specs[k]).find(Boolean);
           const config = {
             cpu: pick("cpu", "processor", "处理器") || textConfig.cpu,
@@ -1420,7 +1421,7 @@ function compactProductSpec(description, category) {
             const payload = await response.json();
             if (token !== spuToken) return;
             const variants = payload.variants || [];
-            if (variants.length < 2) return;
+            if (!variants.length) return;
             state.spuVariants = variants;
             const range = payload.price_min && payload.price_max && payload.price_min !== payload.price_max
               ? `¥${Number(payload.price_min).toLocaleString()} - ¥${Number(payload.price_max).toLocaleString()}`
@@ -1435,7 +1436,7 @@ function compactProductSpec(description, category) {
               });
             }
             box.innerHTML = `
-              <div class="lx-spu-head"><span>本系列共 ${variants.length} 款配置${range ? ` · <b>${range}</b>` : ""}</span><button class="lx-spu-compare" type="button" data-spu-compare>对比本系列 →</button></div>
+              <div class="lx-spu-head"><span>选择配置 · 本系列共 ${variants.length} 款${range ? ` · <b>${range}</b>` : ""}</span>${variants.length > 1 ? '<button class="lx-spu-compare" type="button" data-spu-compare>对比本系列 →</button>' : ""}</div>
               <div class="lx-spu-chips">${variants.map((variant, i) => `<button class="lx-spu-chip${variant.sku === product.sku ? " is-active" : ""}" type="button" data-variant-sku="${esc(variant.sku)}" title="${esc(variant.name)}"><span class="lx-spu-chip-label">${esc(labels[i])}</span><span class="lx-spu-chip-price">¥${Number(variant.price || 0).toLocaleString()}</span></button>`).join("")}</div>`;
             box.hidden = false;
           } catch {}

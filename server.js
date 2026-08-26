@@ -575,7 +575,12 @@ app.get('/api/products/:sku/variants', (req, res) => {
     .filter((row) => getSpuKey(row) === key)
     .sort((a, b) => Number(a.price || 0) - Number(b.price || 0))
     .slice(0, 12)
-    .map((row) => ({ ...row, specs: parseProductSpecs(row.specs), image_url: (row.image_url || '').replace(/^http:\/\//, 'https://') }));
+    .map((row) => ({
+      ...row,
+      description: cleanProductDescription(row.description),
+      specs: parseProductSpecs(row.specs),
+      image_url: (row.image_url || '').replace(/^http:\/\//, 'https://'),
+    }));
   const prices = variants.map((v) => Number(v.price || 0)).filter((p) => p > 0);
   res.json({
     spu_key: key,
