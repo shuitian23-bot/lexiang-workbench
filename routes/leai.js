@@ -491,10 +491,14 @@ function normalizeIntent(obj) {
   if (type === 'control' && !INTENT_OPS.includes(op)) return { type: 'chat', op: '', target: '' };
   return { type, op: type === 'control' ? op : '', target: String((obj && obj.target) || '') };
 }
+// 快速通道：不含任何 control 触发词的输入（绝大多数商品咨询/推荐/闲聊）直接判 chat，
+// 省掉一次 ~3s 的模型往返；命中词表才交给模型精判（宁多调不漏判，规则第 7 条拿不准=chat）
+const INTENT_CONTROL_HINT = /关闭|关掉|关所有|关其他|只留|清空|全屏|分屏|沉浸|放大|缩小|展开|收起|打开|看下|看看|查看|下单|买|购|加购|领券|对比|比较|哪个好|第\s*[一二三四五六七八九十\d]+\s*[个台款]|序号|标签|首页|回到|返回|切换|会员|优惠券|券|订单|购物车|门店|教育|认证|升级|边聊边逛|退出|\b(open|close|buy|compare|tab|cart|order|store)\b/i;
 router.post('/intent', (req, res) => {
   const { message } = req.body || {};
   const fallback = { type: 'chat', op: '', target: '' };
   if (!message) return res.json(fallback);
+  if (!INTENT_CONTROL_HINT.test(String(message))) return res.json(fallback);
   const body = JSON.stringify({
     model: 'doubao-seed-2.0-lite',
     messages: [{ role: 'system', content: INTENT_RULES }, { role: 'user', content: String(message).slice(0, 500) }],
