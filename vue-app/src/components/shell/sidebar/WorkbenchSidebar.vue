@@ -62,15 +62,30 @@
         <div class="poc-log-list">
           <div v-for="item in pocLogRecords" :key="`${item.time}-${item.title}`" class="poc-log-item">
             <div class="poc-log-meta">
-              <span>发布人</span>
-              <strong>{{ getPocPublisher(item) }}</strong>
-              <span>更新时间</span>
+              <span>记录时间</span>
               <time>{{ item.time }}</time>
             </div>
             <div class="poc-log-content">
               <b>{{ item.title }}</b>
               <p>{{ item.detail }}</p>
               <small><span>改动点</span>{{ getPocChangePoint(item) }}</small>
+              <div class="poc-log-releases">
+                <strong>发布记录</strong>
+                <div
+                  v-for="release in getPocReleaseRows(item)"
+                  :key="release.key"
+                  class="poc-log-release-row"
+                >
+                  <a :href="release.href" target="_blank" rel="noreferrer">{{ release.label }}</a>
+                  <em :class="{ pending: !release.published }">{{ release.state }}</em>
+                  <p v-if="release.published">
+                    <span>发布人 {{ release.publisher }}</span>
+                    <time>时间 {{ release.releasedAt }}</time>
+                    <code>版本 {{ release.version }}</code>
+                  </p>
+                  <p v-else>尚未发布到该环境</p>
+                </div>
+              </div>
               <div v-if="getPocDeployTargets(item).length" class="poc-log-targets">
                 <span>部署范围</span>
                 <a
@@ -106,6 +121,7 @@ import { storeToRefs } from 'pinia'
 import { useAppStore, MENU_TREE } from '@/stores/app'
 import { STORAGE_KEYS } from '@/constants/storageKeys'
 import { pocLogServerRecords } from '@/data/pocLogServerRecords'
+import { loadPocReleaseLedger } from '@/services/pocReleaseLedger'
 import SidebarHeader from '@/components/sidebar/SidebarHeader.vue'
 import SidebarNavGroup from '@/components/sidebar/SidebarNavGroup.vue'
 import SidebarFooter from '@/components/sidebar/SidebarFooter.vue'
@@ -126,10 +142,21 @@ const openGroups = ref(new Set())
 const userMenuVisible = ref(false)
 const isPeeking = ref(false)
 const pocLogVisible = ref(false)
+const pocReleaseLedger = ref({ records: {} })
 
 const basePocLogRecords = [
   {
+    time: '2026-08-26 12:24',
+    releaseKey: 'portal-release-ledger-20260826',
+    title: '调整日志双环境发布记录',
+    changePoint: '每条改动分别展示 new 预览和正式环境的发布人、发布时间与版本；新增服务器发布台账，后续发布自动记录实际账号。',
+    detail: '调整日志不再用单个发布人概括两个环境。每条改动固定显示 new 预览和正式环境两行，未发布环境明确标记“未发布”；两个环境可以由不同服务器账号在不同时间发布。历史数据只按可核实的服务器记录补录，无法确认的账号继续显示“历史未记录”。发布脚本采用文件锁和原子写入，同一份台账同步供两个链接读取，不修改现有自动合并脚本、权限管理、右侧 AI 助手或受保护运行文件。',
+    deployTargets: ['new'],
+    status: '已更新 new 预览'
+  },
+  {
     time: '2026-08-26 10:40',
+    releaseKey: 'portal-log-fields-20260826',
     publisher: 'zhangrui（部署账号）',
     title: '调整日志主信息精简',
     changePoint: '移除日志主信息区的“改动人”，统一保留发布人、更新时间、改动点、部署范围和状态。',
@@ -139,6 +166,7 @@ const basePocLogRecords = [
   },
   {
     time: '2026-08-26 09:52',
+    releaseKey: 'portal-log-traceability-20260826',
     operator: 'Codex（协作代理）',
     publisher: 'zhangrui（部署账号）',
     title: '调整日志逐项记录与发布人补全',
@@ -149,22 +177,32 @@ const basePocLogRecords = [
   },
   {
     time: '2026-08-26 09:34',
+    releaseKey: 'portal-sidebar-default-expanded-20260826',
     operator: 'Codex（协作代理）',
     publisher: 'zhangrui（部署账号）',
     title: '左侧菜单默认展开',
     changePoint: '移除首次进入工作台时按窗口宽度自动收起菜单；保留用户手动收起记忆及后续响应式处理。',
     detail: '首次进入工作台时左侧菜单固定默认展开，不再因当前窗口宽度自动收起；用户手动展开或收起后的记忆、后续窗口缩放、右侧 AI 助手和业务页面逻辑保持不变。',
     deployTargets: ['new', 'formal'],
+    releases: {
+      new: { publisher: 'zhangrui', releasedAt: '2026-08-26 09:34:53', version: '19ab56da' },
+      formal: { publisher: 'zhangrui', releasedAt: '2026-08-26 09:40:59', version: 'c57013a7' }
+    },
     status: '已合并正式'
   },
   {
     time: '2026-08-26 09:12',
+    releaseKey: 'portal-home-layout-20260826',
     operator: 'Codex（协作代理）',
     publisher: 'zhangrui（部署账号）',
     title: '首页内容比例校正',
     changePoint: '校正“常用入口”和“基础操作流程”的列宽比例；内容区变窄时切换单列，避免错位和横向溢出。',
     detail: '校正首页“常用入口”和“基础操作流程”两块内容的列宽比例，在左侧菜单展开或收起、右侧 AI 助手收起、默认宽度或放大时保持两块内容等宽；当中间内容区变窄时自动切换为单列，避免卡片错位、内容挤压和页面横向溢出。',
     deployTargets: ['new', 'formal'],
+    releases: {
+      new: { publisher: 'zhangrui', releasedAt: '2026-08-26 09:00:50', version: 'd9ec8e2a' },
+      formal: { publisher: 'zhangrui', releasedAt: '2026-08-26 09:40:59', version: 'c57013a7' }
+    },
     status: '已合并正式'
   },
   {
@@ -516,10 +554,13 @@ const POC_DEPLOY_TARGETS = {
 const pocLogRecords = [...basePocLogRecords, ...pocLogServerRecords]
   .sort((left, right) => right.time.localeCompare(left.time))
 
-function getPocPublisher(record) {
+function getLegacyPocPublisher(record) {
   if (record.publisher) return record.publisher
-  if (record.deployAccount) return `${record.deployAccount}（部署账号）`
-  if (record.operator?.includes('部署账号')) return record.operator
+  if (record.deployAccount) return record.deployAccount
+  const operator = String(record.operator || '').replace(/（.*$/, '')
+  if (['zhangrui', 'baiyu', 'guanfeng2', 'guanjf2', 'yejw2', 'zhouyue118'].includes(operator)) {
+    return operator
+  }
   return '历史未记录'
 }
 
@@ -534,6 +575,61 @@ function getPocDeployTargets(record) {
   return [...new Set(targetKeys)]
     .map(key => POC_DEPLOY_TARGETS[key])
     .filter(Boolean)
+}
+
+function getPocReleaseTargetKeys(record) {
+  const declaredTargets = Array.isArray(record.deployTargets) ? record.deployTargets : []
+  if (declaredTargets.length) return new Set(declaredTargets)
+
+  const targetKeys = new Set()
+  if (record.status?.includes('正式')) {
+    targetKeys.add('new')
+    targetKeys.add('formal')
+  } else if (record.status?.includes('new')) {
+    targetKeys.add('new')
+  }
+  return targetKeys
+}
+
+function getPocReleaseRows(record) {
+  const releaseKey = record.releaseKey || record.title
+  const runtimeReleases = pocReleaseLedger.value.records?.[releaseKey]?.releases || {}
+  const explicitReleases = record.releases || {}
+  const legacyTargets = getPocReleaseTargetKeys(record)
+
+  return Object.values(POC_DEPLOY_TARGETS).map(target => {
+    const evidence = runtimeReleases[target.key] || explicitReleases[target.key]
+    if (evidence) {
+      return {
+        ...target,
+        published: true,
+        state: '已发布',
+        publisher: evidence.publisher || '历史未记录',
+        releasedAt: evidence.releasedAt || '历史时间未单独记录',
+        version: evidence.version || '历史未记录'
+      }
+    }
+
+    if (legacyTargets.has(target.key)) {
+      return {
+        ...target,
+        published: true,
+        state: '历史已发布',
+        publisher: getLegacyPocPublisher(record),
+        releasedAt: '历史时间未单独记录',
+        version: '历史未记录'
+      }
+    }
+
+    return {
+      ...target,
+      published: false,
+      state: '未发布',
+      publisher: '',
+      releasedAt: '',
+      version: ''
+    }
+  })
 }
 
 function getPocTraceFields(record) {
@@ -652,9 +748,13 @@ function openPermissionManagerPage() {
   appStore.setActiveStaticTab('agent.permissions')
   router.push('/agent/permissions')
 }
+async function refreshPocReleaseLedger() {
+  pocReleaseLedger.value = await loadPocReleaseLedger()
+}
 function openPocAdjustmentLog() {
   closeUserMenu()
   pocLogVisible.value = true
+  void refreshPocReleaseLedger()
 }
 function closePocAdjustmentLog() {
   pocLogVisible.value = false

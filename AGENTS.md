@@ -37,6 +37,22 @@
 - 构建与发布时必须保留 `public/admin-vue/admin-runtime/`，尤其不得覆盖 `workbench-geo.js` 和 `workbench-pages.js`。
 - 在 `vue-app/` 中至少执行 `pnpm guard:design-skill`、`pnpm lint`、`pnpm typecheck`、`pnpm build` 和 `pnpm smoke:shell`。
 
+### 门户工作台调整日志发布记录（强制）
+
+门户工作台每条调整记录必须分别保留 `new 预览` 和 `正式环境` 的发布人、发布时间与版本。发布人只表示实际执行对应环境发布的服务器账号，不得用 Git 作者、AI 名称或部署文件所有者代替。
+
+每次完成环境发布后，在执行发布的个人工作区运行：
+
+```bash
+scripts/record-portal-workbench-release.sh new <记录标识> "<调整日志标题>"
+scripts/record-portal-workbench-release.sh formal <记录标识> "<调整日志标题>"
+```
+
+- `new` 和 `formal` 必须分别在对应环境真正发布完成后记录，不能提前合并成一条。
+- 脚本默认读取当前服务器登录账号、北京时间和当前 Git 版本；只有代执行场景才能通过明确环境变量覆盖发布人。
+- 脚本使用共享文件锁和原子写入，同一份只读台账会同步给两个链接；不得手工覆盖整个台账 JSON。
+- 历史记录只按服务器发布证据补录。无法确认某个环境的发布人或时间时，保留“历史未记录”，不能根据提交作者猜测。
+
 ## 实施要求
 
 - UI 必须使用联想乐享超级智能体 PC 端规范，不要自行引入不在规范内的主色、紫色渐变、玻璃拟态或营销页式大背景。

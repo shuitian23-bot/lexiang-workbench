@@ -18,6 +18,7 @@ export const pocLogServerRecords = [
   },
   {
     "time": "2026-08-19 15:04",
+    "releaseKey": "skill-capability-context-p0-20260819",
     "operator": "zhangrui（协作工作区）",
     "codeAuthor": "Codex（协作代理）",
     "sourceRef": "dev/zhangrui-capability-update-selection；产品方案 portal-workbench-capability-context-controlled-update-product-plan-20260819.md；P0 发布提交 71b2ac5；预览状态兼容修复 b3b5294",
@@ -31,6 +32,18 @@ export const pocLogServerRecords = [
       "formal"
     ],
     "deployAccount": "zhangrui",
+    "releases": {
+      "new": {
+        "publisher": "zhangrui",
+        "releasedAt": "2026-08-19 15:04:00",
+        "version": "71b2ac5"
+      },
+      "formal": {
+        "publisher": "baiyu",
+        "releasedAt": "2026-08-19 15:15:00",
+        "version": "9585e3de"
+      }
+    },
     "status": "已合并正式并同步 Git"
   },
   {
@@ -101,6 +114,29 @@ export const pocLogServerRecords = [
     "status": "已合并正式"
   },
   {
+    "time": "2026-08-09 18:28",
+    "releaseKey": "permission-management-flow-20260809",
+    "operator": "guanfeng2",
+    "codeAuthor": "guanfeng2",
+    "sourceRef": "服务器正式 Git：68f8bee5、fa4a1de4、fbb2df40、071d308c、f1db9ae2、506d748c、127d6292、36d8da7d；2026-07-14 至 2026-08-09 权限管理连续提交已核验",
+    "traceStatus": "服务器正式 main 已包含 guanfeng2 的权限管理提交；正式环境发布版本可核实，new 预览的独立发布时间和发布账号未留下可靠记录，因此不做推断。",
+    "overwriteImpact": "权限管理由原负责人的连续提交独立维护。本条仅补齐服务器操作和正式发布证据，不调整权限流程、页面或当前构建产物。",
+    "title": "权限管理全流程与外部账号找回完善",
+    "scope": "权限申请 / 审批 / 数据范围 / 角色权限 / 外部账号找回密码 / 邮件通知",
+    "detail": "补录服务器 guanfeng2 在权限管理范围内的连续调整：统一权限申请和审批流程，完善首次访问拒绝页、权限范围选择、角色权限详情、管理员自动清理提醒、外部账号找回密码和审批通知。该条用于补齐服务器账号与正式发布版本，不修改现有权限管理实现。",
+    "deployTargets": [
+      "formal"
+    ],
+    "releases": {
+      "formal": {
+        "publisher": "guanfeng2",
+        "releasedAt": "2026-08-09 18:28:00",
+        "version": "68f8bee5"
+      }
+    },
+    "status": "正式环境已核实；new 历史未记录"
+  },
+  {
     "time": "2026-08-06 15:13",
     "operator": "zhangrui",
     "sourceRef": "用户提供 HTML：惠采协议采购单管理0731.html；Vue 源码：vue-app/src/views/order/OrderPurchaseOrdersView.vue / vue-app/src/stores/app.ts / vue-app/src/router/index.ts / vue-app/src/content-slot/contentSlotDefinitions.js / vue-app/src/views/agent/AgentSkillCreateView.vue / vue-app/src/stores/ai.ts",
@@ -165,6 +201,7 @@ export const pocLogServerRecords = [
   },
   {
     "time": "2026-07-22 19:17",
+    "releaseKey": "closed-loop-menu-20260722",
     "operator": "yejw2",
     "codeAuthor": "yejw2",
     "sourceRef": "正式 Git：784f394；涉及 docs/closed-loop-dashboard-deployment.md、public/lexiang-admin-extension/closed-loop-menu.js、scripts/check-closed-loop-dashboard-release.sh、public/changelog.json",
@@ -176,6 +213,13 @@ export const pocLogServerRecords = [
     "deployTargets": [
       "formal"
     ],
+    "releases": {
+      "formal": {
+        "publisher": "yejw2",
+        "releasedAt": "2026-07-22 19:17:00",
+        "version": "784f394"
+      }
+    },
     "status": "服务器 Git 已补录"
   },
   {
