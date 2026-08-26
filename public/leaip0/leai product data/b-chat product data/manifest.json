@@ -860,76 +860,6 @@
     "asset_mode": "shared_spu_assets"
   },
   {
-    "spu_id": "SPU-扬天-003",
-    "short_name": "IT服务-适用ThinkBook&ThinkPad neo/E/S&扬天笔记本",
-    "category": "扬天",
-    "folder": "扬天/03_SPU_IT服务-适用ThinkBook&ThinkPad_neo_E_S&扬天笔记本",
-    "configuration_count": 1,
-    "representative_files": {
-      "copywriting": "扬天/03_SPU_IT服务-适用ThinkBook&ThinkPad_neo_E_S&扬天笔记本/商品文案.md",
-      "white_image": "扬天/03_SPU_IT服务-适用ThinkBook&ThinkPad_neo_E_S&扬天笔记本/白底图.jpg",
-      "detail_image": "扬天/03_SPU_IT服务-适用ThinkBook&ThinkPad_neo_E_S&扬天笔记本/详情图.jpg"
-    },
-    "configurations": [
-      {
-        "configuration_id": "SPU-扬天-003-SKU-01",
-        "configuration_name": "为2年保修ThinkPad E / S / R / L / neo / ThinkBook / 扬天笔记本笔记本设备整机延长3年保修服务（不包括电池）和3次远程支持服务。在服务期限内，在服务期限内，当其出现与标准保修服务所列的性能故障相同的故障时，联想根据自主决定的方式以及本协议的规定对其予以维修，但不包括对该产品的整机或主机的更换或退货。和保修期内3次远程支持服务。",
-        "sku_id": "1027666",
-        "original_name": "五年IT服务-适用ThinkBook&ThinkPad neo/E/S&扬天笔记本",
-        "description": "为2年保修ThinkPad E/S/R/L/neo/ThinkBook/扬天笔记本笔记本设备整机延长3年保修服务（不包括电池）和3次远程支持服务。在服务期限内，在服务期限内，当其出现与标准保修服务所列的性能故障相同的故障时，联想根据自主决定的方式以及本协议的规定对其予以维修，但不包括对该产品的整机或主机的更换或退货。和保修期内3次远程支持服务。",
-        "original_price": "529",
-        "sale_price": "759",
-        "tags": [
-          "自营",
-          "企业购"
-        ],
-        "source": "https://b.lenovo.com.cn/product/1027666.html",
-        "files": {
-          "copywriting": "扬天/03_SPU_IT服务-适用ThinkBook&ThinkPad_neo_E_S&扬天笔记本/商品文案.md",
-          "white_image": "扬天/03_SPU_IT服务-适用ThinkBook&ThinkPad_neo_E_S&扬天笔记本/白底图.jpg",
-          "detail_image": "扬天/03_SPU_IT服务-适用ThinkBook&ThinkPad_neo_E_S&扬天笔记本/详情图.jpg"
-        },
-        "uses_shared_spu_assets": true
-      }
-    ],
-    "asset_mode": "shared_spu_assets"
-  },
-  {
-    "spu_id": "SPU-扬天-004",
-    "short_name": "意外保护服务-适用ThinkPad&ThinkBook&扬天笔记本",
-    "category": "扬天",
-    "folder": "扬天/04_SPU_意外保护服务-适用ThinkPad&ThinkBook&扬天笔记本",
-    "configuration_count": 1,
-    "representative_files": {
-      "copywriting": "扬天/04_SPU_意外保护服务-适用ThinkPad&ThinkBook&扬天笔记本/商品文案.md",
-      "white_image": "扬天/04_SPU_意外保护服务-适用ThinkPad&ThinkBook&扬天笔记本/白底图.jpg",
-      "detail_image": "扬天/04_SPU_意外保护服务-适用ThinkPad&ThinkBook&扬天笔记本/详情图.jpg"
-    },
-    "configurations": [
-      {
-        "configuration_id": "SPU-扬天-004-SKU-01",
-        "configuration_name": "意外损伤，原厂保修！",
-        "sku_id": "1027674",
-        "original_name": "意外保护服务（一年）-适用ThinkPad&ThinkBook&扬天笔记本",
-        "description": "意外损伤，原厂保修！",
-        "original_price": "159",
-        "sale_price": "269",
-        "tags": [
-          "自营",
-          "企业购"
-        ],
-        "source": "https://b.lenovo.com.cn/product/1027674.html",
-        "files": {
-          "copywriting": "扬天/04_SPU_意外保护服务-适用ThinkPad&ThinkBook&扬天笔记本/商品文案.md",
-          "white_image": "扬天/04_SPU_意外保护服务-适用ThinkPad&ThinkBook&扬天笔记本/白底图.jpg",
-          "detail_image": "扬天/04_SPU_意外保护服务-适用ThinkPad&ThinkBook&扬天笔记本/详情图.jpg"
-        },
-        "uses_shared_spu_assets": true
-      }
-    ],
-    "asset_mode": "shared_spu_assets"
-  },
-  {
     "spu_id": "SPU-办公-001",
     "short_name": "联想 ThinkVision S24-4e",
     "category": "办公",
@@ -1748,6 +1678,251 @@
           "copywriting": "服务/12_SPU_延长保修服务ThinkBook&ThinkPad_neo_E_S&扬天NB/商品文案.md",
           "white_image": "服务/12_SPU_延长保修服务ThinkBook&ThinkPad_neo_E_S&扬天NB/白底图.jpg",
           "detail_image": "服务/12_SPU_延长保修服务ThinkBook&ThinkPad_neo_E_S&扬天NB/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      }
+    ],
+    "asset_mode": "shared_spu_assets"
+  },
+  {
+    "spu_id": "SPU-ThinkPad-004",
+    "short_name": "联想 ThinkPad T14p",
+    "category": "ThinkPad",
+    "folder": "ThinkPad/04_SPU_联想_ThinkPad_T14p",
+    "configuration_count": 1,
+    "representative_files": {
+      "copywriting": "ThinkPad/04_SPU_联想_ThinkPad_T14p/商品文案.md",
+      "white_image": "ThinkPad/04_SPU_联想_ThinkPad_T14p/白底图.jpg",
+      "detail_image": "ThinkPad/04_SPU_联想_ThinkPad_T14p/详情图.jpg"
+    },
+    "configurations": [
+      {
+        "configuration_id": "SPU-ThinkPad-004-SKU-01",
+        "configuration_name": "英特尔酷睿Ultra X9 388H / Windows 11 家庭中文版 / 64G LPCAMM2 / 1TB SSD / Intel ARC Graphics / 14.5英寸3K 100%DCI-P3 500nit 120Hz高色域显示屏 / 黑色",
+        "sku_id": "1055124",
+        "original_name": "[企业购】联想ThinkPad T14p 2026 酷睿 Ultra X9 高性能工程师本 01CD",
+        "description": "英特尔酷睿Ultra X9 388H/Windows 11 家庭中文版/64G LPCAMM2/1TB SSD/Intel ARC Graphics/14.5英寸3K 100%DCI-P3 500nit 120Hz高色域显示屏/黑色",
+        "original_price": "19999",
+        "sale_price": "19999",
+        "tags": [
+          "自营",
+          "企业购"
+        ],
+        "source": "https://b.lenovo.com.cn/product/1055124.html",
+        "files": {
+          "copywriting": "ThinkPad/04_SPU_联想_ThinkPad_T14p/商品文案.md",
+          "white_image": "ThinkPad/04_SPU_联想_ThinkPad_T14p/白底图.jpg",
+          "detail_image": "ThinkPad/04_SPU_联想_ThinkPad_T14p/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      }
+    ],
+    "asset_mode": "shared_spu_assets"
+  },
+  {
+    "spu_id": "SPU-ThinkPad-005",
+    "short_name": "联想 ThinkPad E14",
+    "category": "ThinkPad",
+    "folder": "ThinkPad/05_SPU_联想_ThinkPad_E14",
+    "configuration_count": 1,
+    "representative_files": {
+      "copywriting": "ThinkPad/05_SPU_联想_ThinkPad_E14/商品文案.md",
+      "white_image": "ThinkPad/05_SPU_联想_ThinkPad_E14/白底图.jpg",
+      "detail_image": "ThinkPad/05_SPU_联想_ThinkPad_E14/详情图.jpg"
+    },
+    "configurations": [
+      {
+        "configuration_id": "SPU-ThinkPad-005-SKU-01",
+        "configuration_name": "英特尔酷睿 5 220H / Windows 11 家庭中文版 / 16G DDR5 / 1TB SSD / Integrated Graphics集显 / 14英寸 2.8K 广视角 100%sRGB显示屏 400nit 120Hz刷新率 / 黑色",
+        "sku_id": "1044852",
+        "original_name": "【企业购】联想ThinkPad E14 2025 酷睿5经典商务本 超能版 07CD",
+        "description": "英特尔酷睿 5 220H/Windows 11 家庭中文版/16G DDR5/1TB SSD/Integrated Graphics集显/14英寸 2.8K 广视角 100%sRGB显示屏 400nit 120Hz刷新率/黑色",
+        "original_price": "8399",
+        "sale_price": "8399",
+        "tags": [
+          "自营",
+          "企业购"
+        ],
+        "source": "https://b.lenovo.com.cn/product/1044852.html",
+        "files": {
+          "copywriting": "ThinkPad/05_SPU_联想_ThinkPad_E14/商品文案.md",
+          "white_image": "ThinkPad/05_SPU_联想_ThinkPad_E14/白底图.jpg",
+          "detail_image": "ThinkPad/05_SPU_联想_ThinkPad_E14/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      }
+    ],
+    "asset_mode": "shared_spu_assets"
+  },
+  {
+    "spu_id": "SPU-ThinkPad-006",
+    "short_name": "联想 ThinkPad X1 2in1 Aura",
+    "category": "ThinkPad",
+    "folder": "ThinkPad/06_SPU_联想_ThinkPad_X1_2in1_Aura",
+    "configuration_count": 1,
+    "representative_files": {
+      "copywriting": "ThinkPad/06_SPU_联想_ThinkPad_X1_2in1_Aura/商品文案.md",
+      "white_image": "ThinkPad/06_SPU_联想_ThinkPad_X1_2in1_Aura/白底图.jpg",
+      "detail_image": "ThinkPad/06_SPU_联想_ThinkPad_X1_2in1_Aura/详情图.jpg"
+    },
+    "configurations": [
+      {
+        "configuration_id": "SPU-ThinkPad-006-SKU-01",
+        "configuration_name": "英特尔Ultra7 355 / Windows 11家庭中文版 / 32GB / 1TB PCIe-NVMe 固态硬盘 / 集成显卡 / 14英寸2.8K 广视角 OLED背光触控显示屏（500尼特 ）120Hz",
+        "sku_id": "1055163",
+        "original_name": "【企业购】联想ThinkPad X1 2in1 Aura 2026 酷睿Ultra 7 超能本 00CD",
+        "description": "英特尔Ultra7 355/Windows 11家庭中文版/32GB/1TB PCIe-NVMe 固态硬盘/集成显卡/14英寸2.8K 广视角 OLED背光触控显示屏（500尼特 ）120Hz",
+        "original_price": "24799",
+        "sale_price": "24799",
+        "tags": [
+          "自营",
+          "企业购"
+        ],
+        "source": "https://b.lenovo.com.cn/product/1055163.html",
+        "files": {
+          "copywriting": "ThinkPad/06_SPU_联想_ThinkPad_X1_2in1_Aura/商品文案.md",
+          "white_image": "ThinkPad/06_SPU_联想_ThinkPad_X1_2in1_Aura/白底图.jpg",
+          "detail_image": "ThinkPad/06_SPU_联想_ThinkPad_X1_2in1_Aura/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      }
+    ],
+    "asset_mode": "shared_spu_assets"
+  },
+  {
+    "spu_id": "SPU-扬天-003",
+    "short_name": "联想扬天 V14",
+    "category": "扬天",
+    "folder": "扬天/03_SPU_联想扬天_V14",
+    "configuration_count": 1,
+    "representative_files": {
+      "copywriting": "扬天/03_SPU_联想扬天_V14/商品文案.md",
+      "white_image": "扬天/03_SPU_联想扬天_V14/白底图.jpg",
+      "detail_image": "扬天/03_SPU_联想扬天_V14/详情图.jpg"
+    },
+    "configurations": [
+      {
+        "configuration_id": "SPU-扬天-003-SKU-01",
+        "configuration_name": "英特尔酷睿 5 210H / Windows 11 家庭中文版 / 16G / 1TB SSD / UHD Graphics （集显） / 14英寸FHD 广视角 300nit 显示屏 / 灰色",
+        "sku_id": "1051287",
+        "original_name": "扬天 V14 酷睿版 英特尔酷睿5 商用笔记本",
+        "description": "英特尔酷睿 5 210H/Windows 11 家庭中文版/16G/1TB SSD/UHD Graphics （集显）/14英寸FHD 广视角 300nit 显示屏/灰色",
+        "original_price": "5999",
+        "sale_price": "5999",
+        "tags": [
+          "企业购",
+          "企业购"
+        ],
+        "source": "https://b.lenovo.com.cn/product/1051287.html",
+        "files": {
+          "copywriting": "扬天/03_SPU_联想扬天_V14/商品文案.md",
+          "white_image": "扬天/03_SPU_联想扬天_V14/白底图.jpg",
+          "detail_image": "扬天/03_SPU_联想扬天_V14/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      }
+    ],
+    "asset_mode": "shared_spu_assets"
+  },
+  {
+    "spu_id": "SPU-扬天-004",
+    "short_name": "联想扬天 M460",
+    "category": "扬天",
+    "folder": "扬天/04_SPU_联想扬天_M460",
+    "configuration_count": 1,
+    "representative_files": {
+      "copywriting": "扬天/04_SPU_联想扬天_M460/商品文案.md",
+      "white_image": "扬天/04_SPU_联想扬天_M460/白底图.jpg",
+      "detail_image": "扬天/04_SPU_联想扬天_M460/详情图.jpg"
+    },
+    "configurations": [
+      {
+        "configuration_id": "SPU-扬天-004-SKU-01",
+        "configuration_name": "英特尔酷睿 i5-12400 / 16G内存 / 512G SSD / Windows 11 / 商用台式机",
+        "sku_id": "1038201",
+        "original_name": "联想扬天M460 I5-12400/16G/512GSSD/W11",
+        "description": "英特尔酷睿 i5-12400 / 16G内存 / 512G SSD / Windows 11 / 商用台式机",
+        "original_price": "登录后询价",
+        "sale_price": "登录后询价",
+        "tags": [
+          "企业购",
+          "联想官方"
+        ],
+        "source": "https://b.lenovo.com.cn/product/1038201.html",
+        "files": {
+          "copywriting": "扬天/04_SPU_联想扬天_M460/商品文案.md",
+          "white_image": "扬天/04_SPU_联想扬天_M460/白底图.jpg",
+          "detail_image": "扬天/04_SPU_联想扬天_M460/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      }
+    ],
+    "asset_mode": "shared_spu_assets"
+  },
+  {
+    "spu_id": "SPU-扬天-005",
+    "short_name": "联想扬天 S660",
+    "category": "扬天",
+    "folder": "扬天/05_SPU_联想扬天_S660",
+    "configuration_count": 1,
+    "representative_files": {
+      "copywriting": "扬天/05_SPU_联想扬天_S660/商品文案.md",
+      "white_image": "扬天/05_SPU_联想扬天_S660/白底图.jpg",
+      "detail_image": "扬天/05_SPU_联想扬天_S660/详情图.jpg"
+    },
+    "configurations": [
+      {
+        "configuration_id": "SPU-扬天-005-SKU-01",
+        "configuration_name": "英特尔N100处理器 / Windows 11 家庭中文版 / 16G / 512G SSD / 集成显卡 / 23.8英寸FHD / 3年有限保修",
+        "sku_id": "1043930",
+        "original_name": "【企业购】扬天 S660 英特尔N100 台式一体机 03CD",
+        "description": "英特尔N100处理器 / Windows 11 家庭中文版 / 16G / 512G SSD / 集成显卡 / 23.8英寸FHD / 3年有限保修",
+        "original_price": "登录后询价",
+        "sale_price": "登录后询价",
+        "tags": [
+          "企业购",
+          "联想官方"
+        ],
+        "source": "https://b.lenovo.com.cn/product/1043930.html",
+        "files": {
+          "copywriting": "扬天/05_SPU_联想扬天_S660/商品文案.md",
+          "white_image": "扬天/05_SPU_联想扬天_S660/白底图.jpg",
+          "detail_image": "扬天/05_SPU_联想扬天_S660/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      }
+    ],
+    "asset_mode": "shared_spu_assets"
+  },
+  {
+    "spu_id": "SPU-扬天-006",
+    "short_name": "联想扬天 M4000s",
+    "category": "扬天",
+    "folder": "扬天/06_SPU_联想扬天_M4000s",
+    "configuration_count": 1,
+    "representative_files": {
+      "copywriting": "扬天/06_SPU_联想扬天_M4000s/商品文案.md",
+      "white_image": "扬天/06_SPU_联想扬天_M4000s/白底图.jpg",
+      "detail_image": "扬天/06_SPU_联想扬天_M4000s/详情图.jpg"
+    },
+    "configurations": [
+      {
+        "configuration_id": "SPU-扬天-006-SKU-01",
+        "configuration_name": "第九代英特尔酷睿i5-9400 / Windows 10家庭中文版 / 8G DDR4 / 1T / 集成显卡 / 商用台式机",
+        "sku_id": "1008992",
+        "original_name": "【企业购】扬天M4000s 英特尔酷睿i5 商用台式机 0ACD",
+        "description": "第九代英特尔酷睿i5-9400 / Windows 10家庭中文版 / 8G DDR4 / 1T / 集成显卡 / 商用台式机",
+        "original_price": "登录后询价",
+        "sale_price": "登录后询价",
+        "tags": [
+          "企业购",
+          "联想官方"
+        ],
+        "source": "https://b.lenovo.com.cn/product/1008992.html",
+        "files": {
+          "copywriting": "扬天/06_SPU_联想扬天_M4000s/商品文案.md",
+          "white_image": "扬天/06_SPU_联想扬天_M4000s/白底图.jpg",
+          "detail_image": "扬天/06_SPU_联想扬天_M4000s/详情图.jpg"
         },
         "uses_shared_spu_assets": true
       }

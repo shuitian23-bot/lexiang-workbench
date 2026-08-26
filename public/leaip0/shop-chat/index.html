@@ -1128,6 +1128,28 @@
     });
   });
 
+
+  const channelContent = host.closest('.content');
+  const channelHomeTabId = 'site:personal';
+  const syncChannelHomeVisibility = () => {
+    const activeTab = channelContent?.querySelector(':scope > .lx-tabbar .lx-tab.is-active');
+    const activeTabId = activeTab?.getAttribute('data-shop-tab-id') || '';
+    const contentView = channelContent?.dataset.view || 'list';
+    const isHomeTab = !activeTab || activeTabId === channelHomeTabId;
+    const isHomeView = contentView === 'home' || contentView === 'list' || contentView === '';
+    const visible = isHomeTab && isHomeView;
+    host.hidden = !visible;
+    host.setAttribute('aria-hidden', visible ? 'false' : 'true');
+  };
+  syncChannelHomeVisibility();
+  if (channelContent && window.MutationObserver) {
+    new MutationObserver(syncChannelHomeVisibility).observe(channelContent, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['class', 'aria-selected', 'data-view']
+    });
+  }
 })();
 </script>
 

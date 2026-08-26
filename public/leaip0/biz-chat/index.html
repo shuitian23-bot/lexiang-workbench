@@ -700,6 +700,28 @@
  render(embeddedManifest,'embedded-manifest-fallback');
  fetch(new URL('../../leai product data/biz-chat product data/manifest.json',nativeDocument.baseURI),{cache:'no-store'}).then(response=>{if(!response.ok)throw new Error(`商品清单读取失败：${response.status}`);return response.json()}).then(items=>render(items,'manifest')).catch(()=>{host.dataset.priceSource='embedded-manifest-fallback'});
  if(!window.matchMedia('(prefers-reduced-motion: reduce)').matches)root.querySelectorAll('.card-head').forEach(head=>{head.addEventListener('pointermove',event=>{const rect=head.getBoundingClientRect(),x=event.clientX-rect.left,y=event.clientY-rect.top;head.style.setProperty('--pointer-x',`${x}px`);head.style.setProperty('--pointer-y',`${y}px`);head.style.setProperty('--title-shift-x',`${((x/rect.width)-.5)*8}px`);head.style.setProperty('--title-shift-y',`${((y/rect.height)-.5)*6}px`)});head.addEventListener('pointerleave',()=>['--pointer-x','--pointer-y','--title-shift-x','--title-shift-y'].forEach(name=>head.style.removeProperty(name)))})
+
+  const channelContent = host.closest('.content');
+  const channelHomeTabId = 'site:enterprise';
+  const syncChannelHomeVisibility = () => {
+    const activeTab = channelContent?.querySelector(':scope > .lx-tabbar .lx-tab.is-active');
+    const activeTabId = activeTab?.getAttribute('data-shop-tab-id') || '';
+    const contentView = channelContent?.dataset.view || 'list';
+    const isHomeTab = !activeTab || activeTabId === channelHomeTabId;
+    const isHomeView = contentView === 'home' || contentView === 'list' || contentView === '';
+    const visible = isHomeTab && isHomeView;
+    host.hidden = !visible;
+    host.setAttribute('aria-hidden', visible ? 'false' : 'true');
+  };
+  syncChannelHomeVisibility();
+  if (channelContent && window.MutationObserver) {
+    new MutationObserver(syncChannelHomeVisibility).observe(channelContent, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['class', 'aria-selected', 'data-view']
+    });
+  }
 })();
 </script>
 

@@ -943,5 +943,320 @@
       }
     ],
     "asset_mode": "shared_spu_assets"
+  },
+  {
+    "spu_id": "SPU-笔记本-006",
+    "short_name": "联想 ThinkPad L14",
+    "category": "笔记本",
+    "folder": "笔记本/06_SPU_联想_ThinkPad_L14",
+    "configuration_count": 1,
+    "representative_files": {
+      "copywriting": "笔记本/06_SPU_联想_ThinkPad_L14/商品文案.md",
+      "white_image": "笔记本/06_SPU_联想_ThinkPad_L14/白底图.jpg",
+      "detail_image": "笔记本/06_SPU_联想_ThinkPad_L14/详情图.jpg"
+    },
+    "configurations": [
+      {
+        "configuration_id": "SPU-笔记本-006-SKU-01",
+        "configuration_name": "联想政企商城官方在售商品",
+        "sku_id": "1040043",
+        "original_name": "联想ThinkPad L14 Ultra5-225U/16G/512GSSD/Win11家庭版 ThinkPad L14 Ultra5-125U/16GB DDR5/512GB SSD/14英寸1920x1200/集显/高清摄像头/WIFI6E/46.5WH电池/1年上门 惠采价： ¥ 销售价： ¥ 7800 登录查看专享惠采价格",
+        "description": "联想政企商城官方在售商品",
+        "original_price": "7800",
+        "sale_price": "7800",
+        "tags": [
+          "政企热卖",
+          "联想官方"
+        ],
+        "source": "https://biz.lenovo.com.cn/pd/1040043.html",
+        "files": {
+          "copywriting": "笔记本/06_SPU_联想_ThinkPad_L14/商品文案.md",
+          "white_image": "笔记本/06_SPU_联想_ThinkPad_L14/白底图.jpg",
+          "detail_image": "笔记本/06_SPU_联想_ThinkPad_L14/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      }
+    ],
+    "asset_mode": "shared_spu_assets"
+  },
+  {
+    "spu_id": "SPU-台式机-005",
+    "short_name": "联想 ThinkStation K",
+    "category": "台式机",
+    "folder": "台式机/05_SPU_联想_ThinkStation_K",
+    "configuration_count": 1,
+    "representative_files": {
+      "copywriting": "台式机/05_SPU_联想_ThinkStation_K/商品文案.md",
+      "white_image": "台式机/05_SPU_联想_ThinkStation_K/白底图.jpg",
+      "detail_image": "台式机/05_SPU_联想_ThinkStation_K/详情图.jpg"
+    },
+    "configurations": [
+      {
+        "configuration_id": "SPU-台式机-005-SKU-01",
+        "configuration_name": "联想政企商城官方在售商品",
+        "sku_id": "1054258",
+        "original_name": "ThinkStation K Ultra9-285 32G/512SSD+2T机械/RTX5060 8G/500W/WIN11 HOME/定制 Ultra9-285 32G/512SSD+2T机械/RTX5060 8G/天禧/USB键鼠/云教室/500W/WIN11 HOME/定制 惠采价： ¥ 销售价： ¥ 15999 登录查看专享惠采价格",
+        "description": "联想政企商城官方在售商品",
+        "original_price": "15999",
+        "sale_price": "15999",
+        "tags": [
+          "政企热卖",
+          "联想官方"
+        ],
+        "source": "https://biz.lenovo.com.cn/pd/1054258.html",
+        "files": {
+          "copywriting": "台式机/05_SPU_联想_ThinkStation_K/商品文案.md",
+          "white_image": "台式机/05_SPU_联想_ThinkStation_K/白底图.jpg",
+          "detail_image": "台式机/05_SPU_联想_ThinkStation_K/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      }
+    ],
+    "asset_mode": "shared_spu_assets"
+  },
+  {
+    "spu_id": "SPU-台式机-006",
+    "short_name": "联想 ThinkStation K-C4",
+    "category": "台式机",
+    "folder": "台式机/06_SPU_联想_ThinkStation_K-C4",
+    "configuration_count": 1,
+    "representative_files": {
+      "copywriting": "台式机/06_SPU_联想_ThinkStation_K-C4/商品文案.md",
+      "white_image": "台式机/06_SPU_联想_ThinkStation_K-C4/白底图.jpg",
+      "detail_image": "台式机/06_SPU_联想_ThinkStation_K-C4/详情图.jpg"
+    },
+    "configurations": [
+      {
+        "configuration_id": "SPU-台式机-006-SKU-01",
+        "configuration_name": "联想政企商城官方在售商品",
+        "sku_id": "1054108",
+        "original_name": "ThinkStation K-C4 Ultra9-285/32G/512GSSD+2TB/RTX5060Ti 16G//500W/WIN11 HOME/定制 Ultra9-285 16GDDR5*2/512GSSD+2TBHDD/RTX5060Ti 16G/天禧/USB键鼠/云教室/500W/WIN11 HOME/27英寸显示器定制 惠采价： ¥ 销售价： ¥ 20099 登录查看专享惠采价格",
+        "description": "联想政企商城官方在售商品",
+        "original_price": "20099",
+        "sale_price": "20099",
+        "tags": [
+          "政企热卖",
+          "联想官方"
+        ],
+        "source": "https://biz.lenovo.com.cn/pd/1054108.html",
+        "files": {
+          "copywriting": "台式机/06_SPU_联想_ThinkStation_K-C4/商品文案.md",
+          "white_image": "台式机/06_SPU_联想_ThinkStation_K-C4/白底图.jpg",
+          "detail_image": "台式机/06_SPU_联想_ThinkStation_K-C4/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      }
+    ],
+    "asset_mode": "shared_spu_assets"
+  },
+  {
+    "spu_id": "SPU-工作站-006",
+    "short_name": "联想 ThinkStation P8",
+    "category": "工作站",
+    "folder": "工作站/06_SPU_联想_ThinkStation_P8",
+    "configuration_count": 1,
+    "representative_files": {
+      "copywriting": "工作站/06_SPU_联想_ThinkStation_P8/商品文案.md",
+      "white_image": "工作站/06_SPU_联想_ThinkStation_P8/白底图.jpg",
+      "detail_image": "工作站/06_SPU_联想_ThinkStation_P8/详情图.jpg"
+    },
+    "configurations": [
+      {
+        "configuration_id": "SPU-工作站-006-SKU-01",
+        "configuration_name": "联想政企商城官方在售商品",
+        "sku_id": "1046263",
+        "original_name": "【定制款】ThinkStation P87945WX/64GDDR5/1T SSD+4T机械/RTX4090 24G 定制 ThinkStation P8 TR Pro 7945WX 4.7G 12C 24T/2*32GB DDR5 4800 ECC RDIMM/1T SSD+4T机械 /RTX4090 24G/ 1000W 惠采价： ¥ 销售价： ¥ 64999 登录查看专享惠采价格",
+        "description": "联想政企商城官方在售商品",
+        "original_price": "64999",
+        "sale_price": "64999",
+        "tags": [
+          "政企热卖",
+          "联想官方"
+        ],
+        "source": "https://biz.lenovo.com.cn/pd/1046263.html",
+        "files": {
+          "copywriting": "工作站/06_SPU_联想_ThinkStation_P8/商品文案.md",
+          "white_image": "工作站/06_SPU_联想_ThinkStation_P8/白底图.jpg",
+          "detail_image": "工作站/06_SPU_联想_ThinkStation_P8/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      }
+    ],
+    "asset_mode": "shared_spu_assets"
+  },
+  {
+    "spu_id": "SPU-服务器-006",
+    "short_name": "联想 ThinkServer SR630",
+    "category": "服务器",
+    "folder": "服务器/06_SPU_联想_ThinkServer_SR630",
+    "configuration_count": 1,
+    "representative_files": {
+      "copywriting": "服务器/06_SPU_联想_ThinkServer_SR630/商品文案.md",
+      "white_image": "服务器/06_SPU_联想_ThinkServer_SR630/白底图.jpg",
+      "detail_image": "服务器/06_SPU_联想_ThinkServer_SR630/详情图.jpg"
+    },
+    "configurations": [
+      {
+        "configuration_id": "SPU-服务器-006-SKU-01",
+        "configuration_name": "联想政企商城官方在售商品",
+        "sku_id": "1051347",
+        "original_name": "联想SR630 机架式服务器 2颗5218 64G | 3*2.4T 10K | 双电 定制配置：联想ThinkServer SR630 双路机架式服务器 2颗5218 32核 2.3GHz 64G | 3*2.4T 10K | RAID5 | 四口千兆 | 双电 惠采价： ¥ 销售价： ¥ 34200 登录查看专享惠采价格",
+        "description": "联想政企商城官方在售商品",
+        "original_price": "34200",
+        "sale_price": "34200",
+        "tags": [
+          "政企热卖",
+          "联想官方"
+        ],
+        "source": "https://biz.lenovo.com.cn/pd/1051347.html",
+        "files": {
+          "copywriting": "服务器/06_SPU_联想_ThinkServer_SR630/商品文案.md",
+          "white_image": "服务器/06_SPU_联想_ThinkServer_SR630/白底图.jpg",
+          "detail_image": "服务器/06_SPU_联想_ThinkServer_SR630/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      }
+    ],
+    "asset_mode": "shared_spu_assets"
+  },
+  {
+    "spu_id": "SPU-选件-005",
+    "short_name": "联想 B600 双肩包",
+    "category": "选件",
+    "folder": "选件/05_SPU_联想_B600_双肩包",
+    "configuration_count": 1,
+    "representative_files": {
+      "copywriting": "选件/05_SPU_联想_B600_双肩包/商品文案.md",
+      "white_image": "选件/05_SPU_联想_B600_双肩包/白底图.jpg",
+      "detail_image": "选件/05_SPU_联想_B600_双肩包/详情图.jpg"
+    },
+    "configurations": [
+      {
+        "configuration_id": "SPU-选件-005-SKU-01",
+        "configuration_name": "联想政企商城官方在售商品",
+        "sku_id": "1048415",
+        "original_name": "联想15.6英寸电脑双肩包B600 联想ThinkPad 15.6英寸电脑双肩包B600 笔记本背包时尚简约商务 黑色 惠采价： ¥ 销售价： ¥ 259 登录查看专享惠采价格",
+        "description": "联想政企商城官方在售商品",
+        "original_price": "259",
+        "sale_price": "259",
+        "tags": [
+          "政企热卖",
+          "联想官方"
+        ],
+        "source": "https://biz.lenovo.com.cn/pd/1048415.html",
+        "files": {
+          "copywriting": "选件/05_SPU_联想_B600_双肩包/商品文案.md",
+          "white_image": "选件/05_SPU_联想_B600_双肩包/白底图.jpg",
+          "detail_image": "选件/05_SPU_联想_B600_双肩包/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      }
+    ],
+    "asset_mode": "shared_spu_assets"
+  },
+  {
+    "spu_id": "SPU-选件-006",
+    "short_name": "联想 ThinkVision 27 3D",
+    "category": "选件",
+    "folder": "选件/06_SPU_联想_ThinkVision_27_3D",
+    "configuration_count": 1,
+    "representative_files": {
+      "copywriting": "选件/06_SPU_联想_ThinkVision_27_3D/商品文案.md",
+      "white_image": "选件/06_SPU_联想_ThinkVision_27_3D/白底图.jpg",
+      "detail_image": "选件/06_SPU_联想_ThinkVision_27_3D/详情图.jpg"
+    },
+    "configurations": [
+      {
+        "configuration_id": "SPU-选件-006-SKU-01",
+        "configuration_name": "联想政企商城官方在售商品",
+        "sku_id": "1047261",
+        "original_name": "联想ThinkVision 27英寸裸眼3D专业4K显示器 升降旋转壁挂 惠采价： ¥ 销售价： ¥ 14999 登录查看专享惠采价格",
+        "description": "联想政企商城官方在售商品",
+        "original_price": "14999",
+        "sale_price": "14999",
+        "tags": [
+          "政企热卖",
+          "联想官方"
+        ],
+        "source": "https://biz.lenovo.com.cn/pd/1047261.html",
+        "files": {
+          "copywriting": "选件/06_SPU_联想_ThinkVision_27_3D/商品文案.md",
+          "white_image": "选件/06_SPU_联想_ThinkVision_27_3D/白底图.jpg",
+          "detail_image": "选件/06_SPU_联想_ThinkVision_27_3D/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      }
+    ],
+    "asset_mode": "shared_spu_assets"
+  },
+  {
+    "spu_id": "SPU-笔记本-007",
+    "short_name": "联想 ThinkPad L13",
+    "category": "笔记本",
+    "folder": "笔记本/07_SPU_联想_ThinkPad_L13",
+    "configuration_count": 1,
+    "representative_files": {
+      "copywriting": "笔记本/07_SPU_联想_ThinkPad_L13/商品文案.md",
+      "white_image": "笔记本/07_SPU_联想_ThinkPad_L13/白底图.jpg",
+      "detail_image": "笔记本/07_SPU_联想_ThinkPad_L13/详情图.jpg"
+    },
+    "configurations": [
+      {
+        "configuration_id": "SPU-笔记本-007-SKU-01",
+        "configuration_name": "联想政企商城官方在售商品",
+        "sku_id": "1051381",
+        "original_name": "ThinkPad L13 笔记本Ultra5-125U/16GB内存/512GB/ 13.3英寸 Ultra5-125U/16GB内存/512GB硬盘/集显/WUXGA/Win11家庭/HD摄像头/1年上门 惠采价： ¥ 销售价： ¥ 6799 登录查看专享惠采价格",
+        "description": "联想政企商城官方在售商品",
+        "original_price": "6799",
+        "sale_price": "6799",
+        "tags": [
+          "政企热卖",
+          "联想官方"
+        ],
+        "source": "https://biz.lenovo.com.cn/pd/1051381.html",
+        "files": {
+          "copywriting": "笔记本/07_SPU_联想_ThinkPad_L13/商品文案.md",
+          "white_image": "笔记本/07_SPU_联想_ThinkPad_L13/白底图.jpg",
+          "detail_image": "笔记本/07_SPU_联想_ThinkPad_L13/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      }
+    ],
+    "asset_mode": "shared_spu_assets"
+  },
+  {
+    "spu_id": "SPU-笔记本-008",
+    "short_name": "联想 ThinkPad T14",
+    "category": "笔记本",
+    "folder": "笔记本/08_SPU_联想_ThinkPad_T14",
+    "configuration_count": 1,
+    "representative_files": {
+      "copywriting": "笔记本/08_SPU_联想_ThinkPad_T14/商品文案.md",
+      "white_image": "笔记本/08_SPU_联想_ThinkPad_T14/白底图.jpg",
+      "detail_image": "笔记本/08_SPU_联想_ThinkPad_T14/详情图.jpg"
+    },
+    "configurations": [
+      {
+        "configuration_id": "SPU-笔记本-008-SKU-01",
+        "configuration_name": "联想政企商城官方在售商品",
+        "sku_id": "1037311",
+        "original_name": "ThinkPad T14 I7-1165G7/24G(8G+16G加装)/512G/独显MX450 2G/Win11/定制 定制款改配T14 I7-1165G7/24G(8G+16G加装)/512G/独显MX450 2G/Win11 惠采价： ¥ 销售价： ¥ 6899 登录查看专享惠采价格",
+        "description": "联想政企商城官方在售商品",
+        "original_price": "6899",
+        "sale_price": "6899",
+        "tags": [
+          "政企热卖",
+          "联想官方"
+        ],
+        "source": "https://biz.lenovo.com.cn/pd/1037311.html",
+        "files": {
+          "copywriting": "笔记本/08_SPU_联想_ThinkPad_T14/商品文案.md",
+          "white_image": "笔记本/08_SPU_联想_ThinkPad_T14/白底图.jpg",
+          "detail_image": "笔记本/08_SPU_联想_ThinkPad_T14/详情图.jpg"
+        },
+        "uses_shared_spu_assets": true
+      }
+    ],
+    "asset_mode": "shared_spu_assets"
   }
 ]
