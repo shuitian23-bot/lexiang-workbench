@@ -617,6 +617,11 @@
     .floor-product:nth-child(6){display:block}
   }
 
+  @media (max-width: 2200px) {
+    .cards-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+    .ranking-card:nth-child(4){display:none}
+  }
+
   @media (max-width: 1200px) {
     .hero {
       flex-direction: column;
