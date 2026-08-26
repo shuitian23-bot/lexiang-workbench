@@ -1267,6 +1267,14 @@ function compactProductSpec(description, category) {
           }
         }
 
+        function lxDetailProductDescription(value) {
+          const raw = String(value || "").replace(/\r/g, "").trim();
+          return raw
+            .split(/\n\s*\n|(?:^|\s)#{1,6}\s+/)[0]
+            .replace(/\s*(?:[-·|｜]\s*)?(?:SPU名称|SPU编号|商品分类|配置数量|SKU编号)\s*[:：].*$/i, "")
+            .trim();
+        }
+
         async function openProduct(productOrSku, opts = {}) {
           let product = typeof productOrSku === "object" ? productOrSku : state.products.find((item) => item.sku === productOrSku);
           // 模版传入的临时商品也必须按 SKU 缓存；再次激活已有详情标签时仍能恢复完整价格、图片和配置。
@@ -1286,6 +1294,7 @@ function compactProductSpec(description, category) {
             }
           }
           if (!product) return toast("未找到该商品，可能已下架或仅官网在售");
+          product = { ...product, description: lxDetailProductDescription(product.description) };
           const detailTabId = product.sku ? `detail:${product.sku}` : "";
           const detailIsNewTab = !!detailTabId && !opts.noTab && !(state.tabs || []).some((tab) => tab.id === detailTabId);
           let detailGenToken = null;
