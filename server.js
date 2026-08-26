@@ -10,7 +10,7 @@ const versionInfo = require('./core/version');
 // Init DB first, then materialize the authoritative LeAI product package into the
 // legacy products contract used by routes and skills. Other platform tables stay untouched.
 const platformDb = require('./db/schema');
-if (process.env.LEAI_PRODUCT_CATALOG_ENABLED !== '0') {
+if (process.env.LEAI_PRODUCT_CATALOG_ENABLED === '1') {
   try {
     const result = require('./core/leai-product-catalog').syncCatalogToProducts(platformDb);
     console.log(`[Catalog] leai product data: ${result.spuCount} SPU / ${result.skuCount} SKU${result.changed ? '（已同步）' : '（无变化）'}`);
@@ -37,7 +37,10 @@ app.use(express.json({
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-const sessionDb = require('better-sqlite3')(path.join(__dirname, 'sessions.db'));
+const sessionDbPath = process.env.LEAI_SESSION_DB_PATH
+  ? path.resolve(process.env.LEAI_SESSION_DB_PATH)
+  : path.join(__dirname, 'sessions.db');
+const sessionDb = require('better-sqlite3')(sessionDbPath);
 app.use(session({
   store: new SqliteStore({ client: sessionDb, expired: { clear: true, intervalMs: 3600000 } }),
   secret: process.env.SESSION_SECRET || require('crypto').randomBytes(32).toString('hex'),
