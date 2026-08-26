@@ -277,6 +277,16 @@ if (!window.__lxCreateTypewriter) {
           if (!Array.isArray(state.siteProducts) || !state.siteProducts.length) loadProductsForPage();
         }
 
+        function lxEnsureChannelResultSplit() {
+          const logicalPath = String(window.__LX_TEMPLATE_PATH || location.pathname || "/").replace(/\/+$/, "") || "/";
+          if (!["/shop-chat", "/b-chat", "/biz-chat"].includes(logicalPath)) return false;
+          lxPrepareRootSplitState();
+          document.body.classList.remove("lxfd-exiting", "lxfd-split-returning");
+          document.body.classList.add("lx-home-split", "lxfd-split-entered");
+          document.body.dataset.state = "chat";
+          return true;
+        }
+
         function lxIsRootFullscreenReveal() {
           return String(window.__LX_TEMPLATE_PATH || location.pathname || "/").replace(/\/+$/, "/") === "/" &&
             !document.body.classList.contains("lx-home-split") &&
@@ -1482,6 +1492,13 @@ function compactProductSpec(description, category) {
         }
 
         async function openProduct(productOrSku, opts = {}) {
+          const detailLogicalPath = String(window.__LX_TEMPLATE_PATH || location.pathname || "/").replace(/\/+$/, "") || "/";
+          const detailNeedsSplitRecovery = ["/shop-chat", "/b-chat", "/biz-chat"].includes(detailLogicalPath) &&
+            (!document.body.classList.contains("lx-home-split") ||
+              document.body.classList.contains("assistant-fullscreen") ||
+              document.body.classList.contains("lx-auto-fs") ||
+              document.body.classList.contains("lxfd-entering") ||
+              document.body.classList.contains("lxfd-exiting"));
           let product = typeof productOrSku === "object" ? productOrSku : state.products.find((item) => item.sku === productOrSku);
           // 模版传入的临时商品也必须按 SKU 缓存；再次激活已有详情标签时仍能恢复完整价格、图片和配置。
           if (product && typeof productOrSku === "object" && product.sku) {
@@ -1507,6 +1524,9 @@ function compactProductSpec(description, category) {
           let detailGenToken = null;
           state.currentProduct = product;
           lxRevealContent();
+          // 商品解读仍在生成时，用户可能手动把智能体展开为全屏。旧链路在推荐卡完成后
+          // 只摘掉 fullscreen 类，却没有恢复频道左右框架，结果会变成右侧详情独占全屏。
+          if (detailNeedsSplitRecovery) lxEnsureChannelResultSplit();
           if (product.sku && opts.noTab) {
             // SPU 内切换配置：复用当前详情标签，不新开
             const active = (state.tabs || []).find((tab) => tab.id === state.activeTabId && tab.kind === "detail");
@@ -1542,6 +1562,14 @@ function compactProductSpec(description, category) {
           loadSpuVariants(product);
           lxEndTabGeneration(detailGenToken);
           lxHintOnDetail(product);
+          // 只在本次确实命中全屏竞态时复核动画/延迟状态，避免影响详情稳定后用户再次主动展开。
+          if (detailNeedsSplitRecovery) {
+            [0, 120, 420, 900].forEach((delay) => window.setTimeout(() => {
+              if (state.currentProduct?.sku !== product.sku) return;
+              if (document.querySelector(".content")?.getAttribute("data-view") !== "detail") return;
+              lxEnsureChannelResultSplit();
+            }, delay));
+          }
         }
 
         // 首页楼层唯一点击链路：发送 query → 商品解读 Skill → 推荐结果卡 → 新建商详标签。
