@@ -2,6 +2,7 @@
 const express = require('express');
 const db = require('../db/schema');
 const router = express.Router();
+const USE_LEAI_CATALOG = process.env.LEAI_PRODUCT_CATALOG_ENABLED === '1';
 
 const ORDER_BY_WHITELIST = {
   'id_desc':         'id DESC',
@@ -61,6 +62,40 @@ const SITE_SECTIONS = {
   ],
 };
 
+const LEGACY_MAIN_PC_CATS = ['笔记本电脑','台式机','工作站'];
+const LEGACY_SITE_SECTIONS = {
+  shop: [
+    { key:'new', title:'新品上架', subtitle:'刚到货的好物', filter:{ orderBy:'id_desc', categories:['笔记本电脑','平板电脑','手机','台式机'], priceMin:1500 } },
+    { key:'select', title:'超值精选', subtitle:'高性价比之选', filter:{ categories:LEGACY_MAIN_PC_CATS, priceMin:3000, priceMax:6500, nameLikeAny:['拯救者','小新','YOGA','Yoga','异能者','Legion'], orderBy:'sort_desc' } },
+    { key:'hot', title:'高端旗舰', subtitle:'性能与设计巅峰', filter:{ categories:LEGACY_MAIN_PC_CATS, priceMin:10000, priceMax:40000, nameLikeAny:['拯救者','小新','YOGA','Yoga','Legion'], orderBy:'price_desc' } },
+    { key:'legion', title:'拯救者', subtitle:'游戏性能旗舰', filter:{ categories:LEGACY_MAIN_PC_CATS, nameLikeAny:['拯救者','Legion'], priceMin:4500 } },
+    { key:'xiaoxin', title:'小新', subtitle:'轻薄办公首选', filter:{ categories:LEGACY_MAIN_PC_CATS, nameLikeAny:['小新'], priceMin:2500 } },
+    { key:'yoga', title:'YOGA', subtitle:'设计师与全场景', filter:{ categories:['笔记本电脑','平板电脑'], nameLikeAny:['YOGA','Yoga'], priceMin:4000 } },
+    { key:'mobile', title:'手机/平板', subtitle:'移动生产力', filter:{ categories:['手机','平板电脑'], priceMin:500 } },
+    { key:'access', title:'智能配件', subtitle:'桌面好物', filter:{ categories:['显示器','键鼠相关','耳机','存储设备','充电设备'], priceMin:50 } },
+  ],
+  b: [
+    { key:'new', title:'新品上架', subtitle:'最新企业商用', filter:{ orderBy:'id_desc', categories:LEGACY_MAIN_PC_CATS, nameLikeAny:['ThinkPad','ThinkBook','ThinkCentre','天逸','扬天','昭阳'], priceMin:2500 } },
+    { key:'smb', title:'SMB 精选', subtitle:'中小企业必备', filter:{ categories:LEGACY_MAIN_PC_CATS, nameLikeAny:['ThinkBook','ThinkPad','天逸','扬天'], priceMin:3000, priceMax:8000, orderBy:'sort_desc' } },
+    { key:'hot', title:'高端商用', subtitle:'旗舰商务首选', filter:{ categories:LEGACY_MAIN_PC_CATS, nameLikeAny:['ThinkPad','ThinkBook'], priceMin:10000, priceMax:35000, orderBy:'price_desc' } },
+    { key:'thinkpad', title:'ThinkPad', subtitle:'商务旗舰', filter:{ categories:LEGACY_MAIN_PC_CATS, nameLikeAny:['ThinkPad'], priceMin:4500 } },
+    { key:'thinkbook', title:'ThinkBook', subtitle:'中小企业首选', filter:{ categories:LEGACY_MAIN_PC_CATS, nameLikeAny:['ThinkBook'], priceMin:3000 } },
+    { key:'tianyi', title:'天逸/扬天', subtitle:'轻量化办公', filter:{ categories:LEGACY_MAIN_PC_CATS, nameLikeAny:['天逸','扬天','昭阳'], priceMin:2500 } },
+    { key:'server', title:'入门服务器', subtitle:'数据存储', filter:{ categories:['服务器'], priceMax:30000 } },
+    { key:'service', title:'企业服务', subtitle:'部署与运维', filter:{ categories:['服务产品'], orderBy:'sort_desc' } },
+  ],
+  biz: [
+    { key:'new', title:'新品上架', subtitle:'最新政企机型', filter:{ orderBy:'id_desc', categories:['工作站','服务器','智能会议解决方案'] } },
+    { key:'solution', title:'行业解决方案', subtitle:'金融/医疗/教育/政府', filter:{ categories:['解决方案','智能会议解决方案'] } },
+    { key:'hot', title:'旗舰政企', subtitle:'高性能科研采购', filter:{ categories:['工作站','服务器','台式机'], priceMin:15000, priceMax:80000, orderBy:'price_desc' } },
+    { key:'workstation', title:'工作站', subtitle:'科研与设计', filter:{ categories:['工作站','台式机'], nameLikeAny:['工作站','ThinkStation'] } },
+    { key:'server', title:'服务器', subtitle:'数据中心', filter:{ categories:['服务器'] } },
+    { key:'meeting', title:'智能会议', subtitle:'会议室一体方案', filter:{ categories:['智能会议解决方案'] } },
+    { key:'thinkcentre', title:'ThinkCentre', subtitle:'稳定商用台式', filter:{ categories:['台式机'], nameLikeAny:['ThinkCentre'] } },
+    { key:'thinkpad-biz', title:'ThinkPad', subtitle:'企业移动办公', filter:{ categories:LEGACY_MAIN_PC_CATS, nameLikeAny:['ThinkPad'], priceMin:4500 } },
+  ],
+};
+
 function buildQuery(filter, limit, offset, site, siteExcludeKeywords = []) {
   const where = [
     "status = 'active'",
@@ -69,8 +104,10 @@ function buildQuery(filter, limit, offset, site, siteExcludeKeywords = []) {
     `category NOT IN (${EXCLUDED_CATEGORIES.map(()=>'?').join(',')})`,
   ];
   const params = [...EXCLUDED_CATEGORIES];
-  where.push('specs LIKE ?');
-  params.push(`%"site":"${site}"%`);
+  if (USE_LEAI_CATALOG) {
+    where.push('specs LIKE ?');
+    params.push(`%"site":"${site}"%`);
+  }
 
   siteExcludeKeywords.forEach(s => { where.push('name NOT LIKE ?'); params.push(`%${s}%`); });
 
@@ -125,7 +162,7 @@ function fetchSection(filter, limit, offset = 0, site, siteExcludeKeywords = [])
 router.get('/feed', (req, res) => {
   try {
     const site = String(req.query.site || 'shop').toLowerCase();
-    const sections = SITE_SECTIONS[site];
+    const sections = (USE_LEAI_CATALOG ? SITE_SECTIONS : LEGACY_SITE_SECTIONS)[site];
     if (!sections) return res.status(400).json({ error: 'invalid site', valid: Object.keys(SITE_SECTIONS) });
 
     const sectionKey = req.query.section ? String(req.query.section) : null;
@@ -162,7 +199,7 @@ router.get('/feed', (req, res) => {
 
 router.get('/sections', (req, res) => {
   const site = String(req.query.site || 'shop').toLowerCase();
-  const sections = SITE_SECTIONS[site];
+  const sections = (USE_LEAI_CATALOG ? SITE_SECTIONS : LEGACY_SITE_SECTIONS)[site];
   if (!sections) return res.status(400).json({ error: 'invalid site' });
   res.json({ site, sections: sections.map(s => ({ key: s.key, title: s.title, subtitle: s.subtitle })) });
 });

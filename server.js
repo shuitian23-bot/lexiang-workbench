@@ -6,11 +6,12 @@ const cookieParser = require('cookie-parser');
 const path = require('path');
 const { rateLimit } = require('express-rate-limit');
 const versionInfo = require('./core/version');
+const useLeaiProductCatalog = process.env.LEAI_PRODUCT_CATALOG_ENABLED === '1';
 
 // Init DB first, then materialize the authoritative LeAI product package into the
 // legacy products contract used by routes and skills. Other platform tables stay untouched.
 const platformDb = require('./db/schema');
-if (process.env.LEAI_PRODUCT_CATALOG_ENABLED === '1') {
+if (useLeaiProductCatalog) {
   try {
     const result = require('./core/leai-product-catalog').syncCatalogToProducts(platformDb);
     console.log(`[Catalog] leai product data: ${result.spuCount} SPU / ${result.skuCount} SKU${result.changed ? '（已同步）' : '（无变化）'}`);
@@ -156,7 +157,10 @@ app.use('/', require('./routes/sitemap'));
 
 // 子站规则: 把商品归到 shop(个人及家庭)/b(中小企业)/biz(政教大企业)
 function siteWhereClause(site) {
-  if (['shop', 'b', 'biz'].includes(site)) return ` AND specs LIKE '%"site":"${site}"%'`;
+  if (useLeaiProductCatalog && ['shop', 'b', 'biz'].includes(site)) return ` AND specs LIKE '%"site":"${site}"%'`;
+  if (site === 'shop') return ` AND (category IN ('手机','平板电脑','耳机','包袋') OR (category='笔记本电脑' AND (name LIKE '%小新%' OR name LIKE '%YOGA%' OR name LIKE '%拯救者%' OR name LIKE '%Lecoo%' OR name LIKE '%Lenovo%来酷%')))`;
+  if (site === 'b') return ` AND (category IN ('打印机及配件','显示器','键鼠相关') OR (category='笔记本电脑' AND (name LIKE '%ThinkPad%' OR name LIKE '%ThinkBook%' OR name LIKE '%扬天%' OR name LIKE '%瑞天%' OR name LIKE '%企业购%')) OR (category='台式机' AND (name LIKE '%ThinkCentre%' OR name LIKE '%扬天%' OR name LIKE '%瑞天%' OR name LIKE '%企业购%')))`;
+  if (site === 'biz') return ` AND (category IN ('服务器','工作站','服务产品') OR name LIKE '%昭阳%' OR name LIKE '%开天%' OR name LIKE '%启天%')`;
   return '';
 }
 function parseProductSpecs(specs) {
@@ -361,6 +365,12 @@ app.get('/api/products', (req, res) => {
   }
   const site = req.query.site; // shop=消费, b=企业购, biz=商用
   let where = `status = 'active' AND image_url IS NOT NULL AND image_url != '' AND price > 500`;
+  if (!useLeaiProductCatalog) {
+    where += ` AND SUBSTR(image_url, -30) NOT IN (
+      SELECT SUBSTR(image_url, -30) FROM products WHERE image_url IS NOT NULL AND image_url != ''
+      GROUP BY SUBSTR(image_url, -30) HAVING count(*) > 5
+    )`;
+  }
   const category = req.query.category;
   if (category) {
     where += ` AND category = ?`;
