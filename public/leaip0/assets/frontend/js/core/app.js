@@ -2627,6 +2627,10 @@ function compactProductSpec(description, category) {
         }
 
         async function lxOpenCommerceEntry(kind, options = {}) {
+          if (kind === "orders" && !state.user) {
+            openLogin();
+            return false;
+          }
           const clearFullscreenState = () => {
             document.body.classList.remove("assistant-fullscreen", "lx-auto-fs", "lxfd-entering");
             state.autoFs = false;
@@ -2717,6 +2721,10 @@ function compactProductSpec(description, category) {
           event.preventDefault();
           event.stopPropagation();
           event.stopImmediatePropagation();
+          if (kind === "orders" && !state.user) {
+            openLogin();
+            return;
+          }
           const logicalPath = String(window.__LX_TEMPLATE_PATH || location.pathname || "/").replace(/\/+$/, "") || "/";
           const isRootHome = logicalPath === "/";
           const isRootHomeSplit = isRootHome && document.body.classList.contains("lx-home-split");
