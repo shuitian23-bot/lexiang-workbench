@@ -501,6 +501,7 @@
     align-items: center;
     min-height: 118px;
     border-bottom: 1px solid var(--line);
+    cursor: pointer;
     transition: .2s ease;
   }
   .rank-item:last-child {
@@ -509,6 +510,7 @@
   .rank-item:hover {
     transform: translateX(2px);
   }
+  .rank-item:focus-visible { outline: 2px solid #9b8eb6; outline-offset: -2px; border-radius: 8px; }
   .rank-badge {
     width: 40px;
     height: 40px;
@@ -972,7 +974,7 @@
     const list = card.querySelector('.list-wrap');
     if (!products || !list) return;
     list.innerHTML = products.map((product, index) => `
-      <div class="rank-item" data-rank="${index + 1}" data-product-id="${product.id}">
+      <div class="rank-item" tabindex="0" role="button" data-rank="${index + 1}" data-product-id="${product.id}" data-product-name="${keyProductNames[product.id] || product.name}">
         <div class="rank-badge${index < 3 ? ` top${index + 1}` : ''}">${index + 1}</div>
         <div class="thumb-box"><img src="${product.image}" alt="${keyProductNames[product.id] || product.name}" loading="lazy"></div>
         <div class="item-meta">
@@ -1130,9 +1132,15 @@
   });
 
   document.querySelectorAll('.rank-item').forEach(item => {
-    item.addEventListener('click', () => {
-      const name = item.querySelector('.item-name').textContent.trim();
-      alert(`查看商品：${name}`);
+    const openProduct = () => window.__lxOpenFloorProductWithInterpretation?.({
+      sku: item.dataset.productId,
+      name: item.dataset.productName || item.querySelector('.item-name')?.textContent.trim()
+    });
+    item.addEventListener('click', openProduct);
+    item.addEventListener('keydown', event => {
+      if (event.key !== 'Enter' && event.key !== ' ') return;
+      event.preventDefault();
+      openProduct();
     });
   });
 

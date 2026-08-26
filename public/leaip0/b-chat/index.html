@@ -492,6 +492,7 @@
     align-items: center;
     min-height: 118px;
     border-bottom: 1px solid var(--line);
+    cursor: pointer;
     transition: .2s ease;
   }
   .rank-item:last-child {
@@ -500,6 +501,7 @@
   .rank-item:hover {
     transform: translateX(2px);
   }
+  .rank-item:focus-visible { outline: 2px solid #9b8eb6; outline-offset: -2px; border-radius: 8px; }
   .rank-badge {
     width: 40px;
     height: 40px;
@@ -697,14 +699,14 @@
       product.addEventListener('click', openProduct);
       product.addEventListener('keydown', event => { if (event.key !== 'Enter' && event.key !== ' ') return; event.preventDefault(); openProduct(); });
     });
-    root.querySelectorAll('.rank-item').forEach(item => item.addEventListener('click', () => alert(`查看商品：${item.dataset.productName}`)));
+    root.querySelectorAll('.rank-item').forEach(item => { const openProduct = () => window.__lxOpenFloorProductWithInterpretation?.({ sku: item.dataset.productId, name: item.dataset.productName }); item.addEventListener('click', openProduct); item.addEventListener('keydown', event => { if (event.key !== 'Enter' && event.key !== ' ') return; event.preventDefault(); openProduct(); }); });
   };
   const render = (manifest, source) => {
     const catalog = Object.fromEntries(categories.map(category => [category.key, productsFor(manifest, category.source)]));
     root.querySelectorAll('.ranking-card').forEach(card => {
       const products = (catalog[card.dataset.key] || []).slice(0, 5);
       card.querySelector('.list-wrap').innerHTML = products.map((product, index) => `
-        <div class="rank-item" data-rank="${index + 1}" data-product-id="${escapeHtml(product.id)}" data-product-name="${escapeHtml(product.shortName)}" data-price-source="${source}">
+        <div class="rank-item" tabindex="0" role="button" data-rank="${index + 1}" data-product-id="${escapeHtml(product.id)}" data-product-name="${escapeHtml(product.shortName)}" data-price-source="${source}">
           <div class="rank-badge${index < 3 ? ` top${index + 1}` : ''}">${index + 1}</div>
           <div class="thumb-box"><img src="${escapeHtml(product.image)}" alt="${escapeHtml(product.shortName)}" loading="lazy"></div>
           <div class="item-meta"><div class="item-name" title="${escapeHtml(product.shortName)}">${escapeHtml(product.shortName)}</div><div class="item-price">${Number.isFinite(product.price) ? `¥ ${priceFormatter.format(product.price)}` : '价格面议'}</div></div>
