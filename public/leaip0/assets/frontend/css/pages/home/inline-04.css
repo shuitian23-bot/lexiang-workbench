@@ -10484,7 +10484,7 @@ body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"]
 body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]):not(.assistant-fullscreen) .content[data-view="reco"] .reco-page:has(> .reco-row) .reco-row-main strong {
   color:var(--ink) !important;
   font-size:18px !important;
-  font-weight:800 !important;
+  font-weight:500 !important;
   letter-spacing:.3px !important;
   line-height:1.35 !important;
   white-space:nowrap !important;
