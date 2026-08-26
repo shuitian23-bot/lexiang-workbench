@@ -9821,9 +9821,21 @@ async function openEduZone() {
           return pageBox;
         }
 
+        // 同时清洗历史会话/本地缓存里的旧推荐数据，内部台账字段不得重新进入 DOM。
+        function lxPublicProductDescription(value) {
+          const raw = String(value || "").replace(/\r/g, "").trim();
+          const first = raw.split("\n").map((line) => line.trim()).find(Boolean) || "";
+          return first
+            .split(/\s+#\s+/)[0]
+            .replace(/\s*(?:[-·|｜]\s*)?(?:SPU名称|SPU编号|商品分类|配置数量|SKU编号)\s*[:：].*$/i, "")
+            .trim();
+        }
+
         function lxRenderRecoPage(tab) {
           const pageBox = lxEnsureRecoPage();
-          const products = Array.isArray(tab.products) ? tab.products : [];
+          const products = Array.isArray(tab.products)
+            ? tab.products.map((product) => ({ ...product, description: lxPublicProductDescription(product?.description) }))
+            : [];
           const isServiceReco = products.length > 0 && products.every((p) => String(p?.sku || "").startsWith("SERVICE-"));
           pageBox.classList.toggle("lx-service-reco-page", isServiceReco);
           const disclaimer = `<p class="lx-p0-disclaimer">${isServiceReco ? "推荐由联想乐享基于当前设备与地区条件生成；价格、适用性、库存与履约范围以服务商品详情页和结算页为准。" : "推荐由联想乐享基于你的需求生成，价格与配置以详情页为准。"}</p>`;
