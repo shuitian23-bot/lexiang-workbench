@@ -647,7 +647,15 @@ if (!window.__lxCreateTypewriter) {
         function renderDetailImages(product, images = []) {
           const panel = $("[data-detail-images-panel]");
           if (!panel) return;
-          const validImages = Array.isArray(images) ? images.filter(Boolean).slice(1) : [];
+          const specs = lxParseSpecs(product?.specs);
+          const packageDetailImage = specs.catalog_source === "leai product data"
+            ? String(specs.detail_image_url || "").trim()
+            : "";
+          // 新商品包的 detail_images 只包含真正的「详情图」，不能沿用旧商城
+          // “第一张是白底主图所以跳过”的规则，否则数组会被清空并回退成白底图。
+          const validImages = packageDetailImage
+            ? [packageDetailImage]
+            : (Array.isArray(images) ? images.filter(Boolean).slice(1) : []);
           if (validImages.length) {
             panel.innerHTML = validImages.map((url, index) => `<img src="${esc(imgUrl(url))}" alt="${esc(product?.name || "商品")}详情图 ${index + 2}" loading="lazy" />`).join("");
             return;
