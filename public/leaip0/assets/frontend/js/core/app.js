@@ -849,7 +849,12 @@ if (!window.__lxCreateTypewriter) {
 .lx-auth-modal .lx-auth-switch-row{display:flex;justify-content:flex-end;margin-top:4px}
 .lx-auth-modal .lx-auth-switch-link{border:0;background:transparent;padding:2px 0;font-size:12.5px;font-weight:600;color:#a39ba7;display:inline-flex;align-items:center;gap:2px}
 .lx-auth-modal .lx-auth-switch-link:hover{color:#8f8794}
-.lx-auth-modal .lx-auth-agree a{color:#5b1452;text-decoration:underline;text-underline-offset:2px}
+.lx-auth-modal .lx-auth-agree{display:grid;grid-template-columns:16px minmax(0,1fr);align-items:start;column-gap:10px;line-height:1.6}
+.lx-auth-modal .lx-auth-agree input{flex:none;margin:2px 0 0}
+.lx-auth-modal .lx-auth-agree-copy{display:block;min-width:0}
+.lx-auth-modal .lx-auth-agree-note,.lx-auth-modal .lx-auth-agree-consent{display:block}
+.lx-auth-modal .lx-auth-agree-links{display:inline-flex;align-items:baseline;gap:8px;margin-left:4px;white-space:nowrap}
+.lx-auth-modal .lx-auth-agree a{color:#5b1452;text-decoration:underline;text-underline-offset:2px;white-space:nowrap}
 @keyframes lx-auth-shake{10%,90%{transform:translateX(-1px)}20%,80%{transform:translateX(2px)}30%,50%,70%{transform:translateX(-4px)}40%,60%{transform:translateX(4px)}}
 .lx-auth-modal .lx-auth-agree.lx-auth-shake{animation:lx-auth-shake .5s cubic-bezier(.36,.07,.19,.97) both}`;
           (document.head || document.documentElement).appendChild(style);
@@ -3260,7 +3265,7 @@ function openOrderDetail(orderId) {
                 <button class="lx-auth-code-btn" type="button" data-auth-code>获取验证码</button>
               </div>
               <p class="lx-auth-demo-hint">演示环境验证码固定为 123456</p>
-              <label class="lx-auth-agree"><input type="checkbox" required />如果您输入的手机号未注册，将为您进行注册，注册即表示您同意 <a href="javascript:void(0)">注册协议</a>、<a href="javascript:void(0)">隐私政策</a>、<a href="javascript:void(0)">销售条款</a></label>
+              <label class="lx-auth-agree"><input type="checkbox" required /><span class="lx-auth-agree-copy"><span class="lx-auth-agree-note">如果您输入的手机号未注册，将为您进行注册。</span><span class="lx-auth-agree-consent">注册即表示您同意<span class="lx-auth-agree-links"><a href="javascript:void(0)">注册协议</a><a href="javascript:void(0)">隐私政策</a><a href="javascript:void(0)">销售条款</a></span></span></span></label>
               <button class="lx-auth-primary" type="submit">登录</button>
             </form>
             <form class="lx-auth-form-panel" data-auth-panel="password" novalidate>
@@ -3275,7 +3280,7 @@ function openOrderDetail(orderId) {
                   <svg viewBox="0 0 24 24" fill="none"><path d="M2.5 12s3.5-5 9.5-5 9.5 5 9.5 5-3.5 5-9.5 5-9.5-5-9.5-5Z" stroke-width="1.7"/><circle cx="12" cy="12" r="2.3" stroke-width="1.7"/></svg>
                 </button>
               </label>
-              <label class="lx-auth-agree"><input type="checkbox" required />我已阅读并同意《用户协议》和《隐私政策》</label>
+              <label class="lx-auth-agree"><input type="checkbox" required /><span class="lx-auth-agree-copy">我已阅读并同意《用户协议》和《隐私政策》</span></label>
               <button class="lx-auth-primary" type="submit">登录</button>
             </form>
             <form class="lx-auth-form-panel" data-auth-panel="register" novalidate>
@@ -3291,7 +3296,7 @@ function openOrderDetail(orderId) {
                 <button class="lx-auth-code-btn" type="button" data-auth-code>获取验证码</button>
               </div>
               <p class="lx-auth-demo-hint">演示环境验证码固定为 123456</p>
-              <label class="lx-auth-agree"><input type="checkbox" required />已阅读并同意 <a href="javascript:void(0)">注册协议</a>、<a href="javascript:void(0)">隐私政策</a>、<a href="javascript:void(0)">销售条款</a></label>
+              <label class="lx-auth-agree"><input type="checkbox" required /><span class="lx-auth-agree-copy"><span class="lx-auth-agree-consent">已阅读并同意<span class="lx-auth-agree-links"><a href="javascript:void(0)">注册协议</a><a href="javascript:void(0)">隐私政策</a><a href="javascript:void(0)">销售条款</a></span></span></span></label>
               <button class="lx-auth-primary" type="submit">注册</button>
             </form>
             <div class="lx-auth-switch-row">
