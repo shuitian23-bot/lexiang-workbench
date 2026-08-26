@@ -145,3 +145,13 @@ test('portal home balances its work cards against the actual content slot', asyn
     /@container\s*\(max-width:\s*720px\)[\s\S]*\.portal-home-workgrid\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)/
   )
 })
+
+test('sidebar starts expanded and only applies responsive collapse after a real resize', async () => {
+  const sidebar = await source('../src/components/shell/sidebar/WorkbenchSidebar.vue')
+
+  assert.match(sidebar, /window\.addEventListener\('resize',\s*_onResize\)/)
+  assert.doesNotMatch(
+    sidebar,
+    /onMounted\(\(\)\s*=>\s*\{\s*applyResponsiveSidebar\(window\.innerWidth\)/s
+  )
+})
