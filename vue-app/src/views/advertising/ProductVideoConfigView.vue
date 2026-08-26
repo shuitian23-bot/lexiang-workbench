@@ -473,8 +473,8 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAppStore } from '@/stores/app'
-import ContentPageHeader from '@/components/content-slot/ContentPageHeader.vue'
-import SectionHeader from '@/components/content-slot/SectionHeader.vue'
+import ContentPageHeader from '@/components/content/ContentPageHeader.vue'
+import SectionHeader from './components/ProductVideoSectionHeader.vue'
 import {
   BU_OWNER_OPTIONS,
   MATERIAL_OPTIONS,
