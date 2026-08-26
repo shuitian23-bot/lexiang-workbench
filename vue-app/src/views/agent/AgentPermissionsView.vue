@@ -5,40 +5,97 @@
       description="按原型链路整理权限申请、审批、角色、用户、组织、数据源、功能和删除备份能力，供 POC 演示真实串联。"
     >
       <template #actions>
-        <div class="hero-actions">
-          <div class="demo-reset-menu" :class="{ open: demoIdentityMenuOpen }">
-            <button type="button" class="ghost-btn demo-reset-trigger" @click="demoIdentityMenuOpen = !demoIdentityMenuOpen">
-              重置演示：{{ currentDemoIdentity.label }}
-              <span>⌄</span>
-            </button>
-            <div v-if="demoIdentityMenuOpen" class="demo-reset-options">
-              <button
-                v-for="identity in demoIdentityOptions"
-                :key="identity.key"
-                type="button"
-                :class="{ active: demoIdentityKey === identity.key }"
-                @click="resetDemo(identity.key)"
-              >{{ identity.label }}</button>
-            </div>
+        <div class="demo-reset-menu" :class="{ open: demoIdentityMenuOpen }">
+          <button type="button" class="ghost-btn demo-reset-trigger" @click="demoIdentityMenuOpen = !demoIdentityMenuOpen">
+            重置演示：{{ currentDemoIdentity.label }}
+            <span>⌄</span>
+          </button>
+          <div v-if="demoIdentityMenuOpen" class="demo-reset-options">
+            <button
+              v-for="identity in demoIdentityOptions"
+              :key="identity.key"
+              type="button"
+              :class="{ active: demoIdentityKey === identity.key }"
+              @click="resetDemo(identity.key)"
+            >{{ identity.label }}</button>
           </div>
-          <button type="button" class="primary-btn" @click="openRecordModal">查看记录</button>
         </div>
+        <button type="button" class="primary-btn" @click="openRecordModal">查看记录</button>
       </template>
     </ContentPageHeader>
 
     <div class="permission-layout">
       <aside class="permission-module-rail" aria-label="权限管理菜单">
-        <button
-          v-for="item in modules"
-          :key="item.key"
-          type="button"
-          :class="{ active: activeModule === item.key }"
-          @click="activeModule = item.key"
-        >
-          <span class="permission-module-icon" v-html="moduleIcon(item.key)"></span>
-          <b>{{ item.label }}</b>
-          <small>{{ item.desc }}</small>
-        </button>
+        <div class="permission-module-rail-head">
+          <div class="permission-module-summary">
+            <b>权限模块</b>
+            <span>{{ modules.length }} 个入口</span>
+          </div>
+          <label class="permission-module-search">
+            <span class="sr-only">搜索权限入口</span>
+            <input v-model.trim="moduleSearchKeyword" type="search" placeholder="搜索入口">
+          </label>
+        </div>
+        <div class="permission-module-groups">
+          <section v-for="group in filteredModuleGroups" :key="group.key" class="permission-module-group">
+            <div class="permission-module-group-title">
+              <span>{{ group.label }}</span>
+            </div>
+            <div class="permission-module-list">
+              <button
+                v-for="item in group.items"
+                :key="item.key"
+                type="button"
+                :class="{ active: activeModule === item.key }"
+                :aria-current="activeModule === item.key ? 'page' : undefined"
+                @click="activeModule = item.key"
+              >
+                <span class="permission-module-icon" aria-hidden="true" v-html="moduleIcon(item.key)"></span>
+                <span class="permission-module-copy">
+                  <b>{{ item.label }}</b>
+                  <small>{{ item.desc }}</small>
+                </span>
+                <span v-if="item.key === 'approval' && pendingApprovalCount" class="permission-module-badge">{{ pendingApprovalCount }}</span>
+              </button>
+            </div>
+          </section>
+          <p v-if="!filteredModuleGroups.length" class="permission-module-empty">暂无匹配入口</p>
+        </div>
+
+        <section class="permission-demo-route" aria-labelledby="permission-demo-route-title">
+          <div class="permission-demo-route-head">
+            <b id="permission-demo-route-title">本次演示链路</b>
+            <div class="permission-demo-route-actions">
+              <button v-if="currentDemoApproval" type="button" @click="openCurrentDemoApprovalDetail">查看详情</button>
+              <button type="button" @click="resetDemo(demoIdentityKey)">重置</button>
+            </div>
+          </div>
+          <ol v-if="demoApprovalRouteItems.length" class="permission-demo-route-list">
+            <li
+              v-for="item in demoApprovalRouteItems"
+              :key="item.key"
+              :class="item.kind === 'step' ? item.state : 'permission-demo-route-fold'"
+            >
+              <template v-if="item.kind === 'step'">
+                <span class="permission-demo-route-dot" aria-hidden="true"></span>
+                <div>
+                  <b>{{ item.label }}</b>
+                  <small>{{ item.description }}</small>
+                </div>
+              </template>
+              <button
+                v-else
+                type="button"
+                :aria-expanded="item.expanded"
+                @click="toggleDemoRouteFold(item.direction)"
+              >
+                <span>{{ item.label }}</span>
+                <span aria-hidden="true">{{ item.expanded ? '▴' : '▾' }}</span>
+              </button>
+            </li>
+          </ol>
+          <p v-else class="permission-demo-route-empty">暂无进行中的申请</p>
+        </section>
       </aside>
 
       <main class="permission-workspace">
@@ -753,11 +810,11 @@
                   <tr
                     v-for="item in filteredManagedFunctions"
                     :key="item.id"
-                    :class="{ active: selectedManagedFunction?.id === item.id }"
+                    :class="['function-tree-row', item.itemKind, { active: selectedManagedFunction?.id === item.id }]"
                     @click="selectManagedFunction(item.id)"
                   >
                     <td>
-                      <div class="function-name-cell function-tree-name" :style="{ '--tree-depth': item.depth }">
+                      <div :class="['function-name-cell', 'function-tree-name', { nested: item.depth > 0 }]" :style="{ '--tree-depth': item.depth }">
                         <button
                           v-if="item.hasChildren"
                           type="button"
@@ -766,9 +823,12 @@
                           @click.stop="toggleFunctionTreeRow(item)"
                         >›</button>
                         <span v-else class="function-tree-spacer"></span>
-                        <div>
-                          <b>{{ item.name }}</b>
-                          <small>{{ item.menu }}</small>
+                        <div class="function-tree-copy">
+                          <div class="function-tree-title">
+                            <b>{{ item.name }}</b>
+                            <span v-if="item.itemKind === 'directory'" class="function-tree-count">{{ functionTreeChildCount(item) }} 项</span>
+                          </div>
+                          <small v-if="item.itemKind !== 'directory'">{{ item.menu }}</small>
                         </div>
                       </div>
                     </td>
@@ -884,7 +944,7 @@
                 <tbody>
                   <tr v-for="row in filteredDataSourceRows" :key="row.id" :class="['datasource-tree-row', row.itemKind, { active: selectedDataSource?.id === row.sourceId } ]" @click="handleDataSourceRowClick(row)">
                     <td>
-                      <div class="function-name-cell function-tree-name datasource-tree-name" :style="{ '--tree-depth': row.depth }">
+                      <div :class="['function-name-cell', 'function-tree-name', 'datasource-tree-name', { nested: row.depth > 0 }]" :style="{ '--tree-depth': row.depth }">
                         <button
                           v-if="row.hasChildren"
                           type="button"
@@ -893,9 +953,12 @@
                           @click.stop="toggleDataSourceTreeRow(row)"
                         >›</button>
                         <span v-else class="function-tree-spacer"></span>
-                        <div>
-                          <b>{{ row.name }}</b>
-                          <small>{{ row.itemKind === 'source' ? dataSourceMenuPath(row) : row.menu }}</small>
+                        <div class="function-tree-copy">
+                          <div class="function-tree-title">
+                            <b>{{ row.name }}</b>
+                            <span v-if="row.itemKind === 'directory'" class="function-tree-count">{{ dataSourceTreeChildCount(row) }} 项</span>
+                          </div>
+                          <small v-if="row.itemKind === 'source'">{{ dataSourceMenuPath(row) }}</small>
                         </div>
                       </div>
                     </td>
@@ -1392,6 +1455,21 @@
                 <span :class="['table-status', task.status === 'approved' ? 'done' : task.status === 'rejected' ? 'rejected' : 'pending']">{{ businessTaskStatusLabel(task) }}</span>
               </article>
             </div>
+          </section>
+
+          <section class="approval-readonly-panel">
+            <div class="scope-panel-head">
+              <div>
+                <b>完整审批链路</b>
+                <small>侧栏只展示当前节点附近步骤，完整流转在这里查看。</small>
+              </div>
+            </div>
+            <ol class="approval-full-route-list">
+              <li v-for="step in activeApprovalFullRouteSteps" :key="step.key" :class="step.state">
+                <span aria-hidden="true"></span>
+                <div><b>{{ step.label }}</b><small>{{ step.description }}</small></div>
+              </li>
+            </ol>
           </section>
 
           <section class="approval-readonly-panel">
@@ -2243,10 +2321,10 @@
 </template>
 
 <script setup>
-import { computed, onMounted, onUnmounted, reactive, ref } from 'vue'
+import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import ContentPageHeader from '@/components/content/ContentPageHeader.vue'
 import { MENU_TREE } from '@/stores/app'
+import ContentPageHeader from '@/components/content/ContentPageHeader.vue'
 import PermissionCopyRoleModal from '@/components/permissions/PermissionCopyRoleModal.vue'
 import PermissionDataDirectoryList from '@/components/permissions/PermissionDataDirectoryList.vue'
 import PermissionDataPickerModal from '@/components/permissions/PermissionDataPickerModal.vue'
@@ -2255,6 +2333,7 @@ import { createPermissionScopeCatalog, groupPermissionCatalog } from '@/componen
 import { permissionScopeDiff, permissionScopeValidation, resolvePermissionScopeFunctionIds } from '@/components/permissions/permissionScopeSnapshot.js'
 import { APPLICATION_INFO_FIELD, resolveApplicationInfoSchema, schemaHasField, schemaRequiresField } from '@/components/permissions/applicationInfoSchema.js'
 import PermissionRolePickerModal from '@/components/permissions/PermissionRolePickerModal.vue'
+import { createPermissionDemoRouteItems } from '@/utils/permissionDemoRoute.js'
 
 const router = useRouter()
 
@@ -2300,6 +2379,25 @@ const modules = [
     ]
   }
 ]
+
+const moduleGroups = [
+  { key: 'workflow', label: '流程处理', moduleKeys: ['apply', 'approval'] },
+  { key: 'configuration', label: '权限配置', moduleKeys: ['roles', 'users', 'orgs', 'datasource', 'functions'] }
+].map((group) => ({
+  ...group,
+  items: modules.filter((item) => group.moduleKeys.includes(item.key))
+}))
+const moduleSearchKeyword = ref('')
+const filteredModuleGroups = computed(() => {
+  const keyword = moduleSearchKeyword.value.trim().toLowerCase()
+  if (!keyword) return moduleGroups
+  return moduleGroups
+    .map((group) => ({
+      ...group,
+      items: group.items.filter((item) => `${item.label} ${item.desc}`.toLowerCase().includes(keyword))
+    }))
+    .filter((group) => group.items.length)
+})
 
 const route = useRoute()
 const activeModule = ref('apply')
@@ -3037,6 +3135,7 @@ const approvals = ref([
     time: '2026-07-01 19:12'
   })
 ])
+const pendingApprovalCount = computed(() => approvals.value.filter((row) => row.statusKey === 'pending').length)
 const roleTypeOptions = ['角色管理员', '普通角色']
 const roleGroupOptions = ['乐享运营', '商品中心', '搜索后台', '企业客户管理', '外部协作']
 const sensitivityOptions = [
@@ -3926,6 +4025,19 @@ const functionCatalogRows = computed(() => {
   return rows.map((item) => ({ ...item, hasChildren: parentIds.has(item.id) }))
 })
 
+const functionTreeChildCounts = computed(() => {
+  const counts = new Map()
+  functionCatalogRows.value.forEach((item) => {
+    if (!item.parentId) return
+    counts.set(item.parentId, (counts.get(item.parentId) || 0) + 1)
+  })
+  return counts
+})
+
+function functionTreeChildCount(item) {
+  return functionTreeChildCounts.value.get(item.id) || 0
+}
+
 function functionTreeRowMatches(item, name) {
   const menuParts = functionMenuParts(item.menu)
   const menuName = menuParts.leaf || menuParts.second
@@ -4188,7 +4300,29 @@ const filteredApprovals = computed(() => {
 })
 const activeApproval = computed(() => approvals.value.find((row) => row.id === approvalWorkspace.rowId) || null)
 const submittedApproval = computed(() => approvals.value.find((row) => row.id === approvalNotificationModal.rowId) || null)
+const currentDemoApproval = computed(() => {
+  const candidates = [
+    activeApproval.value,
+    submittedApproval.value,
+    approvals.value.find((row) => row.id === approvalDeepLinkTicket.value),
+    approvals.value.find((row) => row.statusKey === 'pending')
+  ]
+  return candidates.find((row) => row?.statusKey === 'pending') || null
+})
+const demoApprovalRouteSteps = computed(() => buildDemoApprovalRouteSteps(currentDemoApproval.value))
+const demoRouteBeforeExpanded = ref(false)
+const demoRouteAfterExpanded = ref(false)
+const demoApprovalRouteItems = computed(() => createPermissionDemoRouteItems(demoApprovalRouteSteps.value, {
+  beforeExpanded: demoRouteBeforeExpanded.value,
+  afterExpanded: demoRouteAfterExpanded.value
+}))
 const activeApprovalNotifications = computed(() => activeApproval.value?.notificationLogs || [])
+const activeApprovalFullRouteSteps = computed(() => buildDemoApprovalRouteSteps(activeApproval.value))
+
+watch(() => currentDemoApproval.value?.id, () => {
+  demoRouteBeforeExpanded.value = false
+  demoRouteAfterExpanded.value = false
+})
 const activeApprovalBasicFields = computed(() => {
   if (!activeApproval.value) return []
   const row = activeApproval.value
@@ -5004,6 +5138,19 @@ const dataSourceCatalogRows = computed(() => {
   const parentIds = new Set(prunedRows.map((item) => item.parentId).filter(Boolean))
   return prunedRows.map((item) => ({ ...item, hasChildren: parentIds.has(item.id) }))
 })
+
+const dataSourceTreeChildCounts = computed(() => {
+  const counts = new Map()
+  dataSourceCatalogRows.value.forEach((item) => {
+    if (!item.parentId) return
+    counts.set(item.parentId, (counts.get(item.parentId) || 0) + 1)
+  })
+  return counts
+})
+
+function dataSourceTreeChildCount(item) {
+  return dataSourceTreeChildCounts.value.get(item.id) || 0
+}
 
 function isDataSourceTreeExpanded(item) {
   if (!item?.hasChildren) return false
@@ -6506,6 +6653,46 @@ function approvalRouteNodeTypes(row) {
   }
   nodes.push('business', 'done')
   return nodes
+}
+
+function buildDemoApprovalRouteSteps(row) {
+  if (!row) return []
+  const route = approvalRouteNodeTypes(row)
+  const steps = [{ key: 'submit', label: '提交申请', nodeTypes: ['submit'] }]
+  const labels = {
+    relation: '关联人确认',
+    'applicant-manager': '申请人直线经理审批',
+    'target-manager': '被申请人直线经理审批',
+    business: '业务负责人审批',
+    'system-admin': '系统管理员审批',
+    done: '权限执行'
+  }
+  route.forEach((nodeType) => {
+    steps.push({ key: nodeType, label: labels[nodeType] || approvalNodeMeta(nodeType).label, nodeTypes: [nodeType] })
+  })
+  const matchedIndex = steps.findIndex((step) => step.nodeTypes.includes(row.nodeType))
+  const currentIndex = matchedIndex >= 0 ? matchedIndex : Math.min(1, steps.length - 1)
+  return steps.map((step, index) => ({
+    ...step,
+    state: index < currentIndex ? 'complete' : (index === currentIndex ? 'current' : 'pending'),
+    description: index === 0
+      ? `${row.type} · 进行中`
+      : (index < currentIndex ? '已完成' : (index === currentIndex ? '进行中' : '待流转'))
+  }))
+}
+
+function toggleDemoRouteFold(direction) {
+  if (direction === 'before') {
+    demoRouteBeforeExpanded.value = !demoRouteBeforeExpanded.value
+    return
+  }
+  demoRouteAfterExpanded.value = !demoRouteAfterExpanded.value
+}
+
+function openCurrentDemoApprovalDetail() {
+  if (!currentDemoApproval.value) return
+  activeModule.value = 'approval'
+  openApprovalWorkspace(currentDemoApproval.value, 'view')
 }
 
 function firstApprovalNodeType(row) {
@@ -8539,6 +8726,8 @@ function resetDemo(identityKey = 'admin') {
   approvalSearch.viewer = identity.viewer
   approvalSearch.approverItcode = identity.approverItcode
   approvalSearch.status = identity.key === 'admin' || identity.key === 'requester' ? '全部' : '审批中'
+  demoRouteBeforeExpanded.value = false
+  demoRouteAfterExpanded.value = false
 }
 
 function moduleIcon(key) {
@@ -8629,6 +8818,7 @@ onUnmounted(() => {
   min-width: 0;
   padding: 0;
   color: #111827;
+  container-type: inline-size;
 }
 
 .demo-reset-menu {
@@ -8725,10 +8915,10 @@ onUnmounted(() => {
   margin-bottom: 18px;
 }
 
-.permission-layout {
+.permission-page-vue .permission-layout {
   display: grid;
-  grid-template-columns: clamp(124px, 10.5vw, 146px) minmax(0, 1fr);
-  gap: 18px;
+  grid-template-columns: clamp(220px, 26%, 300px) minmax(0, 1fr) !important;
+  gap: 16px;
   align-items: stretch;
   min-width: 0;
   height: calc(100vh - 168px);
@@ -8747,50 +8937,158 @@ onUnmounted(() => {
 
 .permission-module-rail {
   position: relative;
-  display: grid;
-  grid-auto-rows: max-content;
-  gap: 8px;
+  display: flex;
+  flex-direction: column;
   height: 100%;
   width: 100%;
   min-height: 0;
   min-width: 0;
-  padding: 12px;
-  overflow-y: auto;
-  overscroll-behavior: contain;
+  padding: 0;
+  overflow: hidden;
   align-self: stretch;
-  border: 1px solid #dfe7f3;
-  border-radius: 12px;
-  background: #fff;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
 }
 
-.permission-module-rail button {
+.permission-module-rail-head {
   display: grid;
-  grid-template-columns: 30px 1fr;
-  gap: 2px 8px;
+  flex: 0 0 auto;
+  gap: 12px;
+  padding: 16px;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.permission-module-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.permission-module-summary b {
+  color: var(--color-text);
+  font-size: 16px;
+  line-height: 1.35;
+}
+
+.permission-module-summary span {
+  color: var(--color-text-tertiary);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.permission-module-search {
+  position: relative;
+  display: block;
+}
+
+.permission-module-search .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.permission-module-search input {
+  width: 100%;
+  height: 40px;
+  box-sizing: border-box;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  padding: 0 12px;
+  background: var(--color-bg-subtle);
+  color: var(--color-text);
+  font: inherit;
+  font-size: 13px;
+  outline: none;
+}
+
+.permission-module-search input::placeholder {
+  color: var(--color-text-tertiary);
+}
+
+.permission-module-search input:focus {
+  border-color: var(--color-primary-border);
+  background: var(--color-surface);
+  box-shadow: var(--focus-ring);
+}
+
+.permission-module-groups,
+.permission-module-group,
+.permission-module-list {
+  display: grid;
+  gap: 4px;
+}
+
+.permission-module-groups {
+  flex: 1 1 auto;
+  align-content: start;
+  min-height: 0;
+  padding: 16px 12px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.permission-module-group {
+  gap: 8px;
+}
+
+.permission-module-group + .permission-module-group {
+  margin-top: 16px;
+}
+
+.permission-module-group-title {
+  margin: 0;
+  padding: 0 8px;
+  color: var(--color-text-tertiary);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.permission-module-list button {
+  position: relative;
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr) auto;
+  gap: 12px;
   align-items: center;
   width: 100%;
-  min-height: 56px;
-  padding: 10px 8px;
-  border: 1px solid #dfe7f3;
-  border-radius: 8px;
-  background: #fff;
-  color: #455468;
+  min-height: 44px;
+  padding: 6px 8px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-text-secondary);
   text-align: left;
   cursor: pointer;
-  box-shadow: none;
-  transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+  transition: border-color 0.16s ease, background 0.16s ease, color 0.16s ease;
+}
+
+.permission-module-list button::before {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -1px;
+  width: 4px;
+  border-radius: 0 4px 4px 0;
+  background: transparent;
+  content: '';
 }
 
 .permission-module-icon {
-  grid-row: span 2;
   display: grid;
   place-items: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
-  color: #316dff;
-  background: #edf3ff;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  color: var(--color-text-secondary);
+  background: var(--color-surface-subtle);
   font-size: 12px;
   font-weight: 800;
 }
@@ -8805,28 +9103,236 @@ onUnmounted(() => {
   stroke-linejoin: round;
 }
 
-.permission-module-rail button b {
-  color: #172033;
-  font-size: 13px;
-  line-height: 1.35;
+.permission-module-copy {
+  display: block;
+  min-width: 0;
 }
 
-.permission-module-rail button small {
-  color: #8a96a8;
+.permission-module-copy b {
+  overflow: hidden;
+  color: var(--color-text);
+  font-size: 13px;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.permission-module-copy small {
+  display: none;
+}
+
+.permission-module-list button.active {
+  border-color: transparent;
+  background: var(--color-primary-subtle);
+  color: var(--color-primary);
+  box-shadow: none;
+}
+
+.permission-module-list button.active::before {
+  background: var(--color-primary);
+}
+
+.permission-module-list button.active .permission-module-icon {
+  color: var(--color-on-primary);
+  background: var(--color-primary);
+}
+
+.permission-module-list button.active .permission-module-copy b {
+  color: var(--color-primary-active);
+}
+
+.permission-module-list button:hover:not(.active) {
+  border-color: var(--color-border-subtle);
+  background: var(--color-bg-subtle);
+}
+
+.permission-module-list button:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.permission-module-badge {
+  display: inline-grid;
+  place-items: center;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 6px;
+  border-radius: 9999px;
+  background: var(--color-danger);
+  color: var(--color-on-primary);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.permission-module-empty,
+.permission-demo-route-empty {
+  margin: 0;
+  color: var(--color-text-tertiary);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.permission-module-empty {
+  padding: 12px 8px;
+}
+
+.permission-demo-route {
+  flex: 0 0 auto;
+  padding: 16px;
+  border-top: 1px solid var(--color-border-subtle);
+  background: var(--color-surface-quiet);
+}
+
+.permission-demo-route-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.permission-demo-route-head b {
+  color: var(--color-text-tertiary);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.permission-demo-route-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.permission-demo-route-head button {
+  min-height: 28px;
+  border: 0;
+  padding: 0 4px;
+  background: transparent;
+  color: var(--color-primary);
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.permission-demo-route-head button:focus-visible {
+  border-radius: var(--radius-sm);
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.permission-demo-route-list {
+  display: grid;
+  gap: 8px;
+  max-height: 196px;
+  margin: 12px 0 0;
+  padding: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  list-style: none;
+}
+
+.permission-demo-route-list li {
+  position: relative;
+  display: grid;
+  grid-template-columns: 12px minmax(0, 1fr);
+  gap: 12px;
+  min-height: 40px;
+}
+
+.permission-demo-route-list li:not(:last-child)::after {
+  position: absolute;
+  top: 13px;
+  bottom: -8px;
+  left: 4px;
+  width: 1px;
+  background: var(--color-progress-muted);
+  content: '';
+}
+
+.permission-demo-route-list li.permission-demo-route-fold {
+  display: block;
+  min-height: 28px;
+}
+
+.permission-demo-route-list li.permission-demo-route-fold::after {
+  display: none;
+}
+
+.permission-demo-route-fold button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 28px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  padding: 0 8px;
+  background: var(--color-bg-subtle);
+  color: var(--color-text-tertiary);
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+}
+
+.permission-demo-route-fold button:hover {
+  color: var(--color-primary);
+  background: var(--color-primary-subtle);
+}
+
+.permission-demo-route-fold button:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.permission-demo-route-dot {
+  position: relative;
+  z-index: 1;
+  width: 9px;
+  height: 9px;
+  margin-top: 4px;
+  border-radius: 9999px;
+  background: var(--color-progress-muted);
+}
+
+.permission-demo-route-list li.complete .permission-demo-route-dot,
+.permission-demo-route-list li.current .permission-demo-route-dot {
+  background: var(--color-primary);
+}
+
+.permission-demo-route-list li > div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.permission-demo-route-list li b {
+  overflow: hidden;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.permission-demo-route-list li.current b,
+.permission-demo-route-list li.complete b {
+  color: var(--color-text);
+}
+
+.permission-demo-route-list li.current b {
+  font-weight: 700;
+}
+
+.permission-demo-route-list li small {
+  color: var(--color-text-tertiary);
   font-size: 12px;
   line-height: 1.35;
 }
 
-.permission-module-rail button.active {
-  border-color: #8cb2ff;
-  background: #eef5ff;
-  color: #316dff;
-  box-shadow: inset 3px 0 0 #316dff;
-}
-
-.permission-module-rail button:hover {
-  border-color: rgba(49, 109, 255, 0.36);
-  box-shadow: 0 6px 14px rgba(15, 23, 42, 0.05);
+.permission-demo-route-empty {
+  padding-top: 12px;
 }
 
 .permission-card {
@@ -10485,8 +10991,9 @@ onUnmounted(() => {
   box-shadow: 0 0 0 3px rgba(49, 109, 255, 0.1);
 }
 
-.handler-combobox input {
+.approval-filter-bar .approval-handler-filter .handler-combobox input {
   flex: 1 1 160px;
+  width: auto;
   min-width: 140px;
   min-height: 28px;
   border: 0;
@@ -10495,8 +11002,11 @@ onUnmounted(() => {
   box-shadow: none;
 }
 
-.handler-combobox input:focus {
+.approval-filter-bar .approval-handler-filter .handler-combobox input:focus,
+.approval-filter-bar .approval-handler-filter .handler-combobox input:focus-visible {
+  border: 0;
   outline: none;
+  box-shadow: none;
 }
 
 .handler-chip {
@@ -10683,6 +11193,62 @@ onUnmounted(() => {
   grid-template-columns: 140px minmax(0, 1fr) 140px minmax(0, 1fr);
   gap: 10px 14px;
   margin: 0;
+}
+
+.approval-full-route-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 8px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.approval-full-route-list li {
+  display: grid;
+  grid-template-columns: 10px minmax(0, 1fr);
+  gap: 8px;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-subtle);
+}
+
+.approval-full-route-list li > span {
+  width: 9px;
+  height: 9px;
+  margin-top: 4px;
+  border-radius: 9999px;
+  background: var(--color-progress-muted);
+}
+
+.approval-full-route-list li.complete > span,
+.approval-full-route-list li.current > span {
+  background: var(--color-primary);
+}
+
+.approval-full-route-list li.current {
+  border-color: var(--color-primary-border);
+  background: var(--color-primary-subtle);
+}
+
+.approval-full-route-list li div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.approval-full-route-list li b {
+  color: var(--color-text);
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.approval-full-route-list li small {
+  color: var(--color-text-tertiary);
+  font-size: 12px;
+  line-height: 1.35;
 }
 
 .approval-detail-grid dt {
@@ -13500,6 +14066,95 @@ onUnmounted(() => {
   width: min(820px, calc(100vw - 48px));
 }
 
+/* 菜单与数据源共用的树形列表层级：目录分组、路径副文本与行状态各自承担单一语义。 */
+.function-tree-row,
+.datasource-tree-row {
+  transition: background-color 0.16s ease;
+}
+
+.function-tree-row:not(.active):hover,
+.datasource-tree-row:not(.active):hover {
+  background: var(--color-bg-subtle);
+}
+
+.function-tree-row.active,
+.datasource-tree-row.active {
+  background: var(--color-primary-subtle);
+  box-shadow: inset 3px 0 0 var(--color-primary);
+}
+
+.function-tree-row.directory,
+.datasource-tree-row.directory {
+  background: var(--color-primary-subtle);
+}
+
+.function-tree-row.directory td,
+.datasource-tree-row.directory td {
+  border-top: 1px solid var(--color-border-subtle);
+  border-bottom-color: var(--color-border-subtle);
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+
+.function-tree-copy {
+  min-width: 0;
+}
+
+.function-tree-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.function-tree-title b {
+  min-width: 0;
+}
+
+.function-tree-count {
+  flex: 0 0 auto;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.function-tree-row.directory .function-tree-title b,
+.datasource-tree-row.directory .function-tree-title b {
+  font-weight: 800;
+}
+
+.function-tree-row .function-tree-name small,
+.datasource-tree-row .function-tree-name small {
+  display: block;
+  margin-top: 4px;
+  color: var(--color-text-tertiary);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.function-tree-row .function-tree-name.nested,
+.datasource-tree-row .function-tree-name.nested {
+  position: relative;
+}
+
+.function-tree-row .function-tree-name.nested .function-tree-copy,
+.datasource-tree-row .function-tree-name.nested .function-tree-copy {
+  border-left: 1px solid var(--color-border-subtle);
+  padding-left: 8px;
+}
+
+.function-tree-row.directory + .function-tree-row.directory td,
+.datasource-tree-row.directory + .datasource-tree-row.directory td {
+  border-top-width: 8px;
+  border-top-color: var(--color-surface);
+}
+
+.function-tree-row .function-tree-toggle:focus-visible,
+.datasource-tree-row .function-tree-toggle:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--color-primary-subtle);
+}
+
 .datasource-menu-field {
   position: relative;
 }
@@ -13524,10 +14179,6 @@ onUnmounted(() => {
 }
 
 @media (max-width: 1500px) {
-  .permission-layout {
-    grid-template-columns: clamp(124px, 10.5vw, 146px) minmax(0, 1fr);
-  }
-
   .permission-type-grid,
   .permission-scope-grid,
   .permission-grid-list,
@@ -13537,23 +14188,80 @@ onUnmounted(() => {
   }
 }
 
+@container (max-width: 920px) {
+  .permission-module-rail {
+    display: flex;
+    height: 100%;
+    padding: 8px;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  .permission-module-rail-head,
+  .permission-module-group-title {
+    display: none;
+  }
+
+  .permission-module-groups {
+    gap: 8px;
+  }
+
+  .permission-module-list {
+    gap: 4px;
+  }
+
+  .permission-module-list button {
+    grid-template-columns: 28px minmax(0, 1fr);
+    gap: 8px;
+    width: 100%;
+    min-height: 44px;
+    padding: 8px;
+  }
+
+  .permission-module-icon {
+    width: 28px;
+    height: 28px;
+  }
+
+  .permission-module-copy small {
+    display: none;
+  }
+
+  .permission-module-copy b {
+    font-size: 12px;
+  }
+}
+
+@container (max-width: 600px) {
+  .permission-page-vue .permission-layout {
+    gap: 12px;
+  }
+
+  .permission-module-copy {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .permission-module-list button {
+    display: grid;
+    grid-template-columns: 1fr;
+    justify-items: center;
+    min-height: 44px;
+  }
+}
+
 @media (max-width: 1180px) {
   .section-title {
     align-items: flex-start;
     flex-direction: column;
   }
 
-  .permission-layout {
-    grid-template-columns: minmax(0, 1fr);
-    overflow: hidden;
-  }
-
-  .permission-module-rail {
-    height: auto;
-    max-height: none;
-    min-height: 0;
-    overflow-y: auto;
-  }
 }
 
 @media (max-width: 760px) {

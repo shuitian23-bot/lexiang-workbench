@@ -1,7 +1,34 @@
 import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
+import { createPermissionDemoRouteItems } from '../src/utils/permissionDemoRoute.js'
 
 const source = await readFile(new URL('../src/views/agent/AgentPermissionsView.vue', import.meta.url), 'utf8')
+const routeSource = await readFile(new URL('../src/utils/permissionDemoRoute.js', import.meta.url), 'utf8')
+
+assert.ok(source.includes("{ key: 'workflow', label: '流程处理'") && source.includes("{ key: 'configuration', label: '权限配置'"), '权限模块导航必须按流程处理和权限配置分组')
+assert.ok(source.includes('{{ modules.length }} 个入口') && source.includes('permission-module-search'), '权限模块栏必须展示入口总数并支持搜索')
+assert.ok(source.includes('permission-module-badge') && source.includes('pendingApprovalCount'), '审批列表必须展示真实进行中数量')
+assert.ok(source.includes('permission-demo-route') && source.includes('buildDemoApprovalRouteSteps'), '权限模块栏底部必须按真实申请单渲染本次演示链路')
+assert.ok(source.includes('暂无进行中的申请') && source.includes('@click="resetDemo(demoIdentityKey)"'), '演示链路必须覆盖空状态并复用顶部重置动作')
+assert.ok(source.includes('createPermissionDemoRouteItems'), '超过三步的演示链路必须使用可测试的三步窗口逻辑')
+assert.ok(routeSource.includes("key: 'fold-before'") && routeSource.includes("key: 'fold-after'") && source.includes('toggleDemoRouteFold'), '演示链路必须支持前后步骤原地展开和收起')
+assert.ok(source.includes('openCurrentDemoApprovalDetail') && source.includes('完整审批链路'), '完整链路必须通过查看详情进入审批详情区')
+assert.ok(source.includes('.approval-filter-bar .approval-handler-filter .handler-combobox input'), '审批处理人组合输入框必须隔离全局输入框边框与焦点样式')
+assert.ok(source.includes(':aria-current="activeModule === item.key ? \'page\' : undefined"'), '当前权限模块必须暴露可访问的选中状态')
+assert.ok(source.includes('grid-template-columns: clamp(220px, 26%, 300px) minmax(0, 1fr) !important'), '权限模块栏必须与 Skill 创建左栏共用 220–300px 弹性宽度')
+for (const legacyWidth of ['208px', '196px', '112px', '64px']) {
+  assert.equal(source.includes(`grid-template-columns: ${legacyWidth} minmax(0, 1fr) !important`), false, `权限模块栏不得保留 ${legacyWidth} 私有锁宽`)
+}
+assert.equal(source.includes('grid-template-rows: auto minmax(0, 1fr)'), false, '权限模块导航不得降级为上下结构')
+
+const routeFixture = Array.from({ length: 7 }, (_, index) => ({ key: `step-${index + 1}`, state: index === 3 ? 'current' : (index < 3 ? 'complete' : 'pending') }))
+const collapsedRoute = createPermissionDemoRouteItems(routeFixture)
+assert.deepEqual(collapsedRoute.map((item) => item.key), ['fold-before', 'step-3', 'step-4', 'step-5', 'fold-after'], '七步链路默认只显示上一步、当前步、下一步和前后折叠行')
+assert.equal(collapsedRoute[0].label, '已完成 2 步', '前置折叠行必须显示已完成数量')
+assert.equal(collapsedRoute.at(-1).label, '还有 2 步', '后置折叠行必须显示剩余数量')
+assert.equal(createPermissionDemoRouteItems(routeFixture.slice(0, 3)).length, 3, '三步及以内必须全部展开')
+assert.equal(createPermissionDemoRouteItems(routeFixture, { beforeExpanded: true }).length, 7, '前置步骤必须可以在原地展开')
+assert.equal(createPermissionDemoRouteItems(routeFixture, { afterExpanded: true }).length, 7, '后置步骤必须可以在原地展开')
 
 const userEditorStart = source.indexOf('v-if="userWorkspace.visible"')
 const userEditorEnd = source.indexOf('<PermissionRolePickerModal', userEditorStart)

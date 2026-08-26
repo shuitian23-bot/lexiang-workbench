@@ -186,3 +186,19 @@ test('adjustment log renders independent preview and formal release evidence', a
   assert.match(releaseLog, /deployTargets: \['new', 'formal'\]/)
   assert.match(releaseLog, /status: '已合并正式'/)
 })
+
+test('permission workspace follows the supplied 0825 rail and approval-route design', async () => {
+  const [view, demoRoute] = await Promise.all([
+    source('../src/views/agent/AgentPermissionsView.vue'),
+    source('../src/utils/permissionDemoRoute.js')
+  ])
+
+  assert.match(view, /moduleSearchKeyword/)
+  assert.match(view, /filteredModuleGroups/)
+  assert.match(view, /aria-current=/)
+  assert.match(view, /createPermissionDemoRouteItems/)
+  assert.match(view, /activeApprovalFullRouteSteps/)
+  assert.match(view, /grid-template-columns:\s*clamp\(220px,\s*26%,\s*300px\)/)
+  assert.match(view, /container-type:\s*inline-size/)
+  assert.match(demoRoute, /export function createPermissionDemoRouteItems/)
+})

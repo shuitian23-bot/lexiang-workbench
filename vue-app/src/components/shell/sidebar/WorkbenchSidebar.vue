@@ -146,6 +146,15 @@ const pocReleaseLedger = ref({ records: {} })
 
 const basePocLogRecords = [
   {
+    time: '2026-08-26 14:31',
+    releaseKey: 'permission-ui-0825-20260826',
+    title: '权限管理 0825 样式与演示链路更新',
+    changePoint: '按 0825 UI 包更新权限模块栏、菜单与数据源树形层级、审批链路展示和内容槽响应式布局。',
+    detail: '更新范围限定在权限管理页面：左侧模块栏增加分组、搜索、当前项与待审批数量提示，并补充当前演示链路；菜单权限和数据源权限的树形目录强化层级与选中反馈；审批详情补充完整流转链路；桌面保持 220–300px 左栏与弹性工作区。未采用压缩包中的其他页面、路由、全局样式或编译产物，不修改 Skill Hub、右侧 AI 助手和受保护运行文件。',
+    deployTargets: ['new'],
+    status: '已更新 new 预览'
+  },
+  {
     time: '2026-08-26 12:24',
     releaseKey: 'portal-release-ledger-20260826',
     title: '调整日志双环境发布记录',
