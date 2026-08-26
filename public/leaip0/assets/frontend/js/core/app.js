@@ -10229,7 +10229,7 @@ async function openEduZone() {
           const aiRow = `<div class="lx-pc-cell lx-pc-label lx-pc-r-ai">${labelIcon("乐享AI解读")}</div>${products.map((product, i) => `<div class="lx-pc-cell lx-pc-ai-cell lx-pc-r-ai${i === recommendedIndex ? " recommended" : ""}" data-col="${i}"><div class="lx-pc-ai-note"><span class="lx-pc-sparkle">${spark}</span><span>${esc(cmpAiText(product))}</span></div></div>`).join("")}`;
           const fitCurrentWidth = products.length <= 3;
           const gridColumns = fitCurrentWidth
-            ? `minmax(128px,190px) repeat(${Math.max(0, products.length - 1)},minmax(0,1fr)) minmax(0,1.08fr)`
+            ? `minmax(96px,127px) repeat(${Math.max(0, products.length - 1)},minmax(0,1fr)) minmax(0,1.08fr)`
             : `190px repeat(${Math.max(0, products.length - 1)},minmax(300px,1fr)) minmax(324px,1.08fr)`;
           return `<div class="lx-product-compare"><section class="lx-pc-shell" aria-label="商品参数对比表"><div class="lx-pc-scroll" tabindex="0" aria-label="横向滚动查看全部商品参数"><div class="lx-pc-grid${fitCurrentWidth ? " is-fit" : " is-scroll"}" data-cols="${products.length}" style="--lx-pc-cols:${products.length};grid-template-columns:${gridColumns}"><div class="lx-pc-cell lx-pc-label lx-pc-r-product">${labelIcon("参数对比")}</div>${headCells}${aiRow}${bodyRows}${actionsRow}</div></div></section><p class="lx-pc-foot-note">浅紫底纹为差异项，<b>「优」</b>标记为该项最优。参数信息以商品详情页为准。</p></div>`;
         }
