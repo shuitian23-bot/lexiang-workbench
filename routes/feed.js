@@ -97,7 +97,7 @@ function buildQuery(filter, limit, offset, site, siteExcludeKeywords = []) {
   const orderBy = ORDER_BY_WHITELIST[orderKey];
 
   const sql = `
-    SELECT id, name, sku, category, price, original_price, image_url, description, sort_order
+    SELECT id, name, sku, category, price, original_price, image_url, description, specs, sort_order
     FROM products
     WHERE ${where.join(' AND ')}
     ORDER BY ${orderBy}
@@ -108,8 +108,18 @@ function buildQuery(filter, limit, offset, site, siteExcludeKeywords = []) {
 }
 
 function fetchSection(filter, limit, offset = 0, site, siteExcludeKeywords = []) {
-  const { sql, params } = buildQuery(filter, limit, offset, site, siteExcludeKeywords);
-  return db.prepare(sql).all(...params);
+  const { sql, params } = buildQuery(filter, Math.min(limit * 6, 288), offset, site, siteExcludeKeywords);
+  const groups = new Map();
+  for (const row of db.prepare(sql).all(...params)) {
+    let specs = {};
+    try { specs = JSON.parse(row.specs || '{}'); } catch {}
+    const key = specs.spu_id ? `${specs.site || site}:${specs.spu_id}` : row.sku;
+    const current = groups.get(key);
+    if (!current || Number(row.price || 0) < Number(current.price || 0)) {
+      groups.set(key, { ...row, name: specs.spu_name || row.name, spu_id: specs.spu_id || '', site: specs.site || site });
+    }
+  }
+  return [...groups.values()].slice(0, limit);
 }
 
 router.get('/feed', (req, res) => {
