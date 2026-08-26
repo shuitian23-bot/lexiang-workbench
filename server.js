@@ -7,8 +7,18 @@ const path = require('path');
 const { rateLimit } = require('express-rate-limit');
 const versionInfo = require('./core/version');
 
-// Init DB first
-require('./db/schema');
+// Init DB first, then materialize the authoritative LeAI product package into the
+// legacy products contract used by routes and skills. Other platform tables stay untouched.
+const platformDb = require('./db/schema');
+if (process.env.LEAI_PRODUCT_CATALOG_ENABLED !== '0') {
+  try {
+    const result = require('./core/leai-product-catalog').syncCatalogToProducts(platformDb);
+    console.log(`[Catalog] leai product data: ${result.spuCount} SPU / ${result.skuCount} SKU${result.changed ? '（已同步）' : '（无变化）'}`);
+  } catch (error) {
+    console.error('[Catalog] 新商品数据同步失败，服务停止启动:', error.message);
+    process.exit(1);
+  }
+}
 
 // Load skill registry
 const registry = require('./core/skill-registry');
@@ -143,10 +153,7 @@ app.use('/', require('./routes/sitemap'));
 
 // 子站规则: 把商品归到 shop(个人及家庭)/b(中小企业)/biz(政教大企业)
 function siteWhereClause(site) {
-  if (site === 'shop') return ` AND (category IN ('手机','平板电脑','耳机','包袋') OR (category='笔记本电脑' AND (name LIKE '%小新%' OR name LIKE '%YOGA%' OR name LIKE '%拯救者%' OR name LIKE '%Lecoo%' OR name LIKE '%Lenovo%来酷%')))`;
-  // b=中小企业普惠自助: ThinkPad/ThinkBook/扬天/瑞天 + 办公外设(PRD 5.8.7); 昭阳/开天/启天归 biz, 与 core/agent.js 子站提示词口径一致
-  if (site === 'b') return ` AND (category IN ('打印机及配件','显示器','键鼠相关') OR (category='笔记本电脑' AND (name LIKE '%ThinkPad%' OR name LIKE '%ThinkBook%' OR name LIKE '%扬天%' OR name LIKE '%瑞天%' OR name LIKE '%企业购%')) OR (category='台式机' AND (name LIKE '%ThinkCentre%' OR name LIKE '%扬天%' OR name LIKE '%瑞天%' OR name LIKE '%企业购%')))`;
-  if (site === 'biz') return ` AND (category IN ('服务器','工作站','服务产品') OR name LIKE '%昭阳%' OR name LIKE '%开天%' OR name LIKE '%启天%')`;
+  if (['shop', 'b', 'biz'].includes(site)) return ` AND specs LIKE '%"site":"${site}"%'`;
   return '';
 }
 function parseProductSpecs(specs) {
@@ -287,16 +294,23 @@ function collapseProductsToSpu(rows, limit) {
       groups.set(key, row);
     }
   }
-  return Array.from(groups.values()).slice(0, limit).map(r => ({
+  return Array.from(groups.values()).slice(0, limit).map(r => {
+    const specs = parseProductSpecs(r.specs);
+    return {
     ...r,
+    name: specs.spu_name || r.name,
+    spu_id: specs.spu_id || '',
+    site: specs.site || '',
     spu_key: getSpuKey(r),
     promotion_tags: buildPromotionTags(r),
     image_url: (r.image_url || '').replace(/^http:\/\//, 'https://')
-  }));
+  }});
 }
 
 
 function classifySite(p) {
+  const specs = parseProductSpecs(p.specs);
+  if (['shop', 'b', 'biz'].includes(specs.site)) return specs.site;
   const c = p.category || '', n = p.name || '';
   if (['服务器', '工作站', '服务产品'].includes(c)) return 'biz';
   if (/昭阳|开天|启天/.test(n)) return 'biz';
