@@ -10190,11 +10190,17 @@ async function openEduZone() {
           const headCells = products.map((product, i) => {
             const recommended = i === recommendedIndex;
             const cleanName = String(product.name || "").replace(/^【?定制款】?\s*/, "");
+            const sourceName = String(product.spu_name || product.spuName || product.series_name || cleanName).trim();
+            const compactName = sourceName
+              .replace(/\s*[|#].*$/, "")
+              .replace(/\s+(英特尔|AMD\s*Ryzen|Windows|酷睿|锐龙)\b.*$/i, "")
+              .trim();
+            const displayName = Array.from(compactName || cleanName).slice(0, 24).join("");
             const image = product.image_url || product.image || "";
             return `<div class="lx-pc-cell lx-pc-product-head lx-pc-r-product${recommended ? " recommended top" : ""}" data-col="${i}" data-cmp-recommend="${esc(product.sku)}" role="button" tabindex="0" aria-pressed="${recommended}" aria-label="${esc(cleanName)}${recommended ? "，当前推荐" : "，设为推荐商品"}">
               <button class="lx-pc-product-close" type="button" data-remove-compare="${esc(product.sku)}" aria-label="移除 ${esc(cleanName)}"${products.length <= 2 ? " disabled" : ""}>×</button>
               ${recommended ? '<span class="lx-pc-rec-badge">乐享推荐</span>' : ""}
-              <div class="lx-pc-product-inner"><span class="lx-pc-thumb">${image ? `<img src="${esc(image)}" alt="${esc(cleanName)}" loading="lazy">` : ""}</span><span class="lx-pc-product-copy"><span class="lx-pc-title">${esc(cleanName)}</span><span class="lx-pc-price-line"><span class="lx-pc-price">¥${priceText(product.price)}</span>${i === bestPriceIdx ? bestTag : ""}</span></span></div>
+              <div class="lx-pc-product-inner"><span class="lx-pc-thumb">${image ? `<img src="${esc(image)}" alt="${esc(cleanName)}" loading="lazy">` : ""}</span><span class="lx-pc-product-copy"><span class="lx-pc-title" title="${esc(cleanName)}">${esc(displayName)}</span><span class="lx-pc-price-line"><span class="lx-pc-price">¥${priceText(product.price)}</span>${i === bestPriceIdx ? bestTag : ""}</span></span></div>
             </div>`;
           }).join("");
           const bodyRows = keys.map((key) => {
@@ -10221,7 +10227,7 @@ async function openEduZone() {
             ? `<div class="lx-pc-cell lx-pc-label lx-pc-r-action">${labelIcon("操作")}</div>${products.map((product, i) => `<div class="lx-pc-cell lx-pc-action-cell lx-pc-r-action${i === recommendedIndex ? " recommended bottom" : ""}" data-col="${i}"><button class="lx-pc-buy-btn" type="button" data-cmp-buy="${esc(product.sku)}">立即购买</button></div>`).join("")}`
             : "";
           const aiRow = `<div class="lx-pc-cell lx-pc-label lx-pc-r-ai">${labelIcon("乐享AI解读")}</div>${products.map((product, i) => `<div class="lx-pc-cell lx-pc-ai-cell lx-pc-r-ai${i === recommendedIndex ? " recommended" : ""}" data-col="${i}"><div class="lx-pc-ai-note"><span class="lx-pc-sparkle">${spark}</span><span>${esc(cmpAiText(product))}</span></div></div>`).join("")}`;
-          return `<div class="lx-product-compare"><section class="lx-pc-shell" aria-label="商品参数对比表"><div class="lx-pc-scroll" tabindex="0" aria-label="横向滚动查看全部商品参数"><div class="lx-pc-grid" style="--lx-pc-cols:${products.length};grid-template-columns:190px repeat(${Math.max(0, products.length - 1)},1fr) 1.08fr"><div class="lx-pc-cell lx-pc-label lx-pc-r-product">${labelIcon("参数对比")}</div>${headCells}${aiRow}${bodyRows}${actionsRow}</div></div></section><p class="lx-pc-foot-note">浅紫底纹为差异项，<b>「优」</b>标记为该项最优。参数信息以商品详情页为准。</p></div>`;
+          return `<div class="lx-product-compare"><section class="lx-pc-shell" aria-label="商品参数对比表"><div class="lx-pc-scroll" tabindex="0" aria-label="横向滚动查看全部商品参数"><div class="lx-pc-grid" style="--lx-pc-cols:${products.length};grid-template-columns:190px repeat(${Math.max(0, products.length - 1)},minmax(300px,1fr)) minmax(324px,1.08fr)"><div class="lx-pc-cell lx-pc-label lx-pc-r-product">${labelIcon("参数对比")}</div>${headCells}${aiRow}${bodyRows}${actionsRow}</div></div></section><p class="lx-pc-foot-note">浅紫底纹为差异项，<b>「优」</b>标记为该项最优。参数信息以商品详情页为准。</p></div>`;
         }
 
         if (!window.__lxCmpSkinHoverBound) {
