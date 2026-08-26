@@ -23,6 +23,7 @@ if (useLeaiProductCatalog) {
 
 // Load skill registry
 const registry = require('./core/skill-registry');
+const { cleanProductDescription } = require('./core/product-public-copy');
 registry.load();
 
 const app = express();
@@ -307,6 +308,7 @@ function collapseProductsToSpu(rows, limit) {
     const specs = parseProductSpecs(r.specs);
     return {
     ...r,
+    description: cleanProductDescription(r.description),
     name: specs.spu_name || r.name,
     spu_id: specs.spu_id || '',
     site: specs.site || '',
@@ -409,7 +411,7 @@ app.get('/api/products/:sku', (req, res) => {
   if (!row) return res.status(404).json({ error: 'not found' });
   let specs = {};
   try { specs = JSON.parse(row.specs || '{}'); } catch {}
-  res.json({ ...row, specs });
+  res.json({ ...row, description: cleanProductDescription(row.description), specs });
 });
 
 // 首页楼层商品点击链路：只通过已注册的「商品解读」Skill 读取当前 P0 商品库。
