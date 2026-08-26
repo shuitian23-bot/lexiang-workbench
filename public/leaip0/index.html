@@ -64,7 +64,7 @@
   <link rel="stylesheet" data-lx-modal-overlay-unified href="../frontend/css/core/modal-overlay-unified.css?v=20260824-address-modal-unified-v1">
   <link rel="stylesheet" data-lx-workplace-auth-modal href="../frontend/css/core/workplace-auth-modal.css?v=20260823-global-standard">
   <link rel="stylesheet" data-lx-enterprise-member-auth-modal href="../frontend/css/core/enterprise-member-auth-modal.css?v=20260824-enterprise-modal-unified-v5">
-  <link rel="preload" href="../frontend/js/core/app.min.js?v=20260826-compare-1ton-v8" as="script">
+  <link rel="preload" href="../frontend/js/core/app.min.js?v=20260826-auth-history-v1" as="script">
 </head>
   <body data-state="default">
     <script src="../frontend/js/pages/home/inline-08.js"></script>
@@ -105,7 +105,7 @@
           <button class="tool-btn new-chat-button" type="button" aria-label="新建对话">
             <img class="icon" src="../icons/full-create.svg" alt="" />
           </button>
-          <span class="history-wrap">
+          <span class="history-wrap" data-auth-history hidden aria-hidden="true" style="display:none!important">
             <button class="tool-btn history-button" type="button" aria-label="历史记录" title="对话记录">
               <img class="icon" src="../icons/sidebar-history.svg" alt="" />
             </button>
@@ -554,7 +554,7 @@
         </nav>
         <div class="lxfd-actions lxfd-glass anim-fade" aria-label="快捷入口">
           <button class="lxfd-ic" type="button" aria-label="收起" title="收起全屏"><img class="icon" src="../icons/sidebar-toggle.svg" alt="" aria-hidden="true" /></button>
-          <button class="lxfd-ic lxfd-ic-history" id="lxfdTopHistBtn" type="button" aria-label="历史对话" title="对话记录"><img class="icon" src="../icons/sidebar-history.svg" alt="" /></button>
+          <button class="lxfd-ic lxfd-ic-history" id="lxfdTopHistBtn" data-auth-history hidden aria-hidden="true" style="display:none!important" type="button" aria-label="历史对话" title="对话记录"><img class="icon" src="../icons/sidebar-history.svg" alt="" /></button>
           <button class="lxfd-ic" type="button" aria-label="订单，3 个订单" title="订单" data-lxfd-open="orders"><img class="icon" src="../icons/mall-orders.svg" alt="" /><span class="lxfd-badge">3</span></button>
           <span class="lxfd-divider" aria-hidden="true"></span>
           <div class="lxfd-account-wrap">
@@ -606,7 +606,7 @@
     <script src="../frontend/js/core/app-intent.js?v=0.13.14-stage"></script>
     <script src="../frontend/js/core/app-conv.js?v=0.13.16-new-chat-refresh"></script>
     <link rel="stylesheet" data-document-insight-module href="../frontend/css/pages/home/inline-12.css">
-    <script src="../frontend/js/core/app.min.js?v=20260826-compare-1ton-v8"></script>
+    <script src="../frontend/js/core/app.min.js?v=20260826-auth-history-v1"></script>
     <link rel="stylesheet" id="lxfd-home-composer-control-sync" href="../frontend/css/pages/home/inline-13.css">
     <script src="../frontend/js/core/app-lxfd.js?v=20260826-home-hover-v1"></script>
     <script src="../frontend/js/core/app-voice.js?v=0.13.16-stage"></script>

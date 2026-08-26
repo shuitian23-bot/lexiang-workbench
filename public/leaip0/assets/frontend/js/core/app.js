@@ -3234,6 +3234,13 @@ function openOrderDetail(orderId) {
         }
 
         function updateUserArea() {
+          const historyVisible = Boolean(state.user);
+          document.querySelectorAll("[data-auth-history]").forEach((node) => {
+            node.hidden = !historyVisible;
+            node.setAttribute("aria-hidden", historyVisible ? "false" : "true");
+            if (historyVisible) node.style.removeProperty("display");
+            else node.style.setProperty("display", "none", "important");
+          });
           const account = $(".account-wrap .utility-btn");
           if (!account) return;
           account.title = state.user ? `${state.user.nickname || state.user.phone || "已登录"}` : "登录";
