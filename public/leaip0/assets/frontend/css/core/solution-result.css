@@ -127,7 +127,7 @@ body.assistant-right .lx-cmp-floating-cta{right:calc(var(--assistant-panel-width
 @media(max-width:1100px){.lx-solution-compare-page .lx-cmp-skin[data-v="1"]{--lx-cmp-axis-width:132px;min-width:calc(var(--lx-cmp-axis-width) + var(--lx-cmp-cols,3)*230px)}.lx-solution-compare-page .lx-cmp-skin[data-v="1"] .tbl{grid-template-columns:var(--lx-cmp-axis-width) repeat(var(--lx-cmp-cols,3),minmax(230px,1fr))}}
 
 /* 商品 1:N 对比：严格复用 product-comparison-1toN.html 的结构、尺寸与状态。 */
-.compare-page:has(.lx-product-compare){width:100%;max-width:none;padding:18px 27px 24px!important;color:#252525;font-family:"Source Han Sans CN","PingFang SC","Microsoft YaHei",system-ui,sans-serif}
+.compare-page:has(.lx-product-compare){width:100%;max-width:none;padding:18px 0 24px!important;color:#252525;font-family:"Source Han Sans CN","PingFang SC","Microsoft YaHei",system-ui,sans-serif}
 .compare-page:has(.lx-product-compare) .lx-pc-head h2{margin:0;padding:0!important;color:#252525;font-size:30px!important;line-height:1.12!important;font-weight:600!important;letter-spacing:-.035em}
 .compare-page:has(.lx-product-compare) .lx-pc-head p{margin:13px 0 18px;color:#979797;font-size:14px;line-height:1.4;font-weight:500}
 .lx-pc-ai-suggest{height:81px;margin:0 0 14px;border:1px solid #e2ddeb;border-radius:14px;background:linear-gradient(96deg,#fcf2f8 22.83%,#e3eafd 98.41%);display:flex;align-items:center;padding:0 20px;gap:15px}
@@ -148,7 +148,7 @@ body.assistant-right .lx-cmp-floating-cta{right:calc(var(--assistant-panel-width
 .lx-pc-cell.recommended{background:#fcfaff;border-left:1.5px solid #bb1836!important;border-right:1.5px solid #bb1836!important}.lx-pc-cell.recommended.top{border-top:1.5px solid #bb1836!important;border-top-right-radius:16px}.lx-pc-cell.recommended.bottom{border-bottom:1.5px solid #bb1836!important;border-bottom-right-radius:16px}
 .lx-pc-rec-badge{position:absolute;left:50%;top:-1px;transform:translate(-50%,-1px);height:28px;padding:0 16px;border-radius:0 0 9px 9px;display:flex;align-items:center;justify-content:center;background:linear-gradient(90deg,#4d144a 11.9%,#b8252e 100%);color:#fff;font-size:13px;font-weight:500;box-shadow:0 4px 10px rgba(77,20,74,.10);white-space:nowrap}
 .lx-pc-foot-note{margin:12px 0 14px;color:#979797;font-size:12px;line-height:1.5}.lx-pc-foot-note b{color:#4d144a}.lx-product-compare button:focus-visible,.lx-product-compare [tabindex="0"]:focus-visible{outline:3px solid rgba(155,142,182,.62);outline-offset:2px}
-@media(max-width:1200px){.compare-page:has(.lx-product-compare){padding:18px 20px 24px!important}.lx-pc-grid.is-scroll{min-width:1120px}.lx-pc-grid.is-scroll .lx-pc-label{position:sticky;left:0;z-index:2;box-shadow:1px 0 0 #e2ddeb}}
+@media(max-width:1200px){.compare-page:has(.lx-product-compare){padding:18px 0 24px!important}.lx-pc-grid.is-scroll{min-width:1120px}.lx-pc-grid.is-scroll .lx-pc-label{position:sticky;left:0;z-index:2;box-shadow:1px 0 0 #e2ddeb}}
 
 /* LX_RIGHT_RESULT_H1_STANDARD_20260822: right generated-area page-level title */
 .content > :is(.info-page,.compare-page,.reco-page) > .reco-head > h2,
