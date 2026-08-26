@@ -1446,8 +1446,25 @@ function compactProductSpec(description, category) {
             }
             box.innerHTML = `
               <div class="lx-spu-head"><span>选择配置 · 本系列共 ${variants.length} 款${range ? ` · <b>${range}</b>` : ""}</span>${variants.length > 1 ? '<button class="lx-spu-compare" type="button" data-spu-compare>对比本系列 →</button>' : ""}</div>
-              <div class="lx-spu-chips">${variants.map((variant, i) => `<button class="lx-spu-chip${variant.sku === product.sku ? " is-active" : ""}" type="button" data-variant-sku="${esc(variant.sku)}" title="${esc(variant.name)}"><span class="lx-spu-chip-label">${esc(labels[i])}</span><span class="lx-spu-chip-price">¥${Number(variant.price || 0).toLocaleString()}</span></button>`).join("")}</div>`;
+              <div class="lx-spu-chips">${variants.map((variant, i) => `<button class="lx-spu-chip${variant.sku === product.sku ? " is-active" : ""}" type="button" data-variant-sku="${esc(variant.sku)}" aria-pressed="${variant.sku === product.sku ? "true" : "false"}" title="${esc(variant.name)}"><span class="lx-spu-chip-label">${esc(labels[i])}</span><span class="lx-spu-chip-price">¥${Number(variant.price || 0).toLocaleString()}</span></button>`).join("")}</div>`;
             box.hidden = false;
+            box.querySelectorAll("[data-variant-sku]").forEach((button) => {
+              button.addEventListener("click", async (event) => {
+                event.stopPropagation();
+                const sku = button.dataset.variantSku;
+                if (!sku || button.classList.contains("is-active") || button.dataset.loading === "1") return;
+                box.querySelectorAll("[data-variant-sku]").forEach((item) => { item.disabled = true; });
+                button.dataset.loading = "1";
+                button.setAttribute("aria-busy", "true");
+                try {
+                  await openProduct(sku, { noTab: true });
+                } finally {
+                  button.removeAttribute("aria-busy");
+                  delete button.dataset.loading;
+                  box.querySelectorAll("[data-variant-sku]").forEach((item) => { item.disabled = false; });
+                }
+              });
+            });
           } catch {}
         }
 
@@ -11538,8 +11555,6 @@ async function openEduZone() {
               sendChat(ask);
             }
 
-            const variantBtn = event.target.closest("[data-variant-sku]");
-            if (variantBtn) openProduct(variantBtn.dataset.variantSku, { noTab: true });
             if (event.target.closest("[data-spu-compare]")) {
               const variants = (state.spuVariants || []).slice(0, 4);
               if (variants.length >= 2) lxUpsertCompareTab(variants, "本系列配置对比");
