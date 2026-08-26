@@ -62,8 +62,6 @@
         <div class="poc-log-list">
           <div v-for="item in pocLogRecords" :key="`${item.time}-${item.title}`" class="poc-log-item">
             <div class="poc-log-meta">
-              <span>改动人</span>
-              <strong>{{ getPocOperator(item) }}</strong>
               <span>发布人</span>
               <strong>{{ getPocPublisher(item) }}</strong>
               <span>更新时间</span>
@@ -130,6 +128,15 @@ const isPeeking = ref(false)
 const pocLogVisible = ref(false)
 
 const basePocLogRecords = [
+  {
+    time: '2026-08-26 10:40',
+    publisher: 'zhangrui（部署账号）',
+    title: '调整日志主信息精简',
+    changePoint: '移除日志主信息区的“改动人”，统一保留发布人、更新时间、改动点、部署范围和状态。',
+    detail: '根据日志责任口径精简卡片字段，不再在每条记录左侧重复展示改动人；发布人继续表示实际执行 new 或正式环境部署的账号，历史代码作者和来源信息仅在已有追溯记录中保留。',
+    deployTargets: ['new'],
+    status: '已更新 new 预览'
+  },
   {
     time: '2026-08-26 09:52',
     operator: 'Codex（协作代理）',
@@ -508,10 +515,6 @@ const POC_DEPLOY_TARGETS = {
 
 const pocLogRecords = [...basePocLogRecords, ...pocLogServerRecords]
   .sort((left, right) => right.time.localeCompare(left.time))
-
-function getPocOperator(record) {
-  return record.operator || record.codeAuthor || '历史未记录'
-}
 
 function getPocPublisher(record) {
   if (record.publisher) return record.publisher

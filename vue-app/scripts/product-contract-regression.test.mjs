@@ -161,6 +161,8 @@ test('adjustment log records each change point and publisher separately', async 
 
   assert.match(sidebar, /<span>发布人<\/span>/)
   assert.match(sidebar, /getPocPublisher\(item\)/)
+  assert.doesNotMatch(sidebar, /<span>改动人<\/span>/)
+  assert.doesNotMatch(sidebar, /getPocOperator\(item\)/)
   assert.match(sidebar, /<small><span>改动点<\/span>/)
   assert.match(sidebar, /title: '首页内容比例校正'/)
   assert.match(sidebar, /title: '左侧菜单默认展开'/)
