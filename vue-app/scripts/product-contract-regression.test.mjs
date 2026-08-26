@@ -127,3 +127,21 @@ test('approved pages share the presentation-only content header', async () => {
   }
   assert.doesNotMatch(views[3], /<h1>/)
 })
+
+test('portal home balances its work cards against the actual content slot', async () => {
+  const view = await source('../src/views/PortalHomeView.vue')
+
+  assert.match(view, /container-type:\s*inline-size/)
+  assert.match(
+    view,
+    /\.portal-home-v2\s+\.portal-home-workgrid\s*\{[^}]*grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\)/s
+  )
+  assert.match(
+    view,
+    /@container\s*\(max-width:\s*1180px\)[\s\S]*\.portal-home-spotlight\s*\{[^}]*grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\)/
+  )
+  assert.match(
+    view,
+    /@container\s*\(max-width:\s*720px\)[\s\S]*\.portal-home-workgrid\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)/
+  )
+})

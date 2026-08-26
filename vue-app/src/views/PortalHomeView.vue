@@ -93,6 +93,11 @@ onMounted(() => {
   --portal-card-hover-shadow: 0 10px 24px rgba(31, 35, 41, 0.075);
 
   min-width: 0;
+  container-type: inline-size;
+}
+
+.portal-home-v2 .portal-home-workgrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .portal-home-command-copy {
@@ -191,6 +196,27 @@ onMounted(() => {
 
 .portal-home-flow p {
   min-width: 0;
+}
+
+@container (max-width: 1180px) {
+  .portal-home-spotlight {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@container (max-width: 720px) {
+  .portal-home-v2 .portal-home-workgrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .portal-home-entry-list button {
+    grid-template-columns: 34px minmax(0, 1fr);
+  }
+
+  .portal-home-entry-list button span {
+    grid-column: 2;
+    text-align: left;
+  }
 }
 
 @media (max-width: 1360px) {
