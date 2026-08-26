@@ -30,7 +30,7 @@
 .lx-auth-modal button{cursor:pointer}
 .lx-auth-modal .lx-auth-close{position:absolute;right:18px;top:16px;width:36px;height:36px;border:0;background:transparent;border-radius:10px;font-size:26px;line-height:1;color:#5b535e}
 .lx-auth-modal .lx-auth-close:hover{background:#f6f2f6}
-.lx-auth-modal .lx-auth-logo-wrap{display:flex;justify-content:center;margin:4px 0 20px}
+.lx-auth-modal .lx-auth-logo-wrap{display:flex;justify-content:center;margin:4px 0 40px}
 .lx-auth-modal .lx-auth-logo-img{width:196px;max-width:72%;height:auto;display:block}
 .lx-auth-modal .lx-auth-tabs{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--line);margin-bottom:26px;position:relative}
 .lx-auth-modal .lx-auth-tabs:after{content:"";position:absolute;left:6%;bottom:-1px;width:38%;height:3px;border-radius:3px;background:linear-gradient(90deg,var(--brand-deep),var(--brand-red),#ff4050);transition:left .32s cubic-bezier(.22,.8,.3,1)}
