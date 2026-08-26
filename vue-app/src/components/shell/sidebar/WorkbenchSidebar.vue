@@ -64,13 +64,15 @@
             <div class="poc-log-meta">
               <span>改动人</span>
               <strong>{{ getPocOperator(item) }}</strong>
+              <span>发布人</span>
+              <strong>{{ getPocPublisher(item) }}</strong>
               <span>更新时间</span>
               <time>{{ item.time }}</time>
             </div>
             <div class="poc-log-content">
               <b>{{ item.title }}</b>
               <p>{{ item.detail }}</p>
-              <small><span>主要功能点</span>{{ item.scope }}</small>
+              <small><span>改动点</span>{{ getPocChangePoint(item) }}</small>
               <div v-if="getPocDeployTargets(item).length" class="poc-log-targets">
                 <span>部署范围</span>
                 <a
@@ -129,11 +131,33 @@ const pocLogVisible = ref(false)
 
 const basePocLogRecords = [
   {
-    time: '2026-08-26 09:40',
+    time: '2026-08-26 09:52',
     operator: 'Codex（协作代理）',
-    title: '首页响应式比例校正',
-    scope: '门户首页 / 左侧菜单 / 右侧 AI 助手 / 响应式布局',
-    detail: '校正首页“常用入口”和“基础操作流程”两块内容的列宽比例，在左侧菜单展开或收起、右侧 AI 助手收起、默认宽度或放大时保持两块内容等宽；当中间内容区变窄时自动切换为单列，避免卡片错位、内容挤压和页面横向溢出。首次进入工作台时左侧菜单默认展开，用户手动收起记忆、后续窗口缩放、AI 助手和业务功能逻辑保持不变。',
+    publisher: 'zhangrui（部署账号）',
+    title: '调整日志逐项记录与发布人补全',
+    changePoint: '一项改动独立记录；日志新增“发布人”；“主要功能点”改为更明确的“改动点”；无法追溯的历史发布人显示“历史未记录”。',
+    detail: '修正调整日志把连续修改合并为一条而导致记录缺失的问题。每次功能、样式或交互修改均保留独立记录，并分别展示改动人、发布人、更新时间、具体改动点、部署范围和状态；发布账号只作为发布人展示，不再与代码改动人混用。',
+    deployTargets: ['new'],
+    status: '已更新 new 预览'
+  },
+  {
+    time: '2026-08-26 09:34',
+    operator: 'Codex（协作代理）',
+    publisher: 'zhangrui（部署账号）',
+    title: '左侧菜单默认展开',
+    changePoint: '移除首次进入工作台时按窗口宽度自动收起菜单；保留用户手动收起记忆及后续响应式处理。',
+    detail: '首次进入工作台时左侧菜单固定默认展开，不再因当前窗口宽度自动收起；用户手动展开或收起后的记忆、后续窗口缩放、右侧 AI 助手和业务页面逻辑保持不变。',
+    deployTargets: ['new', 'formal'],
+    status: '已合并正式'
+  },
+  {
+    time: '2026-08-26 09:12',
+    operator: 'Codex（协作代理）',
+    publisher: 'zhangrui（部署账号）',
+    title: '首页内容比例校正',
+    changePoint: '校正“常用入口”和“基础操作流程”的列宽比例；内容区变窄时切换单列，避免错位和横向溢出。',
+    detail: '校正首页“常用入口”和“基础操作流程”两块内容的列宽比例，在左侧菜单展开或收起、右侧 AI 助手收起、默认宽度或放大时保持两块内容等宽；当中间内容区变窄时自动切换为单列，避免卡片错位、内容挤压和页面横向溢出。',
+    deployTargets: ['new', 'formal'],
     status: '已合并正式'
   },
   {
@@ -486,7 +510,18 @@ const pocLogRecords = [...basePocLogRecords, ...pocLogServerRecords]
   .sort((left, right) => right.time.localeCompare(left.time))
 
 function getPocOperator(record) {
-  return record.operator || record.deployAccount || '历史未记录'
+  return record.operator || record.codeAuthor || '历史未记录'
+}
+
+function getPocPublisher(record) {
+  if (record.publisher) return record.publisher
+  if (record.deployAccount) return `${record.deployAccount}（部署账号）`
+  if (record.operator?.includes('部署账号')) return record.operator
+  return '历史未记录'
+}
+
+function getPocChangePoint(record) {
+  return record.changePoint || record.scope || '历史未记录'
 }
 
 function getPocDeployTargets(record) {

@@ -155,3 +155,14 @@ test('sidebar starts expanded and only applies responsive collapse after a real 
     /onMounted\(\(\)\s*=>\s*\{\s*applyResponsiveSidebar\(window\.innerWidth\)/s
   )
 })
+
+test('adjustment log records each change point and publisher separately', async () => {
+  const sidebar = await source('../src/components/shell/sidebar/WorkbenchSidebar.vue')
+
+  assert.match(sidebar, /<span>发布人<\/span>/)
+  assert.match(sidebar, /getPocPublisher\(item\)/)
+  assert.match(sidebar, /<small><span>改动点<\/span>/)
+  assert.match(sidebar, /title: '首页内容比例校正'/)
+  assert.match(sidebar, /title: '左侧菜单默认展开'/)
+  assert.doesNotMatch(sidebar, /title: '首页响应式比例校正'/)
+})
