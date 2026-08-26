@@ -60,6 +60,7 @@ public/wiki-index.html.tmp
 public.new/
 public.new.backup-*/
 public/admin-vue.backup-*/
+public/admin-vue/poc-release-ledger.json
 .rollback-snapshots/
 .codex-backups/
 /e2e_*.js
