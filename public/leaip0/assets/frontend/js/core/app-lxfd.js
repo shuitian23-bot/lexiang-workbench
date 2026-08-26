@@ -2624,13 +2624,18 @@
         grid.classList.remove("is-switching");
       }, 120);
     };
-    tabs.forEach((tab) => tab.addEventListener("click", () => {
+    const activateTab = (tab) => {
       if (tab.classList.contains("is-active")) return;
       tabs.forEach((item) => item.classList.remove("is-active"));
       tab.classList.add("is-active");
       moveInk();
       render(tab.dataset.galleryTab, true);
-    }));
+    };
+    tabs.forEach((tab) => {
+      tab.addEventListener("pointerenter", () => activateTab(tab));
+      tab.addEventListener("click", () => activateTab(tab));
+      tab.addEventListener("focus", () => activateTab(tab));
+    });
     render("new", false);
     requestAnimationFrame(moveInk);
     window.addEventListener("resize", moveInk);
@@ -2658,12 +2663,17 @@
       });
     }
     if (more && moreBtn) {
+      const open = () => {
+        more.classList.add("open");
+        moreBtn.setAttribute("aria-expanded", "true");
+      };
+      more.addEventListener("pointerenter", open);
+      more.addEventListener("pointerleave", close);
       moreBtn.addEventListener("click", (event) => {
         event.preventDefault();
         event.stopPropagation();
-        const open = !more.classList.contains("open");
-        more.classList.toggle("open", open);
-        moreBtn.setAttribute("aria-expanded", open ? "true" : "false");
+        const shouldOpen = !more.classList.contains("open");
+        if (shouldOpen) open(); else close();
       });
       document.addEventListener("click", (event) => { if (!more.contains(event.target)) close(); });
       document.addEventListener("keydown", (event) => { if (event.key === "Escape") close(); });
