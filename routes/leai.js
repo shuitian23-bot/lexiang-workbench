@@ -1,6 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const { getAuth, getFaq, mapProductList } = require('../core/leai_client');
+const db = require('../db/schema');
+const useLeaiProductCatalog = process.env.LEAI_PRODUCT_CATALOG_ENABLED === '1';
+const { authoritativeRecommendations, siteFromRequest } = require('../core/p0-authoritative-recommendations');
 
 const AIGC_BASE = 'https://aigc.lenovo.com.cn/v3';
 const HEADERS = {
@@ -277,7 +280,10 @@ router.post('/stream', async (req, res) => {
 
           // 商品（只发一次）
           if (!sentProducts && Array.isArray(r.product_list) && r.product_list.length) {
-            const products = mapProductList(r.product_list, 6);
+            const upstreamProducts = mapProductList(r.product_list, 6);
+            const products = useLeaiProductCatalog
+              ? authoritativeRecommendations(db, upstreamProducts, { site: siteFromRequest(req), limit: 6 })
+              : upstreamProducts;
             if (products.length) {
               sentProducts = true;
               const _names = products.map((p) => p && p.name).filter(Boolean);

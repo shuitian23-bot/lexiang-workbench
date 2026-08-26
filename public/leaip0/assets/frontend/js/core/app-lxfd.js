@@ -2145,6 +2145,7 @@
             body: JSON.stringify({
               message: sendMsg,
               sessionId: chatState.convId || undefined,
+              site: document.body.dataset.page || 'personal',
               enableThinking: !!window.__lxThinking,
               ...(window.__lxGeo || {})
             })

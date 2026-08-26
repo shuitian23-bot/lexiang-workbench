@@ -5297,6 +5297,7 @@ function openOrderDetail(orderId) {
                     // 人工模式：消息注入专属客服人设（界面仍显示用户原文，对齐旧版逻辑）
                     message: builtMsg,
                     sessionId: state.convId || undefined,
+                    site: document.body.dataset.page || state.page || 'personal',
                     enableThinking: !!window.__lxThinking,
                     ...(window.__lxGeo || {})
                   })
