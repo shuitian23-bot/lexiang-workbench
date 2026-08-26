@@ -151,8 +151,8 @@ const basePocLogRecords = [
     title: '商品视频管理菜单与页面接入',
     changePoint: '在营销中心的广告管理业务范围新增“商品视频管理”入口，并接入独立的商品视频配置 POC 页面与 Mock 数据服务。',
     detail: '本次仅新增广告管理菜单组、商品视频管理菜单项、对应路由、页面和独立 Mock 服务；保留企业客户管理、订单管理、权限管理、Skill Hub、右侧 AI 助手、公共登录流程及现有菜单路由，不采用压缩包中的其他源码、公共样式或构建产物。',
-    deployTargets: ['new'],
-    status: '已更新 new 预览'
+    deployTargets: ['new', 'formal'],
+    status: '已合并正式'
   },
   {
     time: '2026-08-26 14:31',
