@@ -109,7 +109,7 @@ function syncCatalogToProducts(db, options = {}) {
     db.prepare('DELETE FROM products').run();
     db.prepare('DELETE FROM product_categories').run();
     const insertCategory = db.prepare('INSERT INTO product_categories (name, parent_id, sort_order, status) VALUES (?, 0, ?, ?)');
-    [...new Set(catalog.rows.map((row) => row.category))].forEach((category, index) => insertCategory.run(category, index, 'active'));
+    [...new Set(catalog.rows.map((row) => row.category))].forEach((category, index) => insertCategory.run(category, index, 1));
     const insert = db.prepare(`INSERT INTO products
       (name, sku, category, price, original_price, status, stock, image_url, description, specs, sort_order, detail_images, detail_images_at)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
