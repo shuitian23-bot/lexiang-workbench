@@ -4,6 +4,7 @@ const path = require('path');
 
 const EXPECTED_SPU_COUNT = 124;
 const EXPECTED_SKU_COUNT = 188;
+const CATALOG_SCHEMA_VERSION = '2';
 const PACKAGE_SITE = {
   'shop-chat product data': 'shop',
   'b-chat product data': 'b',
@@ -21,7 +22,8 @@ function manifestItems(payload) {
 
 function publicAssetUrl(packageName, relativePath) {
   if (!relativePath) return '';
-  return encodeURI(`/leaip0/leai product data/${packageName}/${String(relativePath).replace(/^\/+/, '')}`);
+  const base = process.env.LEAI_PRODUCT_ASSET_BASE_URL || 'https://p0.leaibot.cn/leai product data';
+  return encodeURI(`${base.replace(/\/$/, '')}/${packageName}/${String(relativePath).replace(/^\/+/, '')}`);
 }
 
 function numericPrice(value) {
@@ -33,6 +35,7 @@ function loadCatalog(options = {}) {
   const root = options.root || catalogRoot();
   if (!fs.existsSync(root)) throw new Error(`商品数据目录不存在: ${root}`);
   const hash = crypto.createHash('sha256');
+  hash.update(CATALOG_SCHEMA_VERSION);
   const rows = [];
   const spus = new Set();
   const skus = new Set();
