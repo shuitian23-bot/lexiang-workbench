@@ -7,7 +7,10 @@ function clean(value) {
 
 function sentence(value, max = 34) {
   const text = clean(value).replace(/[。；;]+$/g, '');
-  return text.length > max ? text.slice(0, max) : text;
+  if (text.length <= max) return text;
+  const head = text.slice(0, max);
+  const boundary = Math.max(head.lastIndexOf('/'), head.lastIndexOf('丨'), head.lastIndexOf('｜'), head.lastIndexOf('；'));
+  return boundary >= 8 ? head.slice(0, boundary) : head;
 }
 
 module.exports = {
@@ -30,7 +33,15 @@ module.exports = {
 
     const name = clean(specs.short_name || specs.spu_name || row.name || '这款商品');
     const category = clean(row.category || '联想产品');
-    const sellingPoint = sentence(row.description || specs.configuration_name || specs.copywriting || '', 24);
+    const rawPoint = clean(row.description || specs.configuration_name || specs.copywriting || '');
+    const categoryPoint = category.includes('服务器') ? '面向企业业务系统与持续运行场景'
+      : category.includes('工作站') ? '面向专业计算与高负载生产力场景'
+      : category.includes('台式') ? '兼顾固定工位性能与稳定部署'
+      : category.includes('选件') ? '便于补齐办公连接与使用体验'
+      : '';
+    const sellingPoint = rawPoint.startsWith('定制配置：') && rawPoint.length > 24
+      ? categoryPoint
+      : sentence(rawPoint, 24);
     const price = Number(row.price) > 0 ? `目前参考价 **¥${Number(row.price).toLocaleString('zh-CN')}**` : '当前价格需以页面实时信息为准';
     const useCase = category.includes('服务器') ? '适合稳定运行业务系统与数据服务'
       : category.includes('工作站') ? '适合专业创作、工程设计与高负载计算'
