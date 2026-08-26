@@ -677,14 +677,12 @@
   const priceFormatter = new Intl.NumberFormat('zh-CN');
   const dataBase = '../../leai product data/b-chat product data/';
   const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
-  const productsFor = (manifest, source) => manifest.filter(spu => spu.category === source).flatMap(spu => (spu.configurations || []).map(configuration => ({
-    id: String(configuration.sku_id),
-    shortName: spu.short_name,
-    name: configuration.original_name || spu.short_name,
-    price: Number(configuration.sale_price),
-    image: dataBase + (spu.representative_files?.white_image || configuration.files?.white_image || ''),
-    promo: (configuration.tags || []).find(tag => tag !== '自营') || ''
-  }))).filter(product => product.id && Number.isFinite(product.price) && product.image);
+  const productsFor = (manifest, source) => manifest.filter(spu => spu.category === source).map(spu => {
+    const configurations = (spu.configurations || []).filter(configuration => Number.isFinite(Number(configuration.sale_price)));
+    const prices = configurations.map(configuration => Number(configuration.sale_price));
+    const primary = configurations.slice().sort((a, b) => Number(a.sale_price) - Number(b.sale_price))[0] || {};
+    return { id: String(spu.spu_id), shortName: spu.short_name, name: spu.short_name, price: prices.length ? Math.min(...prices) : NaN, image: dataBase + (spu.representative_files?.white_image || primary.files?.white_image || ''), promo: configurations.flatMap(configuration => configuration.tags || []).find(tag => tag !== '自营') || '' };
+  }).filter(product => product.id && product.image);
   const bindInteractions = () => {
     root.querySelectorAll('.floor-count').forEach(button => button.addEventListener('click', () => {
       const icon = button.querySelector('.floor-count-icon');
@@ -706,14 +704,14 @@
         <div class="rank-item" data-rank="${index + 1}" data-product-id="${escapeHtml(product.id)}" data-product-name="${escapeHtml(product.shortName)}" data-price-source="${source}">
           <div class="rank-badge${index < 3 ? ` top${index + 1}` : ''}">${index + 1}</div>
           <div class="thumb-box"><img src="${escapeHtml(product.image)}" alt="${escapeHtml(product.shortName)}" loading="lazy"></div>
-          <div class="item-meta"><div class="item-name" title="${escapeHtml(product.shortName)}">${escapeHtml(product.shortName)}</div><div class="item-price">¥ ${priceFormatter.format(product.price)}</div></div>
+          <div class="item-meta"><div class="item-name" title="${escapeHtml(product.shortName)}">${escapeHtml(product.shortName)}</div><div class="item-price">${Number.isFinite(product.price) ? `¥ ${priceFormatter.format(product.price)}` : '价格面议'}</div></div>
         </div>`).join('');
     });
     root.querySelector('#shopFloors').innerHTML = categories.map(category => {
-      const products = (catalog[category.key] || []).slice(0, 6);
+      const products = (catalog[category.key] || []);
       return `<section class="product-floor" aria-labelledby="b-floor-${category.key}-title">
         <div class="floor-head"><h2 class="floor-title" id="b-floor-${category.key}-title">${category.title}</h2><button class="floor-count" type="button" aria-label="换一批${category.title}商品" title="换一换"><img class="floor-count-icon" src="../icons/global-refresh.svg" alt="" aria-hidden="true">换一换</button></div>
-        <div class="floor-grid">${products.map(product => `<article class="floor-product" tabindex="0" role="button" data-product-id="${escapeHtml(product.id)}" data-product-name="${escapeHtml(product.shortName)}" data-price-source="${source}"><div class="floor-product-image"><img src="${escapeHtml(product.image)}" alt="${escapeHtml(product.shortName)}" loading="lazy"></div><h3 class="floor-product-name" title="${escapeHtml(product.shortName)}">${escapeHtml(product.shortName)}</h3><div class="floor-product-promo-row">${product.promo ? `<span class="floor-product-promo">${escapeHtml(product.promo)}</span>` : ''}</div><div class="item-price">¥ ${priceFormatter.format(product.price)}</div></article>`).join('')}</div>
+        <div class="floor-grid">${products.map(product => `<article class="floor-product" tabindex="0" role="button" data-product-id="${escapeHtml(product.id)}" data-product-name="${escapeHtml(product.shortName)}" data-price-source="${source}"><div class="floor-product-image"><img src="${escapeHtml(product.image)}" alt="${escapeHtml(product.shortName)}" loading="lazy"></div><h3 class="floor-product-name" title="${escapeHtml(product.shortName)}">${escapeHtml(product.shortName)}</h3><div class="floor-product-promo-row">${product.promo ? `<span class="floor-product-promo">${escapeHtml(product.promo)}</span>` : ''}</div><div class="item-price">${Number.isFinite(product.price) ? `¥ ${priceFormatter.format(product.price)}` : '价格面议'}</div></article>`).join('')}</div>
       </section>`;
     }).join('');
     host.dataset.priceSource = source;
