@@ -1067,7 +1067,10 @@
   });
 
   document.querySelectorAll('.floor-product').forEach(product => {
-    const openProduct = () => alert(`查看商品：${product.dataset.productName}`);
+    const openProduct = () => window.__lxOpenFloorProductWithInterpretation?.({
+      sku: product.dataset.productId,
+      name: product.dataset.productName
+    });
     product.addEventListener('click', openProduct);
     product.addEventListener('keydown', event => {
       if (event.key !== 'Enter' && event.key !== ' ') return;

@@ -412,6 +412,20 @@ app.get('/api/products/:sku', (req, res) => {
   res.json({ ...row, specs });
 });
 
+// 首页楼层商品点击链路：只通过已注册的「商品解读」Skill 读取当前 P0 商品库。
+app.post('/api/products/:sku/interpretation', async (req, res) => {
+  try {
+    const result = await registry.execute('product_interpret', {
+      sku: req.params.sku,
+      site: String(req.body?.site || '')
+    }, { userId: req.lexiangUid || req.userId || '' });
+    res.json(result);
+  } catch (error) {
+    const status = /不存在|下架|不属于/.test(String(error?.message || '')) ? 404 : 500;
+    res.status(status).json({ error: error?.message || '商品解读失败' });
+  }
+});
+
 // 商详「✨ 适合你」千人千面理由: flash 快模型 + 用户画像, 1 句 ≤40 字
 app.get('/api/products/:sku/reason', (req, res) => {
   const row = db.prepare('SELECT name, price, description, category FROM products WHERE sku = ?').get(req.params.sku);

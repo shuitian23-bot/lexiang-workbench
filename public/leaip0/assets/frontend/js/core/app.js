@@ -1529,6 +1529,69 @@ function compactProductSpec(description, category) {
           lxHintOnDetail(product);
         }
 
+        // 首页楼层唯一点击链路：发送 query → 商品解读 Skill → 推荐结果卡 → 新建商详标签。
+        // 商详仍复用 openProduct，禁止频道脚本自行拼装第二套详情页。
+        async function lxOpenFloorProductWithInterpretation(detail = {}) {
+          const sku = String(detail.sku || detail.productId || "").trim();
+          const fallbackName = String(detail.name || detail.productName || "这款商品").trim();
+          const site = ({ personal: "shop", business: "b", enterprise: "biz" })[document.body.dataset.page] || "";
+          if (!sku || state.sending) return;
+          if (!lxRequireQueryAccess()) return;
+          state.sending = true;
+          try {
+            const query = `请解读一下${fallbackName}`;
+            if (typeof window.__lxSetConversationQuery === "function") window.__lxSetConversationQuery(query);
+            state.lastUserText = query;
+            addMessage("user", query);
+            const pending = addMessage("assistant", "", renderSkillTrace([
+              "已判断：商品解读",
+              "正在获取数据:Skill(商品解读)"
+            ], { collapsed: false, foldable: false, skillCount: 1 }) + renderGenerating("正在解读商品…"));
+
+            const response = await fetch(`/api/products/${encodeURIComponent(sku)}/interpretation`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ site })
+            });
+            if (!response.ok) throw new Error((await response.json().catch(() => ({}))).error || "商品解读失败");
+            const payload = await response.json();
+            const product = payload.product;
+            if (!product?.sku) throw new Error("商品数据不完整");
+            state.officialProducts = state.officialProducts || {};
+            state.officialProducts[product.sku] = product;
+            pending?.remove();
+
+            const trace = renderSkillTrace([
+              "已判断：商品解读",
+              "已获取数据:Skill(商品解读)"
+            ], { collapsed: true, foldable: true, skillCount: 1 });
+            const disclaimer = '<p class="lx-p0-disclaimer">内容由联想乐享基于当前商品信息生成，请在购买前核对关键配置、价格与库存。</p>';
+            const answer = addMessage("assistant", payload.interpretation || `已为你整理 **${product.name || fallbackName}** 的核心信息。`, trace + disclaimer);
+            if (answer?._typingDone) await answer._typingDone;
+            lxAppendAiHtml(answer, renderProductsInMessage([product]));
+            const card = answer?.querySelector(".answer-cta");
+            card?.classList.add("lx-document-card-enter");
+            await new Promise((resolve) => {
+              if (!card || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+                requestAnimationFrame(() => requestAnimationFrame(resolve));
+                return;
+              }
+              const done = () => resolve();
+              card.addEventListener("animationend", done, { once: true });
+              window.setTimeout(done, 700);
+            });
+            lxRevealContent();
+            await openProduct(product);
+          } catch (error) {
+            document.querySelector(".lx-p0-message.ai:last-child .loading-line")?.closest(".lx-p0-message")?.remove();
+            lxAddInstantAi(error?.message || "商品解读暂时不可用，请稍后再试。");
+          } finally {
+            state.sending = false;
+            lxSaveConversation();
+          }
+        }
+        window.__lxOpenFloorProductWithInterpretation = lxOpenFloorProductWithInterpretation;
+
         // 详情页官方商品编号（取 specs.materialNumber，如 83UE000HCD；无则不展示）
         function lxRenderItemCode(product) {
           const services = document.querySelector(".detail-service");
