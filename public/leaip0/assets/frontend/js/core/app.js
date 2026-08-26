@@ -10173,7 +10173,20 @@ async function openEduZone() {
           const recommendedIndex = Math.max(0, products.findIndex((product) => product.sku === recommendedSku));
           state._compareRecommendedSku = products[recommendedIndex]?.sku || "";
           state._compareRecommendedProduct = products[recommendedIndex] || null;
-          const labelIcon = (name) => `<span class="lx-pc-label-icon" aria-hidden="true">${name === "乐享AI解读" ? spark : ""}</span><span>${esc(name)}</span>`;
+          const labelIcons = {
+            "参数对比": '<svg viewBox="0 0 24 24"><path d="M5 6h14M7 6V4h10v2M7 6l1 14h8l1-14"/></svg>',
+            "乐享AI解读": spark,
+            "处理器": '<svg viewBox="0 0 24 24"><rect x="7" y="7" width="10" height="10" rx="2"/><path d="M9 2v3M15 2v3M9 19v3M15 19v3M19 9h3M19 15h3M2 9h3M2 15h3"/></svg>',
+            "操作系统": '<svg viewBox="0 0 24 24"><path d="M5 5h6v6H5zM13 5h6v6h-6zM5 13h6v6H5zM13 13h6v6h-6z"/></svg>',
+            "存储": '<svg viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="2"/><path d="M8 9h8M8 13h8M8 17h5"/></svg>',
+            "显卡": '<svg viewBox="0 0 24 24"><rect x="4" y="7" width="16" height="10" rx="2"/><circle cx="9" cy="12" r="2"/><path d="M16 10v4"/></svg>',
+            "内存": '<svg viewBox="0 0 24 24"><rect x="5" y="8" width="14" height="8" rx="2"/><path d="M8 5v3M12 5v3M16 5v3M8 16v3M12 16v3M16 16v3"/></svg>',
+            "硬盘": '<svg viewBox="0 0 24 24"><path d="M6 6h12a2 2 0 0 1 2 2v10H4V8a2 2 0 0 1 2-2Z"/><path d="M9 11h6M10 15h4"/></svg>',
+            "屏幕尺寸": '<svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="12" rx="2"/><path d="M9 20h6"/></svg>',
+            "颜色": '<svg viewBox="0 0 24 24"><path d="M12 4a8 8 0 1 0 8 8c0-1.6-1.2-2.8-2.8-2.8H16a2 2 0 0 1-2-2V6a2 2 0 0 0-2-2Z"/><path d="M8 13h.01M9.5 8.5h.01M13.5 15h.01"/></svg>',
+            "操作": '<svg viewBox="0 0 24 24"><path d="M5 7h14v10H5z"/><path d="M9 11h6"/></svg>'
+          };
+          const labelIcon = (name) => `<span class="lx-pc-label-icon${name === "乐享AI解读" ? " is-sparkle" : ""}" aria-hidden="true">${labelIcons[name] || ""}</span><span>${esc(name)}</span>`;
           const headCells = products.map((product, i) => {
             const recommended = i === recommendedIndex;
             const cleanName = String(product.name || "").replace(/^【?定制款】?\s*/, "");
@@ -10208,7 +10221,7 @@ async function openEduZone() {
             ? `<div class="lx-pc-cell lx-pc-label lx-pc-r-action">${labelIcon("操作")}</div>${products.map((product, i) => `<div class="lx-pc-cell lx-pc-action-cell lx-pc-r-action${i === recommendedIndex ? " recommended bottom" : ""}" data-col="${i}"><button class="lx-pc-buy-btn" type="button" data-cmp-buy="${esc(product.sku)}">立即购买</button></div>`).join("")}`
             : "";
           const aiRow = `<div class="lx-pc-cell lx-pc-label lx-pc-r-ai">${labelIcon("乐享AI解读")}</div>${products.map((product, i) => `<div class="lx-pc-cell lx-pc-ai-cell lx-pc-r-ai${i === recommendedIndex ? " recommended" : ""}" data-col="${i}"><div class="lx-pc-ai-note"><span class="lx-pc-sparkle">${spark}</span><span>${esc(cmpAiText(product))}</span></div></div>`).join("")}`;
-          return `<div class="lx-product-compare"><section class="lx-pc-shell" aria-label="商品参数对比表"><div class="lx-pc-scroll" tabindex="0" aria-label="横向滚动查看全部商品参数"><div class="lx-pc-grid" style="--lx-pc-cols:${products.length}"><div class="lx-pc-cell lx-pc-label lx-pc-r-product">${labelIcon("参数对比")}</div>${headCells}${aiRow}${bodyRows}${actionsRow}</div></div></section><p class="lx-pc-foot-note">浅紫底纹为差异项，<b>「优」</b>标记为该项最优。参数信息以商品详情页为准。</p></div>`;
+          return `<div class="lx-product-compare"><section class="lx-pc-shell" aria-label="商品参数对比表"><div class="lx-pc-scroll" tabindex="0" aria-label="横向滚动查看全部商品参数"><div class="lx-pc-grid" style="--lx-pc-cols:${products.length};grid-template-columns:190px repeat(${Math.max(0, products.length - 1)},1fr) 1.08fr"><div class="lx-pc-cell lx-pc-label lx-pc-r-product">${labelIcon("参数对比")}</div>${headCells}${aiRow}${bodyRows}${actionsRow}</div></div></section><p class="lx-pc-foot-note">浅紫底纹为差异项，<b>「优」</b>标记为该项最优。参数信息以商品详情页为准。</p></div>`;
         }
 
         if (!window.__lxCmpSkinHoverBound) {
