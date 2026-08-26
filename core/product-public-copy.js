@@ -2,9 +2,8 @@
 function cleanProductDescription(value) {
   const raw = String(value || '').replace(/\r/g, '').trim();
   if (!raw) return '';
-  const first = raw.split('\n').map((line) => line.trim()).find(Boolean) || '';
-  return first
-    .split(/\s+#\s+/)[0]
+  return raw
+    .split(/\n\s*\n|(?:^|\s)#{1,6}\s+/)[0]
     .replace(/\s*(?:[-·|｜]\s*)?(?:SPU名称|SPU编号|商品分类|配置数量|SKU编号)\s*[:：].*$/i, '')
     .trim();
 }

@@ -1495,6 +1495,8 @@ function compactProductSpec(description, category) {
             }
           }
           if (!product) return toast("未找到该商品，可能已下架或仅官网在售");
+          // 详情摘要只允许当前 SKU 的首段公开配置；历史缓存中的 SPU 台账、其他配置与链接不得进入详情 DOM。
+          product = { ...product, description: lxPublicProductDescription(product.description) };
           const detailTabId = product.sku ? `detail:${product.sku}` : "";
           const detailIsNewTab = !!detailTabId && !opts.noTab && !(state.tabs || []).some((tab) => tab.id === detailTabId);
           let detailGenToken = null;
@@ -9833,9 +9835,8 @@ async function openEduZone() {
         // 同时清洗历史会话/本地缓存里的旧推荐数据，内部台账字段不得重新进入 DOM。
         function lxPublicProductDescription(value) {
           const raw = String(value || "").replace(/\r/g, "").trim();
-          const first = raw.split("\n").map((line) => line.trim()).find(Boolean) || "";
-          return first
-            .split(/\s+#\s+/)[0]
+          return raw
+            .split(/\n\s*\n|(?:^|\s)#{1,6}\s+/)[0]
             .replace(/\s*(?:[-·|｜]\s*)?(?:SPU名称|SPU编号|商品分类|配置数量|SKU编号)\s*[:：].*$/i, "")
             .trim();
         }
