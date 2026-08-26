@@ -1,3 +1,5 @@
+const { cleanProductDescription } = require('./product-public-copy');
+
 function parseSpecs(value) {
   try { return JSON.parse(value || '{}'); } catch { return {}; }
 }
@@ -26,7 +28,7 @@ function toCard(row) {
     sku: String(row.sku || ''),
     name: specs.spu_name || row.name || '',
     full_name: row.name || specs.spu_name || '',
-    description: row.description || '',
+    description: cleanProductDescription(row.description),
     price: Number(row.price) || 0,
     original_price: Number(row.original_price) || 0,
     image_url: row.image_url || specs.white_image_url || '',
