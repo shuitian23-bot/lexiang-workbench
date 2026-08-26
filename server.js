@@ -220,6 +220,8 @@ function accessoryKeyFromName(name = '') {
 }
 
 function getSpuKey(row) {
+  const catalogSpecs = parseProductSpecs(row?.specs);
+  if (catalogSpecs.spu_id) return `${catalogSpecs.site || ''}:${catalogSpecs.spu_id}`;
   // 优先按商品名的系列型号折叠（同系列不同色/年款/配置归一）
   const sk = seriesKeyFromName(row?.name);
   if (sk) return `${row.category || ''}:series:${sk.toLowerCase()}`;
@@ -355,11 +357,7 @@ app.get('/api/products', (req, res) => {
     return res.json(collapseProductsToSpu(rows, limit));
   }
   const site = req.query.site; // shop=消费, b=企业购, biz=商用
-  let where = `status = 'active' AND image_url IS NOT NULL AND image_url != '' AND price > 500
-    AND SUBSTR(image_url, -30) NOT IN (
-      SELECT SUBSTR(image_url, -30) FROM products WHERE image_url IS NOT NULL AND image_url != ''
-      GROUP BY SUBSTR(image_url, -30) HAVING count(*) > 5
-    )`;
+  let where = `status = 'active' AND image_url IS NOT NULL AND image_url != '' AND price > 500`;
   const category = req.query.category;
   if (category) {
     where += ` AND category = ?`;
