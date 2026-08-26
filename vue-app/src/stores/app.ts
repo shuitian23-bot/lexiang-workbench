@@ -20,7 +20,7 @@ import { syncThemeMode } from '@/composables/useThemeMode'
 import { showWorkbenchToast } from '@/services/toast'
 import { allowPreviewAuth } from '@/config/runtimeMode'
 
-type MenuGroupKey = 'dashboard' | 'geo' | 'employee' | 'lead' | 'order'
+type MenuGroupKey = 'dashboard' | 'geo' | 'employee' | 'lead' | 'order' | 'advertising'
 export type PageId = string
 
 interface MenuItem {
@@ -159,6 +159,13 @@ export const MENU_TREE: Record<MenuGroupKey, MenuGroup> = {
     children: {
       'order.purchaseOrders': { label: '协议采购单管理', path: '/order/purchase-orders' },
       'order.agreement': { label: '协议产品订单管理', path: '/order/agreement' }
+    }
+  },
+  advertising: {
+    icon: menuIcon('<rect x="3.2" y="4" width="13.6" height="12" rx="2.2"/><path d="M6 12.8 8.5 10l2.1 1.8 3.3-4.3"/>'),
+    label: '广告管理',
+    children: {
+      'advertising.productVideo': { label: '商品视频管理', path: '/advertising/product-videos' }
     }
   }
 }
@@ -316,7 +323,7 @@ export const useAppStore = defineStore('app', () => {
         // 兼容：dashboard 权限自动补 geo
         if (menus.includes('dashboard') && !menus.includes('geo')) menus.push('geo')
         // 员工管理等默认可见
-        ;['employee', 'lead', 'order'].forEach(k => {
+        ;['employee', 'lead', 'order', 'advertising'].forEach(k => {
           if (!menus.includes(k)) menus.push(k)
         })
         // 只保留 MENU_TREE 中存在的 key

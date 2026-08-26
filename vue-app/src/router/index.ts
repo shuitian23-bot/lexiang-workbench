@@ -27,6 +27,7 @@ const LeadGovernmentPool = () => import('@/views/lead/LeadGovernmentPoolView.vue
 const LeadScore = () => import('@/views/lead/LeadScoreView.vue')
 const OrderPurchaseOrders = () => import('@/views/order/OrderPurchaseOrdersView.vue')
 const AgreementOrder = () => import('@/views/order/AgreementOrderView.vue')
+const ProductVideoConfig = () => import('@/views/advertising/ProductVideoConfigView.vue')
 const AgentSkills = () => import('@/views/agent/AgentSkillsView.vue')
 const AgentSkillCreate = () => import('@/views/agent/AgentSkillCreateView.vue')
 const AgentPermissions = () => import('@/views/agent/AgentPermissionsView.vue')
@@ -94,6 +95,9 @@ const routes: RouteRecordRaw[] = [
       { path: 'order/purchase-orders',     component: OrderPurchaseOrders, meta: { pageId: 'order.purchaseOrders', group: 'order' } },
       { path: 'order/purchase-orders/:id', component: OrderPurchaseOrders, meta: { pageId: 'order.purchaseOrders', group: 'order' } },
       { path: 'order/agreement',            component: AgreementOrder, meta: { pageId: 'order.agreement', group: 'order' } },
+
+      // 营销中心 / 广告管理
+      { path: 'advertising/product-videos', component: ProductVideoConfig, meta: { pageId: 'advertising.productVideo', group: 'advertising' } },
 
       // Agent 入口（从用户菜单进入，不在侧栏显示）
       { path: 'agent/skills',         component: AgentSkills, meta: { pageId: 'agent.skills' } },

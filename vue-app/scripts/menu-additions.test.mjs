@@ -29,6 +29,31 @@ test('new menu entries have isolated visible routes and an order detail route', 
   assert.match(router, /path: 'order\/purchase-orders',[\s\S]{0,160}pageId: 'order\.purchaseOrders'/)
 })
 
+test('advertising product video POC is added without replacing existing menu entries', async () => {
+  const appStore = await source('../src/stores/app.ts')
+
+  assert.match(appStore, /advertising:\s*\{[\s\S]{0,240}label: '广告管理'/)
+  assert.match(appStore, /'advertising\.productVideo':\s*\{ label: '商品视频管理', path: '\/advertising\/product-videos' \}/)
+  assert.match(appStore, /\['employee', 'lead', 'order', 'advertising'\]/)
+  assert.match(appStore, /'lead\.governmentPool':\s*\{ label: '线索池-政企'/)
+  assert.match(appStore, /'order\.agreement':\s*\{ label: '协议产品订单管理'/)
+})
+
+test('advertising product video POC keeps its route and mock data isolated', async () => {
+  const router = await source('../src/router/index.ts')
+  const view = await source('../src/views/advertising/ProductVideoConfigView.vue')
+  const service = await source('../src/services/productVideos.ts')
+
+  assert.match(router, /ProductVideoConfig\s*=\s*\(\) => import\('@\/views\/advertising\/ProductVideoConfigView\.vue'\)/)
+  assert.match(router, /path: 'advertising\/product-videos',[\s\S]{0,180}pageId: 'advertising\.productVideo'/)
+  assert.match(router, /path: 'agent\/permissions',[\s\S]{0,180}pageId: 'agent\.permissions'/)
+  assert.match(view, /from '@\/services\/productVideos'/)
+  assert.match(view, /appStore\.ensureStaticTab\('advertising\.productVideo'\)/)
+  assert.match(service, /export function listProductVideos/)
+  assert.match(service, /export function saveProductVideo/)
+  assert.match(service, /export function updateVideoStatus/)
+})
+
 test('new pages use the established native runtime bridge', async () => {
   const governmentView = await source('../src/views/lead/LeadGovernmentPoolView.vue')
   const agreementView = await source('../src/views/order/AgreementOrderView.vue')
