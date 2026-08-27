@@ -10361,7 +10361,8 @@ async function openEduZone() {
           const gridColumns = fitCurrentWidth
             ? `minmax(96px,127px) repeat(${Math.max(0, products.length - 1)},minmax(0,1fr)) minmax(0,1.08fr)`
             : `190px repeat(${Math.max(0, products.length - 1)},minmax(300px,1fr)) minmax(324px,1.08fr)`;
-          return `<div class="lx-product-compare"><section class="lx-pc-shell" aria-label="商品参数对比表"><div class="lx-pc-scroll" tabindex="0" aria-label="横向滚动查看全部商品参数"><div class="lx-pc-grid${fitCurrentWidth ? " is-fit" : " is-scroll"}" data-cols="${products.length}" style="--lx-pc-cols:${products.length};grid-template-columns:${gridColumns}"><div class="lx-pc-cell lx-pc-label lx-pc-r-product">${labelIcon("参数对比")}</div>${headCells}${aiRow}${bodyRows}${actionsRow}</div></div></section><p class="lx-pc-foot-note">浅紫底纹为差异项，<b>「优」</b>标记为该项最优。参数信息以商品详情页为准。</p></div>`;
+          requestAnimationFrame(() => lxSyncProductCompareNav());
+          return `<div class="lx-product-compare"><section class="lx-pc-shell" aria-label="商品参数对比表"><div class="lx-pc-scroll" tabindex="0" aria-label="横向滚动查看全部商品参数"><div class="lx-pc-grid${fitCurrentWidth ? " is-fit" : " is-scroll"}" data-cols="${products.length}" style="--lx-pc-cols:${products.length};grid-template-columns:${gridColumns}"><div class="lx-pc-cell lx-pc-label lx-pc-r-product">${labelIcon("参数对比")}</div>${headCells}${aiRow}${bodyRows}${actionsRow}</div></div></section><div class="lx-pc-scroll-nav" aria-label="切换对比商品"><button class="lx-pc-nav-btn" type="button" data-lx-pc-scroll="-1" aria-label="向左移动一个商品" disabled></button><button class="lx-pc-nav-btn" type="button" data-lx-pc-scroll="1" aria-label="向右移动一个商品"></button></div><p class="lx-pc-foot-note">浅紫底纹为差异项，<b>「优」</b>标记为该项最优。参数信息以商品详情页为准。</p></div>`;
         }
 
         if (!window.__lxCmpSkinHoverBound) {
@@ -10393,6 +10394,41 @@ async function openEduZone() {
             const grid = event.target.closest?.(".lx-product-compare .lx-pc-grid");
             if (grid && !grid.contains(event.relatedTarget)) grid.querySelectorAll(".column-hover").forEach((item) => item.classList.remove("column-hover"));
           }, true);
+        }
+
+        function lxSyncProductCompareNav(root = document) {
+          const hosts = root.matches?.(".lx-product-compare") ? [root] : [...root.querySelectorAll?.(".lx-product-compare") || []];
+          hosts.forEach((host) => {
+            const scroller = host.querySelector(".lx-pc-scroll");
+            const prev = host.querySelector('[data-lx-pc-scroll="-1"]');
+            const next = host.querySelector('[data-lx-pc-scroll="1"]');
+            if (!scroller || !prev || !next) return;
+            const maxScroll = Math.max(0, scroller.scrollWidth - scroller.clientWidth);
+            prev.disabled = scroller.scrollLeft <= 1;
+            next.disabled = scroller.scrollLeft >= maxScroll - 1;
+          });
+        }
+
+        if (!window.__lxProductCompareNavBound) {
+          window.__lxProductCompareNavBound = true;
+          document.addEventListener("click", (event) => {
+            const button = event.target.closest?.("[data-lx-pc-scroll]");
+            if (!button || button.disabled) return;
+            const host = button.closest(".lx-product-compare");
+            const scroller = host?.querySelector(".lx-pc-scroll");
+            const heads = [...(host?.querySelectorAll(".lx-pc-product-head") || [])];
+            if (!scroller || !heads.length) return;
+            const cardDistance = heads.length > 1
+              ? Math.abs(heads[1].offsetLeft - heads[0].offsetLeft)
+              : heads[0].getBoundingClientRect().width;
+            const direction = Number(button.dataset.lxPcScroll) || 0;
+            scroller.scrollBy({ left: direction * cardDistance, behavior: "smooth" });
+            window.setTimeout(() => lxSyncProductCompareNav(host), 360);
+          }, true);
+          document.addEventListener("scroll", (event) => {
+            if (event.target?.matches?.(".lx-pc-scroll")) lxSyncProductCompareNav(event.target.closest(".lx-product-compare"));
+          }, true);
+          window.addEventListener("resize", () => lxSyncProductCompareNav(), { passive: true });
         }
 
         function navigateToPortalSection(target) {
