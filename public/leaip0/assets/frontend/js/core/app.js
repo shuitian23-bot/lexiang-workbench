@@ -14214,3 +14214,86 @@ async function openEduZone() {
 })();
 ;(()=>{if(window.__lxEducationCompareFourMetrics)return;window.__lxEducationCompareFourMetrics=true;const target=["多擎云桌面解决方案","智慧教室解决方案","职教智慧校园解决方案"].sort();const apply=()=>{document.querySelectorAll(".lx-solution-compare-page .tbl").forEach(tbl=>{const names=Array.from(tbl.querySelectorAll(".cell.bodycell.phead strong")).map(el=>(el.textContent||"").trim()).sort();if(names.length!==3||target.some((name,index)=>names[index]!==name))return;const axis=tbl.querySelector(".lx-cmp-axis span");if(axis&&axis.textContent!=="4 个核心指标")axis.textContent="4 个核心指标";["推荐产品","客户案例"].forEach(label=>{const rowLabel=Array.from(tbl.querySelectorAll(":scope > .cell.rowlabel")).find(el=>(el.textContent||"").trim()===label);if(!rowLabel)return;const cells=[rowLabel];let next=rowLabel.nextElementSibling;for(let index=0;index<names.length&&next;index+=1){cells.push(next);next=next.nextElementSibling;}cells.forEach(el=>el.remove());});});};apply();new MutationObserver(apply).observe(document.documentElement,{childList:true,subtree:true});})();
 ;(()=>{if(document.getElementById("lx-generation-scroll-lock-style"))return;const style=document.createElement("style");style.id="lx-generation-scroll-lock-style";style.textContent=".content.is-generating-tab{overflow:hidden!important;overscroll-behavior:contain!important;touch-action:none!important}.content.is-generating-tab .lx-page-generating{min-height:100%!important;pointer-events:auto!important}.content.is-generating-tab .lx-page-generating.is-show{pointer-events:auto!important}";document.head.appendChild(style)})();
+/* Solution selection receipt: animate the selected solution into the composer
+   before the existing reference handler commits it. Kept as an isolated
+   capture-phase adapter so every solution entry point shares the same motion. */
+(() => {
+  const SELECTOR = ".lx-solution-card .lx-pick-btn[data-pick-sku]";
+  const reduceMotion = () => window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+
+  function replaySelection(button) {
+    if (!button?.isConnected) return;
+    button.dataset.lxSolutionFlightReplay = "true";
+    button.click();
+  }
+
+  function animateIntoComposer(button) {
+    const card = button.closest(".lx-solution-card");
+    const composer = document.querySelector(".assistant-panel .composer") || document.querySelector(".composer");
+    if (!card || !composer || reduceMotion() || typeof Element.prototype.animate !== "function") {
+      replaySelection(button);
+      return;
+    }
+
+    const image = card.querySelector(".lx-solution-card-image, img");
+    const title = card.querySelector(".lx-solution-card-head strong, strong, h3")?.textContent?.trim() || "已选方案";
+    const source = (image || card).getBoundingClientRect();
+    const target = composer.getBoundingClientRect();
+    if (!source.width || !source.height || !target.width || !target.height) {
+      replaySelection(button);
+      return;
+    }
+
+    const flight = document.createElement("div");
+    flight.className = "lx-solution-to-composer-flight";
+    flight.setAttribute("aria-hidden", "true");
+    const thumb = document.createElement("img");
+    thumb.alt = "";
+    thumb.src = image?.currentSrc || image?.src || "../frontend/assets/product-placeholder.svg";
+    const label = document.createElement("span");
+    label.textContent = title;
+    flight.append(thumb, label);
+    flight.style.left = `${source.left + Math.min(18, source.width * .12)}px`;
+    flight.style.top = `${source.top + Math.min(18, source.height * .12)}px`;
+    document.body.appendChild(flight);
+
+    const start = flight.getBoundingClientRect();
+    const endX = target.left + 18 - start.left;
+    const endY = target.top + 14 - start.top;
+    const arcY = endY * .42 - Math.min(54, Math.abs(endX) * .055);
+    const animation = flight.animate([
+      { opacity: 0, transform: "translate3d(0,12px,0) scale(.92)" },
+      { offset: .18, opacity: 1, transform: "translate3d(0,0,0) scale(1)" },
+      { offset: .62, opacity: 1, transform: `translate3d(${endX * .58}px,${arcY}px,0) scale(.9)` },
+      { opacity: .15, transform: `translate3d(${endX}px,${endY}px,0) scale(.72)` }
+    ], { duration: 560, easing: "cubic-bezier(.22,.61,.36,1)", fill: "forwards" });
+
+    const finish = () => {
+      flight.remove();
+      composer.classList.remove("lx-solution-received");
+      void composer.offsetWidth;
+      composer.classList.add("lx-solution-received");
+      window.setTimeout(() => composer.classList.remove("lx-solution-received"), 420);
+      delete button.dataset.lxSolutionFlightPending;
+      replaySelection(button);
+    };
+    animation.addEventListener("finish", finish, { once: true });
+    animation.addEventListener("cancel", finish, { once: true });
+  }
+
+  document.addEventListener("click", (event) => {
+    const button = event.target.closest?.(SELECTOR);
+    if (!button) return;
+    if (button.dataset.lxSolutionFlightReplay === "true") {
+      delete button.dataset.lxSolutionFlightReplay;
+      return;
+    }
+    if (button.classList.contains("picked") || button.dataset.lxSolutionFlightPending === "true") return;
+    const pickedCount = document.querySelectorAll(".lx-solution-card .lx-pick-btn.picked").length;
+    if (pickedCount >= 3 || reduceMotion()) return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    button.dataset.lxSolutionFlightPending = "true";
+    animateIntoComposer(button);
+  }, true);
+})();

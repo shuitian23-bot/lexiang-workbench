@@ -320,3 +320,11 @@ body.assistant-right .lx-cmp-floating-cta{right:calc(var(--assistant-panel-width
 /* POC exact solution detail end */
 
 .content .lx-solution-floor .lx-solution-card:hover>.lx-pick-btn,.content .lx-solution-floor .lx-solution-card:focus-within>.lx-pick-btn,.content .lx-solution-floor .lx-solution-card>.lx-pick-btn.picked{opacity:1!important}
+/* Selected solution flies into the assistant composer before its reference chip
+   is committed. The proxy is fixed so content scrolling cannot shift its path. */
+.lx-solution-to-composer-flight{position:fixed;z-index:120;display:grid;grid-template-columns:34px minmax(0,1fr);align-items:center;gap:8px;width:178px;height:46px;box-sizing:border-box;padding:5px 8px;border:1px solid #b9a8ca;border-radius:10px;background:#f3f0f7;box-shadow:0 8px 24px rgba(50,29,57,.08);pointer-events:none;transform-origin:left center;will-change:transform,opacity}
+.lx-solution-to-composer-flight>img{display:block;width:34px;height:34px;border-radius:6px;object-fit:cover;background:#fff}
+.lx-solution-to-composer-flight>span{min-width:0;overflow:hidden;color:#252525;font-size:12px;font-weight:600;line-height:16px;text-overflow:ellipsis;white-space:nowrap}
+.assistant-panel .composer.lx-solution-received{animation:lx-solution-composer-receive .4s cubic-bezier(.22,.61,.36,1)}
+@keyframes lx-solution-composer-receive{0%,100%{box-shadow:inherit}45%{box-shadow:0 0 0 3px rgba(162,98,215,.1),0 8px 24px rgba(50,29,57,.08)}}
+@media (prefers-reduced-motion:reduce){.lx-solution-to-composer-flight{display:none!important}.assistant-panel .composer.lx-solution-received{animation:none!important}}
