@@ -6,6 +6,10 @@ body.lx-home-split .content:has(.lx-solution-center-page){padding-top:18px!impor
 /* Visible multi-tabs own the complete 18px top rhythm. Channel content must not
    add another 18px, otherwise SMB/BIZ tabs drop below the home reference. */
 body.lx-home-split:not(.assistant-fullscreen)>.shell>.content:has(>.lx-tabbar:not([hidden])){padding-top:0!important}
+/* The persistent compare dock owns the footer presentation. Keep the legacy
+   compare trigger available to the interaction layer without leaving its old
+   bordered action-row box in the recommendation list flow. */
+body.lx-home-split:not(.assistant-fullscreen) .content[data-view="reco"] .reco-page>.lx-p0-actions:has(>[data-cmp-local]){display:contents!important}
 /* PC 5.0 right-tab height invariant: all channel pages reuse the exact home-split
    top rhythm. A second or later tab must never add vertical height or wrap rows. */
 body.lx-home-split:not(.assistant-fullscreen) .content>.lx-tabbar:not([hidden]){box-sizing:border-box!important;display:flex!important;align-items:flex-start!important;flex-wrap:nowrap!important;width:100%!important;height:43px!important;min-height:43px!important;max-height:43px!important;margin:0!important;padding:18px 18px 0 0!important;border-bottom:0!important;background:#fff!important;box-shadow:none!important;overflow-x:auto!important;overflow-y:hidden!important;scrollbar-width:none!important}
