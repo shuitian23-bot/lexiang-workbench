@@ -10357,10 +10357,8 @@ async function openEduZone() {
             ? `<div class="lx-pc-cell lx-pc-label lx-pc-r-action">${labelIcon("操作")}</div>${products.map((product, i) => `<div class="lx-pc-cell lx-pc-action-cell lx-pc-r-action${i === recommendedIndex ? " recommended bottom" : ""}" data-col="${i}"><button class="lx-pc-buy-btn" type="button" data-cmp-buy="${esc(product.sku)}">立即购买</button></div>`).join("")}`
             : "";
           const aiRow = `<div class="lx-pc-cell lx-pc-label lx-pc-r-ai">${labelIcon("乐享AI解读")}</div>${products.map((product, i) => `<div class="lx-pc-cell lx-pc-ai-cell lx-pc-r-ai${i === recommendedIndex ? " recommended" : ""}" data-col="${i}"><div class="lx-pc-ai-note"><span class="lx-pc-sparkle">${spark}</span><span>${esc(cmpAiText(product))}</span></div></div>`).join("")}`;
-          const fitCurrentWidth = products.length <= 3;
-          const gridColumns = fitCurrentWidth
-            ? `minmax(96px,127px) repeat(${Math.max(0, products.length - 1)},minmax(0,1fr)) minmax(0,1.08fr)`
-            : `190px repeat(${Math.max(0, products.length - 1)},200px) 216px`;
+          const fitCurrentWidth = false;
+          const gridColumns = `190px repeat(${products.length},380px)`;
           requestAnimationFrame(() => lxSyncProductCompareNav());
           return `<div class="lx-product-compare"><section class="lx-pc-shell" aria-label="商品参数对比表"><div class="lx-pc-scroll" tabindex="0" aria-label="横向滚动查看全部商品参数"><div class="lx-pc-grid${fitCurrentWidth ? " is-fit" : " is-scroll"}" data-cols="${products.length}" style="--lx-pc-cols:${products.length};grid-template-columns:${gridColumns}"><div class="lx-pc-cell lx-pc-label lx-pc-r-product">${labelIcon("参数对比")}</div>${headCells}${aiRow}${bodyRows}${actionsRow}</div></div></section><div class="lx-pc-scroll-nav" aria-label="切换对比商品"><button class="lx-pc-nav-btn" type="button" data-lx-pc-scroll="-1" aria-label="向左移动一个商品" disabled></button><button class="lx-pc-nav-btn" type="button" data-lx-pc-scroll="1" aria-label="向右移动一个商品"></button></div></div>`;
         }
