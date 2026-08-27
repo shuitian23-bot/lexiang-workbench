@@ -141,14 +141,39 @@
       (document.body.classList.contains("assistant-fullscreen") || document.body.classList.contains("lx-auto-fs"));
   }
 
+  function resetConversationAndReturnHome() {
+    var fullscreenVisible = document.body.classList.contains("assistant-fullscreen") ||
+      document.body.classList.contains("lx-auto-fs");
+    // 当前可见会话先走各自已有的“新建对话”归档链路，历史记录继续保留；
+    // 随后只清当前会话缓存，确保回首页后是全新的欢迎态。
+    try {
+      if (fullscreenVisible && typeof window.lxfdReset === "function") window.lxfdReset(true);
+      else if (window.__lxBridge && typeof window.__lxBridge.newConversationInCurrentChannel === "function") {
+        window.__lxBridge.newConversationInCurrentChannel();
+      }
+    } catch (_e) {}
+    try {
+      localStorage.setItem("lexiang.newChatEmpty.v1", "1");
+      localStorage.removeItem("lexiang.conversation.v1");
+      localStorage.removeItem("lexiang.conversation.sourcePage.v1");
+    } catch (_e) {}
+    window.name = "";
+    location.assign(new URL(routes.home, rootBase).href);
+  }
+
   document.addEventListener("click", function (event) {
     if (!event.isTrusted) return;
     var item = event.target.closest && event.target.closest(".main-nav [data-page], .lxfd-nav-sheet [data-page], .brand, .lxfd-logo-pill");
     if (!item) return;
+    var isLogo = item.matches(".brand, .lxfd-logo-pill");
     var page = item.dataset.page || "home";
     if (!routes[page]) return;
     event.preventDefault();
     event.stopImmediatePropagation();
+    if (isLogo) {
+      resetConversationAndReturnHome();
+      return;
+    }
     // 隐藏的 lxfd 线程不是当前会话源；让它持久化会把分屏的多轮快照回退成首轮。
     if (isFullscreenConversationActive()) {
       try { window.__lxfdPersistCurrentNow && window.__lxfdPersistCurrentNow(); } catch (_e) {}
@@ -160,6 +185,12 @@
   }, true);
 
   document.addEventListener("DOMContentLoaded", syncActiveState);
+  document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll(".brand, .lxfd-logo-pill").forEach(function (logo) {
+      logo.setAttribute("aria-label", "新建对话并返回首页");
+      logo.setAttribute("title", "新建对话并返回首页");
+    });
+  });
   window.setTimeout(syncActiveState, 0);
   new MutationObserver(function (_records, observer) {
     if (!document.querySelector(".main-nav [data-page], .lxfd-nav-sheet [data-page]")) return;
