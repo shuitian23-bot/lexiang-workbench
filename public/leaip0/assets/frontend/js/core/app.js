@@ -9377,11 +9377,68 @@ async function openEduZone() {
           });
         }
 
+        async function lxAnimateSolutionIntoComposer(card, payload) {
+          const composer = document.querySelector(".assistant-panel .composer") || document.querySelector(".composer");
+          const image = card?.querySelector(".lx-solution-card-image, img");
+          if (!card || !composer || !payload?.name || typeof Element.prototype.animate !== "function") return;
+          const source = (image || card).getBoundingClientRect();
+          const target = composer.getBoundingClientRect();
+          if (!source.width || !source.height || !target.width || !target.height) return;
+
+          const flight = document.createElement("div");
+          flight.className = "lx-solution-to-composer-flight";
+          flight.setAttribute("aria-hidden", "true");
+          const thumb = document.createElement("img");
+          thumb.alt = "";
+          thumb.src = image?.currentSrc || image?.src || payload.img || payload.image_url || "/assets/product-placeholder.svg";
+          const label = document.createElement("span");
+          label.textContent = payload.name;
+          flight.append(thumb, label);
+          flight.style.left = `${source.left + Math.min(18, source.width * .12)}px`;
+          flight.style.top = `${source.top + Math.min(18, source.height * .12)}px`;
+          document.body.appendChild(flight);
+
+          const start = flight.getBoundingClientRect();
+          const dx = target.left + 18 - start.left;
+          const dy = target.top + 14 - start.top;
+          const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+          const frames = reduced
+            ? [
+                { opacity: 0, transform: "translate3d(0,4px,0) scale(.96)" },
+                { opacity: 1, transform: "translate3d(0,0,0) scale(1)" },
+                { opacity: .12, transform: `translate3d(${dx}px,${dy}px,0) scale(.82)` }
+              ]
+            : [
+                { opacity: 0, transform: "translate3d(0,12px,0) scale(.92)" },
+                { offset: .18, opacity: 1, transform: "translate3d(0,0,0) scale(1)" },
+                { offset: .62, opacity: 1, transform: `translate3d(${dx * .58}px,${dy * .42 - Math.min(54, Math.abs(dx) * .055)}px,0) scale(.9)` },
+                { opacity: .12, transform: `translate3d(${dx}px,${dy}px,0) scale(.72)` }
+              ];
+          try {
+            await flight.animate(frames, {
+              duration: reduced ? 180 : 560,
+              easing: "cubic-bezier(.22,.61,.36,1)",
+              fill: "forwards"
+            }).finished;
+          } catch {}
+          flight.remove();
+          composer.classList.remove("lx-solution-received");
+          void composer.offsetWidth;
+          composer.classList.add("lx-solution-received");
+          window.setTimeout(() => composer.classList.remove("lx-solution-received"), reduced ? 180 : 420);
+        }
+
         async function lxSetProductRef(sku, card) {
           if (!sku) return;
           if (card?.classList.contains("lx-solution-card")) {
             const solutionPayload = lxProductRefPayload(null, card);
             if (!solutionPayload?.name) return toast("方案信息获取失败");
+            const selectedSolutions = (state.refProducts || []).filter((item) => item.type === "solution").length;
+            if (selectedSolutions >= 3) {
+              toast("最多选择3个进行对比", true);
+              return;
+            }
+            await lxAnimateSolutionIntoComposer(card, solutionPayload);
             lxDockProductRef(solutionPayload);
             return;
           }
@@ -14241,7 +14298,7 @@ async function openEduZone() {
    before the existing reference handler commits it. Kept as an isolated
    capture-phase adapter so every solution entry point shares the same motion. */
 (() => {
-  const SELECTOR = ".lx-solution-card .lx-pick-btn[data-pick-sku]";
+  const SELECTOR = "[data-lx-legacy-solution-flight-disabled]";
   const reduceMotion = () => window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
 
   function replaySelection(button) {
