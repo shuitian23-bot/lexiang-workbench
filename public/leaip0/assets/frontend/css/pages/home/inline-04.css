@@ -7458,7 +7458,7 @@ body.lx-home-split[data-page="home"].assistant-right .shell {
 
       .lx-pick-btn { position: absolute; top: 8px; right: 8px; z-index: 5; width: 24px; height: 24px; display: grid; place-items: center; padding: 0; border-radius: 6px; border: 1px solid var(--lx-border); background: #FFFFFF; color: transparent; font-size: 14px; line-height: 1; cursor: pointer; opacity: 0; transition: opacity 0.15s, background 0.15s; }
       .product-card:hover .lx-pick-btn, .lx-sim-card:hover .lx-pick-btn, .lx-floor-product:hover .lx-pick-btn, .lx-p0-product-mini:hover .lx-pick-btn, .reco-row:hover .lx-pick-btn, .lx-solution-card:hover .lx-pick-btn { opacity: 1; }
-      .lx-solution-card .lx-pick-btn { opacity: 1; }
+      .lx-solution-card:focus-within .lx-pick-btn, .lx-solution-card:focus-visible .lx-pick-btn { opacity: 1; }
       .lx-pick-btn:hover { border-color: var(--lx-brand-red); color: var(--lx-brand-red); }
       .lx-pick-btn.picked { opacity: 1; background: var(--brand-red); border-color: var(--brand-red); color: #FFFFFF; }
       .lx-pick-btn > img { display: block; width: 16px; height: 16px; margin: auto; opacity: 0; }
