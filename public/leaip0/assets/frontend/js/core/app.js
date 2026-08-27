@@ -10024,7 +10024,7 @@ async function openEduZone() {
                     <button class="lx-reco-poc-selector${active ? " active" : ""}" type="button" data-reco-select="${esc(sku)}" aria-label="${active ? "取消选择" : "选择商品"}" aria-pressed="${active ? "true" : "false"}"></button>
                     <div class="reco-row-actions lx-reco-poc-actions">
                       <span class="reco-row-price">¥${Number(p.price || 0).toLocaleString()}</span>
-                      <button class="lx-reco-poc-buy" type="button" data-reco-buy="${esc(sku)}"><span>立即购买</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path><path d="M13 5l7 7-7 7"></path></svg></button>
+                      <button class="lx-reco-poc-buy" type="button" data-reco-buy="${esc(sku)}"><span>立即购买</span></button>
                     </div>
                   </div>
                 </article>`;
