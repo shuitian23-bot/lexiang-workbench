@@ -3277,6 +3277,7 @@ function openOrderDetail(orderId) {
             if (historyVisible) node.style.removeProperty("display");
             else node.style.setProperty("display", "none", "important");
           });
+          try { window.__lxfdSyncHistoryAuth?.(historyVisible); } catch (_e) {}
           document.querySelectorAll("[data-auth-order-badge]").forEach((node) => {
             node.hidden = !historyVisible;
             node.setAttribute("aria-hidden", historyVisible ? "false" : "true");

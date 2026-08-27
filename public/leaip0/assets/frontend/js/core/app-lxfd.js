@@ -763,6 +763,7 @@
     railNewFab?.classList.toggle("hide", railOpen || !chatting);
   }
   function openRail(open) {
+    if (open && !window.__lxState?.user) open = false;
     rail?.classList.toggle("open", open);
     railFab?.classList.toggle("hide", open);
     syncRailNewFabVisibility();
@@ -780,8 +781,17 @@
     openRail(open);
   }
   function syncRailForViewport() {
-    openRail(wide() && !railManuallyCollapsed);
+    openRail(Boolean(window.__lxState?.user) && wide() && !railManuallyCollapsed);
   }
+  window.__lxfdSyncHistoryAuth = function(authenticated) {
+    if (!authenticated) {
+      railManuallyCollapsed = true;
+      document.body.classList.remove("lxfd-rail-user-open");
+      openRail(false);
+      return;
+    }
+    syncRailForViewport();
+  };
   function fit() {
     if (!ta) return;
     ta.style.height = "auto";
