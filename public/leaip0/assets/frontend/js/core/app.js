@@ -9999,12 +9999,22 @@ async function openEduZone() {
                 if (value.includes("小新")) return "小新";
                 return "联想";
               };
+              const spuLabel = (product) => {
+                const specs = product?.specs && typeof product.specs === "object"
+                  ? product.specs
+                  : normalizeProductSpecs(product?.specs);
+                return String(
+                  specs?.spu_name || specs?.spuName || specs?.series_name ||
+                  product?.spu_name || product?.spuName || product?.series_name ||
+                  brandLabel(product?.name)
+                ).trim();
+              };
               const rows = products.map((p, index) => {
                 const sku = String(p.sku || "");
                 const active = selectedSet.has(sku);
                 const image = p.official ? p.image_url : imgUrl(p.image_url);
                 return `<article class="reco-row lx-reco-poc-row${active ? " selected" : ""}" data-open-product="${esc(sku)}">
-                  <span class="lx-reco-poc-label">${esc(brandLabel(p.name))}</span>
+                  <span class="lx-reco-poc-label">${esc(spuLabel(p))}</span>
                   <div class="lx-reco-poc-rank"><span>${index + 1}</span></div>
                   <div class="lx-reco-poc-thumb"><img src="${esc(image)}" alt="${esc(p.name)}" loading="lazy"></div>
                   <div class="reco-row-main lx-reco-poc-copy">
