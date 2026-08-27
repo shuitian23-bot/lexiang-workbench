@@ -10353,14 +10353,15 @@ async function openEduZone() {
             }
             return `<div class="lx-pc-cell lx-pc-label lx-pc-r-normal">${labelIcon(DETAIL_SPEC_LABELS[key] || key)}</div>${values.map((value, i) => `<div class="lx-pc-cell lx-pc-value lx-pc-r-normal${i === recommendedIndex ? " recommended" : ""}" data-col="${i}">${i === bestIndex ? `<span class="lx-pc-value-pill">${esc(value)} ${bestTag}</span>` : esc(value)}</div>`).join("")}`;
           }).join("");
-          const actionsRow = opts.actions
-            ? `<div class="lx-pc-cell lx-pc-label lx-pc-r-action">${labelIcon("操作")}</div>${products.map((product, i) => `<div class="lx-pc-cell lx-pc-action-cell lx-pc-r-action${i === recommendedIndex ? " recommended bottom" : ""}" data-col="${i}"><button class="lx-pc-buy-btn" type="button" data-cmp-buy="${esc(product.sku)}">立即购买</button></div>`).join("")}`
-            : "";
-          const aiRow = `<div class="lx-pc-cell lx-pc-label lx-pc-r-ai">${labelIcon("乐享AI解读")}</div>${products.map((product, i) => `<div class="lx-pc-cell lx-pc-ai-cell lx-pc-r-ai${i === recommendedIndex ? " recommended" : ""}" data-col="${i}"><div class="lx-pc-ai-note"><span class="lx-pc-sparkle">${spark}</span><span>${esc(cmpAiText(product))}</span></div></div>`).join("")}`;
+          const actionsRow = "";
+          const seriesRow = `<div class="lx-pc-cell lx-pc-label lx-pc-r-normal">${labelIcon("系列")}</div>${products.map((product, i) => {
+            const spuName = String(product.spu_name || product.spuName || product.series_name || "").trim() || "—";
+            return `<div class="lx-pc-cell lx-pc-value lx-pc-r-normal${i === recommendedIndex ? " recommended" : ""}" data-col="${i}">${esc(spuName)}</div>`;
+          }).join("")}`;
           const fitCurrentWidth = false;
           const gridColumns = `190px repeat(${products.length},380px)`;
           requestAnimationFrame(() => lxSyncProductCompareNav());
-          return `<div class="lx-product-compare"><section class="lx-pc-shell" aria-label="商品参数对比表"><div class="lx-pc-scroll" tabindex="0" aria-label="横向滚动查看全部商品参数"><div class="lx-pc-grid${fitCurrentWidth ? " is-fit" : " is-scroll"}" data-cols="${products.length}" style="--lx-pc-cols:${products.length};grid-template-columns:${gridColumns}"><div class="lx-pc-cell lx-pc-label lx-pc-r-product">${labelIcon("参数对比")}</div>${headCells}${aiRow}${bodyRows}${actionsRow}</div></div></section><div class="lx-pc-scroll-nav" aria-label="切换对比商品"><button class="lx-pc-nav-btn" type="button" data-lx-pc-scroll="-1" aria-label="向左移动一个商品" disabled></button><button class="lx-pc-nav-btn" type="button" data-lx-pc-scroll="1" aria-label="向右移动一个商品"></button></div></div>`;
+          return `<div class="lx-product-compare"><section class="lx-pc-shell" aria-label="商品参数对比表"><div class="lx-pc-scroll" tabindex="0" aria-label="横向滚动查看全部商品参数"><div class="lx-pc-grid${fitCurrentWidth ? " is-fit" : " is-scroll"}" data-cols="${products.length}" style="--lx-pc-cols:${products.length};grid-template-columns:${gridColumns}"><div class="lx-pc-cell lx-pc-label lx-pc-r-product">${labelIcon("参数对比")}</div>${headCells}${seriesRow}${bodyRows}${actionsRow}</div></div></section><div class="lx-pc-scroll-nav" aria-label="切换对比商品"><button class="lx-pc-nav-btn" type="button" data-lx-pc-scroll="-1" aria-label="向左移动一个商品" disabled></button><button class="lx-pc-nav-btn" type="button" data-lx-pc-scroll="1" aria-label="向右移动一个商品"></button></div></div>`;
         }
 
         if (!window.__lxCmpSkinHoverBound) {
