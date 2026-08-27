@@ -3059,8 +3059,12 @@ function openOrderDetail(orderId) {
             button = document.createElement("button");
             button.className = "lx-cmp-floating-cta";
             button.type = "button";
-            button.dataset.floorAction = "lead";
             button.textContent = "请专家联系我";
+            button.addEventListener("click", (event) => {
+              event.preventDefault();
+              event.stopImmediatePropagation();
+              openLeadPanel("");
+            });
             document.body.appendChild(button);
           }
           button.hidden = !show;
@@ -8231,18 +8235,6 @@ async function openEduZone() {
             "智能基础设施": ["ThinkSystem 服务器", "联想企业级存储", "联想超融合平台", "联想混合云平台"]
           };
           const products = productMap[industry] || ["联想行业终端", "ThinkSystem 服务器", "联想统一运维平台"];
-          const official1456ProductVisuals = [
-            { src: "../img/solution/official-1456/01-hero.jpg", position: "76% 50%" },
-            { src: "../img/solution/official-1456/02-platform.jpg", position: "50% 88%" },
-            { src: "../img/solution/official-1456/03-features.jpg", position: "50% 88%" },
-            { src: "../img/solution/official-1456/04-architecture.jpg", position: "50% 60%" }
-          ];
-          const specificProductMeta = {
-            "联想多擎云桌面": { badge: "联想方案", spec: "统一桌面交付｜集中管理｜安全运维" },
-            "ThinkVision 智慧黑板": { badge: "ThinkVision", spec: "智慧教学｜互动协作｜统一管理" },
-            "联想智慧教育大屏": { badge: "联想教育", spec: "课件展示｜无线投屏｜互动课堂" },
-            "ThinkCentre 教学终端": { badge: "ThinkCentre", spec: "稳定终端｜集中部署｜便捷运维" }
-          };
           const heroSummary = cleanText(s.overview || intro || `${title}围绕${scenario || sector || "核心业务"}场景，提供一体化建设与持续服务能力。`);
           const valueText = cleanText(s.gains || intro || "通过统一规划、平台建设与持续运营，提升业务效率并降低全生命周期成本。");
           const heroImageFile = title === "多擎云桌面解决方案"
@@ -8252,32 +8244,17 @@ async function openEduZone() {
           const architectureImage = "../img/solution/多擎云桌面解决方案-智慧校园架构图.webp";
           const advantagesText = advantages.join("；");
           const productCards = products.map((item, index) => {
-            const officialVisual = title === "多擎云桌面解决方案" ? official1456ProductVisuals[index % official1456ProductVisuals.length] : null;
-            const visualSrc = officialVisual ? officialVisual.src : heroImage;
-            const visualPosition = officialVisual ? officialVisual.position : "center";
-            const productMeta = specificProductMeta[item] || {
-              badge: "联想方案",
-              spec: `${sector || industry || "行业"}场景适配｜平台能力｜持续服务`
-            };
-            return `<button class="lx-sd-entity-card${officialVisual ? " has-official-visual" : ""}" type="button" data-quick-ask="详细介绍${esc(item)}，并说明它在${esc(title)}中的作用"><span class="lx-sd-entity-card-media"><b>${esc(productMeta.badge)}</b><img src="${visualSrc}" alt="${esc(item)}产品与平台能力示意图" loading="lazy" style="object-position:${visualPosition}"></span><span class="lx-sd-entity-card-copy"><strong>${esc(item)}</strong><small>${esc(productMeta.spec)}</small><span class="lx-sd-entity-card-tags"><i>${esc(sector || industry || "行业方案")}</i><i>官方服务</i></span><em>查看详情 <i aria-hidden="true">→</i></em></span></button>`;
+            const visualSrc = "../img/solution/solution-recommended-product-server.png";
+            return `<button class="lx-sd-entity-card" type="button" data-quick-ask="详细介绍${esc(item)}，并说明它在${esc(title)}中的作用"><span class="lx-sd-entity-card-media"><img src="${visualSrc}" alt="${esc(item)}产品图" loading="lazy"></span><span class="lx-sd-entity-card-copy"><strong>${esc(item)}</strong><em>查看详情 <i aria-hidden="true">→</i></em></span></button>`;
           }).join("");
-          const educationCaseFallbacks = [
-            "某高校教学终端统一运维示范项目",
-            "某区县教育资源云平台升级项目"
+          const caseFallbacks = [
+            "北京大学智慧校园建设项目",
+            "北京大学数字化教学示范项目"
           ];
-          const visibleCaseItems = title === "多擎云桌面解决方案"
-            ? [...caseItems, ...educationCaseFallbacks.filter((item) => !caseItems.includes(item))].slice(0, 4)
-            : caseItems.slice(0, 4);
-          const educationCaseImages = [
-            "../img/solution/智慧校园解决方案1.jpg",
-            "../img/solution/智慧教室解决方案2.jpg",
-            "../img/solution/智慧校园解决方案2.jpg",
-            "../img/solution/多擎云桌面解决方案-原创科技头图.png"
-          ];
-          const caseCards = visibleCaseItems.slice(0, 4).map((item, index) => {
-            const caseImage = industry === "智慧教育" ? educationCaseImages[index % educationCaseImages.length] : heroImage;
-            const viewCount = 67 + index * 13;
-            return `<button class="lx-sd-case-card" type="button" data-quick-ask="详细介绍这个案例：${esc(item)}"><img src="${caseImage}" alt="${esc(item)}案例场景图" /><span class="lx-sd-case-card-body"><strong>${esc(item)}</strong><span class="lx-sd-case-card-meta"><small>${esc(sector || industry || "行业")}案例</small><time datetime="2026-08-10">2026年08月10日</time><em>浏览 ${viewCount} · 查看案例 →</em></span></span></button>`;
+          const visibleCaseItems = Array.from(new Set([...caseItems, ...caseFallbacks])).slice(0, 2);
+          const caseImage = "../img/solution/solution-customer-case-peking-university.png";
+          const caseCards = visibleCaseItems.map((item) => {
+            return `<button class="lx-sd-case-card" type="button" data-quick-ask="详细介绍这个案例：${esc(item)}" aria-label="查看${esc(item)}"><img src="${caseImage}" alt="${esc(item)}案例图片" /></button>`;
           }).join("");
           const html = `<section class="lx-specific-solution-detail lx-sd-page">
             <section class="lx-sd-hero">
@@ -8315,7 +8292,7 @@ async function openEduZone() {
               <header><h2>相关资料与下一步</h2><p>获取资料与下一步建议</p></header>
               <div class="lx-sd-resource-grid">
                 <button type="button" data-quick-ask="查看${esc(title)}的官方方案原文"><span>官方网站</span><strong>查看方案原文</strong><small>联想企业解决方案官网</small></button>
-                <button type="button" data-whitepaper><span>方案资料</span><strong>${esc(sector)}行业解决方案白皮书</strong><small>PDF / 官方资料</small></button>
+                <button type="button" data-solution-whitepaper="${esc(title)}" data-solution-whitepaper-sector="${esc(sector)}"><span>方案资料</span><strong>${esc(sector)}行业解决方案白皮书</strong><small>PDF / 官方资料</small></button>
                 <div><strong>需要结合现网环境评估？</strong><p>提交行业、建设目标和业务痛点，联想客户经理将进一步与你沟通。</p><button type="button" data-floor-action="lead">请专家联系我</button></div>
               </div>
             </section>
@@ -8338,8 +8315,8 @@ async function openEduZone() {
           lxRenderTabbar();
         }
 
-        async function lxRunSpecificSolutionFlow(card) {
-          if (!card || state.sending) return;
+        function lxRunSpecificSolutionFlow(card) {
+          if (!card) return;
           const payload = {
             title: card.dataset.solutionTitle || "解决方案",
             industry: card.dataset.solutionIndustry || card.dataset.solution || "",
@@ -8348,32 +8325,10 @@ async function openEduZone() {
             intro: card.dataset.solutionIntro || "",
             image: card.dataset.solutionImage || ""
           };
-          if (!lxRequireQueryAccess()) return;
-          state.sending = true;
-          const query = `${payload.title}的方案详情`;
-          if (typeof window.__lxSetConversationQuery === "function") window.__lxSetConversationQuery(query);
-          state.lastUserText = query;
-          lxClearFollowups();
-          addMessage("user", query);
-          const scenarioFocus = `${payload.sector}${payload.scenario ? `的${payload.scenario}` : ""}场景`;
-          const answer = `${payload.title}面向**${scenarioFocus}**，${payload.intro || "通过统一规划、平台部署与持续服务形成一体化解决方案。"} 我已为你整理方案能力、核心优势与相关案例，可在右侧继续查看**完整详情**。`;
-          const cta = renderPageCta({
-            title: `查看${payload.title}`,
-            desc: `${payload.sector} · ${payload.scenario}`,
-            // 把重建右侧原页面所需的原始业务数据保存在结果卡自身。历史恢复、跨频道
-            // 或关闭 Tab 后内存缓存为空时，仍调用同一个 lxOpenSpecificSolutionDetail，
-            // 不仿写页面、不退回无关商城首页。
-            attr: `data-specific-solution-cta="${esc(payload.title)}" data-solution-industry="${esc(payload.industry)}" data-solution-sector="${esc(payload.sector)}" data-solution-scenario="${esc(payload.scenario)}" data-solution-intro="${esc(payload.intro)}" data-solution-image="${esc(payload.image)}"`
-          });
-          const ai = addMessage("ai", answer, cta);
-          try {
-            await (ai._typingDone || Promise.resolve());
-            await new Promise((resolve) => window.setTimeout(resolve, 180));
-            lxRunWithRevealMotion(() => lxOpenSpecificSolutionDetail(payload));
-          } finally {
-            state.sending = false;
-            try { window.__lxSaveConversationNow(); } catch (_e) {}
-          }
+          // 方案全集中的普通卡片是确定性导航：不生成 Query、不新增对话轮次，
+          // 直接通过既有详情页注册器创建或激活同名 Tab。勾选按钮在上游独立处理。
+          lxRevealContent();
+          lxOpenSpecificSolutionDetail(payload);
         }
 
         function openSolutionCenter(industry) {
@@ -8568,6 +8523,37 @@ async function openEduZone() {
             </article>`;
           }).join("");
           lxOpenInfoTab("whitepaper", "白皮书资料库", `<section class="lx-wp-page"><div class="lx-wp-head"><h2>白皮书资料库</h2><p>精选政企、教育、信创与行业解决方案资料，下载后将发送至您的邮箱或手机。</p></div><div class="lx-wp-grid">${rows}</div><p class="lx-p0-disclaimer">资料内容为演示环境示例，正式资料以联想官方交付版本为准。</p></section>`);
+        }
+
+        function openSolutionWhitepaperModal(button) {
+          const solutionTitle = button?.dataset.solutionWhitepaper || "解决方案";
+          const sector = button?.dataset.solutionWhitepaperSector || "行业";
+          const paperName = `${sector}行业解决方案白皮书`;
+          const pdfUrl = "/assets/docs/solution-industry-whitepaper-demo.pdf";
+          openModal(paperName, `
+            <section class="lx-solution-whitepaper-modal" aria-label="${esc(paperName)}在线阅读">
+              <header class="lx-solution-whitepaper-toolbar">
+                <div>
+                  <div class="lx-wp-meta"><span>${esc(sector)}</span><em>官方资料</em></div>
+                  <p>围绕${esc(solutionTitle)}的建设背景、核心架构、实施路径与典型场景。</p>
+                </div>
+                <button class="lx-wp-download" type="button" data-solution-pdf-download data-pdf-url="${pdfUrl}" data-pdf-name="${esc(paperName)}.pdf">下载 PDF</button>
+              </header>
+              <div class="lx-solution-whitepaper-viewer">
+                <iframe src="${pdfUrl}#toolbar=1&amp;navpanes=0&amp;view=FitH" title="${esc(paperName)} PDF 阅读器"></iframe>
+              </div>
+              <p class="lx-p0-disclaimer">资料内容为演示环境示例，正式资料以联想官方交付版本为准。</p>
+            </section>`, { skin: "lead" });
+        }
+
+        function lxDownloadWhitepaper(url, filename) {
+          const link = document.createElement("a");
+          link.href = url;
+          link.download = filename || "解决方案白皮书.pdf";
+          link.hidden = true;
+          document.body.appendChild(link);
+          link.click();
+          link.remove();
         }
 
         // ── 右侧内容页多标签（PRD 5.0/6.5：多标签并存、可切换、可关闭）──
@@ -11640,10 +11626,12 @@ async function openEduZone() {
         function openLeadPanel(scenario) {
           state.leadScenario = scenario || (state.page === "enterprise" ? "biz_intent" : "b_purchase");
           const projectName = String(state.leadScenario || "").startsWith("project:") ? String(state.leadScenario).replace(/^project:/, "") : "";
-          const messagePlaceholder = projectName ? `请填写您期望的合作内容或想了解到相关方案，如：${projectName}落地范围、终端数量、交付周期` : "请填写您期望的合作内容或想了解到相关方案";
-          openModal("项目合作", `
+          const whitepaperName = String(state.leadScenario || "").startsWith("whitepaper:") ? String(state.leadScenario).replace(/^whitepaper:/, "") : "";
+          const messagePlaceholder = whitepaperName ? `请填写您希望通过${whitepaperName}重点了解的内容` : projectName ? `请填写您期望的合作内容或想了解到相关方案，如：${projectName}落地范围、终端数量、交付周期` : "请填写您期望的合作内容或想了解到相关方案";
+          const leadSubtitle = whitepaperName ? `请先完善联系信息，提交成功后将自动下载《${esc(whitepaperName)}》。` : `请填写表单，我们会尽快与您联系${projectName ? `，当前意向：${esc(projectName)}` : ""}`;
+          openModal(whitepaperName ? "下载白皮书" : "项目合作", `
             <div class="lx-lead-modal">
-              <p class="lx-lead-subtitle">请填写表单，我们会尽快与您联系${projectName ? `，当前意向：${esc(projectName)}` : ""}</p>
+              <p class="lx-lead-subtitle">${leadSubtitle}</p>
               <div class="lx-lead-form">
                 <label class="lx-lead-row"><span><i>*</i>姓名</span><input id="lxLeadName" autocomplete="name" placeholder="请输入姓名"></label>
                 <label class="lx-lead-row"><span><i>*</i>邮箱</span><input id="lxLeadEmail" type="email" autocomplete="email" placeholder="请输入邮箱"></label>
@@ -13145,6 +13133,10 @@ async function openEduZone() {
               if (!industry) missing.push("行业");
               if (!need) missing.push("留言");
               if (missing.length) { toast(`请填写：${missing.join("、")}`); return; }
+              const pendingWhitepaper = state.pendingWhitepaperDownload && state.pendingWhitepaperDownload.scenario === state.leadScenario
+                ? { ...state.pendingWhitepaperDownload }
+                : null;
+              state.pendingWhitepaperDownload = null;
               closeModal();
               fetch("/api/leads", {
                 method: "POST",
@@ -13158,6 +13150,10 @@ async function openEduZone() {
                 })
               }).then(() => toast("信息已提交，顾问会尽快与您联系")).catch(() => {});
               lxAppendLeadSuccessCard({ name, company, city, job, industry, budget, need });
+              if (pendingWhitepaper) {
+                lxDownloadWhitepaper(pendingWhitepaper.url, pendingWhitepaper.filename);
+                toast("留资成功，白皮书已开始下载");
+              }
             }
             const recoCompare = event.target.closest("[data-reco-compare]");
             if (recoCompare) {
@@ -13218,6 +13214,24 @@ async function openEduZone() {
             } else if (solBtn) openSolutionCenter(solBtn.dataset.solution);
             else if (event.target.closest("[data-solution-center]")) openSolutionCenter();
             if (event.target.closest("[data-xinchuang]")) openXinchuangZone();
+            const solutionWhitepaper = event.target.closest("[data-solution-whitepaper]");
+            if (solutionWhitepaper) {
+              event.preventDefault();
+              openSolutionWhitepaperModal(solutionWhitepaper);
+              return;
+            }
+            const solutionPdfDownload = event.target.closest("[data-solution-pdf-download]");
+            if (solutionPdfDownload) {
+              event.preventDefault();
+              const url = solutionPdfDownload.dataset.pdfUrl || "/assets/docs/solution-industry-whitepaper-demo.pdf";
+              const filename = solutionPdfDownload.dataset.pdfName || "解决方案白皮书.pdf";
+              const paperName = filename.replace(/\.pdf$/i, "");
+              const scenario = `whitepaper:${paperName}`;
+              state.pendingWhitepaperDownload = { url, filename, scenario };
+              closeModal();
+              window.setTimeout(() => openLeadPanel(scenario), 80);
+              return;
+            }
             if (event.target.closest("[data-whitepaper]")) openWhitepaperLib();
             const wpDownload = event.target.closest("[data-wp-download]")?.dataset.wpDownload;
             if (wpDownload) { state.leadScenario = "whitepaper:" + wpDownload; openLeadPanel("whitepaper:" + wpDownload); }
