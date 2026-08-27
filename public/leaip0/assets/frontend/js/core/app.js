@@ -3153,12 +3153,12 @@ function openOrderDetail(orderId) {
 
         function lxStoreComponentShell() {
           return `<style>
-            .content[data-view="info"]:has(.lx-store-component-host){display:flex!important;flex-direction:column!important;overflow:hidden!important;padding-bottom:0!important}
-            .content[data-view="info"]:has(.lx-store-component-host)>.lx-tabbar{flex:0 0 auto!important}
-            .content[data-view="info"] .info-page:has(.lx-store-component-host){display:block!important;flex:1 1 auto!important;width:100%!important;height:auto!important;min-height:0!important;max-width:none!important;padding:0!important;margin:0!important;overflow:hidden!important}
+            html body.lx-home-split main.shell section.content[data-view="info"]:has(.lx-store-component-host){display:flex!important;flex-direction:column!important;overflow:hidden!important;padding-bottom:0!important}
+            html body.lx-home-split main.shell section.content[data-view="info"]:has(.lx-store-component-host)>.lx-tabbar{flex:0 0 auto!important}
+            .content[data-view="info"] .info-page:has(.lx-store-component-host){display:flex!important;grid-row:2!important;flex:1 1 0%!important;flex-direction:column!important;width:100%!important;height:0!important;min-height:0!important;max-width:none!important;max-height:none!important;padding:0!important;margin:0!important;overflow:hidden!important}
             .content[data-view="info"] .info-page.lx-store-detail-active>.reco-head{display:none!important}
             .content[data-view="info"] .info-page:has(.lx-store-component-host)::before,.content[data-view="info"] .info-page:has(.lx-store-component-host)::after{display:none!important;content:none!important}
-            .lx-store-component-host{display:block;width:100%;height:100%;min-height:0;overflow:hidden;background:#fff}
+            .lx-store-component-host{display:block;flex:1 1 0%;width:100%;height:auto;min-height:0;overflow:hidden;background:#fff}
             .lx-store-component-loading{display:flex;align-items:center;justify-content:center;min-height:260px;color:#746d76;font-size:14px}
           </style><div class="lx-store-component-host"><div class="lx-store-component-loading" role="status">正在加载门店服务</div></div>`;
         }
