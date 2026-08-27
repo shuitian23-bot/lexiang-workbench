@@ -3222,7 +3222,7 @@ function openOrderDetail(orderId) {
             ? `当前推荐 <strong>${esc(initialRecommended.name || initialRecommended.sku)}</strong>，综合配置更均衡。建议结合实际用途与商品详情确认。`
             : "建议结合实际用途与商品详情确认。";
           pageBox.innerHTML = `
-            <div class="lx-pc-head"><h2>商品参数对比</h2><p>差异项已高亮，可直接加购或下单</p></div>
+            <div class="lx-pc-head"><h2>商品参数对比</h2></div>
             <section class="lx-pc-ai-suggest" aria-label="乐享建议"><span class="lx-pc-ai-avatar">${window.__lxApprovedIcon("global-sparkle")}</span><div><h4>乐享建议</h4><p class="lx-cmp-advice" aria-live="polite">${initialAdvice}</p></div></section>
             ${body}`;
           // AI建议：异步 fetch，不阻塞渲染
@@ -8223,9 +8223,7 @@ async function openEduZone() {
             ? "多擎云桌面解决方案-原创科技头图.png"
             : image;
           const heroImage = `../img/solution/${esc(heroImageFile)}`;
-          const architectureImage = title === "多擎云桌面解决方案"
-            ? "../img/solution/多擎云桌面解决方案-智慧校园架构图.webp"
-            : heroImage;
+          const architectureImage = "../img/solution/多擎云桌面解决方案-智慧校园架构图.webp";
           const advantagesText = advantages.join("；");
           const productCards = products.map((item, index) => {
             const officialVisual = title === "多擎云桌面解决方案" ? official1456ProductVisuals[index % official1456ProductVisuals.length] : null;
@@ -8741,6 +8739,7 @@ async function openEduZone() {
           overlay.setAttribute("aria-live", "polite");
           overlay.innerHTML = `<div class="lx-page-gen-card lx-page-gen-card--aurora"><div class="lx-page-gen-aurora-field" aria-hidden="true"><i class="lx-page-gen-aurora-wave lx-page-gen-aurora-wave--a"></i><i class="lx-page-gen-aurora-wave lx-page-gen-aurora-wave--b"></i><i class="lx-page-gen-aurora-wave lx-page-gen-aurora-wave--c"></i><i class="lx-page-gen-aurora-wave lx-page-gen-aurora-wave--d"></i><span class="lx-page-gen-aurora-lens"></span></div><div class="lx-page-gen-head"><div class="lx-page-gen-copy"><strong>${esc(copy.title)}</strong><em>${esc(copy.desc)}</em></div></div></div>`;
           content.appendChild(overlay);
+          content.scrollTop = 0;
           content.classList.add("is-generating-tab");
           const minVisibleMs = 2000 + Math.floor(Math.random() * 2001);
           const token = { overlay, startedAt: Date.now(), minVisibleMs, tab, done: false };
@@ -10025,7 +10024,7 @@ async function openEduZone() {
                     <button class="lx-reco-poc-selector${active ? " active" : ""}" type="button" data-reco-select="${esc(sku)}" aria-label="${active ? "取消选择" : "选择商品"}" aria-pressed="${active ? "true" : "false"}"></button>
                     <div class="reco-row-actions lx-reco-poc-actions">
                       <span class="reco-row-price">¥${Number(p.price || 0).toLocaleString()}</span>
-                      <button class="lx-reco-poc-buy" type="button" data-open-product="${esc(sku)}"><span>立即购买</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path><path d="M13 5l7 7-7 7"></path></svg></button>
+                      <button class="lx-reco-poc-buy" type="button" data-reco-buy="${esc(sku)}"><span>立即购买</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path><path d="M13 5l7 7-7 7"></path></svg></button>
                     </div>
                   </div>
                 </article>`;
@@ -12236,6 +12235,31 @@ async function openEduZone() {
               return;
             }
 
+            const recoBuy = event.target.closest("[data-reco-buy]");
+            if (recoBuy) {
+              event.preventDefault();
+              event.stopPropagation();
+              const sku = String(recoBuy.dataset.recoBuy || "");
+              if (!sku) return;
+              const product = (state.officialProducts || {})[sku] ||
+                [...(state.products || []), ...(state.siteProducts || []), ...(state.floorProducts || [])]
+                  .find((item) => item && String(item.sku || "") === sku) ||
+                lxCardToProduct(recoBuy.closest(".lx-reco-poc-row"), sku);
+              buyNow(product);
+              return;
+            }
+
+            const recoRowOpen = event.target.closest(".lx-reco-poc-row[data-open-product]");
+            if (recoRowOpen && !event.target.closest(".lx-reco-poc-buy")) {
+              event.preventDefault();
+              event.stopPropagation();
+              const sku = String(recoRowOpen.dataset.openProduct || "");
+              if (!sku) return;
+              const product = (state.officialProducts || {})[sku] || sku;
+              openProduct(product);
+              return;
+            }
+
             const cmpLocal = event.target.closest("[data-cmp-local]");
             if (cmpLocal) {
               const selectedSkus = cmpLocal.dataset.cmpLocal.split(",").filter(Boolean);
@@ -13235,7 +13259,7 @@ async function openEduZone() {
             else if (floorAction === "member") openMemberCenter();
             else if (floorAction === "coupon") openCouponCenter();
             else if (floorAction === "orders") lxOpenCommerceEntry("orders");
-            else if (floorAction === "lead") { sendChat("企业留资"); return; }
+            else if (floorAction === "lead") { openLeadPanel(""); return; }
             if (event.target.closest("[data-human-on]")) lxSetHumanMode(true);
             if (event.target.closest("[data-human-off]")) lxSetHumanMode(false);
             if (event.target.closest("[data-cs-upload]")) { openUploadControls(); $("#lxP1ImageInput")?.click(); }
@@ -14185,3 +14209,5 @@ async function openEduZone() {
   });
   [80, 300, 900].forEach(function(delay){ window.setTimeout(sync, delay); });
 })();
+;(()=>{if(window.__lxEducationCompareFourMetrics)return;window.__lxEducationCompareFourMetrics=true;const target=["多擎云桌面解决方案","智慧教室解决方案","职教智慧校园解决方案"].sort();const apply=()=>{document.querySelectorAll(".lx-solution-compare-page .tbl").forEach(tbl=>{const names=Array.from(tbl.querySelectorAll(".cell.bodycell.phead strong")).map(el=>(el.textContent||"").trim()).sort();if(names.length!==3||target.some((name,index)=>names[index]!==name))return;const axis=tbl.querySelector(".lx-cmp-axis span");if(axis&&axis.textContent!=="4 个核心指标")axis.textContent="4 个核心指标";["推荐产品","客户案例"].forEach(label=>{const rowLabel=Array.from(tbl.querySelectorAll(":scope > .cell.rowlabel")).find(el=>(el.textContent||"").trim()===label);if(!rowLabel)return;const cells=[rowLabel];let next=rowLabel.nextElementSibling;for(let index=0;index<names.length&&next;index+=1){cells.push(next);next=next.nextElementSibling;}cells.forEach(el=>el.remove());});});};apply();new MutationObserver(apply).observe(document.documentElement,{childList:true,subtree:true});})();
+;(()=>{if(document.getElementById("lx-generation-scroll-lock-style"))return;const style=document.createElement("style");style.id="lx-generation-scroll-lock-style";style.textContent=".content.is-generating-tab{overflow:hidden!important;overscroll-behavior:contain!important;touch-action:none!important}.content.is-generating-tab .lx-page-generating{min-height:100%!important;pointer-events:auto!important}.content.is-generating-tab .lx-page-generating.is-show{pointer-events:auto!important}";document.head.appendChild(style)})();

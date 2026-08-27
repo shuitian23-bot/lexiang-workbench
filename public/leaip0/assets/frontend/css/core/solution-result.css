@@ -172,6 +172,7 @@ body.assistant-right .lx-cmp-floating-cta{right:calc(var(--assistant-panel-width
 
 /* 商品 1:N 对比：严格复用 product-comparison-1toN.html 的结构、尺寸与状态。 */
 .compare-page:has(.lx-product-compare){width:100%;max-width:none;padding:18px 0 24px!important;color:#252525;font-family:"Source Han Sans CN","PingFang SC","Microsoft YaHei",system-ui,sans-serif}
+.compare-page:has(.lx-product-compare) .lx-pc-head{margin-bottom:18px}
 .compare-page:has(.lx-product-compare) .lx-pc-head h2{margin:0;padding:0 0 0 10px!important;color:#252525;font-size:22px!important;line-height:32px!important;font-weight:500!important;letter-spacing:0}
 .compare-page:has(.lx-product-compare) .lx-pc-head p{margin:13px 0 18px;color:#979797;font-size:14px;line-height:1.4;font-weight:500}
 .lx-pc-ai-suggest{height:81px;margin:0 0 14px;border:1px solid #e2ddeb;border-radius:14px;background:linear-gradient(96deg,#fcf2f8 22.83%,#e3eafd 98.41%);display:flex;align-items:center;padding:0 20px;gap:15px}
