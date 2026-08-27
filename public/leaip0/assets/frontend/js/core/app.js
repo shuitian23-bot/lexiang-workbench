@@ -9453,6 +9453,7 @@ async function openEduZone() {
           lxProductDrag.ghost?.remove();
           lxProductDrag.card?.classList.remove("grabbing");
           lxProductDrag.panel?.classList.remove("dragging", "armed");
+          lxProductDrag.composer?.classList.remove("lx-drag-awaiting", "lx-drag-ready");
           document.removeEventListener("pointermove", lxOnProductPointerMove, true);
           document.removeEventListener("pointerup", lxOnProductPointerUp, true);
           document.removeEventListener("pointercancel", lxCancelProductPointerDrag, true);
@@ -9474,17 +9475,18 @@ async function openEduZone() {
           if (!lxProductDrag) return;
           lxProductDrag.ghost.style.left = (event.clientX - lxProductDrag.offX) + "px";
           lxProductDrag.ghost.style.top = (event.clientY - lxProductDrag.offY) + "px";
-          lxProductDrag.panel.classList.toggle("armed", lxPointInside(lxProductDrag.panel, event.clientX, event.clientY));
+          const ready = lxPointInside(lxProductDrag.composer, event.clientX, event.clientY);
+          lxProductDrag.composer.classList.toggle("lx-drag-ready", ready);
         }
         function lxOnProductPointerUp(event) {
           if (!lxProductDrag) return;
-          const over = lxPointInside(lxProductDrag.panel, event.clientX, event.clientY);
+          const over = lxPointInside(lxProductDrag.composer, event.clientX, event.clientY);
           const data = lxProductDrag.d;
-          const panel = lxProductDrag.panel;
+          const composer = lxProductDrag.composer;
           lxSuppressProductClick = true;
           setTimeout(() => { lxSuppressProductClick = false; }, 0);
           lxCancelProductPointerDrag();
-          panel?.classList.remove("armed");
+          composer?.classList.remove("lx-drag-awaiting", "lx-drag-ready");
           if (over) {
             lxDockProductRef(data);
           }
@@ -9493,6 +9495,7 @@ async function openEduZone() {
           const panel = document.querySelector(".assistant-panel");
           const composer = document.querySelector(".composer");
           if (!panel || !composer || !card || (event.button !== 0 && event.buttons !== 1)) return;
+          if (card.querySelector(":scope > .lx-pick-btn.picked")) return;
           const d = lxCardDragData(card);
           if (!d?.name) return;
           event.preventDefault();
@@ -9506,8 +9509,8 @@ async function openEduZone() {
           document.body.appendChild(ghost);
           lxEnsureGlowLayer(panel);
           card.classList.add("grabbing");
-          panel.classList.add("dragging");
-          lxProductDrag = { ghost, offX: origin.clientX - rect.left, offY: origin.clientY - rect.top, card, d, panel };
+          composer.classList.add("lx-drag-awaiting");
+          lxProductDrag = { ghost, offX: origin.clientX - rect.left, offY: origin.clientY - rect.top, card, d, panel, composer };
           document.addEventListener("pointermove", lxOnProductPointerMove, true);
           document.addEventListener("pointerup", lxOnProductPointerUp, true);
           document.addEventListener("pointercancel", lxCancelProductPointerDrag, true);
@@ -11792,17 +11795,37 @@ async function openEduZone() {
             if (lxProductDrag) { event.preventDefault(); return; }
             const card = event.target.closest?.(LX_PICK_CARD_SEL);
             const sku = lxCardSku(card);
-            if (sku) { event.dataTransfer.setData("text/plain", "lxsku:" + sku); event.dataTransfer.effectAllowed = "copy"; }
+            if (sku) {
+              event.dataTransfer.setData("text/plain", "lxsku:" + sku);
+              event.dataTransfer.effectAllowed = "copy";
+              document.querySelector(".assistant-panel .composer")?.classList.add("lx-drag-awaiting");
+            }
           });
           const panel = document.querySelector(".assistant-panel");
-          panel?.addEventListener("dragover", (event) => { event.preventDefault(); event.dataTransfer.dropEffect = "copy"; panel.classList.add("lx-drop-hint"); });
-          panel?.addEventListener("dragleave", () => panel.classList.remove("lx-drop-hint"));
-          panel?.addEventListener("drop", (event) => {
+          const dropComposer = panel?.querySelector(".composer");
+          dropComposer?.addEventListener("dragenter", (event) => {
             event.preventDefault();
-            panel.classList.remove("lx-drop-hint");
-            const data = event.dataTransfer.getData("text/plain") || "";
-            if (data.startsWith("lxsku:")) lxSetProductRef(data.slice(6));
+            dropComposer.classList.add("lx-drag-awaiting", "lx-drag-ready");
           });
+          dropComposer?.addEventListener("dragover", (event) => {
+            event.preventDefault();
+            event.dataTransfer.dropEffect = "copy";
+            dropComposer.classList.add("lx-drag-awaiting", "lx-drag-ready");
+          });
+          dropComposer?.addEventListener("dragleave", (event) => {
+            if (!dropComposer.contains(event.relatedTarget)) dropComposer.classList.remove("lx-drag-ready");
+          });
+          dropComposer?.addEventListener("drop", (event) => {
+            event.preventDefault();
+            dropComposer.classList.remove("lx-drag-awaiting", "lx-drag-ready");
+            const data = event.dataTransfer.getData("text/plain") || "";
+            if (data.startsWith("lxsku:")) {
+              const sku = data.slice(6);
+              const pick = Array.from(document.querySelectorAll(".lx-pick-btn[data-pick-sku]")).find((button) => button.dataset.pickSku === sku);
+              lxSetProductRef(sku, pick?.closest(LX_PICK_CARD_SEL));
+            }
+          });
+          document.addEventListener("dragend", () => dropComposer?.classList.remove("lx-drag-awaiting", "lx-drag-ready"));
 
           document.addEventListener("input", (event) => {
             const ta = event.target.closest?.(".composer textarea, .hero-composer textarea, .lxfd-composer textarea");
