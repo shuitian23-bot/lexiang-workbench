@@ -3138,7 +3138,7 @@ function openOrderDetail(orderId) {
             }
             const script = document.createElement("script");
             script.id = "lx-store-component-runtime";
-            script.src = "/assets/pages/store-v5-embed.js?v=20260825-store-appointment-flow-v7";
+            script.src = "/assets/pages/store-v5-embed.js?v=20260827-store-multicity-appointment-v8";
             script.async = true;
             script.onload = () => window.LXStoreService?.mount ? resolve(window.LXStoreService) : reject(new Error("门店组件未注册"));
             script.onerror = () => reject(new Error("门店组件加载失败"));
@@ -3738,11 +3738,11 @@ function openOrderDetail(orderId) {
           </button>`;
         }
 
-        function renderStoreAppointmentSuccessCta(storeId) {
+        function renderStoreAppointmentSuccessCta(storeId, title = "预约成功 · 编号 0001", desc = "查看门店、到店时间与预约目的") {
           return `<button class="answer-cta lx-store-appointment-cta lx-edu-auth-reco" type="button" data-lx-recommended-modal="store-appointment-success" data-lx-recommended-modal-payload="${esc(storeId || "")}" data-lx-result-id="modal:store-appointment-success:${esc(storeId || "")}" aria-label="打开预约成功详情">
             <span class="answer-cta-copy">
-              <span class="answer-cta-title">预约成功 · 编号 0001</span>
-              <span class="answer-cta-desc">查看门店、到店时间与预约目的</span>
+              <span class="answer-cta-title">${esc(title)}</span>
+              <span class="answer-cta-desc">${esc(desc)}</span>
             </span>
             <span class="answer-cta-icon" aria-hidden="true">
               ${window.__lxApprovedIcon("global-next")}
@@ -4348,13 +4348,15 @@ function openOrderDetail(orderId) {
 
         function lxIsNearbyStoreQuery(text) {
           const value = String(text || "").trim();
-          return value.length <= 24 && !/预约|库存|营业|电话|服务权益|导航/.test(value) && /附近门店|联想门店|门店查询|查.{0,4}门店|找.{0,4}门店|推荐.{0,4}门店|^(门店|实体店|体验店|专卖店)$/.test(value);
+          return value.length <= 60 && !/预约|库存|营业|电话|服务权益|导航/.test(value) && /附近.{0,6}门店|附近门店|联想门店|门店查询|查.{0,8}门店|找.{0,8}门店|推荐.{0,8}门店|东方明珠.{0,8}门店|^(门店|实体店|体验店|专卖店)$/.test(value);
         }
 
-        async function lxRunUnifiedStoreAnswer() {
+        async function lxRunUnifiedStoreAnswer(queryText = "附近的门店") {
           state.sending = true;
           clearHoverPromptTimer();
           hideHoverPrompts();
+          const storeQuery = String(queryText || "附近的门店").trim() || "附近的门店";
+          const isShanghaiQuery = /上海|东方明珠/.test(storeQuery);
           const lines = ["联想乐享正在判断你的门店需求"];
           const skills = new Set();
           const ai = addMessage("ai loading", "", renderSkillTrace(lines, { collapsed: false, foldable: false, skillCount: 0 }));
@@ -4363,7 +4365,7 @@ function openOrderDetail(orderId) {
           const wait = (ms) => new Promise((resolve) => window.setTimeout(resolve, ms));
           try {
             await wait(420);
-            lines.push("已判断：需要查询当前位置附近的联想授权门店");
+            lines.push(isShanghaiQuery ? "已判断：需要查询上海东方明珠附近的联想授权门店" : "已判断：需要查询当前位置附近的联想授权门店");
             paint();
             await wait(520);
             skills.add("Skill(附近门店查询)");
@@ -4372,7 +4374,8 @@ function openOrderDetail(orderId) {
             await wait(760);
             lines[lines.length - 1] = "联想乐享官方 SKILL：Skill(附近门店查询) 已完成";
             paint();
-            const copy = "我已结合**当前位置**为你整理附近的**联想授权门店**，优先推荐距离较近、营业时间明确且支持产品体验、库存咨询和到店服务的门店。你可以先查看下方推荐，再到右侧比较**地址、营业状态与联系方式**，并按需发起**导航或预约**。";
+            const locationCopy = isShanghaiQuery ? "上海东方明珠附近" : "当前位置附近";
+            const copy = `我已为你整理**${locationCopy}**的**联想授权门店**，优先推荐距离较近、营业时间明确且支持产品体验、库存咨询和到店服务的门店。你可以先查看下方结果，再到右侧比较**地址、营业状态与联系方式**，并按需发起**导航或预约**。`;
             const cards = renderPageCta({
               title: "查看附近门店",
               desc: "已为你整理附近授权门店、距离与营业状态",
@@ -4384,6 +4387,7 @@ function openOrderDetail(orderId) {
             await wait(680);
             lxRevealContent();
             await openStoresPanel();
+            lxInvokeStoreComponent("queryStore", storeQuery);
             lxSyncAnswerCtaActiveState("info:stores");
           } finally {
             state.sending = false;
@@ -5216,7 +5220,7 @@ function openOrderDetail(orderId) {
             return;
           }
           if (lxIsNearbyStoreQuery(text)) {
-            await lxRunUnifiedStoreAnswer();
+            await lxRunUnifiedStoreAnswer(text);
             return;
           }
           if (lxIsServiceIntakeQuery(text)) {
@@ -9387,7 +9391,7 @@ async function openEduZone() {
         }
 
         function lxEnsurePickBtn(card) {
-          if (!card || card.classList.contains("lx-reco-poc-row") || card.querySelector(":scope > .lx-pick-btn")) return;
+          if (!card || card.querySelector(":scope > .lx-pick-btn")) return;
           const sku = lxCardSku(card);
           if (!sku) return;
           if (getComputedStyle(card).position === "static") card.style.position = "relative";
@@ -9924,7 +9928,6 @@ async function openEduZone() {
             : [];
           const isServiceReco = products.length > 0 && products.every((p) => String(p?.sku || "").startsWith("SERVICE-"));
           pageBox.classList.toggle("lx-service-reco-page", isServiceReco);
-          pageBox.classList.remove("lx-reco-poc-page");
           const disclaimer = `<p class="lx-p0-disclaimer">${isServiceReco ? "推荐由联想乐享基于当前设备与地区条件生成；价格、适用性、库存与履约范围以服务商品详情页和结算页为准。" : "推荐由联想乐享基于你的需求生成，价格与配置以详情页为准。"}</p>`;
           // 官方商品存入缓存，供 data-open-product 点击时取对象（避免 sku fetch 404）
           state.officialProducts = state.officialProducts || {};
@@ -9956,54 +9959,6 @@ async function openEduZone() {
           const intro = `<div class="reco-head"><h2${isServiceReco ? ' style="font-weight:500!important"' : ""}>${esc(tab.label || "AI 推荐")}</h2><span>${isServiceReco ? `已按设备与地区匹配 ${products.length} 款服务商品` : `根据你的需求挑出 ${products.length} 款，可继续追问缩小范围`}</span></div>`;
           if (products.length <= 6) {
             const cmpN = Math.min(products.length, 8);
-            if (!isServiceReco) {
-              const validSkus = new Set(products.map((product) => String(product?.sku || "")).filter(Boolean));
-              let selected = Array.isArray(state.recoCompareSelection)
-                ? state.recoCompareSelection.map(String).filter((sku) => validSkus.has(sku))
-                : [];
-              if (!selected.length && products[0]?.sku) selected = [String(products[0].sku)];
-              state.recoCompareSelection = selected;
-              const selectedSet = new Set(selected);
-              const brandLabel = (name) => {
-                const value = String(name || "");
-                if (value.includes("拯救者")) return "拯救者";
-                if (value.includes("天逸")) return "天逸";
-                if (value.includes("小新")) return "小新";
-                return "联想";
-              };
-              const rows = products.map((p, index) => {
-                const sku = String(p.sku || "");
-                const active = selectedSet.has(sku);
-                const image = p.official ? p.image_url : imgUrl(p.image_url);
-                return `<article class="reco-row lx-reco-poc-row${active ? " selected" : ""}" data-open-product="${esc(sku)}">
-                  <span class="lx-reco-poc-label">${esc(brandLabel(p.name))}</span>
-                  <div class="lx-reco-poc-rank"><span>${index + 1}</span></div>
-                  <div class="lx-reco-poc-thumb"><img src="${esc(image)}" alt="${esc(p.name)}" loading="lazy"></div>
-                  <div class="reco-row-main lx-reco-poc-copy">
-                    <strong>${esc(p.name)}</strong>
-                    <span class="reco-row-desc">${esc(p.description || p.category || "")}</span>
-                  </div>
-                  <div class="reco-row-side lx-reco-poc-side">
-                    <button class="lx-reco-poc-selector${active ? " active" : ""}" type="button" data-reco-select="${esc(sku)}" aria-label="${active ? "取消选择" : "选择商品"}" aria-pressed="${active ? "true" : "false"}"></button>
-                    <div class="reco-row-actions lx-reco-poc-actions">
-                      <span class="reco-row-price">¥${Number(p.price || 0).toLocaleString()}</span>
-                      <button class="lx-reco-poc-buy" type="button" data-open-product="${esc(sku)}"><span>立即购买</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path><path d="M13 5l7 7-7 7"></path></svg></button>
-                    </div>
-                  </div>
-                </article>`;
-              }).join("");
-              const selectedCsv = selected.join(",");
-              const bottomBar = `<div class="lx-reco-poc-bottom" data-reco-bottom>
-                <p>价格与配置以详情页为准。推荐由联想乐享基于你的需求生成。</p>
-                <div class="lx-reco-poc-compare-main">
-                  <span class="lx-reco-poc-tip"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-6.8-4.3-9.1-8C1.4 9.5 2.1 6 5.8 5c2-.5 3.8.3 4.9 1.8C11.8 5.3 13.6 4.5 15.6 5c3.7 1 4.4 4.5 2.9 7-2.3 3.7-9.1 8-9.1 8Z"></path></svg><span data-reco-selected-text>${selected.length ? `已选择 ${selected.length} 款，点击进行对比` : "请选择对比"}</span></span>
-                  <button class="lx-reco-poc-compare" type="button" data-cmp-local="${esc(selectedCsv)}">对比这 ${cmpN} 款<span data-reco-selected-count>${selected.length}</span></button>
-                </div>
-              </div>`;
-              pageBox.classList.add("lx-reco-poc-page");
-              pageBox.innerHTML = intro + `<div class="lx-reco-poc-list">${rows}</div>` + bottomBar;
-              return;
-            }
             const compareAll = !isServiceReco && products.length >= 2
               ? `<div class="lx-p0-actions" style="margin-top:12px"><button class="lx-p0-btn" type="button" data-cmp-local="${esc(products.slice(0, cmpN).map((p) => p.sku).join(","))}">对比这 ${cmpN} 款</button></div>`
               : "";
@@ -10980,21 +10935,7 @@ async function openEduZone() {
         }
 
         async function openStoresPanel(address = "北京海淀") {
-          // 门店入口可能来自频道页普通对话、全屏生成态或导回后的结果卡。
-          // 在入口处统一恢复真实频道的左右分屏，避免门店 Tab 已创建但仍被
-          // 全屏层遮住；三类频道共用这一条路径，不能依赖某个 CTA 单独复位。
-          const restoredChannelSplit = lxEnsureChannelResultSplit();
-          lxRevealContent();
           lxOpenStoreComponentTab();
-          if (restoredChannelSplit) {
-            [0, 120, 420, 900].forEach((delay) => {
-              window.setTimeout(() => {
-                if (state.activeTabId !== "info:stores") return;
-                lxEnsureChannelResultSplit();
-                lxRevealContent();
-              }, delay);
-            });
-          }
         }
 
         function lxStoreExactFrame() {
@@ -11018,8 +10959,16 @@ async function openEduZone() {
               lxAppendStoreAppointmentSuccess(detail);
               return;
             }
-            if (detail.type === "lx-store-navigation-start") {
-              lxAppendStoreNavigationResult(detail.store);
+            if (detail.type === "lx-store-appointment-updated") {
+              lxAppendStoreAppointmentUpdated(detail);
+              return;
+            }
+            if (detail.type === "lx-store-appointment-cancelled") {
+              lxAppendStoreAppointmentCancelled(detail);
+              return;
+            }
+            if (detail.type === "lx-store-navigation-result") {
+              lxAppendStoreNavigationResult(detail);
             }
           };
           window.__lxHandleStoreBridge = handleBridge;
@@ -11031,8 +10980,21 @@ async function openEduZone() {
           document.addEventListener("lx-store-appointment-success", (event) => {
             handleBridge(event.detail);
           });
-          document.addEventListener("lx-store-navigation-start", (event) => {
+          document.addEventListener("lx-store-appointment-updated", (event) => {
             handleBridge(event.detail);
+          });
+          document.addEventListener("lx-store-appointment-cancelled", (event) => {
+            handleBridge(event.detail);
+          });
+          document.addEventListener("lx-store-navigation-result", (event) => {
+            handleBridge(event.detail);
+          });
+          document.addEventListener("click", (event) => {
+            const routeCard = event.target.closest?.("[data-lx-store-baidu-url]");
+            if (!routeCard) return;
+            const url = routeCard.getAttribute("data-lx-store-baidu-url") || "";
+            if (!/^https:\/\/api\.map\.baidu\.com\/direction\?/.test(url)) return;
+            window.open(url, "_blank", "noopener,noreferrer");
           });
         }
         lxInstallStoreBridge();
@@ -11057,7 +11019,7 @@ async function openEduZone() {
           }
           if (attempt === 0) lxOpenStoreComponentTab();
           if (attempt < 30) window.setTimeout(() => lxInvokeStoreComponent(method, storeId, attempt + 1), 80);
-          else toast("门店预约暂时无法加载，请稍后重试");
+          else toast("门店服务暂时无法加载，请稍后重试");
           return false;
         }
 
@@ -11076,11 +11038,49 @@ async function openEduZone() {
           try { window.__lxSaveConversationNow(); } catch (_e) {}
         }
 
-        function lxAppendStoreNavigationResult(store = {}) {
-          addMessage("user", `导航去${store.name || "所选联想门店"}`);
-          const copy = `已在右侧百度地图内规划从“我的位置”前往 **${store.name || "所选联想门店"}** 的驾车路线，可直接在当前地图缩放和拖动查看。`;
+        function lxAppendStoreAppointmentUpdated(detail = {}) {
+          const store = detail.store || window.__lxLatestStoreAppointment?.store || {};
+          const appointment = detail.appointment || {};
+          window.__lxLatestStoreAppointment = { store, appointment, status: "updated" };
+          addMessage("user", `保存${store.name || "所选联想门店"}的预约修改`);
+          const dateTime = [appointment.date, appointment.time].filter(Boolean).join(" ") || "预约时间";
+          const number = appointment.number || "0001";
+          const copy = `预约信息已更新：**${dateTime}** 前往 **${store.name || "所选联想门店"}**，预约编号仍为 **${number}**。`;
+          const trace = renderSkillTrace(["联想乐享官方 SKILL：Skill(门店预约服务) 已完成"], { collapsed: true, foldable: true, skillCount: 1 });
+          const ai = addMessage("ai", "", trace + mdLite(copy) + renderStoreAppointmentSuccessCta(store.id, `预约已更新 · 编号 ${number}`, "查看修改后的门店、到店时间与预约目的"));
+          ai._raw = copy;
+          ensureChat().scrollTop = ensureChat().scrollHeight;
+          try { window.__lxSaveConversationNow(); } catch (_e) {}
+        }
+
+        function lxAppendStoreAppointmentCancelled(detail = {}) {
+          const store = detail.store || window.__lxLatestStoreAppointment?.store || {};
+          const appointment = detail.appointment || {};
+          const number = appointment.number || "0001";
+          window.__lxLatestStoreAppointment = { store, appointment, status: "cancelled" };
+          addMessage("user", `取消${store.name || "所选联想门店"}的预约`);
+          const copy = `已取消前往 **${store.name || "所选联想门店"}** 的到店预约，原预约编号为 **${number}**。`;
+          const trace = renderSkillTrace(["联想乐享官方 SKILL：Skill(门店预约服务) 已完成"], { collapsed: true, foldable: true, skillCount: 1 });
+          const card = renderPageCta({ title: `预约已取消 · 编号 ${number}`, desc: "返回门店页面，可重新选择门店和预约时间", attr: 'data-lx-open-tab="info:stores" data-lxfd-open-feature="stores"' });
+          const ai = addMessage("ai", "", trace + mdLite(copy) + card);
+          ai._raw = copy;
+          ensureChat().scrollTop = ensureChat().scrollHeight;
+          try { window.__lxSaveConversationNow(); } catch (_e) {}
+        }
+
+        function lxAppendStoreNavigationResult(detail = {}) {
+          const store = detail.store || {};
+          const result = detail.result || {};
+          const url = String(detail.url || "");
+          addMessage("user", `驾车导航去${store.name || "所选联想门店"}`);
+          const copy = result.ok
+            ? `百度地图已在右侧规划从当前位置前往 **${store.name || "所选联想门店"}** 的驾车路线：预计 **${result.duration || "以实时路况为准"}** 到达${result.arrival ? `（约 **${result.arrival}**）` : ""}，全程 **${result.distance || "以地图结果为准"}**。`
+            : `右侧已定位到 **${store.name || "所选联想门店"}**，但当前页面暂未返回驾车路线。你仍可打开百度地图重新规划完整路线。`;
           const trace = renderSkillTrace(["联想乐享官方 SKILL：Skill(门店导航服务) 已完成"], { collapsed: true, foldable: true, skillCount: 1 });
-          const ai = addMessage("ai", "", trace + mdLite(copy) + renderPageCta({ title: "地图内驾车路线已生成", desc: "在右侧地图查看路线与预计用时", attr: 'data-lx-open-tab="info:stores"' }));
+          const cardTitle = result.ok ? "去百度地图查看完整路线" : "去百度地图规划路线";
+          const cardDesc = result.ok ? `预计${result.duration || "实时计算"} · ${result.distance || "查看路线"}，点击打开` : "已带入目标门店位置，点击打开";
+          const routeCard = renderPageCta({ title: cardTitle, desc: cardDesc, attr: `data-lx-store-baidu-url="${esc(url)}" data-lx-result-id="external:baidu-route"` });
+          const ai = addMessage("ai", "", trace + mdLite(copy) + routeCard);
           ai._raw = copy;
           ensureChat().scrollTop = ensureChat().scrollHeight;
           try { window.__lxSaveConversationNow(); } catch (_e) {}
@@ -12046,43 +12046,10 @@ async function openEduZone() {
               return;
             }
 
-            const recoSelect = event.target.closest("[data-reco-select]");
-            if (recoSelect) {
-              event.preventDefault();
-              event.stopPropagation();
-              const page = recoSelect.closest(".lx-reco-poc-page");
-              const sku = String(recoSelect.dataset.recoSelect || "");
-              if (!page || !sku) return;
-              const current = new Set(Array.isArray(state.recoCompareSelection) ? state.recoCompareSelection.map(String) : []);
-              if (current.has(sku)) current.delete(sku);
-              else {
-                if (current.size >= 6) return toast("最多可选择 6 款商品");
-                current.add(sku);
-              }
-              state.recoCompareSelection = Array.from(current);
-              page.querySelectorAll("[data-reco-select]").forEach((button) => {
-                const active = current.has(String(button.dataset.recoSelect || ""));
-                button.classList.toggle("active", active);
-                button.setAttribute("aria-pressed", active ? "true" : "false");
-                button.setAttribute("aria-label", active ? "取消选择" : "选择商品");
-                button.closest(".lx-reco-poc-row")?.classList.toggle("selected", active);
-              });
-              const count = current.size;
-              const countNode = page.querySelector("[data-reco-selected-count]");
-              const textNode = page.querySelector("[data-reco-selected-text]");
-              const compareButton = page.querySelector(".lx-reco-poc-compare[data-cmp-local]");
-              if (countNode) countNode.textContent = String(count);
-              if (textNode) textNode.textContent = count ? `已选择 ${count} 款，点击进行对比` : "请选择对比";
-              if (compareButton) compareButton.dataset.cmpLocal = Array.from(current).join(",");
-              return;
-            }
-
             const cmpLocal = event.target.closest("[data-cmp-local]");
             if (cmpLocal) {
               const skus = cmpLocal.dataset.cmpLocal.split(",").filter(Boolean);
               if (skus.length >= 2) lxUpsertCompareTab(skus.map((sku) => ({ sku })), "推荐商品对比");
-              else toast("请至少选择 2 款商品进行对比");
-              return;
             }
 
             const refPick = event.target.closest("[data-ref-pick]");
