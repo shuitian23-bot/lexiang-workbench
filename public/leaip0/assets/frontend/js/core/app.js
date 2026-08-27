@@ -1492,6 +1492,7 @@ function compactProductSpec(description, category) {
         }
 
         async function openProduct(productOrSku, opts = {}) {
+          lxRemoveRecoDock();
           const detailLogicalPath = String(window.__LX_TEMPLATE_PATH || location.pathname || "/").replace(/\/+$/, "") || "/";
           const detailNeedsSplitRecovery = ["/shop-chat", "/b-chat", "/biz-chat"].includes(detailLogicalPath) &&
             (!document.body.classList.contains("lx-home-split") ||
@@ -8784,6 +8785,7 @@ async function openEduZone() {
 
         function lxRunTab(tab) {
           if (!tab) return;
+          if (tab.kind !== "reco") lxRemoveRecoDock();
           lxSyncSolutionCompareFloatingCta(tab.kind === "info" && tab.id.startsWith("info:solution-compare:"));
           const genToken = lxBeginTabGeneration(tab);
           if (tab.kind === "site") {
@@ -9912,6 +9914,28 @@ async function openEduZone() {
           return pageBox;
         }
 
+        function lxRemoveRecoDock() {
+          window.__lxRecoDockObserver?.disconnect?.();
+          window.__lxRecoDockObserver = null;
+          document.getElementById("lx-reco-poc-bottom")?.remove();
+        }
+
+        function lxMountRecoDock(markup) {
+          lxRemoveRecoDock();
+          document.body.insertAdjacentHTML("beforeend", markup);
+          const dock = document.getElementById("lx-reco-poc-bottom");
+          const content = document.querySelector(".content");
+          if (!dock || !content) return;
+          const sync = () => {
+            const rect = content.getBoundingClientRect();
+            dock.style.setProperty("--lx-reco-dock-left", `${Math.max(0, Math.round(rect.left))}px`);
+            dock.style.setProperty("--lx-reco-dock-right", `${Math.max(0, Math.round(window.innerWidth - rect.right))}px`);
+          };
+          sync();
+          window.__lxRecoDockObserver = new ResizeObserver(sync);
+          window.__lxRecoDockObserver.observe(content);
+        }
+
         // 同时清洗历史会话/本地缓存里的旧推荐数据，内部台账字段不得重新进入 DOM。
         function lxPublicProductDescription(value) {
           const raw = String(value || "").replace(/\r/g, "").trim();
@@ -9922,6 +9946,7 @@ async function openEduZone() {
         }
 
         function lxRenderRecoPage(tab) {
+          lxRemoveRecoDock();
           const pageBox = lxEnsureRecoPage();
           const products = Array.isArray(tab.products)
             ? tab.products.map((product) => ({ ...product, description: lxPublicProductDescription(product?.description) }))
@@ -9997,7 +10022,7 @@ async function openEduZone() {
                 </article>`;
               }).join("");
               const selectedCsv = selected.join(",");
-              const bottomBar = `<div class="lx-reco-poc-bottom" data-reco-bottom>
+              const bottomBar = `<div class="lx-reco-poc-bottom" id="lx-reco-poc-bottom" data-reco-bottom>
                 <p>价格与配置以详情页为准。推荐由联想乐享基于你的需求生成。</p>
                 <div class="lx-reco-poc-compare-main">
                   <span class="lx-reco-poc-tip"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-6.8-4.3-9.1-8C1.4 9.5 2.1 6 5.8 5c2-.5 3.8.3 4.9 1.8C11.8 5.3 13.6 4.5 15.6 5c3.7 1 4.4 4.5 2.9 7-2.3 3.7-9.1 8-9.1 8Z"></path></svg><span data-reco-selected-text>${selected.length ? `已选择 ${selected.length} 款，点击进行对比` : "请选择对比"}</span></span>
@@ -10005,7 +10030,8 @@ async function openEduZone() {
                 </div>
               </div>`;
               pageBox.classList.add("lx-reco-poc-page");
-              pageBox.innerHTML = intro + `<div class="lx-reco-poc-list">${rows}</div>` + bottomBar;
+              pageBox.innerHTML = intro + `<div class="lx-reco-poc-list">${rows}</div>`;
+              lxMountRecoDock(bottomBar);
               return;
             }
             const compareAll = !isServiceReco && products.length >= 2
@@ -12117,9 +12143,10 @@ async function openEduZone() {
                 button.closest(".lx-reco-poc-row")?.classList.toggle("selected", active);
               });
               const count = current.size;
-              const countNode = page.querySelector("[data-reco-selected-count]");
-              const textNode = page.querySelector("[data-reco-selected-text]");
-              const compareButton = page.querySelector(".lx-reco-poc-compare[data-cmp-local]");
+              const dock = document.getElementById("lx-reco-poc-bottom");
+              const countNode = dock?.querySelector("[data-reco-selected-count]");
+              const textNode = dock?.querySelector("[data-reco-selected-text]");
+              const compareButton = dock?.querySelector(".lx-reco-poc-compare[data-cmp-local]");
               if (countNode) countNode.textContent = String(count);
               if (textNode) textNode.textContent = count ? `已选择 ${count} 款，点击进行对比` : "请选择对比";
               if (compareButton) compareButton.dataset.cmpLocal = Array.from(current).join(",");
