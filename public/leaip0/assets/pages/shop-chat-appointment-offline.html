@@ -1,4 +1,4 @@
-<!-- Release marker: store-multicity-appointment-v8-20260827 -->
+<!-- Release marker: store-product-region-v9-20260827 -->
 <!--
   Lenovo Lexiang shop chat page template snapshot
   Source: https://leaibot.cn/shop-chat/
@@ -17378,7 +17378,9 @@ async function openEduZone() {
       .lx-store-list-meta { min-width: 0; gap: 5px; overflow: hidden; }
       .lx-store-list-meta .lx-store-type-badge { max-width: 78px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
       .lx-store-list-meta .lx-store-badge { flex: none; white-space: nowrap; }
-      .lx-map-controls { right: calc(clamp(280px, 29%, 350px) + 24px); }
+      .lx-map-controls { right: calc(clamp(280px, 29%, 350px) + 40px); }
+      .lx-store-notice { position: absolute; z-index: 30; top: 76px; left: 50%; max-width: calc(100% - 48px); padding: 10px 16px; border-radius: 10px; background: rgba(37,37,37,.92); box-shadow: 0 8px 24px rgba(37,20,40,.18); color: #fff; font-size: 12px; line-height: 1.5; opacity: 0; pointer-events: none; transform: translate(-50%, -8px); transition: opacity .18s ease, transform .18s ease; }
+      .lx-store-notice.is-visible { opacity: 1; transform: translate(-50%, 0); }
       .lx-map-card { left: calc((100% - clamp(292px, 30%, 362px)) / 2); width: min(620px, calc(100% - clamp(340px, 36%, 420px))); }
       .lx-store-page.is-single-store .lx-store-list-panel { display: none; }
       .lx-store-page.is-single-store .lx-map-controls { right: 16px; }
@@ -17394,7 +17396,7 @@ async function openEduZone() {
         .lx-store-toolbar { grid-template-columns: 88px 104px 122px minmax(132px,1fr) 60px; gap: 6px; }
         .lx-store-search-submit { width: 60px; min-width: 60px; }
         .lx-store-list-panel { width: 310px; }
-        .lx-map-controls { right: 334px; }
+        .lx-map-controls { right: 350px; }
         .lx-map-card { left: calc((100% - 322px) / 2); width: min(500px, calc(100% - 356px)); }
       }
       @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; transition: none !important; } }
@@ -17498,9 +17500,15 @@ async function openEduZone() {
           var productCatalog = [
             ["ThinkPad X1 Carbon", "笔记本"], ["小新 Pro 14", "笔记本"], ["拯救者 Y9000P", "笔记本"], ["YOGA Air 14", "笔记本"],
             ["ThinkBook 16+", "笔记本"], ["拯救者 R9000P", "笔记本"], ["ThinkPad T14p", "笔记本"], ["小新 Pro 16", "笔记本"],
-            ["联想 moto razr 60", "手机"], ["联想 moto X70 Air", "手机"], ["联想小新 Pad Pro 12.7", "平板"], ["联想拯救者平板 Y700", "平板"]
+            ["联想 moto razr 60", "手机"], ["联想 moto X70 Air", "手机"]
           ];
-          products = products.map(function (product, index) { return [product[0], productCatalog[index][0], productCatalog[index][1]]; });
+          products = products.slice(0, productCatalog.length).map(function (product, index) { return [product[0], productCatalog[index][0], productCatalog[index][1]]; });
+          products.push(
+            ["https://p0.leaibot.cn/leai%20product%20data/shop-chat%20product%20data/%E5%B9%B3%E6%9D%BF/03_SPU_%E8%81%94%E6%83%B3%E6%8B%AF%E6%95%91%E8%80%85%E5%B9%B3%E6%9D%BF_Y700_%E4%BA%94%E4%BB%A3/%E7%99%BD%E5%BA%95%E5%9B%BE.jpg", "联想拯救者平板 Y700 五代", "平板"],
+            ["https://p0.leaibot.cn/leai%20product%20data/shop-chat%20product%20data/%E5%B9%B3%E6%9D%BF/02_SPU_%E8%81%94%E6%83%B3%E6%8B%AF%E6%95%91%E8%80%85_Y900_13/%E7%99%BD%E5%BA%95%E5%9B%BE.jpg", "联想拯救者 Y900 13", "平板"],
+            ["https://p0.leaibot.cn/leai%20product%20data/shop-chat%20product%20data/%E5%B9%B3%E6%9D%BF/04_SPU_%E8%81%94%E6%83%B3%E5%B0%8F%E6%96%B0_Pad_Pro_13/%E7%99%BD%E5%BA%95%E5%9B%BE.jpg", "联想小新 Pad Pro 13", "平板"],
+            ["https://p0.leaibot.cn/leai%20product%20data/shop-chat%20product%20data/%E5%B9%B3%E6%9D%BF/01_SPU_%E8%81%94%E6%83%B3%E5%B0%8F%E6%96%B0%E5%B9%B3%E6%9D%BF_11/%E7%99%BD%E5%BA%95%E5%9B%BE.jpg", "联想小新平板 11", "平板"]
+          );
           var photos = store.photos || storePhotos;
           return '<header class="lx-store-detail-bar"><button class="lx-store-detail-back" type="button" data-back-store-map>返回地图</button><b>门店详情</b></header>' +
             '<div class="lx-store-detail-body"><section class="lx-store-detail-hero"><div class="lx-store-detail-info"><div class="lx-store-detail-title"><h1>' + store.name + '</h1><span class="lx-store-type-badge">' + store.type + '</span><span class="lx-store-badge">' + store.tag + '</span></div><p class="lx-store-detail-address">' + store.address + '</p><div class="lx-store-detail-meta"><div class="lx-store-detail-row"><b>营业时间</b><span>' + store.hours + '</span></div><div class="lx-store-detail-row"><b>联系电话</b><span>' + store.phone + '</span></div><div class="lx-store-detail-row lx-store-scope lx-store-detail-meta-full"><b>经营范围</b><div class="lx-store-scope-list">' + store.businessScope.map(function (item) { return '<span>' + item + '</span>'; }).join("") + '</div></div><div class="lx-store-detail-row lx-store-detail-business lx-store-detail-meta-full"><b>业务</b><div class="lx-store-detail-business-list">' + businessTagsMarkup(store, "") + '</div></div><div class="lx-store-detail-bottom"><div class="lx-store-detail-row lx-store-detail-distance"><b>距离</b><span>' + store.distance + '</span></div><div class="lx-store-detail-actions">' + (store.sales ? '<button type="button" data-detail-action="预约">预约到店</button>' : '') + '<button class="primary" type="button" data-detail-action="导航">导航</button></div></div></div></div><div class="lx-store-detail-gallery" data-store-carousel data-store-photos="' + photos.join("|") + '"><img class="lx-store-detail-main-photo" data-store-detail-image src="' + photos[0] + '" alt="' + store.name + '门店实景"><button class="lx-store-carousel-arrow prev" type="button" data-store-carousel-step="-1" aria-label="上一张">‹</button><button class="lx-store-carousel-arrow next" type="button" data-store-carousel-step="1" aria-label="下一张">›</button><div class="lx-store-carousel-dots">' + photos.map(function (_, index) { return '<button class="lx-store-carousel-dot' + (index === 0 ? ' is-active' : '') + '" type="button" data-store-carousel-dot="' + index + '" aria-label="查看第' + (index + 1) + '张门店图片"></button>'; }).join("") + '</div></div></section>' +
@@ -17587,6 +17595,23 @@ async function openEduZone() {
           var appointment = { storeId: "1", date: "2026-08-12", dateLabel: "周三 8.12", time: "18:00", purposeType: "产品体验", purpose: "用户想要去门店咨询商品信息" };
           var appointmentEditMode = false;
           var filterState = { query: "", category: "", type: "", province: "北京市", city: "北京市", district: "" };
+          var storeNoticeTimer = 0;
+
+          function showStoreNotice(message) {
+            var notice = page.querySelector("[data-store-notice]");
+            if (!notice) {
+              notice = document.createElement("div");
+              notice.className = "lx-store-notice";
+              notice.dataset.storeNotice = "";
+              notice.setAttribute("role", "status");
+              notice.setAttribute("aria-live", "polite");
+              page.appendChild(notice);
+            }
+            notice.textContent = message;
+            notice.classList.add("is-visible");
+            window.clearTimeout(storeNoticeTimer);
+            storeNoticeTimer = window.setTimeout(function () { notice.classList.remove("is-visible"); }, 2400);
+          }
 
           function renderStandardChannelHome(channel) {
             channelPage.innerHTML = "";
@@ -18426,6 +18451,11 @@ async function openEduZone() {
             });
           });
           page.querySelector("[data-region-query]").addEventListener("click", function () {
+            if (provinceSelect.value && !citySelect.value) {
+              showStoreNotice("门店查询需选择具体城市，请先选择城市");
+              citySelect.focus();
+              return;
+            }
             filterState.province = provinceSelect.value;
             filterState.city = citySelect.value;
             filterState.district = districtSelect.value;
