@@ -346,3 +346,11 @@ html body .lx-solution-limit-modal .lx-p0-modal-title{margin:0!important;color:#
 html body .lx-solution-limit-modal .lx-p0-close{display:grid!important;place-items:center!important;width:32px!important;height:32px!important;flex:0 0 32px!important;margin-left:18px!important;padding:0!important;border:0!important;border-radius:50%!important;background:#f3f0f7!important;color:#979797!important;font-size:22px!important;line-height:1!important;cursor:pointer!important}
 html body .lx-solution-limit-modal .lx-p0-close:hover,html body .lx-solution-limit-modal .lx-p0-close:focus-visible{background:#efe4f1!important;color:#4d144a!important;outline:2px solid rgba(162,98,215,.1)!important;outline-offset:2px!important}
 html body .lx-solution-limit-modal .lx-p0-modal-body{display:none!important}
+
+/* Split assistant composer: selected-solution query text */
+body.lx-home-split:not(.assistant-fullscreen) .assistant-panel .assistant-bottom .composer > textarea {
+  font-size: 15px !important;
+}
+body.lx-home-split:not(.assistant-fullscreen) .assistant-panel .assistant-bottom .composer > textarea::placeholder {
+  font-size: 14px !important;
+}
