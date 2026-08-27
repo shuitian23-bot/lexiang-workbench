@@ -10355,11 +10355,12 @@ async function openEduZone() {
           }).join("");
           const actionsRow = "";
           const seriesRow = `<div class="lx-pc-cell lx-pc-label lx-pc-r-normal">${labelIcon("系列")}</div>${products.map((product, i) => {
-            const spuName = String(product.spu_name || product.spuName || product.series_name || "").trim() || "—";
+            const specs = product.specs && typeof product.specs === "object" ? product.specs : normalizeProductSpecs(product.specs);
+            const spuName = String(specs.spu_name || specs.spuName || specs.series_name || product.spu_name || product.spuName || product.series_name || "").trim() || "—";
             return `<div class="lx-pc-cell lx-pc-value lx-pc-r-normal${i === recommendedIndex ? " recommended" : ""}" data-col="${i}">${esc(spuName)}</div>`;
           }).join("")}`;
           const fitCurrentWidth = false;
-          const gridColumns = `190px repeat(${products.length},380px)`;
+          const gridColumns = `170px repeat(${products.length},300px)`;
           requestAnimationFrame(() => lxSyncProductCompareNav());
           return `<div class="lx-product-compare"><section class="lx-pc-shell" aria-label="商品参数对比表"><div class="lx-pc-scroll" tabindex="0" aria-label="横向滚动查看全部商品参数"><div class="lx-pc-grid${fitCurrentWidth ? " is-fit" : " is-scroll"}" data-cols="${products.length}" style="--lx-pc-cols:${products.length};grid-template-columns:${gridColumns}"><div class="lx-pc-cell lx-pc-label lx-pc-r-product">${labelIcon("参数对比")}</div>${headCells}${seriesRow}${bodyRows}${actionsRow}</div></div></section><div class="lx-pc-scroll-nav" aria-label="切换对比商品"><button class="lx-pc-nav-btn" type="button" data-lx-pc-scroll="-1" aria-label="向左移动一个商品" disabled></button><button class="lx-pc-nav-btn" type="button" data-lx-pc-scroll="1" aria-label="向右移动一个商品"></button></div></div>`;
         }
