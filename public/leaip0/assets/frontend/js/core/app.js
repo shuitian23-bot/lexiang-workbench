@@ -9391,7 +9391,7 @@ async function openEduZone() {
         }
 
         function lxEnsurePickBtn(card) {
-          if (!card || card.querySelector(":scope > .lx-pick-btn")) return;
+          if (!card || card.classList.contains("lx-reco-poc-row") || card.querySelector(":scope > .lx-pick-btn")) return;
           const sku = lxCardSku(card);
           if (!sku) return;
           if (getComputedStyle(card).position === "static") card.style.position = "relative";
@@ -9928,6 +9928,7 @@ async function openEduZone() {
             : [];
           const isServiceReco = products.length > 0 && products.every((p) => String(p?.sku || "").startsWith("SERVICE-"));
           pageBox.classList.toggle("lx-service-reco-page", isServiceReco);
+          pageBox.classList.remove("lx-reco-poc-page");
           const disclaimer = `<p class="lx-p0-disclaimer">${isServiceReco ? "推荐由联想乐享基于当前设备与地区条件生成；价格、适用性、库存与履约范围以服务商品详情页和结算页为准。" : "推荐由联想乐享基于你的需求生成，价格与配置以详情页为准。"}</p>`;
           // 官方商品存入缓存，供 data-open-product 点击时取对象（避免 sku fetch 404）
           state.officialProducts = state.officialProducts || {};
@@ -9959,6 +9960,54 @@ async function openEduZone() {
           const intro = `<div class="reco-head"><h2${isServiceReco ? ' style="font-weight:500!important"' : ""}>${esc(tab.label || "AI 推荐")}</h2><span>${isServiceReco ? `已按设备与地区匹配 ${products.length} 款服务商品` : `根据你的需求挑出 ${products.length} 款，可继续追问缩小范围`}</span></div>`;
           if (products.length <= 6) {
             const cmpN = Math.min(products.length, 8);
+            if (!isServiceReco) {
+              const validSkus = new Set(products.map((product) => String(product?.sku || "")).filter(Boolean));
+              let selected = Array.isArray(state.recoCompareSelection)
+                ? state.recoCompareSelection.map(String).filter((sku) => validSkus.has(sku))
+                : [];
+              if (!selected.length && products[0]?.sku) selected = [String(products[0].sku)];
+              state.recoCompareSelection = selected;
+              const selectedSet = new Set(selected);
+              const brandLabel = (name) => {
+                const value = String(name || "");
+                if (value.includes("拯救者")) return "拯救者";
+                if (value.includes("天逸")) return "天逸";
+                if (value.includes("小新")) return "小新";
+                return "联想";
+              };
+              const rows = products.map((p, index) => {
+                const sku = String(p.sku || "");
+                const active = selectedSet.has(sku);
+                const image = p.official ? p.image_url : imgUrl(p.image_url);
+                return `<article class="reco-row lx-reco-poc-row${active ? " selected" : ""}" data-open-product="${esc(sku)}">
+                  <span class="lx-reco-poc-label">${esc(brandLabel(p.name))}</span>
+                  <div class="lx-reco-poc-rank"><span>${index + 1}</span></div>
+                  <div class="lx-reco-poc-thumb"><img src="${esc(image)}" alt="${esc(p.name)}" loading="lazy"></div>
+                  <div class="reco-row-main lx-reco-poc-copy">
+                    <strong>${esc(p.name)}</strong>
+                    <span class="reco-row-desc">${esc(p.description || p.category || "")}</span>
+                  </div>
+                  <div class="reco-row-side lx-reco-poc-side">
+                    <button class="lx-reco-poc-selector${active ? " active" : ""}" type="button" data-reco-select="${esc(sku)}" aria-label="${active ? "取消选择" : "选择商品"}" aria-pressed="${active ? "true" : "false"}"></button>
+                    <div class="reco-row-actions lx-reco-poc-actions">
+                      <span class="reco-row-price">¥${Number(p.price || 0).toLocaleString()}</span>
+                      <button class="lx-reco-poc-buy" type="button" data-open-product="${esc(sku)}"><span>立即购买</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path><path d="M13 5l7 7-7 7"></path></svg></button>
+                    </div>
+                  </div>
+                </article>`;
+              }).join("");
+              const selectedCsv = selected.join(",");
+              const bottomBar = `<div class="lx-reco-poc-bottom" data-reco-bottom>
+                <p>价格与配置以详情页为准。推荐由联想乐享基于你的需求生成。</p>
+                <div class="lx-reco-poc-compare-main">
+                  <span class="lx-reco-poc-tip"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-6.8-4.3-9.1-8C1.4 9.5 2.1 6 5.8 5c2-.5 3.8.3 4.9 1.8C11.8 5.3 13.6 4.5 15.6 5c3.7 1 4.4 4.5 2.9 7-2.3 3.7-9.1 8-9.1 8Z"></path></svg><span data-reco-selected-text>${selected.length ? `已选择 ${selected.length} 款，点击进行对比` : "请选择对比"}</span></span>
+                  <button class="lx-reco-poc-compare" type="button" data-cmp-local="${esc(selectedCsv)}">对比这 ${cmpN} 款<span data-reco-selected-count>${selected.length}</span></button>
+                </div>
+              </div>`;
+              pageBox.classList.add("lx-reco-poc-page");
+              pageBox.innerHTML = intro + `<div class="lx-reco-poc-list">${rows}</div>` + bottomBar;
+              return;
+            }
             const compareAll = !isServiceReco && products.length >= 2
               ? `<div class="lx-p0-actions" style="margin-top:12px"><button class="lx-p0-btn" type="button" data-cmp-local="${esc(products.slice(0, cmpN).map((p) => p.sku).join(","))}">对比这 ${cmpN} 款</button></div>`
               : "";
@@ -12046,10 +12095,43 @@ async function openEduZone() {
               return;
             }
 
+            const recoSelect = event.target.closest("[data-reco-select]");
+            if (recoSelect) {
+              event.preventDefault();
+              event.stopPropagation();
+              const page = recoSelect.closest(".lx-reco-poc-page");
+              const sku = String(recoSelect.dataset.recoSelect || "");
+              if (!page || !sku) return;
+              const current = new Set(Array.isArray(state.recoCompareSelection) ? state.recoCompareSelection.map(String) : []);
+              if (current.has(sku)) current.delete(sku);
+              else {
+                if (current.size >= 6) return toast("最多可选择 6 款商品");
+                current.add(sku);
+              }
+              state.recoCompareSelection = Array.from(current);
+              page.querySelectorAll("[data-reco-select]").forEach((button) => {
+                const active = current.has(String(button.dataset.recoSelect || ""));
+                button.classList.toggle("active", active);
+                button.setAttribute("aria-pressed", active ? "true" : "false");
+                button.setAttribute("aria-label", active ? "取消选择" : "选择商品");
+                button.closest(".lx-reco-poc-row")?.classList.toggle("selected", active);
+              });
+              const count = current.size;
+              const countNode = page.querySelector("[data-reco-selected-count]");
+              const textNode = page.querySelector("[data-reco-selected-text]");
+              const compareButton = page.querySelector(".lx-reco-poc-compare[data-cmp-local]");
+              if (countNode) countNode.textContent = String(count);
+              if (textNode) textNode.textContent = count ? `已选择 ${count} 款，点击进行对比` : "请选择对比";
+              if (compareButton) compareButton.dataset.cmpLocal = Array.from(current).join(",");
+              return;
+            }
+
             const cmpLocal = event.target.closest("[data-cmp-local]");
             if (cmpLocal) {
               const skus = cmpLocal.dataset.cmpLocal.split(",").filter(Boolean);
               if (skus.length >= 2) lxUpsertCompareTab(skus.map((sku) => ({ sku })), "推荐商品对比");
+              else toast("请至少选择 2 款商品进行对比");
+              return;
             }
 
             const refPick = event.target.closest("[data-ref-pick]");
