@@ -705,7 +705,7 @@ if (!window.__lxCreateTypewriter) {
           try { localStorage.setItem(key, JSON.stringify(value)); } catch {}
         }
 
-        function toast(text) {
+        function toast(text, centered = false) {
           let node = $(".lx-p0-toast");
           if (!node) {
             node = document.createElement("div");
@@ -713,6 +713,7 @@ if (!window.__lxCreateTypewriter) {
             document.body.appendChild(node);
           }
           node.textContent = text;
+          node.classList.toggle("is-centered", centered);
           node.classList.add("show");
           clearTimeout(node._timer);
           node._timer = setTimeout(() => node.classList.remove("show"), 2400);
@@ -1478,6 +1479,7 @@ function compactProductSpec(description, category) {
           const category = product.category || "联想官方";
           const description = product.description || "联想官方商品，支持继续向联想乐享 AI 助手咨询选型、优惠和对比。";
           const setText = (sel, text) => { const node = $(sel, detailRoot); if (node) node.textContent = text; };
+          node.classList.toggle("is-centered", centered);
           setText("[data-detail-hero-title]", name);
           setText("[data-detail-hero-desc]", `${description} 页面信息会结合当前商品展示，购买前建议核对价格、库存和服务政策。`);
           setText("[data-detail-review-one]", `${name} 的核心配置清晰，适合结合预算、用途和服务需求继续比较。`);
@@ -1543,6 +1545,7 @@ function compactProductSpec(description, category) {
           const visual = $("[data-detail-visual]", detailRoot)?.parentElement;
           if (visual) visual.innerHTML = `<img class="detail-product-image" src="${esc(product.official ? (product.image_url || "") : imgUrl(product.image_url))}" alt="${esc(product.name || "商品图片")}" data-detail-visual />`;
           const setText = (sel, text) => { const node = $(sel, detailRoot); if (node) node.textContent = text; };
+          node.classList.toggle("is-centered", centered);
           setText("[data-detail-title]", product.name || "联想商品");
           setText("[data-detail-summary]", product.description || "联想官方商品，支持继续向联想乐享 AI 助手咨询选型、优惠和对比。");
           const priceNode = $("[data-detail-price]", detailRoot);
@@ -9277,7 +9280,7 @@ async function openEduZone() {
           const isSolution = data.type === "solution";
           const solutionCount = state.refProducts.filter(p => p.type === "solution").length;
           if ((isSolution && solutionCount >= 3) || (!isSolution && state.refProducts.length >= 5)) {
-            toast(isSolution ? "最多引用 3 个方案哦" : "最多引用 5 个商品哦");
+            toast(isSolution ? "最多选择3个进行对比" : "最多引用 5 个商品哦", isSolution);
             return;
           }
           const item = {
@@ -9297,7 +9300,7 @@ async function openEduZone() {
             button.classList.add("picked");
             button.setAttribute("aria-pressed", "true");
           });
-          if (opts.toast !== false) toast(isSolution ? "已引用方案，直接提问即可" : "已引用商品，直接提问即可");
+          if (opts.toast !== false && !isSolution) toast("已引用商品，直接提问即可");
         }
 
         function lxRenderRefChips(composer, attach, ta, send) {
