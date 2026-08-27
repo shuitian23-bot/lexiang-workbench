@@ -979,9 +979,9 @@
           </div>
         </div>
       </header>
-      <button class="lxfd-rail-fab lxfd-glass hide" id="lxfdRailFab" type="button" aria-label="展开侧栏"><img class="icon" src="../icons/sidebar-history.svg" alt="" /></button>
+      <button class="lxfd-rail-fab lxfd-glass hide" id="lxfdRailFab" data-auth-history hidden aria-hidden="true" style="display:none!important" type="button" aria-label="展开侧栏"><img class="icon" src="../icons/sidebar-history.svg" alt="" /></button>
       <button class="lxfd-rail-new-fab lxfd-glass hide" id="lxfdRailNewFab" type="button" aria-label="新建对话"><img class="icon" src="../icons/full-create.svg" alt="" aria-hidden="true" /></button>
-      <aside class="lxfd-rail lxfd-glass open" id="lxfdRail" aria-label="对话与历史">
+      <aside class="lxfd-rail lxfd-glass open" id="lxfdRail" data-auth-history hidden aria-hidden="true" style="display:none!important" aria-label="对话与历史">
         <div class="lxfd-rail-head"><button class="lxfd-new-chat" id="lxfdNewChat" type="button"><img class="icon" src="../icons/full-create.svg" alt="" aria-hidden="true" />新建对话</button><button class="lxfd-rail-toggle" id="lxfdRailClose" type="button" aria-label="收起侧栏"><img class="icon" src="../icons/arrow-left.svg" alt="" aria-hidden="true" /></button></div>
         <h3>历史记录</h3>
         <input class="lxfd-history-search" id="lxfdHistorySearch" type="search" placeholder="搜索历史对话" aria-label="搜索历史对话" autocomplete="off" />
@@ -1016,8 +1016,8 @@
     <script src="../frontend/js/core/portal.js?v=0.13.15-stage"></script>
     <script src="../frontend/js/core/app-intent.js?v=0.13.15-stage"></script>
     <script src="../frontend/js/core/app-conv.js?v=0.13.16-new-chat-refresh"></script>
-  <script src="../frontend/js/core/app.min.js?v=20260826-result-split-v1"></script>
-    <script src="../frontend/js/core/app-lxfd.js?v=20260824-payment-confirm-skill-v1"></script>
+  <script src="../frontend/js/core/app.min.js?v=20260827-history-rail-auth-v1"></script>
+    <script src="../frontend/js/core/app-lxfd.js?v=20260827-history-rail-auth-v1"></script>
     <script src="../frontend/js/core/app-voice.js?v=0.13.16-stage"></script>
     <script src="../frontend/js/core/app-agent.js?v=0.13.16-unified-agent"></script>
     <script data-shop-chat-template-behavior src="../frontend/js/pages/biz/inline-13.js?v=0.14.39-five-channel-result-dispatch"></script>
