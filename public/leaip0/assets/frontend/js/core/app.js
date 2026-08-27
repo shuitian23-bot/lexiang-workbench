@@ -10931,7 +10931,21 @@ async function openEduZone() {
         }
 
         async function openStoresPanel(address = "北京海淀") {
+          // 门店入口可能来自频道页普通对话、全屏生成态或导回后的结果卡。
+          // 在入口处统一恢复真实频道的左右分屏，避免门店 Tab 已创建但仍被
+          // 全屏层遮住；三类频道共用这一条路径，不能依赖某个 CTA 单独复位。
+          const restoredChannelSplit = lxEnsureChannelResultSplit();
+          lxRevealContent();
           lxOpenStoreComponentTab();
+          if (restoredChannelSplit) {
+            [0, 120, 420, 900].forEach((delay) => {
+              window.setTimeout(() => {
+                if (state.activeTabId !== "info:stores") return;
+                lxEnsureChannelResultSplit();
+                lxRevealContent();
+              }, delay);
+            });
+          }
         }
 
         function lxStoreExactFrame() {
