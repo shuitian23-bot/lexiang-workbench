@@ -900,14 +900,16 @@ if (!window.__lxCreateTypewriter) {
           const isAddrSkin = options.skin === "address";
           const isLeadSkin = options.skin === "lead";
           const isAuthSkin = options.skin === "auth";
+          const isSolutionLimitSkin = options.skin === "solution-limit";
           const modal = $(".lx-p0-modal", mask);
           const head = $(".lx-p0-modal-head", mask);
           mask.classList.toggle("lx-order-modal-mask", isOrderSkin);
           mask.classList.toggle("lx-addr-modal-mask", isAddrSkin);
           mask.classList.toggle("lx-lead-modal-mask", isLeadSkin);
           mask.classList.toggle("lx-auth-modal-mask", isAuthSkin);
+          mask.classList.toggle("lx-solution-limit-modal-mask", isSolutionLimitSkin);
           if (modal) {
-            modal.className = isOrderSkin ? "lx-p0-modal co lx-order-skin" : isAddrSkin ? "lx-p0-modal ad lx-addr-skin" : isLeadSkin ? "lx-p0-modal lx-lead-shell" : isAuthSkin ? "lx-p0-modal lx-auth-modal" : "lx-p0-modal";
+            modal.className = isOrderSkin ? "lx-p0-modal co lx-order-skin" : isAddrSkin ? "lx-p0-modal ad lx-addr-skin" : isLeadSkin ? "lx-p0-modal lx-lead-shell" : isAuthSkin ? "lx-p0-modal lx-auth-modal" : isSolutionLimitSkin ? "lx-p0-modal lx-solution-limit-modal" : "lx-p0-modal";
             modal.style.setProperty("box-shadow", "none", "important");
             modal.style.setProperty("filter", "none", "important");
             if (isOrderSkin || isAddrSkin) modal.setAttribute("data-v", "1");
@@ -927,7 +929,28 @@ if (!window.__lxCreateTypewriter) {
 
         function closeModal() {
           $(".lx-p0-modal-mask")?.classList.remove("show");
+          if (lxSolutionLimitEscapeHandler) {
+            document.removeEventListener("keydown", lxSolutionLimitEscapeHandler, true);
+            lxSolutionLimitEscapeHandler = null;
+          }
+          if (lxSolutionLimitOpener?.isConnected) lxSolutionLimitOpener.focus();
+          lxSolutionLimitOpener = null;
           try { lxCloseHistoryButtonState(); } catch (_e) {}
+        }
+
+        let lxSolutionLimitEscapeHandler = null;
+        let lxSolutionLimitOpener = null;
+        function lxOpenSolutionLimitModal() {
+          lxSolutionLimitOpener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+          openModal("最多选择3个方案对比", "", { skin: "solution-limit" });
+          if (lxSolutionLimitEscapeHandler) document.removeEventListener("keydown", lxSolutionLimitEscapeHandler, true);
+          lxSolutionLimitEscapeHandler = (event) => {
+            if (event.key !== "Escape") return;
+            event.preventDefault();
+            closeModal();
+          };
+          document.addEventListener("keydown", lxSolutionLimitEscapeHandler, true);
+          requestAnimationFrame(() => document.querySelector(".lx-solution-limit-modal .lx-p0-close")?.focus());
         }
 
         // 推荐弹层卡统一交互契约：生成后自动打开一次；关闭后可由原卡
@@ -9280,7 +9303,8 @@ async function openEduZone() {
           const isSolution = data.type === "solution";
           const solutionCount = state.refProducts.filter(p => p.type === "solution").length;
           if ((isSolution && solutionCount >= 3) || (!isSolution && state.refProducts.length >= 5)) {
-            toast(isSolution ? "最多选择3个进行对比" : "最多引用 5 个商品哦", isSolution);
+            if (isSolution) lxOpenSolutionLimitModal();
+            else toast("最多引用 5 个商品哦");
             return;
           }
           const item = {
@@ -9435,7 +9459,7 @@ async function openEduZone() {
             if (!solutionPayload?.name) return toast("方案信息获取失败");
             const selectedSolutions = (state.refProducts || []).filter((item) => item.type === "solution").length;
             if (selectedSolutions >= 3) {
-              toast("最多选择3个进行对比", true);
+              lxOpenSolutionLimitModal();
               return;
             }
             await lxAnimateSolutionIntoComposer(card, solutionPayload);

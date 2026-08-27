@@ -335,3 +335,14 @@ body.assistant-right .lx-cmp-floating-cta{right:calc(var(--assistant-panel-width
 .assistant-panel .composer.lx-drag-ready{border-color:#979797!important;box-shadow:0 0 0 4px rgba(162,98,215,.1),0 10px 26px rgba(50,29,57,.08)!important;transform:translateY(-1px) scale(1.006)}
 @keyframes lx-composer-drag-awaiting{0%,100%{box-shadow:0 0 0 2px rgba(162,98,215,.1),0 8px 24px rgba(50,29,57,.08)}50%{box-shadow:0 0 0 4px rgba(162,98,215,.1),0 10px 26px rgba(50,29,57,.08)}}
 @media (prefers-reduced-motion:reduce){.assistant-panel .composer.lx-drag-awaiting{animation:none!important}.assistant-panel .composer.lx-drag-ready{transform:none!important}}
+
+/* Reuse the global modal shell for the three-solution cap. This compact skin
+   keeps only the shared title bar and close control requested for this state. */
+html body .lx-p0-modal-mask.lx-solution-limit-modal-mask{position:fixed!important;inset:0!important;z-index:10000!important;display:none!important;align-items:center!important;justify-content:center!important;padding:24px!important}
+html body .lx-p0-modal-mask.lx-solution-limit-modal-mask.show{display:flex!important}
+html body .lx-p0-modal-mask.lx-solution-limit-modal-mask>.lx-solution-limit-modal{width:min(420px,calc(100vw - 48px))!important;min-height:72px!important;max-height:none!important;border:1px solid #e2ddeb!important;border-radius:16px!important;background:#fff!important;overflow:hidden!important;box-shadow:none!important}
+html body .lx-solution-limit-modal .lx-p0-modal-head{display:flex!important;align-items:center!important;justify-content:space-between!important;min-height:72px!important;padding:0 22px!important;border-bottom:0!important}
+html body .lx-solution-limit-modal .lx-p0-modal-title{margin:0!important;color:#252525!important;font-size:17px!important;line-height:24px!important;font-weight:600!important}
+html body .lx-solution-limit-modal .lx-p0-close{display:grid!important;place-items:center!important;width:32px!important;height:32px!important;flex:0 0 32px!important;margin-left:18px!important;padding:0!important;border:0!important;border-radius:50%!important;background:#f3f0f7!important;color:#979797!important;font-size:22px!important;line-height:1!important;cursor:pointer!important}
+html body .lx-solution-limit-modal .lx-p0-close:hover,html body .lx-solution-limit-modal .lx-p0-close:focus-visible{background:#efe4f1!important;color:#4d144a!important;outline:2px solid rgba(162,98,215,.1)!important;outline-offset:2px!important}
+html body .lx-solution-limit-modal .lx-p0-modal-body{display:none!important}
