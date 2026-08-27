@@ -10264,7 +10264,23 @@ async function openEduZone() {
           return base;
         }
 
+        function lxCompareSpuMeta(product) {
+          const specs = product?.specs && typeof product.specs === "object" ? product.specs : normalizeProductSpecs(product?.specs);
+          const id = String(specs.spu_id || specs.spuId || product?.spu_id || product?.spuId || "").trim();
+          const name = String(specs.spu_name || specs.spuName || specs.series_name || product?.spu_name || product?.spuName || product?.series_name || "").trim();
+          return { id, name, key: id || name.toLocaleLowerCase() || String(product?.sku || product?.name || "").trim().toLocaleLowerCase() };
+        }
+
         function renderCompareTable(products, opts = {}) {
+          if (state._compareMergeSameModel) {
+            const seenModels = new Set();
+            products = products.filter((product) => {
+              const key = lxCompareSpuMeta(product).key;
+              if (!key || seenModels.has(key)) return false;
+              seenModels.add(key);
+              return true;
+            });
+          }
           const preferredLabels = ["处理器", "操作系统", "存储", "显卡", "内存", "硬盘", "屏幕尺寸", "颜色"];
           const allKeys = [];
           const seen = new Set();
@@ -10316,6 +10332,7 @@ async function openEduZone() {
             "颜色": '<svg viewBox="0 0 24 24"><path d="M12 4a8 8 0 1 0 8 8c0-1.6-1.2-2.8-2.8-2.8H16a2 2 0 0 1-2-2V6a2 2 0 0 0-2-2Z"/><path d="M8 13h.01M9.5 8.5h.01M13.5 15h.01"/></svg>',
             "操作": '<svg viewBox="0 0 24 24"><path d="M5 7h14v10H5z"/><path d="M9 11h6"/></svg>'
           };
+          labelIcons["系列"] = labelIcons["操作系统"];
           const labelIcon = (name) => `<span class="lx-pc-label-icon${name === "乐享AI解读" ? " is-sparkle" : ""}" aria-hidden="true">${labelIcons[name] || ""}</span><span>${esc(name)}</span>`;
           const headCells = products.map((product, i) => {
             const recommended = i === recommendedIndex;
@@ -10336,6 +10353,7 @@ async function openEduZone() {
           const bodyRows = keys.map((key) => {
             const values = products.map((product) => String((product.specs || {})[key] ?? "—").trim());
             const differs = new Set(values).size > 1;
+            const sameClass = differs ? "" : " lx-pc-same-row";
             // 优势格：数值可比的行，按方向找最优列高亮（如内存大/重量轻）
             let bestIndex = -1;
             const dir = LX_CMP_BETTER[key];
@@ -10351,18 +10369,17 @@ async function openEduZone() {
               const maxScore = Math.max(...scores);
               if (maxScore > 0) bestIndex = scores.indexOf(maxScore);
             }
-            return `<div class="lx-pc-cell lx-pc-label lx-pc-r-normal">${labelIcon(DETAIL_SPEC_LABELS[key] || key)}</div>${values.map((value, i) => `<div class="lx-pc-cell lx-pc-value lx-pc-r-normal${i === recommendedIndex ? " recommended" : ""}" data-col="${i}">${i === bestIndex ? `<span class="lx-pc-value-pill">${esc(value)} ${bestTag}</span>` : esc(value)}</div>`).join("")}`;
+            return `<div class="lx-pc-cell lx-pc-label lx-pc-r-normal${sameClass}">${labelIcon(DETAIL_SPEC_LABELS[key] || key)}</div>${values.map((value, i) => `<div class="lx-pc-cell lx-pc-value lx-pc-r-normal${sameClass}${i === recommendedIndex ? " recommended" : ""}" data-col="${i}">${i === bestIndex ? `<span class="lx-pc-value-pill">${esc(value)} ${bestTag}</span>` : esc(value)}</div>`).join("")}`;
           }).join("");
           const actionsRow = "";
-          const seriesRow = `<div class="lx-pc-cell lx-pc-label lx-pc-r-normal">${labelIcon("系列")}</div>${products.map((product, i) => {
-            const specs = product.specs && typeof product.specs === "object" ? product.specs : normalizeProductSpecs(product.specs);
-            const spuName = String(specs.spu_name || specs.spuName || specs.series_name || product.spu_name || product.spuName || product.series_name || "").trim() || "—";
-            return `<div class="lx-pc-cell lx-pc-value lx-pc-r-normal${i === recommendedIndex ? " recommended" : ""}" data-col="${i}">${esc(spuName)}</div>`;
-          }).join("")}`;
+          const seriesValues = products.map((product) => lxCompareSpuMeta(product).name || "—");
+          const seriesSameClass = new Set(seriesValues).size > 1 ? "" : " lx-pc-same-row";
+          const seriesRow = `<div class="lx-pc-cell lx-pc-label lx-pc-r-normal${seriesSameClass}">${labelIcon("系列")}</div>${seriesValues.map((spuName, i) => `<div class="lx-pc-cell lx-pc-value lx-pc-r-normal${seriesSameClass}${i === recommendedIndex ? " recommended" : ""}" data-col="${i}">${esc(spuName)}</div>`).join("")}`;
           const fitCurrentWidth = false;
-          const gridColumns = `170px repeat(${products.length},300px)`;
+          const gridColumns = `170px repeat(${products.length},minmax(300px,1fr))`;
+          const compareOptions = `<div class="lx-pc-options" aria-label="对比显示选项"><label class="lx-pc-option"><input type="checkbox" data-lx-pc-option="hide-same"${state._compareHideSame ? " checked" : ""}><span>隐藏同类项</span></label><label class="lx-pc-option"><input type="checkbox" data-lx-pc-option="merge-model"${state._compareMergeSameModel ? " checked" : ""}><span>合并相同机型</span></label></div>`;
           requestAnimationFrame(() => lxSyncProductCompareNav());
-          return `<div class="lx-product-compare"><section class="lx-pc-shell" aria-label="商品参数对比表"><div class="lx-pc-scroll" tabindex="0" aria-label="横向滚动查看全部商品参数"><div class="lx-pc-grid${fitCurrentWidth ? " is-fit" : " is-scroll"}" data-cols="${products.length}" style="--lx-pc-cols:${products.length};grid-template-columns:${gridColumns}"><div class="lx-pc-cell lx-pc-label lx-pc-r-product">${labelIcon("参数对比")}</div>${headCells}${seriesRow}${bodyRows}${actionsRow}</div></div></section><div class="lx-pc-scroll-nav" aria-label="切换对比商品"><button class="lx-pc-nav-btn" type="button" data-lx-pc-scroll="-1" aria-label="向左移动一个商品" disabled></button><button class="lx-pc-nav-btn" type="button" data-lx-pc-scroll="1" aria-label="向右移动一个商品"></button></div></div>`;
+          return `<div class="lx-product-compare${state._compareHideSame ? " is-hide-same" : ""}"><section class="lx-pc-shell" aria-label="商品参数对比表"><div class="lx-pc-scroll" tabindex="0" aria-label="横向滚动查看全部商品参数"><div class="lx-pc-grid${fitCurrentWidth ? " is-fit" : " is-scroll"}" data-cols="${products.length}" style="--lx-pc-cols:${products.length};grid-template-columns:${gridColumns}"><div class="lx-pc-cell lx-pc-label lx-pc-r-product">${labelIcon("参数对比")}</div>${headCells}${seriesRow}${bodyRows}${actionsRow}</div></div></section>${compareOptions}<div class="lx-pc-scroll-nav" aria-label="切换对比商品"><button class="lx-pc-nav-btn" type="button" data-lx-pc-scroll="-1" aria-label="向左移动一个商品" disabled></button><button class="lx-pc-nav-btn" type="button" data-lx-pc-scroll="1" aria-label="向右移动一个商品"></button></div></div>`;
         }
 
         if (!window.__lxCmpSkinHoverBound) {
@@ -10411,6 +10428,21 @@ async function openEduZone() {
 
         if (!window.__lxProductCompareNavBound) {
           window.__lxProductCompareNavBound = true;
+          document.addEventListener("change", (event) => {
+            const option = event.target.closest?.("[data-lx-pc-option]");
+            if (!option) return;
+            const host = option.closest(".lx-product-compare");
+            if (option.dataset.lxPcOption === "hide-same") {
+              state._compareHideSame = option.checked;
+              host?.classList.toggle("is-hide-same", option.checked);
+              return;
+            }
+            if (option.dataset.lxPcOption === "merge-model") {
+              state._compareMergeSameModel = option.checked;
+              const source = state._comparePageItems || [];
+              if (host && source.length) host.outerHTML = renderCompareTable(source, { actions: true });
+            }
+          }, true);
           document.addEventListener("click", (event) => {
             const button = event.target.closest?.("[data-lx-pc-scroll]");
             if (!button || button.disabled) return;
