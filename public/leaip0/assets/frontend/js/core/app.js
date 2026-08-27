@@ -9990,7 +9990,6 @@ async function openEduZone() {
               let selected = Array.isArray(state.recoCompareSelection)
                 ? state.recoCompareSelection.map(String).filter((sku) => validSkus.has(sku))
                 : [];
-              if (!selected.length && products[0]?.sku) selected = [String(products[0].sku)];
               state.recoCompareSelection = selected;
               const selectedSet = new Set(selected);
               const brandLabel = (name) => {
@@ -10022,11 +10021,13 @@ async function openEduZone() {
                 </article>`;
               }).join("");
               const selectedCsv = selected.join(",");
+              const allCsv = products.slice(0, cmpN).map((product) => String(product?.sku || "")).filter(Boolean).join(",");
+              const effectiveCount = selected.length || cmpN;
               const bottomBar = `<div class="lx-reco-poc-bottom" id="lx-reco-poc-bottom" data-reco-bottom>
                 <p>价格与配置以详情页为准。推荐由联想乐享基于你的需求生成。</p>
                 <div class="lx-reco-poc-compare-main">
-                  <span class="lx-reco-poc-tip"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-6.8-4.3-9.1-8C1.4 9.5 2.1 6 5.8 5c2-.5 3.8.3 4.9 1.8C11.8 5.3 13.6 4.5 15.6 5c3.7 1 4.4 4.5 2.9 7-2.3 3.7-9.1 8-9.1 8Z"></path></svg><span data-reco-selected-text>${selected.length ? `已选择 ${selected.length} 款，点击进行对比` : "请选择对比"}</span></span>
-                  <button class="lx-reco-poc-compare" type="button" data-cmp-local="${esc(selectedCsv)}">对比这 ${cmpN} 款<span data-reco-selected-count>${selected.length}</span></button>
+                  <span class="lx-reco-poc-tip"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-6.8-4.3-9.1-8C1.4 9.5 2.1 6 5.8 5c2-.5 3.8.3 4.9 1.8C11.8 5.3 13.6 4.5 15.6 5c3.7 1 4.4 4.5 2.9 7-2.3 3.7-9.1 8-9.1 8Z"></path></svg><span data-reco-selected-text>${selected.length ? `已选择 ${selected.length} 款，点击进行对比` : `未选择时默认对比全部 ${cmpN} 款`}</span></span>
+                  <button class="lx-reco-poc-compare" type="button" data-cmp-local="${esc(selectedCsv)}" data-cmp-all="${esc(allCsv)}"><span data-reco-compare-label>${selected.length ? `对比这 ${selected.length} 款` : `对比全部 ${cmpN} 款`}</span><span data-reco-selected-count>${effectiveCount}</span></button>
                 </div>
               </div>`;
               pageBox.classList.add("lx-reco-poc-page");
@@ -12146,16 +12147,21 @@ async function openEduZone() {
               const dock = document.getElementById("lx-reco-poc-bottom");
               const countNode = dock?.querySelector("[data-reco-selected-count]");
               const textNode = dock?.querySelector("[data-reco-selected-text]");
+              const labelNode = dock?.querySelector("[data-reco-compare-label]");
               const compareButton = dock?.querySelector(".lx-reco-poc-compare[data-cmp-local]");
-              if (countNode) countNode.textContent = String(count);
-              if (textNode) textNode.textContent = count ? `已选择 ${count} 款，点击进行对比` : "请选择对比";
+              const allCount = compareButton?.dataset.cmpAll.split(",").filter(Boolean).length || 0;
+              const effectiveCount = count || allCount;
+              if (countNode) countNode.textContent = String(effectiveCount);
+              if (textNode) textNode.textContent = count ? `已选择 ${count} 款，点击进行对比` : `未选择时默认对比全部 ${allCount} 款`;
+              if (labelNode) labelNode.textContent = count ? `对比这 ${count} 款` : `对比全部 ${allCount} 款`;
               if (compareButton) compareButton.dataset.cmpLocal = Array.from(current).join(",");
               return;
             }
 
             const cmpLocal = event.target.closest("[data-cmp-local]");
             if (cmpLocal) {
-              const skus = cmpLocal.dataset.cmpLocal.split(",").filter(Boolean);
+              const selectedSkus = cmpLocal.dataset.cmpLocal.split(",").filter(Boolean);
+              const skus = selectedSkus.length ? selectedSkus : String(cmpLocal.dataset.cmpAll || "").split(",").filter(Boolean);
               if (skus.length >= 2) lxUpsertCompareTab(skus.map((sku) => ({ sku })), "推荐商品对比");
               else toast("请至少选择 2 款商品进行对比");
               return;
