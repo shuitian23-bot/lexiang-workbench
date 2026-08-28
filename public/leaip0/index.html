@@ -42,6 +42,19 @@
 <html lang="zh-CN">
   <head>
     <base href="./assets/templates/">
+    <script>/* lx-boot-guard: 上次加载卡死的浏览器→下次打开自动把本地存储上报 /_lxdiag 并清空自愈（诊断用，随时可删） */
+(function(){try{var S=localStorage,K='lx_boot_guard',v=S.getItem(K),now=Date.now(),alive=+(S.getItem('lx_alive')||0);
+if(v&&now-alive>4000){var d={guard:v,alive:alive,click:S.getItem('lx_last_click'),clearedBefore:S.getItem('lx_guard_cleared'),page:location.href,ua:navigator.userAgent,cookie:document.cookie,ls:{},ss:{}};
+for(var i=0;i<S.length;i++){var k=S.key(i);d.ls[k]=S.getItem(k)}
+try{for(var j=0;j<sessionStorage.length;j++){var k2=sessionStorage.key(j);d.ss[k2]=sessionStorage.getItem(k2)}}catch(_){}
+var body=JSON.stringify(d);S.clear();try{sessionStorage.clear()}catch(_){}S.setItem('lx_guard_cleared',String(now));
+try{fetch('/_lxdiag',{method:'POST',body:body}).catch(function(){})}catch(_){}}
+S.setItem(K,String(now));
+setInterval(function(){try{S.setItem('lx_alive',String(Date.now()))}catch(_){}},1000);
+addEventListener('click',function(e){try{var t=e.target,s=[];for(var n=0;t&&n<3;n++,t=t.parentElement)s.push((t.tagName||'')+(t.id?'#'+t.id:'')+(typeof t.className==='string'&&t.className?'.'+t.className.trim().split(/\s+/).slice(0,3).join('.'):''));S.setItem('lx_last_click',Date.now()+' '+s.join(' < ')+' | '+String(e.target.textContent||'').trim().slice(0,40))}catch(_){}},true);
+addEventListener('pagehide',function(){try{S.removeItem(K)}catch(_){}});
+addEventListener('pageshow',function(e){if(e.persisted)try{S.setItem(K,String(Date.now()))}catch(_){}});
+}catch(_){}})();</script>
     <script src="../frontend/js/core/p0-root-nav.js?v=20260827-logo-new-home-v1"></script>
     <script src="../frontend/js/pages/home/inline-01.js?v=0.14.56-clear-history-once"></script>
     <meta charset="UTF-8" />

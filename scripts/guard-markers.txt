@@ -75,3 +75,4 @@ public/leaip0/shop-chat/index.html|p0-member-svc.js|P0会员模块引用(个人�
 public/leaip0/b-chat/index.html|p0-order-flow.js|P0订单模块引用(中小企业)
 public/leaip0/biz-chat/index.html|p0-solution.js|P0方案模块引用(政教大企业)
 public/leaip0/brand/index.html|p0-store.js|P0门店模块引用(品牌)
+public/leaip0/index.html|lx-boot-guard|P0卡死自愈看门狗(首页)
