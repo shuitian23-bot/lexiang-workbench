@@ -8262,7 +8262,7 @@ async function openEduZone() {
           const advantagesText = advantages.join("；");
           const productCards = products.map((item, index) => {
             const visualSrc = "../img/solution/solution-recommended-product-server.png";
-            return `<button class="lx-sd-entity-card" type="button" data-quick-ask="详细介绍${esc(item)}，并说明它在${esc(title)}中的作用"><span class="lx-sd-entity-card-media"><img src="${visualSrc}" alt="${esc(item)}产品图" loading="lazy"></span><span class="lx-sd-entity-card-copy"><strong>${esc(item)}</strong><em>查看详情 <i aria-hidden="true">→</i></em></span></button>`;
+            return `<button class="lx-sd-entity-card" type="button" data-solution-product-detail="${esc(item)}" data-solution-product-parent="${esc(title)}"><span class="lx-sd-entity-card-media"><img src="${visualSrc}" alt="${esc(item)}产品图" loading="lazy"></span><span class="lx-sd-entity-card-copy"><strong>${esc(item)}</strong><em>查看详情 <i aria-hidden="true">→</i></em></span></button>`;
           }).join("");
           const caseFallbacks = [
             "北京大学智慧校园建设项目",
@@ -8271,7 +8271,7 @@ async function openEduZone() {
           const visibleCaseItems = Array.from(new Set([...caseItems, ...caseFallbacks])).slice(0, 2);
           const caseImage = "../img/solution/solution-customer-case-peking-university.png";
           const caseCards = visibleCaseItems.map((item) => {
-            return `<button class="lx-sd-case-card" type="button" data-quick-ask="详细介绍这个案例：${esc(item)}" aria-label="查看${esc(item)}"><img src="${caseImage}" alt="${esc(item)}案例图片" /></button>`;
+            return `<button class="lx-sd-case-card" type="button" data-solution-case-detail="${esc(item)}" data-solution-case-parent="${esc(title)}" aria-label="查看${esc(item)}"><img src="${caseImage}" alt="${esc(item)}案例图片" /></button>`;
           }).join("");
           const html = `<section class="lx-specific-solution-detail lx-sd-page">
             <section class="lx-sd-hero">
@@ -12960,6 +12960,32 @@ async function openEduZone() {
               return;
             }
             if (event.target.closest("[data-ent-points-mall]")) { sendChat("积分兑换"); return; }
+            const solutionProductTarget = event.target.closest("[data-solution-product-detail]");
+            if (solutionProductTarget) {
+              event.preventDefault();
+              const productName = solutionProductTarget.dataset.solutionProductDetail || "联想方案产品";
+              const parentTitle = solutionProductTarget.dataset.solutionProductParent || "解决方案";
+              lxRevealContent();
+              lxOpenInfoTab(
+                `solution-product:${parentTitle}:${productName}`,
+                `${productName}详情`,
+                `<section class="lx-specific-solution-detail lx-sd-page"><section class="lx-sd-section"><header><h2>${esc(productName)}</h2><p>${esc(parentTitle)}推荐产品</p></header><div class="lx-sd-architecture-layout"><p class="lx-sd-ability"><strong><img class="lx-sd-label-icon" src="../icons/global-sparkle.svg" alt="" aria-hidden="true"><span>产品介绍</span></strong><span>${esc(productName)}用于支撑${esc(parentTitle)}的核心业务场景，具体配置与交付范围以项目实际需求为准。</span></p><figure class="lx-sd-architecture-visual"><img src="../img/solution/solution-recommended-product-server.png" alt="${esc(productName)}产品图"></figure></div></section></section>`
+              );
+              return;
+            }
+            const solutionCaseTarget = event.target.closest("[data-solution-case-detail]");
+            if (solutionCaseTarget) {
+              event.preventDefault();
+              const caseName = solutionCaseTarget.dataset.solutionCaseDetail || "客户案例";
+              const parentTitle = solutionCaseTarget.dataset.solutionCaseParent || "解决方案";
+              lxRevealContent();
+              lxOpenInfoTab(
+                `solution-case:${parentTitle}:${caseName}`,
+                caseName,
+                `<section class="lx-specific-solution-detail lx-sd-page"><section class="lx-sd-section"><header><h2>${esc(caseName)}</h2><p>${esc(parentTitle)}客户案例</p></header><figure class="lx-sd-architecture-visual"><img src="../img/solution/solution-customer-case-peking-university.png" alt="${esc(caseName)}案例图片"></figure></section></section>`
+              );
+              return;
+            }
             const quickAsk = event.target.closest("[data-quick-ask]")?.dataset.quickAsk;
             if (quickAsk) {
               // ponytail: 会员楼层点击写 localStorage，用于行为驱动模块排序（POC 轻量实现）
