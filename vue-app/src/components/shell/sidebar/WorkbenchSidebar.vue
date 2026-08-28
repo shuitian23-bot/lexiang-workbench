@@ -151,8 +151,8 @@ const basePocLogRecords = [
     title: 'Skill 创建能力提示补充名称',
     changePoint: 'Skill 创建页左侧能力卡片的悬停与键盘聚焦提示新增能力名称，并保留原能力描述。',
     detail: '提示调整为名称和描述两行展示；不修改能力卡片布局、搜索筛选、选择移除、Skill 创建步骤、状态流转、权限、右侧 AI 助手或受保护 admin-runtime。',
-    deployTargets: ['new'],
-    status: '已更新 new 预览'
+    deployTargets: ['new', 'formal'],
+    status: '已合并正式'
   },
   {
     time: '2026-08-28 16:44',
