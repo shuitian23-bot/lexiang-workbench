@@ -3169,7 +3169,7 @@ function openOrderDetail(orderId) {
             }
             const script = document.createElement("script");
             script.id = "lx-store-component-runtime";
-            script.src = "/assets/pages/store-v5-detail-back-v18.js";
+            script.src = "/assets/pages/store-v5-product-flow-v19.js";
             script.async = true;
             script.onload = () => window.LXStoreService?.mount ? resolve(window.LXStoreService) : reject(new Error("门店组件未注册"));
             script.onerror = () => reject(new Error("门店组件加载失败"));
@@ -3181,6 +3181,7 @@ function openOrderDetail(orderId) {
         function lxStoreComponentShell() {
           return `<style>
             html body.lx-home-split main.shell section.content[data-view="info"]:has(.lx-store-component-host){display:flex!important;flex-direction:column!important;overflow:hidden!important;padding-bottom:0!important}
+            html body.lx-home-split main.shell section.content[data-view="info"].lx-store-detail-active{border:0!important;box-shadow:none!important}
             html body.lx-home-split main.shell section.content[data-view="info"]:has(.lx-store-component-host)>.lx-tabbar{flex:0 0 auto!important}
             .content[data-view="info"] .info-page:has(.lx-store-component-host){display:flex!important;grid-row:2!important;flex:1 1 0%!important;flex-direction:column!important;width:100%!important;height:0!important;min-height:0!important;max-width:none!important;max-height:none!important;padding:0!important;margin:0!important;overflow:hidden!important}
             .content[data-view="info"] .info-page.lx-store-detail-active>.reco-head{display:none!important}
@@ -3204,7 +3205,9 @@ function openOrderDetail(orderId) {
             if (!host.isConnected || state.activeTabId !== tab.id) return;
             const api = runtime.mount(host, { view: tab.storeComponentView });
             host.addEventListener("lx-store-detail-state", (event) => {
-              pageBox.classList.toggle("lx-store-detail-active", event.detail?.active === true);
+              const isDetailActive = event.detail?.active === true;
+              pageBox.classList.toggle("lx-store-detail-active", isDetailActive);
+              pageBox.closest('section.content[data-view="info"]')?.classList.toggle("lx-store-detail-active", isDetailActive);
             });
             lxInstallStoreBridge();
             host.__lxStoreApi = api;
