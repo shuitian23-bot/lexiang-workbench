@@ -3169,7 +3169,7 @@ function openOrderDetail(orderId) {
             }
             const script = document.createElement("script");
             script.id = "lx-store-component-runtime";
-            script.src = "/assets/pages/store-v5-product-flow-v19.js";
+            script.src = "/assets/pages/store-v5-coupon-fullscreen-v21.js";
             script.async = true;
             script.onload = () => window.LXStoreService?.mount ? resolve(window.LXStoreService) : reject(new Error("门店组件未注册"));
             script.onerror = () => reject(new Error("门店组件加载失败"));
@@ -3187,6 +3187,8 @@ function openOrderDetail(orderId) {
             .content[data-view="info"] .info-page.lx-store-detail-active>.reco-head{display:none!important}
             .content[data-view="info"] .info-page:has(.lx-store-component-host)::before,.content[data-view="info"] .info-page:has(.lx-store-component-host)::after{display:none!important;content:none!important}
             .lx-store-component-host{display:block;flex:1 1 0%;width:100%;height:auto;min-height:0;overflow:hidden;background:#fff}
+            html.lx-store-modal-open{overflow:hidden!important}
+            .lx-store-component-host.lx-store-modal-open{position:fixed!important;inset:0!important;z-index:10000!important;width:100vw!important;height:100vh!important;max-width:none!important;max-height:none!important;overflow:visible!important;background:transparent!important}
             .lx-store-component-loading{display:flex;align-items:center;justify-content:center;min-height:260px;color:#746d76;font-size:14px}
           </style><div class="lx-store-component-host"><div class="lx-store-component-loading" role="status">正在加载门店服务</div></div>`;
         }
