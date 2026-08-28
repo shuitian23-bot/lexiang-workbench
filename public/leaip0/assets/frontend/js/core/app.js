@@ -3146,10 +3146,11 @@ function openOrderDetail(orderId) {
               else window.__lxPendingDeviceWarrantyBridge = { source: window, device: device };
               return sendChat(query);
             };
-            script.src = "/assets/frontend/js/components/member-service-exact-0827.js?v=20260828-member-exact-v34";
+            script.src = "/assets/frontend/js/components/member-service-icons-v36.js?v=20260828-member-icons-v36";
             script.async = true;
             script.onload = () => {
               script.dataset.loaded = "true";
+              document.querySelectorAll("#leaiLabTrigger,#leaiLab").forEach((node) => node.remove());
               window.LXMemberService?.mount ? resolve(window.LXMemberService) : reject(new Error("会员组件未注册"));
             };
             script.onerror = () => reject(new Error("会员组件加载失败"));
