@@ -53,6 +53,7 @@
             <th>名称</th>
             <th>中文名</th>
             <th>绑定平台</th>
+            <th>创建人</th>
             <th>描述</th>
             <th>版本</th>
             <th>上线版本</th>
@@ -77,6 +78,7 @@
             </td>
             <td><div class="skill-hub-cn">{{ item.cnName || '-' }}</div></td>
             <td>{{ item.platform }}</td>
+            <td class="skill-hub-creator">{{ item.owner || '-' }}</td>
             <td>
               <div class="skill-hub-desc">{{ item.desc }}</div>
               <div v-if="shouldShowCapabilityChangeSummary(item.capabilityUpdate)" class="skill-hub-change-summary">
@@ -115,7 +117,7 @@
             </td>
           </tr>
           <tr v-if="!filteredItems.length">
-            <td colspan="9" class="skill-hub-detail-empty">当前筛选下暂无 Skill</td>
+            <td colspan="10" class="skill-hub-detail-empty">当前筛选下暂无 Skill</td>
           </tr>
         </tbody>
       </table>

@@ -101,6 +101,14 @@ test('Skill Hub classifies skills by first-level workbench menu', async () => {
   assert.doesNotMatch(store, /category: '数据查询'|category: '商品运营'|category: '知识问答'|category: '权益推荐'/)
 })
 
+test('Skill Hub lists the existing owner as creator', async () => {
+  const view = await source('../src/views/agent/AgentSkillsView.vue')
+
+  assert.match(view, /<th>绑定平台<\/th>\s*<th>创建人<\/th>\s*<th>描述<\/th>/)
+  assert.match(view, /<td class="skill-hub-creator">\{\{ item\.owner \|\| '-' \}\}<\/td>/)
+  assert.match(view, /<td colspan="10" class="skill-hub-detail-empty">/)
+})
+
 test('specialized permission and login checks remain part of the project contract', async () => {
   const packageJson = await source('../package.json')
   for (const script of ['test:application-info', 'test:permission-scope', 'test:user-management', 'test:login-password-recovery:browser']) {

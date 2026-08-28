@@ -1811,7 +1811,7 @@ body.ai-squeeze .kpi-grid { grid-template-columns:repeat(2, 1fr) !important; }
 .skill-hub-toolbar input:focus,
 .skill-hub-toolbar select:focus { border-color:var(--primary); box-shadow:0 0 0 3px rgba(51,112,255,0.08); }
 .skill-hub-table-card { background:#fff; border:1px solid var(--border-light); border-radius:8px; overflow:auto; }
-.skill-hub-table { width:100%; min-width:1160px; border-collapse:collapse; font-size:13px; }
+.skill-hub-table { width:100%; min-width:1240px; border-collapse:collapse; font-size:13px; }
 .skill-hub-table th {
   text-align:left; color:var(--text-tertiary); font-weight:600; background:#f8fafc; padding:12px 14px; border-bottom:1px solid var(--border-light); white-space:nowrap;
 }
@@ -1821,6 +1821,7 @@ body.ai-squeeze .kpi-grid { grid-template-columns:repeat(2, 1fr) !important; }
 .skill-hub-name strong { font-weight:600; }
 .skill-hub-cn { min-width:120px; color:var(--text); font-weight:600; white-space:nowrap; }
 .skill-hub-doc-icon { color:#ef466f; font-size:14px; }
+.skill-hub-creator { min-width:96px; color:var(--text); white-space:nowrap; }
 .skill-hub-desc { max-width:300px; color:var(--text-secondary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .skill-hub-version,
 .skill-hub-online,
@@ -5900,7 +5901,7 @@ html[data-product="leaibot"] .skill-hub-table-card {
 
 html[data-product="leaibot"] .skill-hub-table {
   width:100%;
-  min-width:1200px;
+  min-width:1280px;
   border-collapse:separate;
   border-spacing:0;
   font-size:13px;
