@@ -9350,18 +9350,21 @@ async function openEduZone() {
           composer?.classList.add("has");
           send?.classList.add("pulse");
           const onlySolutions = state.refProducts.every(p => p.type === "solution");
+          const onlyProducts = state.refProducts.every(p => p.type !== "solution");
           if (ta) ta.placeholder = onlySolutions
             ? (n === 1 ? "想了解这个方案的什么？比如能力、场景、如何落地…" : "想了解这几个方案的什么？比如能力、对比、如何落地…")
             : (n === 1 ? "想了解这款商品的什么？比如优惠、对比、是否适合我…" : "想了解这几款商品的什么？比如优惠、对比、是否适合我…");
           if (ta) {
-            const comparePrompt = "帮我对比下这几款方案";
-            const previousAutoPrompt = ta.dataset.solutionAutoPrompt || "";
-            if (onlySolutions && n >= 2 && (!ta.value.trim() || ta.value === previousAutoPrompt)) {
+            const comparePrompt = onlySolutions ? "帮我对比下这几款方案" : onlyProducts ? "帮我对比下这几款商品" : "";
+            const previousAutoPrompt = ta.dataset.refAutoPrompt || ta.dataset.solutionAutoPrompt || "";
+            if (comparePrompt && n >= 2 && (!ta.value.trim() || ta.value === previousAutoPrompt)) {
               ta.value = comparePrompt;
-              ta.dataset.solutionAutoPrompt = comparePrompt;
+              ta.dataset.refAutoPrompt = comparePrompt;
+              delete ta.dataset.solutionAutoPrompt;
               ta.dispatchEvent(new Event("input", { bubbles: true }));
-            } else if ((!onlySolutions || n < 2) && previousAutoPrompt && ta.value === previousAutoPrompt) {
+            } else if ((!comparePrompt || n < 2) && previousAutoPrompt && ta.value === previousAutoPrompt) {
               ta.value = "";
+              delete ta.dataset.refAutoPrompt;
               delete ta.dataset.solutionAutoPrompt;
               ta.dispatchEvent(new Event("input", { bubbles: true }));
             }
@@ -9452,12 +9455,17 @@ async function openEduZone() {
             lxDockProductRef(solutionPayload);
             return;
           }
-          let product = (state.products || []).find((p) => p.sku === sku) || (state.floorProducts || []).find((p) => p.sku === sku);
+          let product = (state.products || []).find((p) => p.sku === sku) ||
+            (state.floorProducts || []).find((p) => p.sku === sku) ||
+            (state.siteProducts || []).find((p) => p.sku === sku) ||
+            state.officialProducts?.[sku] ||
+            (state.tabs || []).flatMap((tab) => Array.isArray(tab?.products) ? tab.products : []).find((p) => p?.sku === sku);
           if (!product) {
             try { product = await (await fetch(`/api/products/${encodeURIComponent(sku)}`, { cache: "no-store" })).json(); } catch {}
           }
           const payload = lxProductRefPayload(product, card || document.querySelector(`[data-sku="${CSS.escape(sku)}"], [data-open-product="${CSS.escape(sku)}"]`));
           if (!payload?.name) return toast("商品信息获取失败");
+          await lxAnimateSolutionIntoComposer(card, payload);
           lxDockProductRef(payload);
         }
 
@@ -12298,35 +12306,48 @@ async function openEduZone() {
             if (recoSelect) {
               event.preventDefault();
               event.stopPropagation();
+              if (recoSelect.dataset.lxProductFlightPending === "true") return;
               const page = recoSelect.closest(".lx-reco-poc-page");
               const sku = String(recoSelect.dataset.recoSelect || "");
               if (!page || !sku) return;
               const current = new Set(Array.isArray(state.recoCompareSelection) ? state.recoCompareSelection.map(String) : []);
-              if (current.has(sku)) current.delete(sku);
-              else {
-                if (current.size >= 6) return toast("最多可选择 6 款商品");
-                current.add(sku);
+              const syncRecoSelection = () => {
+                state.recoCompareSelection = Array.from(current);
+                page.querySelectorAll("[data-reco-select]").forEach((button) => {
+                  const active = current.has(String(button.dataset.recoSelect || ""));
+                  button.classList.toggle("active", active);
+                  button.setAttribute("aria-pressed", active ? "true" : "false");
+                  button.setAttribute("aria-label", active ? "取消选择" : "选择商品");
+                  button.closest(".lx-reco-poc-row")?.classList.toggle("selected", active);
+                });
+                const count = current.size;
+                const dock = document.getElementById("lx-reco-poc-bottom");
+                const countNode = dock?.querySelector("[data-reco-selected-count]");
+                const textNode = dock?.querySelector("[data-reco-selected-text]");
+                const labelNode = dock?.querySelector("[data-reco-compare-label]");
+                const compareButton = dock?.querySelector(".lx-reco-poc-compare[data-cmp-local]");
+                const allCount = compareButton?.dataset.cmpAll.split(",").filter(Boolean).length || 0;
+                const effectiveCount = count || allCount;
+                if (countNode) countNode.textContent = String(effectiveCount);
+                if (textNode) textNode.textContent = count ? `已选择 ${count} 款，点击进行对比` : `未选择时默认对比全部 ${allCount} 款`;
+                if (labelNode) labelNode.textContent = count ? `对比这 ${count} 款` : `对比全部 ${allCount} 款`;
+                if (compareButton) compareButton.dataset.cmpLocal = Array.from(current).join(",");
+              };
+              if (current.has(sku)) {
+                current.delete(sku);
+                state.refProducts = (state.refProducts || []).filter((product) => String(product?.sku || "") !== sku);
+                const composer = document.querySelector(".composer");
+                lxRenderRefChips(composer, composer?.querySelector(":scope > .attach"), composer?.querySelector("textarea"), composer?.querySelector(".send-btn"));
+                syncRecoSelection();
+              } else {
+                if ((state.refProducts || []).filter((product) => product?.type !== "solution").length >= 5) return toast("最多引用 5 个商品哦");
+                recoSelect.dataset.lxProductFlightPending = "true";
+                lxSetProductRef(sku, recoSelect.closest(".lx-reco-poc-row")).then(() => {
+                  delete recoSelect.dataset.lxProductFlightPending;
+                  if ((state.refProducts || []).some((product) => String(product?.sku || "") === sku)) current.add(sku);
+                  syncRecoSelection();
+                });
               }
-              state.recoCompareSelection = Array.from(current);
-              page.querySelectorAll("[data-reco-select]").forEach((button) => {
-                const active = current.has(String(button.dataset.recoSelect || ""));
-                button.classList.toggle("active", active);
-                button.setAttribute("aria-pressed", active ? "true" : "false");
-                button.setAttribute("aria-label", active ? "取消选择" : "选择商品");
-                button.closest(".lx-reco-poc-row")?.classList.toggle("selected", active);
-              });
-              const count = current.size;
-              const dock = document.getElementById("lx-reco-poc-bottom");
-              const countNode = dock?.querySelector("[data-reco-selected-count]");
-              const textNode = dock?.querySelector("[data-reco-selected-text]");
-              const labelNode = dock?.querySelector("[data-reco-compare-label]");
-              const compareButton = dock?.querySelector(".lx-reco-poc-compare[data-cmp-local]");
-              const allCount = compareButton?.dataset.cmpAll.split(",").filter(Boolean).length || 0;
-              const effectiveCount = count || allCount;
-              if (countNode) countNode.textContent = String(effectiveCount);
-              if (textNode) textNode.textContent = count ? `已选择 ${count} 款，点击进行对比` : `未选择时默认对比全部 ${allCount} 款`;
-              if (labelNode) labelNode.textContent = count ? `对比这 ${count} 款` : `对比全部 ${allCount} 款`;
-              if (compareButton) compareButton.dataset.cmpLocal = Array.from(current).join(",");
               return;
             }
 
