@@ -412,6 +412,7 @@ if (!window.__lxCreateTypewriter) {
             lxRevealContent();
             const existing = (state.tabs || []).find((item) => item && item.id === tabId);
             if (existing) {
+              if (tabId === "info:stores") existing.__fresh = true;
               lxActivateTab(tabId);
               lxAssertGovernedSplitResultState(tabId);
               return true;
@@ -420,6 +421,7 @@ if (!window.__lxCreateTypewriter) {
             // 都使用创建结果时的同一份 payload 与同一渲染器重建。
             const registered = lxReadResultTab(tabId);
             if (registered) {
+              if (tabId === "info:stores") registered.__fresh = true;
               lxUpsertTab(registered, false);
               lxActivateTab(tabId);
               lxAssertGovernedSplitResultState(tabId);
@@ -435,6 +437,11 @@ if (!window.__lxCreateTypewriter) {
             }
             if (tabId === "info:devices") {
               openMemberDevicesCenter();
+              return true;
+            }
+            if (tabId === "info:stores") {
+              lxOpenStoreComponentTab();
+              lxSyncAnswerCtaActiveState("info:stores");
               return true;
             }
             if (tabId.startsWith("info:solution-compare:")) {
@@ -471,7 +478,8 @@ if (!window.__lxCreateTypewriter) {
               (solutionTitle ? `info:solution-detail:${solutionTitle}` :
                 (card.getAttribute("data-lx-open-tab") ||
                   (feature === "solution" ? "info:solution" :
-                    (feature === "documents" ? "documents" : ""))));
+                    (feature === "documents" ? "documents" :
+                      (feature === "stores" ? "info:stores" : "")))));
 
             // 企业认证卡可能来自旧会话，必须优先于残留的教育认证属性处理。
             if (card.hasAttribute("data-open-enterprise-auth-modal") || resultId === "modal:enterprise-member-auth") {
@@ -3169,7 +3177,7 @@ function openOrderDetail(orderId) {
             }
             const script = document.createElement("script");
             script.id = "lx-store-component-runtime";
-            script.src = "/assets/pages/store-v5-global-modal-layout-v24.js";
+            script.src = "/assets/pages/store-v5-detail-padding-v25.js";
             script.async = true;
             script.onload = () => window.LXStoreService?.mount ? resolve(window.LXStoreService) : reject(new Error("门店组件未注册"));
             script.onerror = () => reject(new Error("门店组件加载失败"));
@@ -3181,8 +3189,6 @@ function openOrderDetail(orderId) {
         function lxStoreComponentShell() {
           return `<style>
             html body.lx-home-split main.shell section.content[data-view="info"]:has(.lx-store-component-host){display:flex!important;flex-direction:column!important;overflow:hidden!important;padding-bottom:0!important}
-            html body.lx-home-split main.shell section.content[data-view="info"].lx-store-detail-active{border:0!important;box-shadow:none!important}
-            html body.lx-home-split main.shell section.content[data-view="info"]:has(.info-page.lx-store-detail-active){border:0!important;box-shadow:none!important;outline:0!important}
             html body.lx-home-split main.shell section.content[data-view="info"]:has(.lx-store-component-host)>.lx-tabbar{flex:0 0 auto!important}
             .content[data-view="info"] .info-page:has(.lx-store-component-host){display:flex!important;grid-row:2!important;flex:1 1 0%!important;flex-direction:column!important;width:100%!important;height:0!important;min-height:0!important;max-width:none!important;max-height:none!important;padding:0!important;margin:0!important;overflow:hidden!important}
             .content[data-view="info"] .info-page.lx-store-detail-active>.reco-head{display:none!important}
@@ -8748,6 +8754,7 @@ async function openEduZone() {
           if (tab?.kind === "reco") return { title: "正在生成推荐结果", desc: "正在筛选适合你的商品与关键参数" };
           if (tab?.kind === "compare") return { title: "正在生成商品对比", desc: "正在整理商品参数、核心差异与选购建议" };
           if (tab?.kind === "info" && tab?.id === "info:edu") return { title: "正在生成教育特惠专区", desc: "正在加载认证权益和教育专享商品" };
+          if (tab?.kind === "info" && tab?.id === "info:stores") return { title: "正在生成门店列表", desc: "正在加载附近门店、距离、营业状态与到店服务" };
           if (tab?.kind === "info" && String(tab?.id || "").startsWith("info:solution-detail:")) return { title: `正在生成${label}`, desc: "正在理解方案内容，并组织概览、核心能力与应用场景" };
           if (tab?.kind === "info") return { title: `正在生成${label}`, desc: "正在组织页面结构与关键信息" };
           return { title: `正在打开${label}`, desc: "正在准备页面内容" };
@@ -8756,7 +8763,7 @@ async function openEduZone() {
         function lxHasVisibleResultCard(tab) {
           const tabId = String(tab?.id || "");
           if (!tabId) return false;
-          const featureIds = { solution: "info:solution", member: "info:member", devices: "info:devices", documents: "documents", edu: "info:edu", cart: "info:cart", orders: "info:orders", coupon: "info:coupon", points: "info:points", vouchers: "info:vouchers", redpacket: "info:redpacket" };
+          const featureIds = { solution: "info:solution", member: "info:member", devices: "info:devices", documents: "documents", edu: "info:edu", stores: "info:stores", cart: "info:cart", orders: "info:orders", coupon: "info:coupon", points: "info:points", vouchers: "info:vouchers", redpacket: "info:redpacket" };
           return Array.from(document.querySelectorAll(".lx-p0-messages .answer-cta")).some((card) => {
             const resultId = card.getAttribute("data-lx-result-id") || card.getAttribute("data-lx-open-tab") || "";
             if (resultId === tabId) return true;
