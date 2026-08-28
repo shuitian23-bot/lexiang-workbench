@@ -8717,7 +8717,7 @@ async function openEduZone() {
           const label = String(tab?.label || "页面");
           if (tab?.kind === "detail") return { title: "正在生成商品页", desc: "联想乐享正在整理商品信息、优惠和推荐理由" };
           if (tab?.kind === "reco") return { title: "正在生成推荐结果", desc: "正在筛选适合你的商品与关键参数" };
-          if (tab?.kind === "compare") return { title: "正在生成对比页", desc: "正在汇总配置差异与选购建议" };
+          if (tab?.kind === "compare") return { title: "正在生成商品对比", desc: "正在整理商品参数、核心差异与选购建议" };
           if (tab?.kind === "info" && tab?.id === "info:edu") return { title: "正在生成教育特惠专区", desc: "正在加载认证权益和教育专享商品" };
           if (tab?.kind === "info" && String(tab?.id || "").startsWith("info:solution-detail:")) return { title: `正在生成${label}`, desc: "正在理解方案内容，并组织概览、核心能力与应用场景" };
           if (tab?.kind === "info") return { title: `正在生成${label}`, desc: "正在组织页面结构与关键信息" };
@@ -8757,7 +8757,9 @@ async function openEduZone() {
         function lxBeginTabGeneration(tab) {
           if (!tab || !tab.__fresh) return null;
           // 生成动画只属于“左侧结果卡 → 右侧结果页”链路；普通标签切换不播放。
-          if (!lxHasVisibleResultCard(tab)) return null;
+          // 商品对比既可能由左侧结果卡进入，也可能由推荐页底部操作直接生成。
+          // 后一种入口没有对应的左侧结果卡，但同样属于需要等待数据的生成结果页。
+          if (tab.kind !== "compare" && !lxHasVisibleResultCard(tab)) return null;
           delete tab.__fresh;
           const stateTab = (state.tabs || []).find((item) => item.id === tab.id);
           if (stateTab) delete stateTab.__fresh;
@@ -8779,14 +8781,15 @@ async function openEduZone() {
           return token;
         }
 
-        function lxEndTabGeneration(token) {
+        function lxEndTabGeneration(token, readyPromise = null) {
           if (!token || token.done) return;
           token.done = true;
           const elapsed = Date.now() - token.startedAt;
           const wait = Math.max((token.minVisibleMs ?? 2000) - elapsed, 0);
           Promise.all([
             new Promise((resolve) => setTimeout(resolve, wait)),
-            lxWaitForTabReady(token.tab)
+            lxWaitForTabReady(token.tab),
+            readyPromise ? Promise.resolve(readyPromise).catch(() => undefined) : Promise.resolve()
           ]).then(() => {
             token.overlay.classList.add("is-done");
             token.overlay.classList.remove("is-show");
@@ -8836,10 +8839,13 @@ async function openEduZone() {
             content?.setAttribute("data-view", "reco");
             content?.scrollTo({ top: 0, behavior: "smooth" });
           } else if (tab.kind === "compare") {
-            lxRenderComparePage(tab);
+            const compareReady = lxRenderComparePage(tab);
             const content = document.querySelector(".content");
             content?.setAttribute("data-view", "compare");
             content?.scrollTo({ top: 0, behavior: "smooth" });
+            lxSyncAnswerCtaActiveState(tab.id);
+            lxEndTabGeneration(genToken, compareReady);
+            return;
           } else if (tab.kind === "info") {
             const pageBox = lxEnsureInfoPage();
             const isEduInfo = tab.id === "info:edu";
