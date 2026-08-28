@@ -3207,6 +3207,29 @@ function openOrderDetail(orderId) {
           lxRunTab(tab);
         }
 
+        function lxOpenStoreFromResultCard() {
+          lxRevealContent();
+          const existing = (state.tabs || []).find((item) => item?.id === "info:stores");
+          if (existing) {
+            existing.__fresh = true;
+            lxActivateTab("info:stores");
+          } else {
+            lxOpenStoreComponentTab();
+          }
+          lxSyncAnswerCtaActiveState("info:stores");
+        }
+
+        document.addEventListener("click", (event) => {
+          const card = event.target.closest?.(".answer-cta");
+          if (!card || !/查看附近门店|附近门店查询/.test(card.textContent || "")) return;
+          event.preventDefault();
+          event.stopImmediatePropagation();
+          card.setAttribute("data-lx-result-id", "info:stores");
+          card.setAttribute("data-lx-open-tab", "info:stores");
+          card.setAttribute("data-lxfd-open-feature", "stores");
+          lxOpenStoreFromResultCard();
+        }, true);
+
         async function lxMountStoreComponentTab(tab, pageBox) {
           const host = pageBox?.querySelector(".lx-store-component-host");
           if (!host || !tab?.storeComponentView) return;
@@ -4169,6 +4192,12 @@ function openOrderDetail(orderId) {
               body.innerHTML = m.html || mdLite(m.text || "");
               list.appendChild(node);
             }
+          });
+          list.querySelectorAll(".answer-cta").forEach((card) => {
+            if (!/查看附近门店|附近门店查询/.test(card.textContent || "")) return;
+            card.setAttribute("data-lx-result-id", "info:stores");
+            card.setAttribute("data-lx-open-tab", "info:stores");
+            card.setAttribute("data-lxfd-open-feature", "stores");
           });
           document.body.dataset.state = "chat";
           list.scrollTop = list.scrollHeight;
