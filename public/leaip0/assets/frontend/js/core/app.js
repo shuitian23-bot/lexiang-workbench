@@ -3169,7 +3169,7 @@ function openOrderDetail(orderId) {
             }
             const script = document.createElement("script");
             script.id = "lx-store-component-runtime";
-            script.src = "/assets/pages/store-v5-embed.js?v=20260828-store-title-v13";
+            script.src = "/assets/pages/store-v5-navigation-v17.js";
             script.async = true;
             script.onload = () => window.LXStoreService?.mount ? resolve(window.LXStoreService) : reject(new Error("门店组件未注册"));
             script.onerror = () => reject(new Error("门店组件加载失败"));
@@ -11269,6 +11269,10 @@ async function openEduZone() {
               lxAppendStoreAppointmentCancelled(detail);
               return;
             }
+            if (detail.type === "lx-store-navigation-query") {
+              lxBeginStoreNavigationQuery(detail);
+              return;
+            }
             if (detail.type === "lx-store-navigation-result") {
               lxAppendStoreNavigationResult(detail);
             }
@@ -11286,6 +11290,9 @@ async function openEduZone() {
             handleBridge(event.detail);
           });
           document.addEventListener("lx-store-appointment-cancelled", (event) => {
+            handleBridge(event.detail);
+          });
+          document.addEventListener("lx-store-navigation-query", (event) => {
             handleBridge(event.detail);
           });
           document.addEventListener("lx-store-navigation-result", (event) => {
@@ -11370,22 +11377,42 @@ async function openEduZone() {
           try { window.__lxSaveConversationNow(); } catch (_e) {}
         }
 
+        function lxBeginStoreNavigationQuery(detail = {}) {
+          const store = detail.store || {};
+          const query = `驾车导航去${store.name || "所选联想门店"}`;
+          addMessage("user", query);
+          const trace = renderSkillTrace(["联想乐享官方 SKILL：正在调用 Skill(门店导航服务)"], { collapsed: false, foldable: false });
+          const ai = addMessage("ai", "", trace + renderGenerating("正在规划驾车路线…"));
+          ai._raw = "";
+          window.__lxPendingStoreNavigation = { ai, storeId: String(store.id || ""), query };
+          ensureChat().scrollTop = ensureChat().scrollHeight;
+          try { window.__lxSaveConversationNow(); } catch (_e) {}
+        }
+
         function lxAppendStoreNavigationResult(detail = {}) {
           const store = detail.store || {};
           const result = detail.result || {};
-          const url = String(detail.url || "");
-          addMessage("user", `驾车导航去${store.name || "所选联想门店"}`);
+          let pending = window.__lxPendingStoreNavigation;
+          if (!pending || !pending.ai?.isConnected || (pending.storeId && pending.storeId !== String(store.id || ""))) {
+            lxBeginStoreNavigationQuery(detail);
+            pending = window.__lxPendingStoreNavigation;
+          }
           const copy = result.ok
-            ? `百度地图已在右侧规划从当前位置前往 **${store.name || "所选联想门店"}** 的驾车路线：预计 **${result.duration || "以实时路况为准"}** 到达${result.arrival ? `（约 **${result.arrival}**）` : ""}，全程 **${result.distance || "以地图结果为准"}**。`
-            : `右侧已定位到 **${store.name || "所选联想门店"}**，但当前页面暂未返回驾车路线。你仍可打开百度地图重新规划完整路线。`;
+            ? `百度地图已在右侧规划从当前位置前往 **${store.name || "所选联想门店"}** 的驾车路线：预计 **${result.duration || "以实时路况为准"}** 到达${result.arrival ? `（约 **${result.arrival}**）` : ""}，全程 **${result.distance || "以地图结果为准"}**。耗时会随实时路况变化，请以出发时的导航结果为准。`
+            : `已在右侧展开前往 **${store.name || "所选联想门店"}** 的导航地图。当前暂未获取到完整驾车耗时，请按地图路线提示前往；如需重新选择门店，可点击地图左上角“返回列表”。`;
           const trace = renderSkillTrace(["联想乐享官方 SKILL：Skill(门店导航服务) 已完成"], { collapsed: true, foldable: true, skillCount: 1 });
-          const cardTitle = result.ok ? "去百度地图查看完整路线" : "去百度地图规划路线";
-          const cardDesc = result.ok ? `预计${result.duration || "实时计算"} · ${result.distance || "查看路线"}，点击打开` : "已带入目标门店位置，点击打开";
-          const routeCard = renderPageCta({ title: cardTitle, desc: cardDesc, attr: `data-lx-store-baidu-url="${esc(url)}" data-lx-result-id="external:baidu-route"` });
-          const ai = addMessage("ai", "", trace + mdLite(copy) + routeCard);
+          const ai = pending.ai;
           ai._raw = copy;
-          ensureChat().scrollTop = ensureChat().scrollHeight;
-          try { window.__lxSaveConversationNow(); } catch (_e) {}
+          const body = lxEnsureAiBody(ai);
+          body.innerHTML = trace + '<div class="lx-store-navigation-copy" data-lx-store-navigation-copy></div>';
+          const target = body.querySelector("[data-lx-store-navigation-copy]");
+          const source = document.createElement("div");
+          source.innerHTML = mdLite(copy);
+          lxTypeNodes(source, target, 18, () => {
+            window.__lxPendingStoreNavigation = null;
+            ensureChat().scrollTop = ensureChat().scrollHeight;
+            try { window.__lxSaveConversationNow(); } catch (_e) {}
+          });
         }
 
         function openServicePanel() {
