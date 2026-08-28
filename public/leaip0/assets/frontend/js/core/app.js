@@ -3811,7 +3811,10 @@ function openOrderDetail(orderId) {
           });
 
           const activeTab = (state.tabs || []).find((item) => item.id === tabId) || null;
-          const recoCards = Array.from(document.querySelectorAll('.answer-cta[data-lx-focus-reco], .answer-cta[data-lxfd-reveal-products], .answer-cta[data-open-product]'));
+          // 同一张卡若同时带 tab 绑定属性（上面循环已处理），这里跳过：两段循环对同一张卡写相反的 aria-pressed
+          // 会触发下方 MutationObserver 再次调度 → 微任务死循环 → 页面无响应（08-28 事故根因）。
+          const recoCards = Array.from(document.querySelectorAll('.answer-cta[data-lx-focus-reco], .answer-cta[data-lxfd-reveal-products], .answer-cta[data-open-product]'))
+            .filter((card) => !card.matches('[data-lx-result-id], [data-lx-open-tab], [data-lxfd-open-feature], [data-specific-solution-cta]'));
           const activeRecoId = activeTab?.recoId || "";
           const latestRecoCard = activeTab?.kind === "reco" && !activeRecoId ? recoCards[recoCards.length - 1] : null;
           recoCards.forEach((card) => {
@@ -3838,6 +3841,8 @@ function openOrderDetail(orderId) {
             lxResultSelectionSyncQueued = false;
             const activeId = (state.tabs || []).some((tab) => tab.id === state.activeTabId) ? state.activeTabId : "";
             lxSyncAnswerCtaActiveState(activeId);
+            // 丢弃本次同步自己产生的属性变更记录，保证任何情况下都不会自触发成死循环。
+            lxResultSelectionObserver.takeRecords();
           });
         };
         const lxResultSelectionObserver = new MutationObserver(lxQueueResultSelectionSync);
