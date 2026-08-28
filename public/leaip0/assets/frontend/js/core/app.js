@@ -3114,8 +3114,29 @@ function openOrderDetail(orderId) {
             }
             const existing = document.getElementById("lx-member-component-runtime");
             if (existing) {
-              existing.addEventListener("load", () => resolve(window.LXMemberService), { once: true });
-              existing.addEventListener("error", reject, { once: true });
+              let settled = false;
+              const finish = () => {
+                if (settled || !window.LXMemberService?.mount) return false;
+                settled = true;
+                resolve(window.LXMemberService);
+                return true;
+              };
+              if (finish()) return;
+              const poll = window.setInterval(() => {
+                if (finish()) window.clearInterval(poll);
+              }, 50);
+              existing.addEventListener("load", () => {
+                window.clearInterval(poll);
+                if (!finish()) reject(new Error("会员组件未注册"));
+              }, { once: true });
+              existing.addEventListener("error", (error) => {
+                window.clearInterval(poll);
+                if (!settled) reject(error);
+              }, { once: true });
+              window.setTimeout(() => {
+                window.clearInterval(poll);
+                if (!finish() && !settled) reject(new Error("会员组件加载超时"));
+              }, 8000);
               return;
             }
             const script = document.createElement("script");
@@ -3127,9 +3148,16 @@ function openOrderDetail(orderId) {
             };
             script.src = "/assets/frontend/js/components/member-service.js?v=20260824-member-component-v1";
             script.async = true;
-            script.onload = () => window.LXMemberService?.mount ? resolve(window.LXMemberService) : reject(new Error("会员组件未注册"));
+            script.onload = () => {
+              script.dataset.loaded = "true";
+              window.LXMemberService?.mount ? resolve(window.LXMemberService) : reject(new Error("会员组件未注册"));
+            };
             script.onerror = () => reject(new Error("会员组件加载失败"));
             document.head.appendChild(script);
+          });
+          lxMemberRuntimePromise = lxMemberRuntimePromise.catch((error) => {
+            lxMemberRuntimePromise = null;
+            throw error;
           });
           return lxMemberRuntimePromise;
         }
