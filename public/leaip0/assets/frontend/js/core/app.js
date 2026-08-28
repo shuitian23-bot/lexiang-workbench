@@ -8270,11 +8270,11 @@ async function openEduZone() {
             </section>
             <section class="lx-sd-section" id="lx-sd-overview">
               <header><h2>方案概览</h2><p>聚焦痛点、价值与优势</p></header>
-              <div class="lx-sd-industry"><strong><img class="lx-sd-label-icon" src="../icons/global-sparkle.svg" alt="" aria-hidden="true" /><span>行业洞察</span></strong><p>${esc(heroSummary)}</p><button type="button" data-quick-ask="继续分析${esc(title)}的行业趋势和建设机会">继续咨询</button></div>
+              <div class="lx-sd-industry"><strong><img class="lx-sd-label-icon" src="../icons/global-sparkle.svg" alt="" aria-hidden="true" /><span>行业洞察</span></strong><p>${esc(heroSummary)}</p></div>
               <div class="lx-sd-insights">
-                <button type="button" data-quick-ask="${esc(title)}主要解决哪些业务痛点"><span>01</span><strong>业务痛点</strong><p>${esc(intro || "业务系统分散、终端难以统一管理，建设与运维成本较高。")}</p></button>
-                <button type="button" data-quick-ask="${esc(title)}能带来哪些方案价值"><span>02</span><strong>方案价值</strong><p>${esc(valueText)}</p></button>
-                <button type="button" data-quick-ask="${esc(title)}相比其他方案有什么优势"><span>03</span><strong>方案优势</strong><p>${esc(advantagesText)}</p></button>
+                <div class="lx-sd-insight-card"><span>01</span><strong>业务痛点</strong><p>${esc(intro || "业务系统分散、终端难以统一管理，建设与运维成本较高。")}</p></div>
+                <div class="lx-sd-insight-card"><span>02</span><strong>方案价值</strong><p>${esc(valueText)}</p></div>
+                <div class="lx-sd-insight-card"><span>03</span><strong>方案优势</strong><p>${esc(advantagesText)}</p></div>
               </div>
             </section>
             <section class="lx-sd-section" id="lx-sd-architecture">
@@ -8291,7 +8291,7 @@ async function openEduZone() {
             <section class="lx-sd-section" id="lx-sd-resources">
               <header><h2>相关资料与下一步</h2><p>获取资料与下一步建议</p></header>
               <div class="lx-sd-resource-grid">
-                <button type="button" data-quick-ask="查看${esc(title)}的官方方案原文"><span>官方网站</span><strong>查看方案原文</strong><small>联想企业解决方案官网</small></button>
+                <button type="button" data-solution-original="${esc(title)}" data-solution-original-sector="${esc(sector)}"><span>官方网站</span><strong>查看方案原文</strong><small>联想企业解决方案官网</small></button>
                 <button type="button" data-solution-whitepaper="${esc(title)}" data-solution-whitepaper-sector="${esc(sector)}"><span>方案资料</span><strong>${esc(sector)}行业解决方案白皮书</strong><small>PDF / 官方资料</small></button>
                 <div><strong>需要结合现网环境评估？</strong><p>提交行业、建设目标和业务痛点，联想客户经理将进一步与你沟通。</p><button type="button" data-floor-action="lead">请专家联系我</button></div>
               </div>
@@ -8541,6 +8541,26 @@ async function openEduZone() {
               </header>
               <div class="lx-solution-whitepaper-viewer">
                 <iframe src="${pdfUrl}#toolbar=1&amp;navpanes=0&amp;view=FitH" title="${esc(paperName)} PDF 阅读器"></iframe>
+              </div>
+              <p class="lx-p0-disclaimer">资料内容为演示环境示例，正式资料以联想官方交付版本为准。</p>
+            </section>`, { skin: "lead" });
+        }
+
+        function openSolutionOriginalModal(button) {
+          const solutionTitle = button?.dataset.solutionOriginal || "解决方案";
+          const sector = button?.dataset.solutionOriginalSector || "行业";
+          const originalName = `${solutionTitle}方案原文`;
+          const pdfUrl = "/assets/docs/solution-industry-whitepaper-demo.pdf";
+          openModal(originalName, `
+            <section class="lx-solution-whitepaper-modal" aria-label="${esc(originalName)}在线阅读">
+              <header class="lx-solution-whitepaper-toolbar">
+                <div>
+                  <div class="lx-wp-meta"><span>${esc(sector)}</span><em>官方原文</em></div>
+                  <p>查看${esc(solutionTitle)}的方案背景、核心架构、实施路径与典型场景。</p>
+                </div>
+              </header>
+              <div class="lx-solution-whitepaper-viewer">
+                <iframe src="${pdfUrl}#toolbar=0&amp;navpanes=0&amp;view=FitH" title="${esc(originalName)} PDF 阅读器"></iframe>
               </div>
               <p class="lx-p0-disclaimer">资料内容为演示环境示例，正式资料以联想官方交付版本为准。</p>
             </section>`, { skin: "lead" });
@@ -9497,7 +9517,34 @@ async function openEduZone() {
         let lxProductDrag = null;
         let lxProductDragPending = null;
         let lxSuppressProductClick = false;
+        let lxProductDragSelectionLock = null;
         const LX_PRODUCT_DRAG_THRESHOLD = 6;
+        function lxLockProductDragSelection() {
+          if (lxProductDragSelectionLock) return;
+          const root = document.documentElement;
+          const body = document.body;
+          lxProductDragSelectionLock = {
+            rootUserSelect: root.style.userSelect,
+            rootWebkitUserSelect: root.style.webkitUserSelect,
+            bodyUserSelect: body.style.userSelect,
+            bodyWebkitUserSelect: body.style.webkitUserSelect
+          };
+          root.style.userSelect = "none";
+          root.style.webkitUserSelect = "none";
+          body.style.userSelect = "none";
+          body.style.webkitUserSelect = "none";
+          window.getSelection?.()?.removeAllRanges?.();
+        }
+        function lxUnlockProductDragSelection() {
+          if (!lxProductDragSelectionLock) return;
+          const saved = lxProductDragSelectionLock;
+          document.documentElement.style.userSelect = saved.rootUserSelect;
+          document.documentElement.style.webkitUserSelect = saved.rootWebkitUserSelect;
+          document.body.style.userSelect = saved.bodyUserSelect;
+          document.body.style.webkitUserSelect = saved.bodyWebkitUserSelect;
+          window.getSelection?.()?.removeAllRanges?.();
+          lxProductDragSelectionLock = null;
+        }
         const lxPointInside = (el, x, y) => {
           const r = el.getBoundingClientRect();
           return x >= r.left && x <= r.right && y >= r.top && y <= r.bottom;
@@ -9522,6 +9569,7 @@ async function openEduZone() {
           document.removeEventListener("pointerup", lxCancelProductPointerPending, true);
           document.removeEventListener("pointercancel", lxCancelProductPointerPending, true);
           lxProductDragPending = null;
+          lxUnlockProductDragSelection();
         }
         function lxCancelProductPointerDrag() {
           if (!lxProductDrag) return;
@@ -9533,6 +9581,7 @@ async function openEduZone() {
           document.removeEventListener("pointerup", lxOnProductPointerUp, true);
           document.removeEventListener("pointercancel", lxCancelProductPointerDrag, true);
           lxProductDrag = null;
+          lxUnlockProductDragSelection();
         }
         function lxOnProductPointerPendingMove(event) {
           if (!lxProductDragPending) return;
@@ -9542,6 +9591,7 @@ async function openEduZone() {
           if (Math.hypot(dx, dy) < LX_PRODUCT_DRAG_THRESHOLD) return;
           event.preventDefault();
           event.stopPropagation();
+          lxLockProductDragSelection();
           lxCancelProductPointerPending();
           lxStartProductPointerDrag(pending.card, event, pending);
           lxOnProductPointerMove(event);
@@ -10110,19 +10160,9 @@ async function openEduZone() {
                   </div>
                 </article>`;
               }).join("");
-              const selectedCsv = selected.join(",");
-              const allCsv = products.slice(0, cmpN).map((product) => String(product?.sku || "")).filter(Boolean).join(",");
-              const effectiveCount = selected.length || cmpN;
-              const bottomBar = `<div class="lx-reco-poc-bottom" id="lx-reco-poc-bottom" data-reco-bottom>
-                <p>价格与配置以详情页为准。推荐由联想乐享基于你的需求生成。</p>
-                <div class="lx-reco-poc-compare-main">
-                  <span class="lx-reco-poc-tip"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-6.8-4.3-9.1-8C1.4 9.5 2.1 6 5.8 5c2-.5 3.8.3 4.9 1.8C11.8 5.3 13.6 4.5 15.6 5c3.7 1 4.4 4.5 2.9 7-2.3 3.7-9.1 8-9.1 8Z"></path></svg><span data-reco-selected-text>${selected.length ? `已选择 ${selected.length} 款，点击进行对比` : `未选择时默认对比全部 ${cmpN} 款`}</span></span>
-                  <button class="lx-reco-poc-compare" type="button" data-cmp-local="${esc(selectedCsv)}" data-cmp-all="${esc(allCsv)}"><span data-reco-compare-label>${selected.length ? `对比这 ${selected.length} 款` : `对比全部 ${cmpN} 款`}</span><span data-reco-selected-count>${effectiveCount}</span></button>
-                </div>
-              </div>`;
               pageBox.classList.add("lx-reco-poc-page");
               pageBox.innerHTML = intro + `<div class="lx-reco-poc-list">${rows}</div>`;
-              lxMountRecoDock(bottomBar);
+              lxRemoveRecoDock();
               return;
             }
             const compareAll = !isServiceReco && products.length >= 2
@@ -11863,6 +11903,7 @@ async function openEduZone() {
             const card = event.target.closest?.(LX_PICK_CARD_SEL);
             if (!card || event.target.closest("button, a, input, textarea, select, .lx-pick-btn") || event.button !== 0) return;
             lxCancelProductPointerPending();
+            lxLockProductDragSelection();
             lxProductDragPending = { card, clientX: event.clientX, clientY: event.clientY, button: event.button };
             document.addEventListener("pointermove", lxOnProductPointerPendingMove, true);
             document.addEventListener("pointerup", lxCancelProductPointerPending, true);
@@ -11873,6 +11914,8 @@ async function openEduZone() {
             const card = event.target.closest?.(LX_PICK_CARD_SEL);
             const sku = lxCardSku(card);
             if (sku) {
+              lxLockProductDragSelection();
+              window.getSelection?.()?.removeAllRanges?.();
               event.dataTransfer.setData("text/plain", "lxsku:" + sku);
               event.dataTransfer.effectAllowed = "copy";
               document.querySelector(".assistant-panel .composer")?.classList.add("lx-drag-awaiting");
@@ -11902,7 +11945,10 @@ async function openEduZone() {
               lxSetProductRef(sku, pick?.closest(LX_PICK_CARD_SEL));
             }
           });
-          document.addEventListener("dragend", () => dropComposer?.classList.remove("lx-drag-awaiting", "lx-drag-ready"));
+          document.addEventListener("dragend", () => {
+            dropComposer?.classList.remove("lx-drag-awaiting", "lx-drag-ready");
+            lxUnlockProductDragSelection();
+          });
 
           document.addEventListener("input", (event) => {
             const ta = event.target.closest?.(".composer textarea, .hero-composer textarea, .lxfd-composer textarea");
@@ -13239,6 +13285,12 @@ async function openEduZone() {
             if (solutionWhitepaper) {
               event.preventDefault();
               openSolutionWhitepaperModal(solutionWhitepaper);
+              return;
+            }
+            const solutionOriginal = event.target.closest("[data-solution-original]");
+            if (solutionOriginal) {
+              event.preventDefault();
+              openSolutionOriginalModal(solutionOriginal);
               return;
             }
             const solutionPdfDownload = event.target.closest("[data-solution-pdf-download]");

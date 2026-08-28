@@ -105,8 +105,9 @@ body.lx-home-split:not(.assistant-fullscreen) .content[data-view="reco"] .lx-rec
 .lx-reco-poc-selector.active::after{content:"";position:absolute;left:50%;top:50%;width:5px;height:8px;border-right:1.5px solid #fff;border-bottom:1.5px solid #fff;transform:translate(-50%,-58%) rotate(45deg)}
 body.lx-home-split:not(.assistant-fullscreen) .content[data-view="reco"] .lx-reco-poc-page .reco-row-actions.lx-reco-poc-actions{display:flex!important;align-items:center!important;gap:12px!important}
 body.lx-home-split:not(.assistant-fullscreen) .content[data-view="reco"] .lx-reco-poc-page .lx-reco-poc-actions .reco-row-price{color:var(--reco-red)!important;font-size:20px!important;line-height:1!important;font-weight:500!important;letter-spacing:-.02em!important}
-.lx-reco-poc-buy{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-width:102px;height:37px;padding:0 15px;border:1px solid var(--reco-line);border-radius:12px;background:#fff;color:#252525;font:inherit;font-size:14px;font-weight:800;cursor:pointer;transition:.22s ease}
-.lx-reco-poc-buy:hover{transform:translateY(-1px);border-color:#cbaed2;background:#fcfaff}
+.lx-reco-poc-buy{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-width:102px;height:37px;padding:0 15px;border:1px solid transparent;border-radius:12px;background:linear-gradient(90deg,#4d144a 11.9%,#b8252e 100%);color:#fff;font:inherit;font-size:14px;font-weight:800;cursor:pointer;box-shadow:0 4px 10px rgba(77,20,74,.10);transition:.22s ease}
+.lx-reco-poc-buy:hover{transform:translateY(-1px);border-color:transparent;background:linear-gradient(90deg,#4d144a 11.9%,#b8252e 100%);color:#fff;box-shadow:0 8px 18px rgba(77,20,74,.10)}
+.lx-reco-poc-buy:active{transform:translateY(1px)}
 .lx-reco-poc-buy svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
 .lx-reco-poc-bottom{position:fixed!important;left:var(--lx-reco-dock-left,0)!important;right:var(--lx-reco-dock-right,0)!important;bottom:0!important;z-index:260!important;display:none!important;align-items:center!important;justify-content:space-between!important;gap:18px!important;width:auto!important;min-height:82px!important;padding:14px 28px!important;border-top:1px solid var(--reco-line,#e2ddeb)!important;background:#fff!important;box-shadow:0 -10px 26px rgba(50,29,57,.08)!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important}
 body.lx-home-split:not(.assistant-fullscreen):has(.content[data-view="reco"] .reco-page.lx-reco-poc-page) .lx-reco-poc-bottom{display:flex!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important}
@@ -245,8 +246,7 @@ body.assistant-right .lx-cmp-floating-cta{right:calc(var(--assistant-panel-width
 .lx-sd-industry p { margin:0; color:#625b68; font-size:13px; line-height:1.65; }
 .lx-sd-industry button { min-height:32px; padding:6px 12px; border:1px solid var(--sd-border); border-radius:9px; background:#FFFFFF; color:var(--sd-plum); font-size:12px; font-weight:700; cursor:pointer; }
 .lx-sd-insights { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }
-.lx-sd-insights button { display:flex; min-height:168px; padding:16px 18px 18px; flex-direction:column; justify-content:flex-start; border:1px solid #eadfea; border-radius:12px; background:#fcfaff; color:#252525; text-align:left; font:inherit; cursor:pointer; }
-.lx-sd-insights button:hover { border-color:#d3bfd2; background:#FFFFFF; }
+.lx-sd-insight-card { display:flex; min-height:168px; padding:16px 18px 18px; flex-direction:column; justify-content:flex-start; border:1px solid #eadfea; border-radius:12px; background:#fcfaff; color:#252525; text-align:left; font:inherit; cursor:default; pointer-events:none; }
 .lx-sd-insights span { display:block; margin-bottom:12px; color:var(--sd-red); font-size:12px; font-weight:700; }
 .lx-sd-insights strong { display:block; margin-bottom:10px; color:var(--sd-plum); font-size:17px; line-height:1.4; }
 .lx-sd-insights p { margin:0; color:#625b68; font-size:13px; line-height:1.7; }
