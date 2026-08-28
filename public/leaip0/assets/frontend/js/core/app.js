@@ -3109,7 +3109,7 @@ function openOrderDetail(orderId) {
               const link = document.createElement("link");
               link.id = cssId;
               link.rel = "stylesheet";
-              link.href = "/assets/frontend/css/components/member-service.css?v=20260824-member-component-v1";
+              link.href = "/assets/frontend/css/components/member-service-exact-0827.css?v=20260828-member-exact-v34";
               document.head.appendChild(link);
             }
             const existing = document.getElementById("lx-member-component-runtime");
@@ -3146,7 +3146,7 @@ function openOrderDetail(orderId) {
               else window.__lxPendingDeviceWarrantyBridge = { source: window, device: device };
               return sendChat(query);
             };
-            script.src = "/assets/frontend/js/components/member-service.js?v=20260824-member-component-v1";
+            script.src = "/assets/frontend/js/components/member-service-exact-0827.js?v=20260828-member-exact-v34";
             script.async = true;
             script.onload = () => {
               script.dataset.loaded = "true";
