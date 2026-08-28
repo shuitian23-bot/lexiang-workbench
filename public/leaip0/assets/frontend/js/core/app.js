@@ -3169,7 +3169,7 @@ function openOrderDetail(orderId) {
             }
             const script = document.createElement("script");
             script.id = "lx-store-component-runtime";
-            script.src = "/assets/pages/store-v5-embed.js?v=20260827-store-product-region-v10";
+            script.src = "/assets/pages/store-v5-embed.js?v=20260828-store-responsive-v11";
             script.async = true;
             script.onload = () => window.LXStoreService?.mount ? resolve(window.LXStoreService) : reject(new Error("门店组件未注册"));
             script.onerror = () => reject(new Error("门店组件加载失败"));
