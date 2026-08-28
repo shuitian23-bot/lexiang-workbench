@@ -1,0 +1,1095 @@
+<!--
+  Lenovo Lexiang shop chat page template snapshot
+  Source: https://leaibot.cn/shop-chat/
+  Refreshed: 2026-08-10
+  Pinned live resources (CSS and JavaScript vendored into this Skill):
+  - https://leaibot.cn/css/main.css?v=202607150210
+  - https://leaibot.cn/css/assistant-panel-ng-skin.css?v=202606222610
+  - Main, assistant, template CSS, and template-only JavaScript are inlined in this HTML snapshot
+  - assets/frontend/js/core/model-knowledge-runtime.js
+  - assets/frontend/js/core/portal.js, app-intent.js, app-conv.js, app.js
+  - assets/frontend/js/core/app-lxfd.js, app-voice.js, app-agent.js
+  Role in design system:
+  - Page-template layer for the current Lenovo Lexiang personal shopping conversation.
+  - Includes the reusable document center and AI document-insight interaction baseline.
+  - Shares the current home fullscreen shell, split-layout conversation, gallery, composer, navigation, history rail, intent routing, voice mode, and agent runtime.
+  Scope:
+  - This is a standalone production snapshot inside lenovo-leai-pc-5.0-design.
+  - It does not modify or deploy leaibot.cn business code.
+  Design-system version: v0.14.29-stage (current; supersedes v0.14.28-stage)
+  Upstream references:
+  - standards/design-system-complete.html
+  - references/fullscreen-dialog-framework.md
+  - references/component-patterns.md
+  Component dependencies:
+  - PC-首页-首页新建对话输入框
+  - PC-聊天-聊天态输入框
+  - PC-顶部-悬浮主导航
+  - PC-对话-商品推荐结果卡
+  Icon dependencies:
+  - assets/icons/full-create.svg, arrow-left.svg, sidebar-history.svg, sidebar-toggle.svg
+  - assets/icons/global-next.svg, global-expand.svg, global-check.svg, global-collapse.svg, composer-send.svg
+  Validation:
+  - Local assets resolve; no media/ dependency; runtime scripts parse; welcome, history, navigation, composer and gallery states are present.
+  - Gallery art is synchronized across first paint, dynamic rendering and bundled knowledge; approved SVGs render trace completion, collapse and send actions.
+  - Document filters, pagination, staged AI response, result-card/tab synchronization and reader pagination are operational.
+  Notes:
+  - Open directly for the bundled shopping knowledge fallback; the logical route remains /shop-chat/.
+  - The template supports direct local-file opening with its bundled runtime assets.
+-->
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <base href="../assets/templates/">
+    <script>/* lx-boot-guard: 上次加载卡死的浏览器→下次打开自动把本地存储上报 /_lxdiag 并清空自愈（诊断用，随时可删） */
+(function(){try{var S=localStorage,K='lx_boot_guard',v=S.getItem(K),now=Date.now(),alive=+(S.getItem('lx_alive')||0);
+if(v&&now-alive>4000){var d={guard:v,alive:alive,click:S.getItem('lx_last_click'),clearedBefore:S.getItem('lx_guard_cleared'),page:location.href,ua:navigator.userAgent,cookie:document.cookie,ls:{},ss:{}};
+for(var i=0;i<S.length;i++){var k=S.key(i);d.ls[k]=S.getItem(k)}
+try{for(var j=0;j<sessionStorage.length;j++){var k2=sessionStorage.key(j);d.ss[k2]=sessionStorage.getItem(k2)}}catch(_){}
+var body=JSON.stringify(d);S.clear();try{sessionStorage.clear()}catch(_){}S.setItem('lx_guard_cleared',String(now));
+try{fetch('/_lxdiag',{method:'POST',body:body}).catch(function(){})}catch(_){}}
+S.setItem(K,String(now));
+setInterval(function(){try{S.setItem('lx_alive',String(Date.now()))}catch(_){}},1000);
+addEventListener('click',function(e){try{var t=e.target,s=[];for(var n=0;t&&n<3;n++,t=t.parentElement)s.push((t.tagName||'')+(t.id?'#'+t.id:'')+(typeof t.className==='string'&&t.className?'.'+t.className.trim().split(/\s+/).slice(0,3).join('.'):''));S.setItem('lx_last_click',Date.now()+' '+s.join(' < ')+' | '+String(e.target.textContent||'').trim().slice(0,40))}catch(_){}},true);
+addEventListener('pagehide',function(){try{S.removeItem(K)}catch(_){}});
+addEventListener('pageshow',function(e){if(e.persisted)try{S.setItem(K,String(Date.now()))}catch(_){}});
+}catch(_){}})();</script>
+    <script src="../frontend/js/core/p0-root-nav.js?v=20260827-logo-new-home-v1"></script>
+    <script src="../frontend/js/pages/smb/inline-01.js"></script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>联想乐享 PC 端商城对话模板</title>
+    <script src="../frontend/js/shared/inline-1cbc376bb123.js"></script>
+    <link rel="stylesheet" href="../frontend/css/shared/inline-91661584194a.css">
+    <link rel="preload" as="image" href="../logos/logo-full-red.png">
+    <link rel="preload" as="image" href="../img/lxfd-gallery-1-1.jpg">
+    <link rel="preload" as="image" href="../img/lxfd-gallery-1-2.jpg">
+    <link rel="preload" as="image" href="../img/lxfd-gallery-1-3.jpg">
+    <link rel="stylesheet" data-template-file="shop-chat-page-template-main.css" data-template-source="https://leaibot.cn/css/main.css?v=202607150210" href="../frontend/css/shared/inline-3bc2eb74f360.css">
+    <link rel="stylesheet" data-template-file="shop-chat-page-template-assistant.css" data-template-source="https://leaibot.cn/css/assistant-panel-ng-skin.css?v=202606222610" href="../frontend/css/shared/inline-d52d38244aa9.css">
+    <link rel="stylesheet" data-template-file="shop-chat-page-template.css" data-shop-template-styles href="../frontend/css/shared/inline-642ec9aa4eee.css?v=0.16.40-borderless-source">
+    <link rel="stylesheet" href="../frontend/css/shared/inline-2104d0ed7dd2.css">
+    <link rel="stylesheet" data-category-waiting-modal href="../frontend/css/shared/inline-935e2224afac.css">
+  <link rel="stylesheet" href="../frontend/css/core/split-frame-composer-sync.css" />
+  <link rel="stylesheet" href="../frontend/css/core/right-generation-aurora.css?v=0.15.17-top-layer" />
+  <link rel="stylesheet" href="../frontend/css/core/auth-dialog.css?v=3-logo-gap" />
+  <link rel="stylesheet" href="../frontend/css/core/hover-ai-disabled.css?v=0.14.86-no-glass-blur" />
+  <link rel="stylesheet" href="../frontend/css/core/history-standard.css" />
+  <link rel="stylesheet" href="../frontend/css/core/channel-home-surface.css?v=0.16.44-shell-bg" />
+  <link rel="stylesheet" data-device-scene-hall href="../frontend/css/pages/shop/inline-22.css?v=20260824-biz-enterprise-note-real-v2" />
+  <link rel="stylesheet" data-lx-modal-overlay-unified href="../frontend/css/core/modal-overlay-unified.css?v=20260824-address-modal-unified-v1">
+  <link rel="stylesheet" data-lx-workplace-auth-modal href="../frontend/css/core/workplace-auth-modal.css?v=20260823-global-standard">
+  <link rel="preload" href="/assets/frontend/js/components/member-service-devices-v42.js?v=20260828-member-devices-v42" as="script">
+  <link rel="preload" href="/assets/frontend/css/components/member-service-exact-0827.css?v=20260828-member-exact-v34" as="style">
+  <link rel="stylesheet" href="/assets/frontend/css/components/member-insights-v134.css?v=20260828-member-exact-v34">
+  <link rel="stylesheet" href="/assets/frontend/css/components/member-asset-rules-v135.css?v=20260828-member-exact-v34">
+  <link rel="stylesheet" href="/assets/frontend/css/components/member-asset-ledger-v137.css?v=20260828-member-exact-v34">
+  <link rel="stylesheet" href="/assets/frontend/css/components/member-demo-off-v35.css?v=20260828-member-demo-off-v35">
+  <link rel="stylesheet" href="/assets/frontend/css/components/member-device-bind-fix-v39.css?v=20260828-member-device-bind-v40">
+  <link rel="stylesheet" href="/assets/frontend/css/components/member-device-actions-v38.css?v=20260828-member-device-actions-v38">
+  <link rel="preload" href="/assets/pages/store-v5-detail-surface-v27.js" as="script">
+</head>
+  <body data-page="business" data-state="default">
+    <script src="../frontend/js/shared/inline-54fe4c623706.js"></script>
+    <script src="../frontend/js/shared/inline-dab1b3ae0743.js"></script>
+    <div class="lx-route-loading" aria-hidden="true"><div class="lx-rl-spin"></div><div class="lx-rl-txt">联想乐享 加载中…</div></div>
+    <header class="topbar">
+      <!-- 整页跳回 / = 初始全屏欢迎态（非分屏首页），配合全屏首问重置旧对话上下文（真机反馈） -->
+      <a class="brand" href="/" aria-label="联想乐享首页">
+        <img src="../logos/logo-full-red.png" alt="联想乐享" />
+      </a>
+
+      <nav class="main-nav" aria-label="主导航" data-current-label="中小企业：新对话" data-shop-current-label="中小企业：新对话">
+        <button type="button" data-page="home">首页</button>
+        <button type="button" data-page="personal">个人及家庭</button>
+        <button class="active" type="button" data-page="business">中小企业</button>
+        <button type="button" data-page="enterprise">政教及大企业</button>
+      </nav>
+
+      <div class="utility" aria-label="快捷入口">
+        <button class="utility-btn" type="button" aria-label="订单" title="订单" data-commerce-entry="orders">
+          <img class="icon" src="../icons/mall-orders.svg" alt="" />
+        </button>
+        <div class="account-wrap">
+          <button class="utility-btn" type="button" aria-label="账号" title="个人中心">
+            <img class="icon" src="../icons/mall-account.svg" alt="" />
+          </button>
+          <div class="account-menu" role="menu">
+            <div class="menu-row" data-account-action="member">会员中心</div>
+            <div class="menu-row" data-account-action="logout">退出登录</div>
+          </div>
+        </div>
+      </div>
+      <script src="../frontend/js/shared/inline-f6883bac7348.js"></script>
+    </header>
+
+    <main class="shell">
+      <aside class="assistant-panel" aria-label="联想乐享 AI 助手">
+        <div class="tool-row">
+          <button class="tool-btn new-chat-button" type="button" aria-label="新建对话">
+            <img class="icon" src="../icons/full-create.svg" alt="" />
+          </button>
+          <span class="history-wrap" data-auth-history hidden aria-hidden="true" style="display:none!important">
+            <button class="tool-btn history-button" type="button" aria-label="历史记录" title="对话记录">
+              <img class="icon" src="../icons/sidebar-history.svg" alt="" />
+            </button>
+          </span>
+          <button class="switch-btn" type="button" aria-pressed="false"><img class="icon" src="../icons/global-switch.svg" alt="" />换位</button>
+        </div>
+        <button class="tool-btn assistant-toggle" type="button" aria-label="对话全屏" title="对话全屏" aria-expanded="false" aria-pressed="false">
+          <img class="icon" src="../icons/sidebar-toggle.svg" alt="" />
+        </button>
+
+
+        <aside class="assistant-history-sidebar" aria-label="历史记录侧边栏" aria-hidden="true">
+          <button class="assistant-history-close" type="button" aria-label="收起历史记录">
+            <img class="icon" src="../icons/sidebar-toggle.svg" alt="" />
+          </button>
+          <button class="assistant-history-new new-chat-button" type="button">
+            <span class="plus" aria-hidden="true">+</span>
+            <span>新建对话</span>
+          </button>
+          <h2 class="assistant-history-title">历史记录</h2>
+          <div class="assistant-history-list">
+            <div class="assistant-history-empty">暂无历史记录</div>
+          </div>
+        </aside>
+
+        <section class="panel-state default-state">
+          <div class="fullscreen-welcome" aria-label="全屏新对话">
+            <h1 class="fullscreen-title">你好，我是联想乐享</h1>
+            <p class="fullscreen-subtitle">有什么能帮你的吗？</p>
+            <div class="fullscreen-prompt-grid">
+              <button class="fullscreen-prompt quick-item" type="button"><span>我想要一款性能不错的游戏本</span><img class="arrow" src="../icons/global-next.svg" alt="" /></button>
+              <button class="fullscreen-prompt quick-item" type="button"><span>日常办公用，价格5000内电脑该怎么选？</span><img class="arrow" src="../icons/global-next.svg" alt="" /></button>
+              <button class="fullscreen-prompt quick-item" type="button"><span>我都有哪些会员权益？</span><img class="arrow" src="../icons/global-next.svg" alt="" /></button>
+              <button class="fullscreen-prompt quick-item" type="button"><span>拯救者Y7000和Y9000差别大么？</span><img class="arrow" src="../icons/global-next.svg" alt="" /></button>
+              <button class="fullscreen-prompt quick-item" type="button"><span>哪里有卖ThinkPad笔记本电脑门店</span><img class="arrow" src="../icons/global-next.svg" alt="" /></button>
+            </div>
+          </div>
+          <h1 class="headline">我是联想乐享<br />有任何问题随时告诉我</h1>
+          <div class="quick-list">
+            <button class="quick-item" type="button" data-quick-placeholder aria-disabled="true" tabindex="-1"><span>推荐问题待定制</span><img class="arrow" src="../icons/global-next.svg" alt="" /></button>
+            <button class="quick-item" type="button" data-quick-placeholder aria-disabled="true" tabindex="-1"><span>推荐问题待定制</span><img class="arrow" src="../icons/global-next.svg" alt="" /></button>
+            <button class="quick-item" type="button" data-quick-placeholder aria-disabled="true" tabindex="-1"><span>推荐问题待定制</span><img class="arrow" src="../icons/global-next.svg" alt="" /></button>
+            <button class="quick-item" type="button" data-quick-placeholder aria-disabled="true" tabindex="-1"><span>推荐问题待定制</span><img class="arrow" src="../icons/global-next.svg" alt="" /></button>
+            <button class="quick-item" type="button" data-quick-placeholder aria-disabled="true" tabindex="-1"><span>推荐问题待定制</span><img class="arrow" src="../icons/global-next.svg" alt="" /></button>
+          </div>
+        </section>
+
+        <section class="panel-state chat-state"></section>
+
+        <div class="page-dots is-empty" aria-label="当前对话历史">
+          <div class="prompt-menu" role="menu"></div>
+        </div>
+
+        <div class="assistant-bottom">
+          <div class="hover-prompt-panel" data-hover-prompt-panel aria-label="商品停留推荐问题">
+            <button class="hover-prompt-close" type="button" aria-label="关闭商品推荐问题">×</button>
+            <div class="hover-prompt-list" data-hover-prompt-list></div>
+          </div>
+          <div class="shortcut-row">
+            <button class="shortcut" type="button">
+              <img class="icon" src="../icons/shortcut-support.svg" alt="" />
+              客服
+            </button>
+  <button class="shortcut" type="button">
+    <img class="icon" src="../icons/shortcut-live.svg" alt="" />
+    咨询热线
+  </button>
+  <button class="shortcut" type="button">
+    <img class="icon" src="../icons/shortcut-trial.svg" alt="" />
+    企业认证
+  </button>
+  <button class="shortcut" type="button">
+    <img class="icon" src="../icons/shortcut-customization.svg" alt="" />
+    职场认证
+  </button>
+  <button class="shortcut" type="button">
+    <img class="icon" src="../icons/shortcut-membership.svg" alt="" />
+    会员权益
+  </button>
+          </div>
+
+          <form class="composer">
+            <textarea rows="1" placeholder="文档解读" aria-label="输入问题"></textarea>
+            <div class="composer-actions">
+              <div class="chip-row">
+                <span class="chip primary" data-mode-chip="think" role="button" tabindex="0" aria-pressed="false" title="开启后回答更审慎，但不展示商品卡片等内容；默认自动模式">
+                  <img class="icon" src="../icons/composer-reasoning.svg" alt="" />
+                  深度思考(自动)
+                </span>
+              </div>
+              <div class="send-group">
+                <button class="lx-voice-btn" type="button" aria-label="语音输入" title="当前环境不支持录音">
+                  <img class="icon" src="../icons/composer-mic.svg" alt="" />
+                </button>
+                <button class="image-btn" type="button" aria-label="添加图片">
+                  <img class="icon" src="../icons/composer-image.svg" alt="" />
+                </button>
+                <button class="send-btn" type="submit" aria-label="发送"><img class="icon" src="../icons/composer-send.svg" alt="" /></button>
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <button class="panel-resizer" type="button" aria-label="拖拽调整左侧智能体宽度" title="拖拽调整宽度"></button>
+      </aside>
+
+      <button class="assistant-restore" type="button" aria-label="展开智能体" title="展开智能体">
+        <img class="icon" src="../icons/sidebar-history.svg" alt="" />
+      </button>
+
+      <section class="content" aria-label="导购内容">
+
+        <!-- Deprecated portal-home removed: root uses fullscreen dialog only. -->
+
+
+        <section class="brand-page brand lx-brand-skin" data-v="3" aria-label="联想品牌">
+          <section class="hero">
+            <div class="photo" aria-hidden="true"></div>
+            <div class="inner">
+              <h1>联想品牌</h1>
+              <p class="desc">以 AI PC、智能基础设施与全球服务网络，连接个人、企业与社会创新。</p>
+              <div class="chips" aria-label="品牌关键数据">
+                <span class="chip">全球 180+ 国家和地区</span>
+                <span class="chip">创立于 1984 年</span>
+                <span class="chip">77,000+ 员工</span>
+                <span class="chip">全球 PC 市占率第一</span>
+              </div>
+            </div>
+          </section>
+
+          <section class="bento" aria-label="品牌价值体系">
+            <div class="card vmain">
+              <h2><em>科技驱动</em>，让每一次体验更可信赖</h2>
+              <p class="vsub">AI + 端侧算力 + AIPC 引领者，持续投入研发与专利，推动智能体验成为生产力底座。</p>
+              <div class="vstats" aria-label="品牌能力数据">
+                <div class="vstat"><div class="n">AI PC</div><div class="l">端侧智能体验</div></div>
+                <div class="vstat"><div class="n">2050</div><div class="l">碳中和目标</div></div>
+                <div class="vstat"><div class="n">180+</div><div class="l">全球国家和地区</div></div>
+              </div>
+            </div>
+            <div class="card vside">
+              <article class="vrow" tabindex="0" role="button" data-brand-ask="介绍联想在 AI PC、端侧算力和科技创新方面的布局"><div class="vn">01</div><div><div class="vt">科技创新</div><div class="vd">AI + 端侧算力 + AIPC 引领者，持续投入研发与专利，推动智能体验成为生产力底座。</div></div></article>
+              <article class="vrow" tabindex="0" role="button" data-brand-ask="介绍联想 2050 碳中和目标、绿色制造和 ESG 可持续发展实践"><div class="vn">02</div><div><div class="vt">可持续发展</div><div class="vd">围绕 2050 碳中和目标、绿色制造与 ESG 透明披露，构建负责任的科技价值链。</div></div></article>
+              <article class="vrow" tabindex="0" role="button" data-brand-ask="介绍联想在乡村振兴、数字包容和教育公平方面的社会责任实践"><div class="vn">03</div><div><div class="vt">社会责任</div><div class="vd">持续关注乡村振兴、数字包容和教育公平，让技术普惠更多人群与场景。</div></div></article>
+              <article class="vrow" tabindex="0" role="button" data-brand-ask="介绍联想 180 多个国家和地区布局、本土化研发供应链与全球服务网络"><div class="vn">04</div><div><div class="vt">全球视野</div><div class="vd">180+ 国家布局，依托本土化研发、供应链和服务网络，为全球客户提供可信赖体验。</div></div></article>
+            </div>
+          </section>
+
+          <section class="panel story">
+            <h2 class="sec-title">品牌故事</h2>
+            <p class="lead">1984 年，联想在中科院计算所的一间平房里诞生。40 年间，从汉字输入法到全球 PC 第一，从“蛇吞象”收购 IBM PC 到引领 AIPC 时代，联想始终以科技创新回应时代之问。</p>
+            <div class="tl3" aria-label="品牌发展时间轴">
+              <button class="tlc" type="button" data-brand-ask="介绍联想 1984 年创立故事"><div class="y">1984</div><div class="d">从中科院计算所出发，开启中国科技品牌的探索。</div></button>
+              <button class="tlc" type="button" data-brand-ask="介绍联想成为全球 PC 第一的过程"><div class="y">PC 第一</div><div class="d">以产品、供应链和服务能力构建全球化竞争力。</div></button>
+              <button class="tlc" type="button" data-brand-ask="介绍联想收购 IBM PC 后的全球化能力"><div class="y">全球化</div><div class="d">从“蛇吞象”到全球运营，形成本地响应能力。</div></button>
+              <button class="tlc" type="button" data-brand-ask="介绍联想 AIPC 时代的品牌方向"><div class="y">AIPC</div><div class="d">面向端侧智能时代，重塑个人、企业与社会生产力。</div></button>
+            </div>
+          </section>
+
+          <section class="panel cases-wrap">
+            <h2 class="sec-title">企业成功案例</h2>
+            <div class="cases">
+              <article class="cc3 feat" tabindex="0" role="button" data-brand-ask="介绍吉利汽车与联想智能制造数字化转型案例">
+                <div class="co">吉利汽车</div>
+                <h4>智能制造数字化转型</h4>
+                <p class="cd">ThinkSystem 服务器 + 联想智算中心支撑整车 AI 研发。</p>
+                <button class="clink" type="button" data-brand-ask="介绍吉利汽车与联想智能制造数字化转型案例">了解案例 <img class="icon" src="../icons/global-next.svg" alt="" aria-hidden="true" /></button>
+              </article>
+              <article class="cc3" tabindex="0" role="button" data-brand-ask="介绍中石油信创与智能运维案例">
+                <div class="co">中石油</div>
+                <h4>央企信创与智能运维</h4>
+                <p class="cd">全栈信创方案，万台设备统一管理，国产化率达 90%。</p>
+                <button class="clink" type="button" data-brand-ask="介绍中石油信创与智能运维案例">了解案例 <img class="icon" src="../icons/global-next.svg" alt="" aria-hidden="true" /></button>
+              </article>
+              <article class="cc3" tabindex="0" role="button" data-brand-ask="介绍新华社融媒体 AI 内容生产案例">
+                <div class="co">新华社</div>
+                <h4>融媒体 AI 内容生产</h4>
+                <p class="cd">AIPC 赋能记者端侧推理，稿件生成效率提升 3 倍。</p>
+                <button class="clink" type="button" data-brand-ask="介绍新华社融媒体 AI 内容生产案例">了解案例 <img class="icon" src="../icons/global-next.svg" alt="" aria-hidden="true" /></button>
+              </article>
+              <article class="cc3" tabindex="0" role="button" data-brand-ask="介绍北京冬奥智慧观赛与运营保障案例">
+                <div class="co">北京冬奥</div>
+                <h4>智慧观赛与运营保障</h4>
+                <p class="cd">提供赛事级算力、5G + AI 实时分析与零停机保障。</p>
+                <button class="clink" type="button" data-brand-ask="介绍北京冬奥智慧观赛与运营保障案例">了解案例 <img class="icon" src="../icons/global-next.svg" alt="" aria-hidden="true" /></button>
+              </article>
+            </div>
+          </section>
+        </section>
+
+        <div class="hero">
+          <div class="hero-slides" aria-hidden="true">
+            <img loading="lazy" class="hero-slide is-active" src="../img/business-banner-1.jpg" alt="" />
+            <img loading="lazy" class="hero-slide" src="../img/business-banner-2.jpg" alt="" />
+          </div>
+          <div class="hero-copy">
+            <p class="hero-kicker" data-page-kicker>2026 拯救者PC新品震撼来袭</p>
+            <h2 class="hero-title" data-page-title>拯救驾临 执御客川</h2>
+            <button class="hero-btn" type="button">了解详情</button>
+          </div>
+          <button class="hero-panel-collapse" type="button" aria-label="收起横幅面板">
+            <img class="icon" src="../icons/global-collapse.svg" alt="" />
+          </button>
+          <button class="hero-carousel-arrow hero-carousel-prev" type="button" aria-label="上一张横幅">
+            <img class="icon" src="../icons/global-collapse.svg?v=0.13.33-stage" alt="" aria-hidden="true" />
+          </button>
+          <button class="hero-carousel-arrow hero-carousel-next" type="button" aria-label="下一张横幅">
+            <img class="icon" src="../icons/global-collapse.svg?v=0.13.33-stage" alt="" aria-hidden="true" />
+          </button>
+          <div class="hero-carousel-dots" role="tablist" aria-label="横幅切换"></div>
+        </div>
+
+        <section class="device-scene-hall" data-scene-profile="business" aria-labelledby="business-scene-title">
+          <div class="device-scene-copy">
+            <span class="device-scene-industry-tag" data-device-scene-industry>高效办公</span>
+            <h2 id="business-scene-title">高效办公 灵活成长</h2>
+            <p class="device-scene-desc"><img src="../icons/global-sparkle-white.svg" alt="" aria-hidden="true" /><span data-device-scene-desc>助力中小企业构建高效智能办公体系</span></p>
+            <button class="device-scene-buy" type="button">咨询高效办公解决方案</button>
+          </div>
+          <div class="enterprise-scene-cards" aria-label="高效办公推荐内容">
+            <button class="enterprise-scene-card is-product" type="button" data-brand-ask="介绍高效办公场景的商务笔记本 ThinkPad"><span class="enterprise-scene-card-visual"><img src="../img/business/products/smb-thinkpad-t14.jpg" alt="ThinkPad" loading="eager" /></span><strong>商务笔记本</strong><span class="enterprise-scene-card-product">ThinkPad</span><span class="enterprise-scene-card-label">了解详情</span></button>
+            <button class="enterprise-scene-card is-product" type="button" data-brand-ask="介绍高效办公场景的固定工位 ThinkBook"><span class="enterprise-scene-card-visual"><img src="../img/business/products/smb-thinkbook.jpg" alt="ThinkBook" loading="eager" /></span><strong>固定工位</strong><span class="enterprise-scene-card-product">ThinkBook</span><span class="enterprise-scene-card-label">了解详情</span></button>
+            <button class="enterprise-scene-card is-product" type="button" data-brand-ask="介绍高效办公场景的办公保障 ThinkCentre"><span class="enterprise-scene-card-visual"><img src="../img/business/products/smb-thinkcentre.jpg" alt="ThinkCentre" loading="eager" /></span><strong>办公保障</strong><span class="enterprise-scene-card-product">ThinkCentre</span><span class="enterprise-scene-card-label">了解详情</span></button>
+          </div>
+          <div class="device-scene-controls" aria-label="行业设备场景切换">
+            <details class="device-scene-picker"><summary><span class="device-scene-current">当前: 高效办公</span></summary><div class="device-scene-menu"><button class="is-active" type="button" data-device-scene="0">高效办公</button><button type="button" data-device-scene="1">移动差旅</button><button type="button" data-device-scene="2">专业设计</button><button type="button" data-device-scene="3">会议协作</button><button type="button" data-device-scene="4">成长型团队</button></div></details>
+            <span class="device-scene-count" aria-live="polite">1/5</span><button class="device-scene-arrow device-scene-prev" type="button" aria-label="上一个场景"><span aria-hidden="true"></span></button><button class="device-scene-arrow device-scene-next" type="button" aria-label="下一个场景"><span aria-hidden="true"></span></button>
+          </div>
+        </section>
+
+        <section class="p-shop-floor-embed" id="bShopFloorEmbed" aria-label="联想企业购热销榜与商品楼层"></section>
+<template id="bShopFloorTemplate"><style>
+    :host{display:block;width:100%;min-width:0}
+
+  :host {
+    --bg: #fcfaff;
+    --panel: #ffffff;
+    --text: #252525;
+    --muted: #606060;
+    --line: #e2ddeb;
+    --purple: #4d144a;
+    --purple-2: #5b1452;
+    --pink: #bb1836;
+    --pink-2: #e42b20;
+    --blue: #0c2342;
+    --blue-2: #e3eafd;
+    --shadow: 0 10px 24px rgba(50, 29, 57, 0.08);
+    --gradient-light: linear-gradient(96deg, #fcf2f8 22.83%, #e3eafd 98.41%);
+    --gradient-brand: linear-gradient(90deg, #4d144a 11.9%, #b8252e 100%);
+    --gradient-composer: linear-gradient(120deg, #a262d7 0%, #ff3c3c 65%, #4f1649 100%);
+    --answer-card-glow: radial-gradient(circle, rgba(184, 37, 46, 0.045), rgba(77, 20, 74, 0.018) 56%, transparent 74%);
+    --fullscreen-page-background: linear-gradient(90deg, rgba(252, 248, 252, 0.78) 0%, rgba(253, 250, 254, 0.74) 28%, rgba(255, 255, 255, 0.84) 58%, rgba(255, 255, 255, 0.98) 100%), radial-gradient(1400px 760px at 12% -8%, rgba(251, 232, 243, 0.30) 0%, rgba(250, 237, 247, 0.18) 36%, rgba(251, 232, 243, 0) 72%), radial-gradient(1250px 780px at 94% 0%, rgba(255, 255, 255, 0.36) 0%, rgba(255, 255, 255, 0.18) 45%, rgba(255, 255, 255, 0) 76%), radial-gradient(1100px 820px at 50% 116%, rgba(245, 236, 250, 0.26) 0%, rgba(247, 241, 251, 0.13) 44%, rgba(245, 236, 250, 0) 74%);
+  }
+  * { box-sizing: border-box; }
+  :host,.p-embedded-body { margin:0; padding:0; }
+  .p-embedded-body {
+    font-family: "Source Han Sans CN", "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+    color: var(--text);
+    padding: 24px 4px 40px;
+    zoom: .8;
+    container-type: inline-size;
+  }
+  .page {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+  }
+  .hero {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 26px;
+  }
+  .hero-copy h1 {
+    margin: 0 0 0 10px;
+    font-size: 40px;
+    line-height: 1.05;
+    letter-spacing: 0;
+    font-weight: 500;
+  }
+
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 22px;
+    justify-content: start;
+  }
+  .ranking-card:nth-child(n+4){display:none}
+  .ranking-card {
+    background: rgba(255, 255, 255, 0.72);
+    border: 0;
+    border-radius: 26px;
+    overflow: hidden;
+    box-shadow: 0 3px 10px rgba(77, 20, 74, .035);
+    backdrop-filter: blur(14px);
+    transition: transform .28s ease, box-shadow .28s ease;
+    min-width: 0;
+  }
+  .ranking-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 18px rgba(77, 20, 74, 0.10);
+  }
+  .card-head {
+    height: 120px;
+    padding: 28px 26px 24px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    position: relative;
+    overflow: hidden;
+    transition: box-shadow .18s ease;
+  }
+  .card-head::before {
+    content: "";
+    position: absolute;
+    left: var(--pointer-x, 50%);
+    top: var(--pointer-y, 50%);
+    z-index: 0;
+    width: 280px;
+    height: 280px;
+    border-radius: 50%;
+    background: var(--answer-card-glow);
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(.82);
+    transition: opacity .18s ease, transform .24s ease;
+    pointer-events: none;
+  }
+  .tone-purple .card-head {
+    background: var(--gradient-light);
+  }
+  .tone-blue .card-head {
+    background: #f3f0f7;
+  }
+  .tone-pink .card-head {
+    background: #fcf2f8;
+  }
+  .head-left {
+    display: flex;
+    align-items: center;
+    position: relative;
+    z-index: 1;
+    transform: translate3d(var(--title-shift-x, 0), var(--title-shift-y, 0), 0);
+    transition: transform .24s cubic-bezier(.2,.8,.2,1);
+    will-change: transform;
+  }
+  .card-eyebrow {
+    color: var(--purple);
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 8px;
+  }
+  .card-title {
+    margin: 0;
+    font-size: 28px;
+    line-height: 1.2;
+    font-weight: 500;
+    letter-spacing: -.03em;
+    transition: color .18s ease;
+  }
+  .card-head:hover {
+    box-shadow: inset 0 -3px 0 rgba(77, 20, 74, 0.10);
+  }
+  .card-head:hover::before {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  .card-head:hover .card-title {
+    color: #4d144a;
+  }
+  .list-wrap {
+    padding: 10px 28px 24px;
+    background: #ffffff;
+  }
+  .rank-item {
+    display: grid;
+    grid-template-columns: 44px 88px 1fr;
+    gap: 18px;
+    align-items: center;
+    min-height: 118px;
+    border-bottom: 1px solid var(--line);
+    cursor: pointer;
+    transition: .2s ease;
+  }
+  .rank-item:last-child {
+    border-bottom: 0;
+  }
+  .rank-item:hover {
+    transform: translateX(2px);
+  }
+  .rank-item:focus-visible { outline: 2px solid #9b8eb6; outline-offset: -2px; border-radius: 8px; }
+  .rank-badge {
+    width: 40px;
+    height: 40px;
+    border-radius: 11px;
+    display: grid;
+    place-items: center;
+    font-size: 14px;
+    font-weight: 900;
+    color: #625b68;
+    background: #f3f0f7;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  }
+  .top1 {
+    color: #ffffff;
+    background: var(--gradient-brand);
+  }
+  .top2 {
+    color: #4d144a;
+    background: #e3eafd;
+  }
+  .top3 {
+    color: #4d144a;
+    background: #f3edf6;
+  }
+  .tone-pink .top2, .tone-pink .top3 {
+    color: #bb1836;
+    background: #fcf2f8;
+  }
+
+  .thumb-box {
+    width: 88px;
+    height: 88px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .thumb-box img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    display: block;
+    filter: saturate(1.02);
+  }
+  .item-meta {
+    min-width: 0;
+  }
+  .item-name {
+    color: var(--text);
+    font-size: 18px;
+    font-weight: 500;
+    line-height: 1.35;
+    letter-spacing: -.01em;
+    margin-bottom: 10px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .item-price {
+    color: #ff2f2f;
+    font-size: 18px;
+    font-weight: 500;
+    letter-spacing: -.01em;
+  }
+
+  .shop-floors{display:grid;gap:42px;margin-top:54px}
+  .floor-head{display:flex;align-items:baseline;justify-content:space-between;margin:0 10px 16px}
+  .floor-title{margin:30px 0 0;color:var(--text);font-size:34px;line-height:52px;font-weight:500}
+  .floor-count{display:inline-flex;align-items:center;gap:6px;margin:0;padding:0;border:0;background:transparent;color:var(--muted);font:inherit;font-size:15px;line-height:20px;cursor:pointer}
+  .floor-count-icon{display:block;width:16px;height:16px}
+  .floor-count-icon.is-rotating{animation:floor-count-icon-rotate .45s ease-in-out}
+  @keyframes floor-count-icon-rotate{to{transform:rotate(360deg)}}
+  .floor-grid{display:grid;grid-template-columns:minmax(0,2.05fr) repeat(3,minmax(0,1fr));gap:18px}
+  .floor-product:nth-child(n+5){display:none}
+  .floor-product{position:relative;min-width:0;min-height:360px;padding:24px;border:0;border-radius:16px;background:#ffffff;box-shadow:0 3px 10px rgba(77,20,74,.035);cursor:pointer;overflow:hidden;transition:transform .18s ease,box-shadow .18s ease}
+  .floor-product:hover,.floor-product:focus-visible{box-shadow:0 6px 18px rgba(77,20,74,.10);transform:translateY(-3px);outline:none}
+  .floor-product-image{display:grid;place-items:center;width:100%;height:210px;margin-bottom:18px;border-radius:12px;background:transparent;overflow:hidden}
+  .floor-product-image img{display:block;width:88%;height:88%;object-fit:contain;mix-blend-mode:multiply;transition:transform .22s ease}
+  .floor-product:hover .floor-product-image img,.floor-product:focus-visible .floor-product-image img{transform:scale(1.04)}
+  .floor-product-name{min-height:24px;margin:0;color:var(--text);font-size:17px;line-height:24px;font-weight:500;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+  .floor-product-promo-row{position:relative;z-index:1;display:flex;align-items:center;min-height:22px;margin-top:6px}
+  .floor-product-promo{display:inline-flex;align-items:center;padding:1px 5px;border:1px solid #ff2f2f;border-radius:4px;background:transparent;color:#ff2f2f;font-size:12px;line-height:18px;font-weight:500}
+  .floor-product .item-price{margin-top:10px}
+  .floor-product .item-price::after{content:"起";margin-left:3px;font-size:12px;line-height:1;font-weight:500}
+  .floor-product:first-child{display:flex;flex-direction:column;justify-content:flex-end;padding:34px;background:linear-gradient(135deg,#fcf2f8 0%,#f3f0f7 48%,#e4eafd 100%)}
+  .floor-product:first-child .floor-product-image{position:absolute;top:18px;right:18px;width:58%;height:88%;margin:0;background:transparent}
+  .floor-product:first-child .floor-product-image img{width:100%;height:100%;object-fit:contain;transform:translate(6%,-10px) scale(.833333)}
+  .floor-product:first-child .floor-product-name{position:relative;z-index:1;width:48%;min-height:auto;font-size:24px;line-height:32px;-webkit-line-clamp:3}
+  .floor-product:first-child .item-price{position:relative;z-index:1;width:48%;font-size:20px}
+  .floor-product:first-child:hover .floor-product-image img,.floor-product:first-child:focus-visible .floor-product-image img{transform:translate(3%,-10px) scale(.866667)}
+  .product-floor:nth-child(2) .floor-product:first-child{background:linear-gradient(135deg,#fcfaff 0%,#f3f0f7 55%,#e4eafd 100%)}
+  .product-floor:nth-child(3) .floor-product:first-child{background:linear-gradient(135deg,#fff7fb 0%,#fcf2f8 52%,#f3f0f7 100%)}
+  .product-floor:nth-child(4) .floor-product:first-child{background:linear-gradient(135deg,#fcfaff 0%,#f3f0f7 52%,#e4eafd 100%)}
+  .product-floor:nth-child(5) .floor-product:first-child{background:linear-gradient(135deg,#fff7fb 0%,#fcf2f8 50%,#f3f0f7 100%)}
+
+  @container (min-width: 1400px) {
+    .cards-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+    .ranking-card:nth-child(4){display:block}
+    .floor-grid{grid-template-columns:minmax(0,2.05fr) repeat(4,minmax(0,1fr))}
+    .floor-product:nth-child(5){display:block}
+  }
+
+  @container (min-width: 2100px) {
+    .cards-grid{grid-template-columns:repeat(5,minmax(0,1fr))}
+    .ranking-card:nth-child(5){display:block}
+    .floor-grid{grid-template-columns:minmax(0,2.05fr) repeat(5,minmax(0,1fr))}
+    .floor-product:nth-child(6){display:block}
+  }
+
+  @media (max-width: 1200px) {
+    .hero {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .cards-grid {
+      grid-template-columns: 1fr;
+    }
+    .floor-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+    .floor-product:first-child{grid-column:1/-1;min-height:320px}
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .card-head,
+    .card-head::before,
+    .head-left,
+    .card-title {
+      transition: none;
+    }
+  }
+
+  @media (max-width: 768px) {
+    body {
+      padding: 16px 12px 28px;
+    }
+    .card-head {
+      height: auto;
+      padding: 22px 20px;
+    }
+    .card-title {
+      font-size: 24px;
+    }
+    .list-wrap {
+      padding: 6px 20px 18px;
+    }
+    .rank-item {
+      grid-template-columns: 38px 88px 1fr;
+      gap: 14px;
+      min-height: 100px;
+    }
+    .item-name, .item-price {
+      font-size: 16px;
+    }
+    .shop-floors{gap:32px;margin-top:38px}
+    .floor-title{font-size:32px;line-height:42px}
+    .floor-grid{grid-template-columns:1fr}
+    .floor-product{min-height:auto}
+    .floor-product:first-child{grid-column:auto;min-height:300px;padding:24px}
+    .floor-product:first-child .floor-product-image{top:12px;right:12px;width:62%;height:82%}
+    .floor-product:first-child .floor-product-name{width:55%;font-size:21px;line-height:29px}
+    .floor-product:first-child .item-price{width:55%}
+    .floor-product-image{height:190px}
+  }
+
+  .shop-floors{margin-top:0}
+  </style><div class="p-embedded-body"><main class="page"><section class="shop-floors" id="shopFloors" aria-label="中小企业商品分类楼层"></section></main></div></template>
+<script data-b-shop-floor-integration>
+(() => {
+  const nativeDocument = window.document;
+  const host = nativeDocument.querySelector('#bShopFloorEmbed');
+  const template = nativeDocument.querySelector('#bShopFloorTemplate');
+  if (!host || !template || host.shadowRoot) return;
+  const root = host.attachShadow({ mode: 'open' });
+  root.append(template.content.cloneNode(true));
+  const categories = [{"key":"thinkpad","title":"ThinkPad","source":"ThinkPad","tone":"tone-purple"},{"key":"thinkbook","title":"ThinkBook","source":"ThinkBook","tone":"tone-blue"},{"key":"yangtian","title":"扬天","source":"扬天","tone":"tone-pink"},{"key":"office","title":"办公","source":"办公","tone":"tone-purple"}];
+  const embeddedManifest = [{"spu_id":"SPU-ThinkPad-001","short_name":"联想 ThinkPad T14","category":"ThinkPad","folder":"ThinkPad/01_SPU_联想_ThinkPad_T14","configuration_count":2,"representative_files":{"copywriting":"ThinkPad/01_SPU_联想_ThinkPad_T14/商品文案.md","white_image":"ThinkPad/01_SPU_联想_ThinkPad_T14/白底图.jpg","detail_image":"ThinkPad/01_SPU_联想_ThinkPad_T14/详情图.jpg"},"configurations":[{"configuration_id":"SPU-ThinkPad-001-SKU-01","configuration_name":"AMD 锐龙AI 7 PRO 350 移动处理器 / Windows 11 家庭中文版 / 32G LPDDR5x / 1TB PCIe-NVMe固态硬盘 / 集成显卡 / 14英寸WUXGA 广视角显示屏 400nit 100%sRGB","sku_id":"1047100","original_name":"【企业购】联想ThinkPad T14 2025 锐龙AI 7 PRO AI工程师本 DJCD","description":"AMD 锐龙AI 7 PRO 350 移动处理器/Windows 11 家庭中文版/32G LPDDR5x /1TB PCIe-NVMe固态硬盘/集成显卡/14英寸WUXGA 广视角显示屏 400nit 100%sRGB","original_price":"12999","sale_price":"12299","tags":["自营","企业购"],"source":"https://b.lenovo.com.cn/product/1047100.html","files":{"copywriting":"ThinkPad/01_SPU_联想_ThinkPad_T14/商品文案.md","white_image":"ThinkPad/01_SPU_联想_ThinkPad_T14/白底图.jpg","detail_image":"ThinkPad/01_SPU_联想_ThinkPad_T14/详情图.jpg"},"uses_shared_spu_assets":true},{"configuration_id":"SPU-ThinkPad-001-SKU-02","configuration_name":"AMD 锐龙AI 7 PRO 350 移动处理器 / Windows 11 家庭中文版 / 32G LPDDR5x / 512 PCIe-NVMe固态硬盘 / 集成显卡 / 14英寸WUXGA 广视角显示屏 400nit 100%sRGB","sku_id":"1047099","original_name":"【企业购】联想ThinkPad T14 2025 锐龙AI 7 PRO AI工程师本 DHCD","description":"AMD 锐龙AI 7 PRO 350 移动处理器/Windows 11 家庭中文版/32G LPDDR5x /512 PCIe-NVMe固态硬盘/集成显卡/14英寸WUXGA 广视角显示屏 400nit 100%sRGB","original_price":"11999","sale_price":"11799","tags":["自营","企业购"],"source":"https://b.lenovo.com.cn/product/1047099.html","files":{"copywriting":"ThinkPad/01_SPU_联想_ThinkPad_T14/商品文案.md","white_image":"ThinkPad/01_SPU_联想_ThinkPad_T14/白底图.jpg","detail_image":"ThinkPad/01_SPU_联想_ThinkPad_T14/详情图.jpg"},"uses_shared_spu_assets":true}],"asset_mode":"shared_spu_assets"},{"spu_id":"SPU-ThinkPad-002","short_name":"联想 ThinkPad X1 Carbon Aura","category":"ThinkPad","folder":"ThinkPad/02_SPU_联想_ThinkPad_X1_Carbon_Aura","configuration_count":5,"representative_files":{"copywriting":"ThinkPad/02_SPU_联想_ThinkPad_X1_Carbon_Aura/商品文案.md","white_image":"ThinkPad/02_SPU_联想_ThinkPad_X1_Carbon_Aura/白底图.jpg","detail_image":"ThinkPad/02_SPU_联想_ThinkPad_X1_Carbon_Aura/详情图.jpg"},"configurations":[{"configuration_id":"SPU-ThinkPad-002-SKU-01","configuration_name":"英特尔酷睿Ultra 7 258V / Windows 11 家庭中文版 / 32G / 2TB PCIe-NVMe 固态硬盘GP4 / 英特尔Arc Xe2 / 14英寸2.8K 广视角OLED背光显示屏 120Hz刷新率 400nit / 内置SIM卡(12个月*15G / 月流量)沉浸黑","sku_id":"1042877","original_name":"【企业购】联想ThinkPad X1 Carbon Aura 全互联本 6PCD","description":"英特尔酷睿Ultra 7 258V/Windows 11 家庭中文版/32G/2TB PCIe-NVMe 固态硬盘GP4/英特尔Arc Xe2/14英寸2.8K 广视角OLED背光显示屏 120Hz刷新率 400nit/内置SIM卡(12个月*15G/月流量)沉浸黑","original_price":"21999","sale_price":"21999","tags":["自营","企业购"],"source":"https://b.lenovo.com.cn/product/1042877.html","files":{"copywriting":"ThinkPad/02_SPU_联想_ThinkPad_X1_Carbon_Aura/商品文案.md","white_image":"ThinkPad/02_SPU_联想_ThinkPad_X1_Carbon_Aura/白底图.jpg","detail_image":"ThinkPad/02_SPU_联想_ThinkPad_X1_Carbon_Aura/详情图.jpg"},"uses_shared_spu_assets":true},{"configuration_id":"SPU-ThinkPad-002-SKU-02","configuration_name":"英特尔酷睿Ultra 7 255H / Windows 11 家庭中文版 / 32G / 1TB PCIe-NVMe 固态硬盘GP4 / 英特尔Arc显卡 / 14英寸2.8K 广视角OLED背光显示屏 120Hz刷新率 500nit / 内置SIM卡 / 12个月*15G / 月流量 / 沉浸黑 / ForcePad触控板","sku_id":"1044934","original_name":"【企业购】联想ThinkPad X1 Carbon Aura 全互联本 9FCD","description":"英特尔酷睿Ultra 7 255H/Windows 11 家庭中文版/32G/1TB PCIe-NVMe 固态硬盘GP4/英特尔Arc显卡/14英寸2.8K 广视角OLED背光显示屏 120Hz刷新率 500nit/内置SIM卡/12个月*15G/月流量/沉浸黑/ForcePad触控板","original_price":"20799","sale_price":"20799","tags":["自营","企业购"],"source":"https://b.lenovo.com.cn/product/1044934.html","files":{"copywriting":"ThinkPad/02_SPU_联想_ThinkPad_X1_Carbon_Aura/商品文案.md","white_image":"ThinkPad/02_SPU_联想_ThinkPad_X1_Carbon_Aura/白底图.jpg","detail_image":"ThinkPad/02_SPU_联想_ThinkPad_X1_Carbon_Aura/详情图.jpg"},"uses_shared_spu_assets":true},{"configuration_id":"SPU-ThinkPad-002-SKU-03","configuration_name":"英特尔酷睿Ultra 7 255H / Windows 11 专业版 / 32G / 2TB PCIe-NVMe 固态硬盘GP5 / 英特尔Arc显卡 / 14英寸2.8K 广视角OLED背光显示屏 120Hz刷新率 500nit / 内置SIM卡 / 12个月*15G / 月流量 / 沉浸黑","sku_id":"1044935","original_name":"【企业购】联想ThinkPad X1 Carbon Aura 全互联本 9GCD","description":"英特尔酷睿Ultra 7 255H/Windows 11 专业版/32G/2TB PCIe-NVMe 固态硬盘GP5/英特尔Arc显卡/14英寸2.8K 广视角OLED背光显示屏 120Hz刷新率 500nit/内置SIM卡/12个月*15G/月流量/沉浸黑","original_price":"24999","sale_price":"24999","tags":["自营","企业购"],"source":"https://b.lenovo.com.cn/product/1044935.html","files":{"copywriting":"ThinkPad/02_SPU_联想_ThinkPad_X1_Carbon_Aura/商品文案.md","white_image":"ThinkPad/02_SPU_联想_ThinkPad_X1_Carbon_Aura/白底图.jpg","detail_image":"ThinkPad/02_SPU_联想_ThinkPad_X1_Carbon_Aura/详情图.jpg"},"uses_shared_spu_assets":true},{"configuration_id":"SPU-ThinkPad-002-SKU-04","configuration_name":"英特尔酷睿Ultra 7 255H / Windows 11 家庭中文版 / 32G / 1TB PCIe-NVMe 固态硬盘GP4 / 英特尔Arc显卡 / 14英寸2.8K 广视角OLED背光显示屏 120Hz刷新率 500nit / 内置SIM卡 / 12个月*15G / 月流量 / 沉浸黑","sku_id":"1044933","original_name":"【企业购】联想ThinkPad X1 Carbon Aura 全互联本 9ECD","description":"英特尔酷睿Ultra 7 255H/Windows 11 家庭中文版/32G/1TB PCIe-NVMe 固态硬盘GP4/英特尔Arc显卡/14英寸2.8K 广视角OLED背光显示屏 120Hz刷新率 500nit/内置SIM卡/12个月*15G/月流量/沉浸黑","original_price":"20799","sale_price":"20799","tags":["自营","企业购"],"source":"https://b.lenovo.com.cn/product/1044933.html","files":{"copywriting":"ThinkPad/02_SPU_联想_ThinkPad_X1_Carbon_Aura/商品文案.md","white_image":"ThinkPad/02_SPU_联想_ThinkPad_X1_Carbon_Aura/白底图.jpg","detail_image":"ThinkPad/02_SPU_联想_ThinkPad_X1_Carbon_Aura/详情图.jpg"},"uses_shared_spu_assets":true},{"configuration_id":"SPU-ThinkPad-002-SKU-05","configuration_name":"英特尔酷睿Ultra 5 225H / Windows 11 家庭中文版 / 32G / 1TB PCIe-NVMe 固态硬盘GP4 / 英特尔Arc显卡 / 14英寸2.8K 广视角OLED背光显示屏 120Hz刷新率 500nit / 内置SIM卡 / 12个月*15G / 月流量 / 沉浸黑","sku_id":"1044932","original_name":"【企业购】联想ThinkPad X1 Carbon Aura 全互联本 9DCD","description":"英特尔酷睿Ultra 5 225H/Windows 11 家庭中文版/32G/1TB PCIe-NVMe 固态硬盘GP4/英特尔Arc显卡/14英寸2.8K 广视角OLED背光显示屏 120Hz刷新率 500nit/内置SIM卡/12个月*15G/月流量/沉浸黑","original_price":"17799","sale_price":"17799","tags":["自营","企业购"],"source":"https://b.lenovo.com.cn/product/1044932.html","files":{"copywriting":"ThinkPad/02_SPU_联想_ThinkPad_X1_Carbon_Aura/商品文案.md","white_image":"ThinkPad/02_SPU_联想_ThinkPad_X1_Carbon_Aura/白底图.jpg","detail_image":"ThinkPad/02_SPU_联想_ThinkPad_X1_Carbon_Aura/详情图.jpg"},"uses_shared_spu_assets":true}],"asset_mode":"shared_spu_assets"},{"spu_id":"SPU-ThinkPad-003","short_name":"联想 ThinkPad X13","category":"ThinkPad","folder":"ThinkPad/03_SPU_联想_ThinkPad_X13","configuration_count":5,"representative_files":{"copywriting":"ThinkPad/03_SPU_联想_ThinkPad_X13/商品文案.md","white_image":"ThinkPad/03_SPU_联想_ThinkPad_X13/白底图.jpg","detail_image":"ThinkPad/03_SPU_联想_ThinkPad_X13/详情图.jpg"},"configurations":[{"configuration_id":"SPU-ThinkPad-003-SKU-01","configuration_name":"英特尔酷睿Ultra 7 255H / Windows 11 专业版 / 32GB LPDDR5x / 1TB SSD / 英特尔Arc显卡 / 13.3英寸 WUXGA LED背光显示屏 / 内置SIM卡 / 12个月*15G / 月流量 / 此款产品系统为Windows 11专业版不含office","sku_id":"1044931","original_name":"【企业购】联想ThinkPad X13 2025 酷睿Ultra 7 AI商旅本 A7CD","description":"英特尔酷睿Ultra 7 255H/Windows 11 专业版/32GB LPDDR5x/1TB SSD/英特尔Arc显卡/13.3英寸 WUXGA LED背光显示屏/内置SIM卡/12个月*15G/月流量/此款产品系统为Windows 11专业版不含office","original_price":"16799","sale_price":"16799","tags":["自营","企业购"],"source":"https://b.lenovo.com.cn/product/1044931.html","files":{"copywriting":"ThinkPad/03_SPU_联想_ThinkPad_X13/商品文案.md","white_image":"ThinkPad/03_SPU_联想_ThinkPad_X13/白底图.jpg","detail_image":"ThinkPad/03_SPU_联想_ThinkPad_X13/详情图.jpg"},"uses_shared_spu_assets":true},{"configuration_id":"SPU-ThinkPad-003-SKU-02","configuration_name":"英特尔酷睿Ultra 5 225H / Windows 11 家庭中文版 / 32GB LPDDR5x / 1TB SSD / 英特尔Arc显卡 / 13.3英寸 WUXGA LED背光显示屏 / 内置SIM卡 / 12个月*15G / 月流量","sku_id":"1044929","original_name":"【企业购】联想ThinkPad X13 2025 酷睿Ultra 5 AI商旅本 A5CD","description":"英特尔酷睿Ultra 5 225H/Windows 11 家庭中文版/32GB LPDDR5x/1TB SSD/英特尔Arc显卡/13.3英寸 WUXGA LED背光显示屏/内置SIM卡/12个月*15G/月流量","original_price":"13799","sale_price":"13799","tags":["自营","企业购"],"source":"https://b.lenovo.com.cn/product/1044929.html","files":{"copywriting":"ThinkPad/03_SPU_联想_ThinkPad_X13/商品文案.md","white_image":"ThinkPad/03_SPU_联想_ThinkPad_X13/白底图.jpg","detail_image":"ThinkPad/03_SPU_联想_ThinkPad_X13/详情图.jpg"},"uses_shared_spu_assets":true},{"configuration_id":"SPU-ThinkPad-003-SKU-03","configuration_name":"AMD 锐龙AI 7 445移动处理器 / Windows 11 家庭中文版 / 32GB LPDDR5x / 512GB SSD / 集成显卡 / 13.3英寸 WUXGA LED背光显示屏 100%sRGB 400nit","sku_id":"1055317","original_name":"【企业购】联想ThinkPad X13 2026 锐龙AI 7 便携AI商旅本 0QCD","description":"AMD 锐龙AI 7 445移动处理器/Windows 11 家庭中文版/32GB LPDDR5x/512GB SSD/集成显卡/13.3英寸 WUXGA LED背光显示屏 100%sRGB 400nit","original_price":"12499","sale_price":"12499","tags":["自营","企业购"],"source":"https://b.lenovo.com.cn/product/1055317.html","files":{"copywriting":"ThinkPad/03_SPU_联想_ThinkPad_X13/商品文案.md","white_image":"ThinkPad/03_SPU_联想_ThinkPad_X13/白底图.jpg","detail_image":"ThinkPad/03_SPU_联想_ThinkPad_X13/详情图.jpg"},"uses_shared_spu_assets":true},{"configuration_id":"SPU-ThinkPad-003-SKU-04","configuration_name":"AMD 锐龙AI 7 445移动处理器 / Windows 11 家庭中文版 / 32GB LPDDR5x / 1TB SSD / 集成显卡 / 13.3英寸 WUXGA LED背光显示屏 100%sRGB 400nit","sku_id":"1055318","original_name":"【企业购】联想ThinkPad X13 2026 锐龙AI 7 便携AI商旅本 0RCD","description":"AMD 锐龙AI 7 445移动处理器/Windows 11 家庭中文版/32GB LPDDR5x/1TB SSD/集成显卡/13.3英寸 WUXGA LED背光显示屏 100%sRGB 400nit","original_price":"13999","sale_price":"13499","tags":["自营","企业购"],"source":"https://b.lenovo.com.cn/product/1055318.html","files":{"copywriting":"ThinkPad/03_SPU_联想_ThinkPad_X13/商品文案.md","white_image":"ThinkPad/03_SPU_联想_ThinkPad_X13/白底图.jpg","detail_image":"ThinkPad/03_SPU_联想_ThinkPad_X13/详情图.jpg"},"uses_shared_spu_assets":true},{"configuration_id":"SPU-ThinkPad-003-SKU-05","configuration_name":"英特尔Ultra7 356H / Windows 11 专业版 / 32GB / 1TB固态硬盘 / 集成显卡 / 13.3英寸WUXGA LED背光显示屏 / 内置SIM卡 / 12个月*15G / 月流量","sku_id":"1055149","original_name":"【企业购】联想ThinkPad X13 2026 酷睿Ultra 7 全互联便携AI商旅本 2ACD","description":"英特尔Ultra7 356H/Windows 11 专业版/32GB/1TB固态硬盘/集成显卡/13.3英寸WUXGA LED背光显示屏/内置SIM卡/12个月*15G/月流量","original_price":"17799","sale_price":"17799","tags":["自营","企业购"],"source":"https://b.lenovo.com.cn/product/1055149.html","files":{"copywriting":"ThinkPad/03_SPU_联想_ThinkPad_X13/商品文案.md","white_image":"ThinkPad/03_SPU_联想_ThinkPad_X13/白底图.jpg","detail_image":"ThinkPad/03_SPU_联想_ThinkPad_X13/详情图.jpg"},"uses_shared_spu_assets":true}],"asset_mode":"shared_spu_assets"},{"spu_id":"SPU-ThinkBook-001","short_name":"联想 ThinkBook 16","category":"ThinkBook","folder":"ThinkBook/01_SPU_联想_ThinkBook_16","configuration_count":2,"representative_files":{"copywriting":"ThinkBook/01_SPU_联想_ThinkBook_16/商品文案.md","white_image":"ThinkBook/01_SPU_联想_ThinkBook_16/白底图.jpg","detail_image":"ThinkBook/01_SPU_联想_ThinkBook_16/详情图.jpg"},"configurations":[{"configuration_id":"SPU-ThinkBook-001-SKU-01","configuration_name":"英特尔酷睿Ultra 7 356H处理器 / Windows 11 家庭中文版 / 16G+16G / 1TB SSD / 核心显卡（Intel Graphics） / 16英寸2.5K 广视角 LED背光显示屏 120Hz刷新率 100% sRGB 400尼特 / 银灰色","sku_id":"1052135","original_name":"【企业购】ThinkBook 16 2026 酷睿Ultra 7 AI创造本 4XCD","description":"英特尔酷睿Ultra 7 356H处理器/Windows 11 家庭中文版/16G+16G/1TB SSD/核心显卡（Intel Graphics）/16英寸2.5K 广视角 LED背光显示屏 120Hz刷新率 100% sRGB 400尼特/银灰色","original_price":"13999","sale_price":"10999","tags":["自营","企业购"],"source":"https://b.lenovo.com.cn/product/1052135.html","files":{"copywriting":"ThinkBook/01_SPU_联想_ThinkBook_16/商品文案.md","white_image":"ThinkBook/01_SPU_联想_ThinkBook_16/白底图.jpg","detail_image":"ThinkBook/01_SPU_联想_ThinkBook_16/详情图.jpg"},"uses_shared_spu_assets":true},{"configuration_id":"SPU-ThinkBook-001-SKU-02","configuration_name":"AMD Ryzen 7 H 255移动处理器 / Windows 11 家庭中文版 / 16GB DDR5 / 512GB M.2 2242 PCIe Gen4 固态硬盘 / 核心显卡（AMD Radeon™ 780M） / 16英寸2.5K IPS LED背光显示屏 120Hz刷新率 400尼特 / 银灰色","sku_id":"1056625","original_name":"【企业购】联想ThinkBook 16 2026 锐龙版R7 创造本 6HCD","description":"AMD Ryzen 7 H 255移动处理器/Windows 11 家庭中文版/16GB DDR5/512GB M.2 2242 PCIe Gen4 固态硬盘/核心显卡（AMD Radeon™ 780M）/16英寸2.5K IPS LED背光显示屏 120Hz刷新率 400尼特/银灰色","original_price":"8499","sale_price":"8499","tags":["自营","企业购"],"source":"https://b.lenovo.com.cn/product/1056625.html","files":{"copywriting":"ThinkBook/01_SPU_联想_ThinkBook_16/商品文案.md","white_image":"ThinkBook/01_SPU_联想_ThinkBook_16/白底图.jpg","detail_image":"ThinkBook/01_SPU_联想_ThinkBook_16/详情图.jpg"},"uses_shared_spu_assets":true}],"asset_mode":"shared_spu_assets"},{"spu_id":"SPU-ThinkBook-002","short_name":"联想 ThinkBook 14","category":"ThinkBook","folder":"ThinkBook/02_SPU_联想_ThinkBook_14","configuration_count":2,"representative_files":{"copywriting":"ThinkBook/02_SPU_联想_ThinkBook_14/商品文案.md","white_image":"ThinkBook/02_SPU_联想_ThinkBook_14/白底图.jpg","detail_image":"ThinkBook/02_SPU_联想_ThinkBook_14/详情图.jpg"},"configurations":[{"configuration_id":"SPU-ThinkBook-002-SKU-01","configuration_name":"英特尔酷睿Ultra 5 336H处理器 / Windows 11 家庭中文版 / 16G+16G DDR5 / 1TB SSD / 核心显卡（Intel Graphics） / 14英寸2.8K 广视角 LED背光显示屏 120Hz刷新率 100% sRGB 500尼特 / 银灰色","sku_id":"1052138","original_name":"【企业购】ThinkBook 14 2026 酷睿Ultra 5 AI创造本 5ACD","description":"英特尔酷睿Ultra 5 336H处理器/Windows 11 家庭中文版/16G+16G DDR5/1TB SSD/核心显卡（Intel Graphics）/14英寸2.8K 广视角 LED背光显示屏 120Hz刷新率 100% sRGB 500尼特/银灰色","original_price":"11999","sale_price":"9999","tags":["自营","企业购"],"source":"https://b.lenovo.com.cn/product/1052138.html","files":{"copywriting":"ThinkBook/02_SPU_联想_ThinkBook_14/商品文案.md","white_image":"ThinkBook/02_SPU_联想_ThinkBook_14/白底图.jpg","detail_image":"ThinkBook/02_SPU_联想_ThinkBook_14/详情图.jpg"},"uses_shared_spu_assets":true},{"configuration_id":"SPU-ThinkBook-002-SKU-02","configuration_name":"AMD Ryzen 7 H 255移动处理器 / Windows 11 家庭中文版 / 16GB DDR5 / 512GB M.2 2242 PCIe Gen4 固态硬盘 / 核心显卡（AMD Radeon™ 780M） / 14英寸2.8K IPS LED背光显示屏 120Hz刷新率 500尼特 / 银灰色","sku_id":"1056624","original_name":"【企业购】联想ThinkBook 14 2026 锐龙版R7 创造本 6QCD","description":"AMD Ryzen 7 H 255移动处理器/Windows 11 家庭中文版/16GB DDR5/512GB M.2 2242 PCIe Gen4 固态硬盘/核心显卡（AMD Radeon™ 780M）/14英寸2.8K IPS LED背光显示屏 120Hz刷新率 500尼特/银灰色","original_price":"8499","sale_price":"8499","tags":["自营","企业购"],"source":"https://b.lenovo.com.cn/product/1056624.html","files":{"copywriting":"ThinkBook/02_SPU_联想_ThinkBook_14/商品文案.md","white_image":"ThinkBook/02_SPU_联想_ThinkBook_14/白底图.jpg","detail_image":"ThinkBook/02_SPU_联想_ThinkBook_14/详情图.jpg"},"uses_shared_spu_assets":true}],"asset_mode":"shared_spu_assets"},{"spu_id":"SPU-ThinkBook-003","short_name":"联想 ThinkBook 14+","category":"ThinkBook","folder":"ThinkBook/03_SPU_联想_ThinkBook_14+","configuration_count":3,"representative_files":{"copywriting":"ThinkBook/03_SPU_联想_ThinkBook_14+/商品文案.md","white_image":"ThinkBook/03_SPU_联想_ThinkBook_14+/白底图.jpg","detail_image":"ThinkBook/03_SPU_联想_ThinkBook_14+/详情图.jpg"},"configurations":[{"configuration_id":"SPU-ThinkBook-003-SKU-01","configuration_name":"英特尔酷睿Ultra X7 358H / Windows 11 家庭中文版 / 32GB LPDDR5x / 1TB M.2 2242 PCIe Gen4 固态硬盘 / 核心显卡（Intel® Arc™ B390） / 14.5英寸3K 广视角 LED背光显示屏 100%DCI-P3 120Hz刷新率 500尼特 / 星耀白","sku_id":"1053001","original_name":"【企业购】联想ThinkBook 14+ 2026 酷睿Ultra X7 AI全能本 08CD","description":"英特尔酷睿Ultra X7 358H/Windows 11 家庭中文版/32GB LPDDR5x/1TB M.2 2242 PCIe Gen4 固态硬盘/核心显卡（Intel® Arc™ B390）/14.5英寸3K 广视角 LED背光显示屏 100%DCI-P3 120Hz刷新率 500尼特/星耀白","original_price":"13599","sale_price":"12999","tags":["自营","企业购"],"source":"https://b.lenovo.com.cn/product/1053001.html","files":{"copywriting":"ThinkBook/03_SPU_联想_ThinkBook_14+/商品文案.md","white_image":"ThinkBook/03_SPU_联想_ThinkBook_14+/白底图.jpg","detail_image":"ThinkBook/03_SPU_联想_ThinkBook_14+/详情图.jpg"},"uses_shared_spu_assets":true},{"configuration_id":"SPU-ThinkBook-003-SKU-02","configuration_name":"英特尔酷睿Ultra X7 358H / Windows 11 家庭中文版 / 32GB LPCAMM2 8533MT / s / 1TB M.2 2242 PCIe G5 TLC 固态硬盘 / 核心显卡（Intel® Arc™ B390） / 14.5英寸 3K IPS LED背光显示屏（3072 × 1920），120Hz刷新率，500nits，HDR400 / Forcepad（全域感压触摸板） / 月夜灰","sku_id":"1055321","original_name":"【企业购】联想ThinkBook 14+ 2026 酷睿Ultra X7 FIFA世界杯限量版 0CCD","description":"英特尔酷睿Ultra X7 358H/Windows 11 家庭中文版/32GB LPCAMM2 8533MT/s /1TB M.2 2242 PCIe G5 TLC 固态硬盘 /核心显卡（Intel® Arc™ B390）/14.5英寸 3K IPS LED背光显示屏（3072 × 1920），120Hz刷新率，500nits，HDR400/Forcepad（全域感压触摸板）/月夜灰","original_price":"13999","sale_price":"12999","tags":["自营","企业购"],"source":"https://b.lenovo.com.cn/product/1055321.html","files":{"copywriting":"ThinkBook/03_SPU_联想_ThinkBook_14+/商品文案.md","white_image":"ThinkBook/03_SPU_联想_ThinkBook_14+/白底图.jpg","detail_image":"ThinkBook/03_SPU_联想_ThinkBook_14+/详情图.jpg"},"uses_shared_spu_assets":true},{"configuration_id":"SPU-ThinkBook-003-SKU-03","configuration_name":"AMD Ryzen™ AI 7 H 450移动处理器 / Windows 11 家庭中文版 / 32GB LPDDR5x / 1TB M.2 2242 PCIe Gen4 固态硬盘 / 核心显卡（AMD Radeon™ 860M） / 14.5英寸3K 广视角 LED背光显示屏 100%DCI-P3 120Hz刷新率 500尼特 / 星耀白","sku_id":"1052866","original_name":"【企业购】联想ThinkBook 14+ 2026 锐龙版R7 全能本 02CD","description":"AMD Ryzen™ AI 7 H 450移动处理器/Windows 11 家庭中文版/32GB LPDDR5x/1TB M.2 2242 PCIe Gen4 固态硬盘/核心显卡（AMD Radeon™ 860M）/14.5英寸3K 广视角 LED背光显示屏 100%DCI-P3 120Hz刷新率 500尼特/星耀白","original_price":"10699","sale_price":"10299","tags":["自营","企业购"],"source":"https://b.lenovo.com.cn/product/1052866.html","files":{"copywriting":"ThinkBook/03_SPU_联想_ThinkBook_14+/商品文案.md","white_image":"ThinkBook/03_SPU_联想_ThinkBook_14+/白底图.jpg","detail_image":"ThinkBook/03_SPU_联想_ThinkBook_14+/详情图.jpg"},"uses_shared_spu_assets":true}],"asset_mode":"shared_spu_assets"},{"spu_id":"SPU-ThinkBook-004","short_name":"联想 ThinkBook 16+","category":"ThinkBook","folder":"ThinkBook/04_SPU_联想_ThinkBook_16+","configuration_count":2,"representative_files":{"copywriting":"ThinkBook/04_SPU_联想_ThinkBook_16+/商品文案.md","white_image":"ThinkBook/04_SPU_联想_ThinkBook_16+/白底图.jpg","detail_image":"ThinkBook/04_SPU_联想_ThinkBook_16+/详情图.jpg"},"configurations":[{"configuration_id":"SPU-ThinkBook-004-SKU-01","configuration_name":"英特尔酷睿Ultra X7 358H / Windows 11 家庭中文版 / 32GB LPCAMM2 / 1TB M.2 2242 PCIe Gen5 固态硬盘 / 核心显卡（Intel® Arc™ B390） / 16英寸3.2K 广视角 LED背光显示屏 100%DCI-P3 165Hz刷新率 500尼特 HDR400 / 月夜灰","sku_id":"1053008","original_name":"【企业购】联想ThinkBook 16+ 2026 酷睿Ultra X7 AI全能本 09CD","description":"英特尔酷睿Ultra X7 358H/Windows 11 家庭中文版/32GB LPCAMM2/1TB M.2 2242 PCIe Gen5 固态硬盘/核心显卡（Intel® Arc™ B390）/16英寸3.2K 广视角 LED背光显示屏 100%DCI-P3 165Hz刷新率 500尼特 HDR400/月夜灰","original_price":"13599","sale_price":"12999","tags":["自营","企业购"],"source":"https://b.lenovo.com.cn/product/1053008.html","files":{"copywriting":"ThinkBook/04_SPU_联想_ThinkBook_16+/商品文案.md","white_image":"ThinkBook/04_SPU_联想_ThinkBook_16+/白底图.jpg","detail_image":"ThinkBook/04_SPU_联想_ThinkBook_16+/详情图.jpg"},"uses_shared_spu_assets":true},{"configuration_id":"SPU-ThinkBook-004-SKU-02","configuration_name":"英特尔酷睿Ultra 7 356H / Windows 11 家庭中文版 / 32GB LPCAMM2 / 1TB M.2 2242 PCIe Gen5 固态硬盘 / NVIDIA GeForce RTX5060 / 16英寸3.2K 广视角 LED背光显示屏 100%DCI-P3 165Hz刷新率 500尼特 HDR400 / 星耀白","sku_id":"1053501","original_name":"【企业购】ThinkBook 16+ 2026 酷睿Ultra 7 AI全能本 04CD","description":"英特尔酷睿Ultra 7 356H/Windows 11 家庭中文版/32GB LPCAMM2/1TB M.2 2242 PCIe Gen5 固态硬盘/NVIDIA GeForce RTX5060/16英寸3.2K 广视角 LED背光显示屏 100%DCI-P3 165Hz刷新率 500尼特 HDR400/星耀白","original_price":"14999","sale_price":"14999","tags":["自营","企业购"],"source":"https://b.lenovo.com.cn/product/1053501.html","files":{"copywriting":"ThinkBook/04_SPU_联想_ThinkBook_16+/商品文案.md","white_image":"ThinkBook/04_SPU_联想_ThinkBook_16+/白底图.jpg","detail_image":"ThinkBook/04_SPU_联想_ThinkBook_16+/详情图.jpg"},"uses_shared_spu_assets":true}],"asset_mode":"shared_spu_assets"},{"spu_id":"SPU-ThinkBook-005","short_name":"联想 ThinkBook X","category":"ThinkBook","folder":"ThinkBook/05_SPU_联想_ThinkBook_X","configuration_count":1,"representative_files":{"copywriting":"ThinkBook/05_SPU_联想_ThinkBook_X/商品文案.md","white_image":"ThinkBook/05_SPU_联想_ThinkBook_X/白底图.jpg","detail_image":"ThinkBook/05_SPU_联想_ThinkBook_X/详情图.jpg"},"configurations":[{"configuration_id":"SPU-ThinkBook-005-SKU-01","configuration_name":"英特尔酷睿Ultra7 266V / Windows 11 家庭中文版 / 16GB LPDDR5x / 1TB M.2 2242 PCIe Gen4 固态硬盘 / Intel Arc 140V显卡 / 14英寸2.8K OLED背光显示（2880 x 1800） 500尼特 120Hz刷新率 100% DCI-P3色域 / 玻璃触控板 / 星河紫","sku_id":"1057106","original_name":"【企业购】联想ThinkBook X 2026 酷睿Ultra7 轻颜系创造本 0FCD","description":"英特尔酷睿Ultra7 266V/Windows 11 家庭中文版/16GB LPDDR5x/1TB M.2 2242 PCIe Gen4 固态硬盘/Intel Arc 140V显卡/14英寸2.8K OLED背光显示（2880 x 1800） 500尼特 120Hz刷新率 100% DCI-P3色域/玻璃触控板/星河紫","original_price":"11999","sale_price":"9299","tags":["自营","企业购"],"source":"https://b.lenovo.com.cn/product/1057106.html","files":{"copywriting":"ThinkBook/05_SPU_联想_ThinkBook_X/商品文案.md","white_image":"ThinkBook/05_SPU_联想_ThinkBook_X/白底图.jpg","detail_image":"ThinkBook/05_SPU_联想_ThinkBook_X/详情图.jpg"},"uses_shared_spu_assets":true}],"asset_mode":"shared_spu_assets"},{"spu_id":"SPU-ThinkBook-006","short_name":"联想 ThinkBook Plus 卷轴屏","category":"ThinkBook","folder":"ThinkBook/06_SPU_联想_ThinkBook_Plus_卷轴屏","configuration_count":1,"representative_files":{"copywriting":"ThinkBook/06_SPU_联想_ThinkBook_Plus_卷轴屏/商品文案.md","white_image":"ThinkBook/06_SPU_联想_ThinkBook_Plus_卷轴屏/白底图.jpg","detail_image":"ThinkBook/06_SPU_联想_ThinkBook_Plus_卷轴屏/详情图.jpg"},"configurations":[{"configuration_id":"SPU-ThinkBook-006-SKU-01","configuration_name":"英特尔酷睿Ultra 7 258V / Windows 11 家庭版 / 32GB LPDDR5x / 1TB M.2 PCIe 4.0固态硬盘 / 核心显卡（Intel Arc graphics） / 14英寸（2000*1600）卷轴屏可延伸至16.7英寸（2000*2350） / Flexible OLED屏幕 / 400尼特 / 120Hz / 100%DCI-P3 / 月神灰","sku_id":"1050149","original_name":"【企业购】ThinkBook Plus 卷轴屏 2025 AI元启版 酷睿Ultra 7 电脑","description":"英特尔酷睿Ultra 7 258V/Windows 11 家庭版/32GB LPDDR5x/1TB M.2 PCIe 4.0固态硬盘/核心显卡（Intel Arc graphics）/14英寸（2000*1600）卷轴屏可延伸至16.7英寸（2000*2350）/Flexible OLED屏幕/400尼特/120Hz/100%DCI-P3/月神灰","original_price":"29999","sale_price":"29999","tags":["自营","企业购"],"source":"https://b.lenovo.com.cn/product/1050149.html","files":{"copywriting":"ThinkBook/06_SPU_联想_ThinkBook_Plus_卷轴屏/商品文案.md","white_image":"ThinkBook/06_SPU_联想_ThinkBook_Plus_卷轴屏/白底图.jpg","detail_image":"ThinkBook/06_SPU_联想_ThinkBook_Plus_卷轴屏/详情图.jpg"},"uses_shared_spu_assets":true}],"asset_mode":"shared_spu_assets"},{"spu_id":"SPU-ThinkBook-007","short_name":"联想 ThinkBook Plus Hybrid","category":"ThinkBook","folder":"ThinkBook/07_SPU_联想_ThinkBook_Plus_Hybrid","configuration_count":1,"representative_files":{"copywriting":"ThinkBook/07_SPU_联想_ThinkBook_Plus_Hybrid/商品文案.md","white_image":"ThinkBook/07_SPU_联想_ThinkBook_Plus_Hybrid/白底图.jpg","detail_image":"ThinkBook/07_SPU_联想_ThinkBook_Plus_Hybrid/详情图.jpg"},"configurations":[{"configuration_id":"SPU-ThinkBook-007-SKU-01","configuration_name":"酷睿Ultra 7 155H处理器 / Windows 11 家庭中文版 / 32GB LPDDR5x / 1TB M.2 PCIe 4.0固态硬盘 / 核心显卡（Intel Arc graphics） / 14英寸2.8K 100% DCI-P3 60Hz刷新率 触屏 / 触控笔","sku_id":"1038014","original_name":"企业购ThinkBook Plus Hybrid 酷睿Ultra 7 平板笔记本二合一电脑","description":"酷睿Ultra 7 155H处理器/Windows 11 家庭中文版/32GB LPDDR5x/1TB M.2 PCIe 4.0固态硬盘/核心显卡（Intel Arc graphics）/14英寸2.8K 100% DCI-P3 60Hz刷新率 触屏/触控笔","original_price":"15999","sale_price":"17999","tags":["自营","企业购"],"source":"https://b.lenovo.com.cn/product/1038014.html","files":{"copywriting":"ThinkBook/07_SPU_联想_ThinkBook_Plus_Hybrid/商品文案.md","white_image":"ThinkBook/07_SPU_联想_ThinkBook_Plus_Hybrid/白底图.jpg","detail_image":"ThinkBook/07_SPU_联想_ThinkBook_Plus_Hybrid/详情图.jpg"},"uses_shared_spu_assets":true}],"asset_mode":"shared_spu_assets"},{"spu_id":"SPU-扬天-001","short_name":"联想扬天 V15","category":"扬天","folder":"扬天/01_SPU_联想扬天_V15","configuration_count":4,"representative_files":{"copywriting":"扬天/01_SPU_联想扬天_V15/商品文案.md","white_image":"扬天/01_SPU_联想扬天_V15/白底图.jpg","detail_image":"扬天/01_SPU_联想扬天_V15/详情图.jpg"},"configurations":[{"configuration_id":"SPU-扬天-001-SKU-01","configuration_name":"AMD Ryzen™7 170移动处理器 / Windows 11 家庭中文版 / 16G / 512GB SSD / 集成显卡 / 15.6英寸FHD IPS 300nit 显示屏 / 灰色","sku_id":"1056443","original_name":"【企业购】联想扬天 V15 2026 商用笔记本电脑 00CD","description":"AMD Ryzen™7 170移动处理器/Windows 11 家庭中文版/16G/512GB SSD/集成显卡/15.6英寸FHD IPS 300nit 显示屏/灰色","original_price":"5799","sale_price":"5799","tags":["自营","企业购"],"source":"https://b.lenovo.com.cn/product/1056443.html","files":{"copywriting":"扬天/01_SPU_联想扬天_V15/商品文案.md","white_image":"扬天/01_SPU_联想扬天_V15/白底图.jpg","detail_image":"扬天/01_SPU_联想扬天_V15/详情图.jpg"},"uses_shared_spu_assets":true},{"configuration_id":"SPU-扬天-001-SKU-02","configuration_name":"英特尔酷睿 3 304 / Windows 11 家庭中文版 / 8G / 512GB SSD / 集成显卡 / 15.6英寸FHD TN 300nit 显示屏（1920 X 1080） / 灰色","sku_id":"1056506","original_name":"【企业购】联想扬天 V15 2026 商用笔记本电脑 BHCD","description":"英特尔酷睿 3 304/Windows 11 家庭中文版/8G/512GB SSD/集成显卡/15.6英寸FHD TN 300nit 显示屏（1920 X 1080）/灰色","original_price":"4999","sale_price":"4999","tags":["自营","企业购"],"source":"https://b.lenovo.com.cn/product/1056506.html","files":{"copywriting":"扬天/01_SPU_联想扬天_V15/商品文案.md","white_image":"扬天/01_SPU_联想扬天_V15/白底图.jpg","detail_image":"扬天/01_SPU_联想扬天_V15/详情图.jpg"},"uses_shared_spu_assets":true},{"configuration_id":"SPU-扬天-001-SKU-03","configuration_name":"AMD Ryzen™7 170移动处理器 / Windows 11 家庭中文版 / 16G / 1T SSD / 集成显卡 / 15.6英寸FHD IPS 300nit 显示屏 / 灰色","sku_id":"1051472","original_name":"【企业购】联想扬天 V15 2026 锐龙版商用笔记本电脑 05CD","description":"AMD Ryzen™7 170移动处理器/Windows 11 家庭中文版/16G/1T SSD/集成显卡/15.6英寸FHD IPS 300nit 显示屏/灰色","original_price":"6499","sale_price":"6499","tags":["自营","企业购"],"source":"https://b.lenovo.com.cn/product/1051472.html","files":{"copywriting":"扬天/01_SPU_联想扬天_V15/商品文案.md","white_image":"扬天/01_SPU_联想扬天_V15/白底图.jpg","detail_image":"扬天/01_SPU_联想扬天_V15/详情图.jpg"},"uses_shared_spu_assets":true},{"configuration_id":"SPU-扬天-001-SKU-04","configuration_name":"英特尔酷睿 7 240H / Windows 11 家庭中文版 / 16G / 1T SSD / UHD Graphics （集显） / 15.6英寸FHD IPS 300nit 显示屏 / 灰色","sku_id":"1050747","original_name":"【企业购】联想扬天 V15 2025 英特尔酷睿 7 商用笔记本 DNCD","description":"英特尔酷睿 7 240H/Windows 11 家庭中文版/16G/1T SSD/UHD Graphics （集显）/15.6英寸FHD IPS 300nit 显示屏/灰色","original_price":"7499","sale_price":"7499","tags":["自营","企业购"],"source":"https://b.lenovo.com.cn/product/1050747.html","files":{"copywriting":"扬天/01_SPU_联想扬天_V15/商品文案.md","white_image":"扬天/01_SPU_联想扬天_V15/白底图.jpg","detail_image":"扬天/01_SPU_联想扬天_V15/详情图.jpg"},"uses_shared_spu_assets":true}],"asset_mode":"shared_spu_assets"},{"spu_id":"SPU-扬天-002","short_name":"联想扬天 M4000q","category":"扬天","folder":"扬天/02_SPU_联想扬天_M4000q","configuration_count":6,"representative_files":{"copywriting":"扬天/02_SPU_联想扬天_M4000q/商品文案.md","white_image":"扬天/02_SPU_联想扬天_M4000q/白底图.jpg","detail_image":"扬天/02_SPU_联想扬天_M4000q/详情图.jpg"},"configurations":[{"configuration_id":"SPU-扬天-002-SKU-01","configuration_name":"第14代智能英特尔酷睿i3-14100 / Windows 11 家庭中文版 / 8G / 512GB SSD / 集成显卡 / 3年有限保修（全国有限上门，其中第2 / 3年仅主要部件保修）百应在线顾问","sku_id":"1056604","original_name":"【企业购】联想扬天M4000q 2025 英特尔酷睿i3 商用台式机电脑 0NCD","description":"第14代智能英特尔酷睿i3-14100/Windows 11 家庭中文版/8G/512GB SSD/集成显卡/3年有限保修（全国有限上门，其中第2/3年仅主要部件保修）百应在线顾问","original_price":"5099","sale_price":"5099","tags":["自营","企业购"],"source":"https://b.lenovo.com.cn/product/1056604.html","files":{"copywriting":"扬天/02_SPU_联想扬天_M4000q/商品文案.md","white_image":"扬天/02_SPU_联想扬天_M4000q/白底图.jpg","detail_image":"扬天/02_SPU_联想扬天_M4000q/详情图.jpg"},"uses_shared_spu_assets":true},{"configuration_id":"SPU-扬天-002-SKU-02","configuration_name":"第14代智能英特尔酷睿i5-14400 / Windows 11 家庭中文版 / 8G / 512GB SSD / 集成显卡 / 3年有限保修（全国有限上门，其中第2 / 3年仅主要部件保修）百应在线顾问","sku_id":"1056248","original_name":"【企业购】联想扬天M4000q 2024 英特尔酷睿i5 商用台式机电脑 0QCD","description":"第14代智能英特尔酷睿i5-14400/Windows 11 家庭中文版/8G/512GB SSD/集成显卡/3年有限保修（全国有限上门，其中第2/3年仅主要部件保修）百应在线顾问","original_price":"5499","sale_price":"5499","tags":["自营","企业购"],"source":"https://b.lenovo.com.cn/product/1056248.html","files":{"copywriting":"扬天/02_SPU_联想扬天_M4000q/商品文案.md","white_image":"扬天/02_SPU_联想扬天_M4000q/白底图.jpg","detail_image":"扬天/02_SPU_联想扬天_M4000q/详情图.jpg"},"uses_shared_spu_assets":true},{"configuration_id":"SPU-扬天-002-SKU-03","configuration_name":"英特尔酷睿Ultra 7 265 / Windows 11 家庭中文版 / 32G / 1T SSD / 集成显卡 / 扬天台式机三年（有限）保修（上门）","sku_id":"1053186","original_name":"【企业购】扬天M4000q 英特尔酷睿U7 商用台式机电脑 0DCD","description":"英特尔酷睿Ultra 7 265/Windows 11 家庭中文版/32G /1T SSD/集成显卡/扬天台式机三年（有限）保修（上门）","original_price":"8099","sale_price":"8099","tags":["自营","企业购"],"source":"https://b.lenovo.com.cn/product/1053186.html","files":{"copywriting":"扬天/02_SPU_联想扬天_M4000q/商品文案.md","white_image":"扬天/02_SPU_联想扬天_M4000q/白底图.jpg","detail_image":"扬天/02_SPU_联想扬天_M4000q/详情图.jpg"},"uses_shared_spu_assets":true},{"configuration_id":"SPU-扬天-002-SKU-04","configuration_name":"英特尔酷睿Ultra 7 265 / Windows 11 家庭中文版 / 16G / 1T SSD / 集成显卡 / 扬天台式机三年（有限）保修（上门）","sku_id":"1051161","original_name":"【企业购】扬天M4000q 英特尔酷睿U7 商用台式机电脑 07CD","description":"英特尔酷睿Ultra 7 265/Windows 11 家庭中文版/16G /1T SSD/集成显卡/扬天台式机三年（有限）保修（上门）","original_price":"7099","sale_price":"7099","tags":["自营","企业购"],"source":"https://b.lenovo.com.cn/product/1051161.html","files":{"copywriting":"扬天/02_SPU_联想扬天_M4000q/商品文案.md","white_image":"扬天/02_SPU_联想扬天_M4000q/白底图.jpg","detail_image":"扬天/02_SPU_联想扬天_M4000q/详情图.jpg"},"uses_shared_spu_assets":true},{"configuration_id":"SPU-扬天-002-SKU-05","configuration_name":"英特尔酷睿Ultra 7 265 / Windows 11 家庭中文版 / 16G / 1T SSD / 集成显卡 / 扬天台式机三年（有限）保修（上门）","sku_id":"1053185","original_name":"【企业购】扬天M4000q 英特尔酷睿U7 商用台式机电脑 0CCD","description":"英特尔酷睿Ultra 7 265/Windows 11 家庭中文版/16G /1T SSD/集成显卡/扬天台式机三年（有限）保修（上门）","original_price":"7099","sale_price":"7099","tags":["自营","企业购"],"source":"https://b.lenovo.com.cn/product/1053185.html","files":{"copywriting":"扬天/02_SPU_联想扬天_M4000q/商品文案.md","white_image":"扬天/02_SPU_联想扬天_M4000q/白底图.jpg","detail_image":"扬天/02_SPU_联想扬天_M4000q/详情图.jpg"},"uses_shared_spu_assets":true},{"configuration_id":"SPU-扬天-002-SKU-06","configuration_name":"英特尔酷睿Ultra 3 205 / Windows 11 家庭中文版 / 16G / 512 SSD / 集成显卡 / 扬天台式机三年（有限）保修（上门）","sku_id":"1054831","original_name":"扬天M4000q 英特尔酷睿U3 商用台式机电脑 0GCD","description":"英特尔酷睿Ultra 3 205/Windows 11 家庭中文版/16G /512 SSD/集成显卡/扬天台式机三年（有限）保修（上门）","original_price":"4999","sale_price":"4999","tags":["自营","企业购"],"source":"https://b.lenovo.com.cn/product/1054831.html","files":{"copywriting":"扬天/02_SPU_联想扬天_M4000q/商品文案.md","white_image":"扬天/02_SPU_联想扬天_M4000q/白底图.jpg","detail_image":"扬天/02_SPU_联想扬天_M4000q/详情图.jpg"},"uses_shared_spu_assets":true}],"asset_mode":"shared_spu_assets"},{"spu_id":"SPU-办公-001","short_name":"联想 ThinkVision S24-4e","category":"办公","folder":"办公/01_SPU_联想_ThinkVision_S24-4e","configuration_count":1,"representative_files":{"copywriting":"办公/01_SPU_联想_ThinkVision_S24-4e/商品文案.md","white_image":"办公/01_SPU_联想_ThinkVision_S24-4e/白底图.jpg","detail_image":"办公/01_SPU_联想_ThinkVision_S24-4e/详情图.jpg"},"configurations":[{"configuration_id":"SPU-办公-001-SKU-01","configuration_name":"23.8英寸FHD，IPS技术三边窄边框面板 / 99% sRGB色域覆盖 / 原生100Hz刷新率","sku_id":"1052987","original_name":"【企业购】联想ThinkVision S24-4e FHD 100Hz 23.8英寸IPS显示器","description":"23.8英寸FHD，IPS技术三边窄边框面板丨 99% sRGB色域覆盖丨原生100Hz刷新率","original_price":"549","sale_price":"549","tags":["自营","企业购"],"source":"https://b.lenovo.com.cn/product/1052987.html","files":{"copywriting":"办公/01_SPU_联想_ThinkVision_S24-4e/商品文案.md","white_image":"办公/01_SPU_联想_ThinkVision_S24-4e/白底图.jpg","detail_image":"办公/01_SPU_联想_ThinkVision_S24-4e/详情图.jpg"},"uses_shared_spu_assets":true}],"asset_mode":"shared_spu_assets"},{"spu_id":"SPU-办公-002","short_name":"联想/ThinkVision 23.8英寸视频会议显示器 T24v-30","category":"办公","folder":"办公/02_SPU_联想_ThinkVision_23.8英寸视频会议显示器_T24v-30","configuration_count":1,"representative_files":{"copywriting":"办公/02_SPU_联想_ThinkVision_23.8英寸视频会议显示器_T24v-30/商品文案.md","white_image":"办公/02_SPU_联想_ThinkVision_23.8英寸视频会议显示器_T24v-30/白底图.jpg","detail_image":"办公/02_SPU_联想_ThinkVision_23.8英寸视频会议显示器_T24v-30/详情图.jpg"},"configurations":[{"configuration_id":"SPU-办公-002-SKU-01","configuration_name":"2K 超清视频会议屏、硬件护眼 / 自带摄像头、可升降人体工学支架 / 享多品牌全品类以旧换新补贴，买台机加购显示器立减100元","sku_id":"1037592","original_name":"【企业购】联想/ThinkVision 23.8英寸视频会议显示器 T24v-30","description":"2K 超清视频会议屏、硬件护眼丨自带摄像头、可升降人体工学支架丨享多品牌全品类以旧换新补贴，买台机加购显示器立减100元","original_price":"1549","sale_price":"1599","tags":["自营","企业购"],"source":"https://b.lenovo.com.cn/product/1037592.html","files":{"copywriting":"办公/02_SPU_联想_ThinkVision_23.8英寸视频会议显示器_T24v-30/商品文案.md","white_image":"办公/02_SPU_联想_ThinkVision_23.8英寸视频会议显示器_T24v-30/白底图.jpg","detail_image":"办公/02_SPU_联想_ThinkVision_23.8英寸视频会议显示器_T24v-30/详情图.jpg"},"uses_shared_spu_assets":true}],"asset_mode":"shared_spu_assets"},{"spu_id":"SPU-办公-003","short_name":"联想 ThinkVision S27-4e","category":"办公","folder":"办公/03_SPU_联想_ThinkVision_S27-4e","configuration_count":1,"representative_files":{"copywriting":"办公/03_SPU_联想_ThinkVision_S27-4e/商品文案.md","white_image":"办公/03_SPU_联想_ThinkVision_S27-4e/白底图.jpg","detail_image":"办公/03_SPU_联想_ThinkVision_S27-4e/详情图.jpg"},"configurations":[{"configuration_id":"SPU-办公-003-SKU-01","configuration_name":"27英寸 IPS 高刷办公屏 / 100HZ高刷新率 / 对比度升级至1500:1","sku_id":"1052988","original_name":"【企业购】联想ThinkVision S27-4e FHD 100Hz 27英寸IPS显示器","description":"27英寸 IPS 高刷办公屏丨100HZ高刷新率丨对比度升级至1500:1","original_price":"769","sale_price":"769","tags":["自营","企业购"],"source":"https://b.lenovo.com.cn/product/1052988.html","files":{"copywriting":"办公/03_SPU_联想_ThinkVision_S27-4e/商品文案.md","white_image":"办公/03_SPU_联想_ThinkVision_S27-4e/白底图.jpg","detail_image":"办公/03_SPU_联想_ThinkVision_S27-4e/详情图.jpg"},"uses_shared_spu_assets":true}],"asset_mode":"shared_spu_assets"},{"spu_id":"SPU-办公-004","short_name":"联想/ThinkVision 27英寸 显示器 P27h-30","category":"办公","folder":"办公/04_SPU_联想_ThinkVision_27英寸_显示器_P27h-30","configuration_count":1,"representative_files":{"copywriting":"办公/04_SPU_联想_ThinkVision_27英寸_显示器_P27h-30/商品文案.md","white_image":"办公/04_SPU_联想_ThinkVision_27英寸_显示器_P27h-30/白底图.jpg","detail_image":"办公/04_SPU_联想_ThinkVision_27英寸_显示器_P27h-30/详情图.jpg"},"configurations":[{"configuration_id":"SPU-办公-004-SKU-01","configuration_name":"2K真彩全面屏 、四边窄边框、原生硬件低蓝光面板 / Type-C一线连接+供电、可升降旋转人体工学支架 / 享多品牌全品类以旧换新补贴","sku_id":"1037590","original_name":"【企业购】联想/ThinkVision 27英寸 显示器 P27h-30","description":"2K真彩全面屏 、四边窄边框、原生硬件低蓝光面板丨Type-C一线连接+供电、可升降旋转人体工学支架丨享多品牌全品类以旧换新补贴","original_price":"2199","sale_price":"1999","tags":["自营","企业购"],"source":"https://b.lenovo.com.cn/product/1037590.html","files":{"copywriting":"办公/04_SPU_联想_ThinkVision_27英寸_显示器_P27h-30/商品文案.md","white_image":"办公/04_SPU_联想_ThinkVision_27英寸_显示器_P27h-30/白底图.jpg","detail_image":"办公/04_SPU_联想_ThinkVision_27英寸_显示器_P27h-30/详情图.jpg"},"uses_shared_spu_assets":true}],"asset_mode":"shared_spu_assets"},{"spu_id":"SPU-办公-005","short_name":"联想 ThinkVision M16","category":"办公","folder":"办公/05_SPU_联想_ThinkVision_M16","configuration_count":1,"representative_files":{"copywriting":"办公/05_SPU_联想_ThinkVision_M16/商品文案.md","white_image":"办公/05_SPU_联想_ThinkVision_M16/白底图.jpg","detail_image":"办公/05_SPU_联想_ThinkVision_M16/详情图.jpg"},"configurations":[{"configuration_id":"SPU-办公-005-SKU-01","configuration_name":"雾面屏 | 硬件低蓝光 | Type-C 一线直连","sku_id":"1055426","original_name":"【企业购】联想ThinkVision M16 16英寸16:10便携IPS显示器","description":"雾面屏 | 硬件低蓝光 | Type-C 一线直连","original_price":"969","sale_price":"969","tags":["自营","企业购"],"source":"https://b.lenovo.com.cn/product/1055426.html","files":{"copywriting":"办公/05_SPU_联想_ThinkVision_M16/商品文案.md","white_image":"办公/05_SPU_联想_ThinkVision_M16/白底图.jpg","detail_image":"办公/05_SPU_联想_ThinkVision_M16/详情图.jpg"},"uses_shared_spu_assets":true}],"asset_mode":"shared_spu_assets"},{"spu_id":"SPU-办公-006","short_name":"联想 thinkplus 会议平板 T Gen2","category":"办公","folder":"办公/06_SPU_联想_thinkplus_会议平板_T_Gen2","configuration_count":2,"representative_files":{"copywriting":"办公/06_SPU_联想_thinkplus_会议平板_T_Gen2/商品文案.md","white_image":"办公/06_SPU_联想_thinkplus_会议平板_T_Gen2/白底图.jpg","detail_image":"办公/06_SPU_联想_thinkplus_会议平板_T_Gen2/详情图.jpg"},"configurations":[{"configuration_id":"SPU-办公-006-SKU-01","configuration_name":"联想企业购提供【企业购】联想thinkplus会议平板T Gen2 65英寸配置，价格等信息，为您介绍商务办公笔记本【企业购】联想thinkplus会议平板T Gen2 65英寸的商务采购流程。","sku_id":"1054136","original_name":"【企业购】联想thinkplus会议平板T Gen2 65英寸","description":"联想企业购提供【企业购】联想thinkplus会议平板T Gen2 65英寸配置，价格等信息，为您介绍商务办公笔记本【企业购】联想thinkplus会议平板T Gen2 65英寸的商务采购流程。","original_price":"18999","sale_price":"16149","tags":["自营","企业购"],"source":"https://b.lenovo.com.cn/product/1054136.html","files":{"copywriting":"办公/06_SPU_联想_thinkplus_会议平板_T_Gen2/商品文案.md","white_image":"办公/06_SPU_联想_thinkplus_会议平板_T_Gen2/白底图.jpg","detail_image":"办公/06_SPU_联想_thinkplus_会议平板_T_Gen2/详情图.jpg"},"uses_shared_spu_assets":true},{"configuration_id":"SPU-办公-006-SKU-02","configuration_name":"联想企业购提供【企业购】联想thinkplus会议平板T Gen2 86英寸配置，价格等信息，为您介绍商务办公笔记本【企业购】联想thinkplus会议平板T Gen2 86英寸的商务采购流程。","sku_id":"1054137","original_name":"【企业购】联想thinkplus会议平板T Gen2 86英寸","description":"联想企业购提供【企业购】联想thinkplus会议平板T Gen2 86英寸配置，价格等信息，为您介绍商务办公笔记本【企业购】联想thinkplus会议平板T Gen2 86英寸的商务采购流程。","original_price":"49999","sale_price":"42499","tags":["自营","企业购"],"source":"https://b.lenovo.com.cn/product/1054137.html","files":{"copywriting":"办公/06_SPU_联想_thinkplus_会议平板_T_Gen2/商品文案.md","white_image":"办公/06_SPU_联想_thinkplus_会议平板_T_Gen2/白底图.jpg","detail_image":"办公/06_SPU_联想_thinkplus_会议平板_T_Gen2/详情图.jpg"},"uses_shared_spu_assets":true}],"asset_mode":"shared_spu_assets"},{"spu_id":"SPU-办公-007","short_name":"联想 thinkplus DST32-B27","category":"办公","folder":"办公/07_SPU_联想_thinkplus_DST32-B27","configuration_count":1,"representative_files":{"copywriting":"办公/07_SPU_联想_thinkplus_DST32-B27/商品文案.md","white_image":"办公/07_SPU_联想_thinkplus_DST32-B27/白底图.jpg","detail_image":"办公/07_SPU_联想_thinkplus_DST32-B27/详情图.jpg"},"configurations":[{"configuration_id":"SPU-办公-007-SKU-01","configuration_name":"27寸高亮屏 / 8G内存 / 128G存储 / 骁龙八核处理器 / 屏幕可旋转 / 屏体可升降 / 100%sRGB 400nits 60Hz","sku_id":"1056207","original_name":"【企业购】联想thinkplus触摸查询机DST32-B27","description":"27寸高亮屏/8G内存/128G存储/骁龙八核处理器/屏幕可旋转/屏体可升降/100%sRGB 400nits 60Hz","original_price":"3799","sale_price":"2999","tags":["自营","企业购"],"source":"https://b.lenovo.com.cn/product/1056207.html","files":{"copywriting":"办公/07_SPU_联想_thinkplus_DST32-B27/商品文案.md","white_image":"办公/07_SPU_联想_thinkplus_DST32-B27/白底图.jpg","detail_image":"办公/07_SPU_联想_thinkplus_DST32-B27/详情图.jpg"},"uses_shared_spu_assets":true}],"asset_mode":"shared_spu_assets"},{"spu_id":"SPU-办公-008","short_name":"联想瑞天 2810P","category":"办公","folder":"办公/08_SPU_联想瑞天_2810P","configuration_count":1,"representative_files":{"copywriting":"办公/08_SPU_联想瑞天_2810P/商品文案.md","white_image":"办公/08_SPU_联想瑞天_2810P/白底图.jpg","detail_image":"办公/08_SPU_联想瑞天_2810P/详情图.jpg"},"configurations":[{"configuration_id":"SPU-办公-008-SKU-01","configuration_name":"联想企业购提供【企业购】瑞天2810P液晶显示器配置，价格等信息，为您介绍商务办公笔记本【企业购】瑞天2810P液晶显示器的商务采购流程。","sku_id":"1048597","original_name":"【企业购】瑞天2810P液晶显示器","description":"联想企业购提供【企业购】瑞天2810P液晶显示器配置，价格等信息，为您介绍商务办公笔记本【企业购】瑞天2810P液晶显示器的商务采购流程。","original_price":"530","sale_price":"530","tags":["自营","企业购"],"source":"https://b.lenovo.com.cn/product/1048597.html","files":{"copywriting":"办公/08_SPU_联想瑞天_2810P/商品文案.md","white_image":"办公/08_SPU_联想瑞天_2810P/白底图.jpg","detail_image":"办公/08_SPU_联想瑞天_2810P/详情图.jpg"},"uses_shared_spu_assets":true}],"asset_mode":"shared_spu_assets"},{"spu_id":"SPU-办公-009","short_name":"联想瑞天 2710P","category":"办公","folder":"办公/09_SPU_联想瑞天_2710P","configuration_count":1,"representative_files":{"copywriting":"办公/09_SPU_联想瑞天_2710P/商品文案.md","white_image":"办公/09_SPU_联想瑞天_2710P/白底图.jpg","detail_image":"办公/09_SPU_联想瑞天_2710P/详情图.jpg"},"configurations":[{"configuration_id":"SPU-办公-009-SKU-01","configuration_name":"联想企业购提供【企业购】瑞天 27英寸 液晶显示器2710P配置，价格等信息，为您介绍商务办公笔记本【企业购】瑞天 27英寸 液晶显示器2710P的商务采购流程。","sku_id":"1051083","original_name":"【企业购】瑞天 27英寸 液晶显示器2710P","description":"联想企业购提供【企业购】瑞天 27英寸 液晶显示器2710P配置，价格等信息，为您介绍商务办公笔记本【企业购】瑞天 27英寸 液晶显示器2710P的商务采购流程。","original_price":"490","sale_price":"490","tags":["自营","企业购"],"source":"https://b.lenovo.com.cn/product/1051083.html","files":{"copywriting":"办公/09_SPU_联想瑞天_2710P/商品文案.md","white_image":"办公/09_SPU_联想瑞天_2710P/白底图.jpg","detail_image":"办公/09_SPU_联想瑞天_2710P/详情图.jpg"},"uses_shared_spu_assets":true}],"asset_mode":"shared_spu_assets"},{"spu_id":"SPU-办公-010","short_name":"联想瑞天 2310P","category":"办公","folder":"办公/10_SPU_联想瑞天_2310P","configuration_count":1,"representative_files":{"copywriting":"办公/10_SPU_联想瑞天_2310P/商品文案.md","white_image":"办公/10_SPU_联想瑞天_2310P/白底图.jpg","detail_image":"办公/10_SPU_联想瑞天_2310P/详情图.jpg"},"configurations":[{"configuration_id":"SPU-办公-010-SKU-01","configuration_name":"联想企业购提供【企业购】瑞天 23.8英寸 液晶显示器2310P配置，价格等信息，为您介绍商务办公笔记本【企业购】瑞天 23.8英寸 液晶显示器2310P的商务采购流程。","sku_id":"1051081","original_name":"【企业购】瑞天 23.8英寸 液晶显示器2310P","description":"联想企业购提供【企业购】瑞天 23.8英寸 液晶显示器2310P配置，价格等信息，为您介绍商务办公笔记本【企业购】瑞天 23.8英寸 液晶显示器2310P的商务采购流程。","original_price":"380","sale_price":"380","tags":["自营","企业购"],"source":"https://b.lenovo.com.cn/product/1051081.html","files":{"copywriting":"办公/10_SPU_联想瑞天_2310P/商品文案.md","white_image":"办公/10_SPU_联想瑞天_2310P/白底图.jpg","detail_image":"办公/10_SPU_联想瑞天_2310P/详情图.jpg"},"uses_shared_spu_assets":true}],"asset_mode":"shared_spu_assets"},{"spu_id":"SPU-办公-011","short_name":"联想瑞天 2410V","category":"办公","folder":"办公/11_SPU_联想瑞天_2410V","configuration_count":1,"representative_files":{"copywriting":"办公/11_SPU_联想瑞天_2410V/商品文案.md","white_image":"办公/11_SPU_联想瑞天_2410V/白底图.jpg","detail_image":"办公/11_SPU_联想瑞天_2410V/详情图.jpg"},"configurations":[{"configuration_id":"SPU-办公-011-SKU-01","configuration_name":"联想企业购提供【企业购】瑞天2410V液晶显示器配置，价格等信息，为您介绍商务办公笔记本【企业购】瑞天2410V液晶显示器的商务采购流程。","sku_id":"1048596","original_name":"【企业购】瑞天2410V液晶显示器","description":"联想企业购提供【企业购】瑞天2410V液晶显示器配置，价格等信息，为您介绍商务办公笔记本【企业购】瑞天2410V液晶显示器的商务采购流程。","original_price":"392","sale_price":"392","tags":["自营","企业购"],"source":"https://b.lenovo.com.cn/product/1048596.html","files":{"copywriting":"办公/11_SPU_联想瑞天_2410V/商品文案.md","white_image":"办公/11_SPU_联想瑞天_2410V/白底图.jpg","detail_image":"办公/11_SPU_联想瑞天_2410V/详情图.jpg"},"uses_shared_spu_assets":true}],"asset_mode":"shared_spu_assets"},{"spu_id":"SPU-服务-001","short_name":"深度清洁保养）","category":"服务","folder":"服务/01_SPU_深度清洁保养）","configuration_count":1,"representative_files":{"copywriting":"服务/01_SPU_深度清洁保养）/商品文案.md","white_image":"服务/01_SPU_深度清洁保养）/白底图.jpg","detail_image":"服务/01_SPU_深度清洁保养）/详情图.jpg"},"configurations":[{"configuration_id":"SPU-服务-001-SKU-01","configuration_name":"本产品包括【上门】深度清洁保养与WPS月卡虚拟权益，融合双享，任意一项使用 / 激活后，整单即不支持退款。在您购买3个工作日后，WPS超级会员月卡将自动激活。","sku_id":"1029640","original_name":"【Think】深度清洁保养（上门）","description":"本产品包括【上门】深度清洁保养与WPS月卡虚拟权益，融合双享，任意一项使用/激活后，整单即不支持退款。在您购买3个工作日后，WPS超级会员月卡将自动激活。","original_price":"169","sale_price":"169","tags":["自营","企业购"],"source":"https://b.lenovo.com.cn/product/1029640.html","files":{"copywriting":"服务/01_SPU_深度清洁保养）/商品文案.md","white_image":"服务/01_SPU_深度清洁保养）/白底图.jpg","detail_image":"服务/01_SPU_深度清洁保养）/详情图.jpg"},"uses_shared_spu_assets":true}],"asset_mode":"shared_spu_assets"},{"spu_id":"SPU-服务-002","short_name":"IT服务-适用ThinkBook&ThinkPad neo/E/S&扬天笔记本","category":"服务","folder":"服务/02_SPU_IT服务-适用ThinkBook&ThinkPad_neo_E_S&扬天笔记本","configuration_count":1,"representative_files":{"copywriting":"服务/02_SPU_IT服务-适用ThinkBook&ThinkPad_neo_E_S&扬天笔记本/商品文案.md","white_image":"服务/02_SPU_IT服务-适用ThinkBook&ThinkPad_neo_E_S&扬天笔记本/白底图.jpg","detail_image":"服务/02_SPU_IT服务-适用ThinkBook&ThinkPad_neo_E_S&扬天笔记本/详情图.jpg"},"configurations":[{"configuration_id":"SPU-服务-002-SKU-01","configuration_name":"为2年保修ThinkPad E / S / R / L / neo / ThinkBook / 扬天笔记本笔记本设备整机延长3年保修服务（不包括电池）和3次远程支持服务。在服务期限内，在服务期限内，当其出现与标准保修服务所列的性能故障相同的故障时，联想根据自主决定的方式以及本协议的规定对其予以维修，但不包括对该产品的整机或主机的更换或退货。和保修期内3次远程支持服务。","sku_id":"1027666","original_name":"五年IT服务-适用ThinkBook&ThinkPad neo/E/S&扬天笔记本","description":"为2年保修ThinkPad E/S/R/L/neo/ThinkBook/扬天笔记本笔记本设备整机延长3年保修服务（不包括电池）和3次远程支持服务。在服务期限内，在服务期限内，当其出现与标准保修服务所列的性能故障相同的故障时，联想根据自主决定的方式以及本协议的规定对其予以维修，但不包括对该产品的整机或主机的更换或退货。和保修期内3次远程支持服务。","original_price":"529","sale_price":"759","tags":["自营","企业购"],"source":"https://b.lenovo.com.cn/product/1027666.html","files":{"copywriting":"服务/02_SPU_IT服务-适用ThinkBook&ThinkPad_neo_E_S&扬天笔记本/商品文案.md","white_image":"服务/02_SPU_IT服务-适用ThinkBook&ThinkPad_neo_E_S&扬天笔记本/白底图.jpg","detail_image":"服务/02_SPU_IT服务-适用ThinkBook&ThinkPad_neo_E_S&扬天笔记本/详情图.jpg"},"uses_shared_spu_assets":true}],"asset_mode":"shared_spu_assets"},{"spu_id":"SPU-服务-003","short_name":"到店OpenClaw产品部署服务完整版","category":"服务","folder":"服务/03_SPU_到店OpenClaw产品部署服务完整版","configuration_count":1,"representative_files":{"copywriting":"服务/03_SPU_到店OpenClaw产品部署服务完整版/商品文案.md","white_image":"服务/03_SPU_到店OpenClaw产品部署服务完整版/白底图.jpg","detail_image":"服务/03_SPU_到店OpenClaw产品部署服务完整版/详情图.jpg"},"configurations":[{"configuration_id":"SPU-服务-003-SKU-01","configuration_name":"联想企业购提供【企业购】到店OpenClaw产品部署服务完整版配置，价格等信息，为您介绍商务办公笔记本【企业购】到店OpenClaw产品部署服务完整版的商务采购流程。","sku_id":"1053469","original_name":"【企业购】到店OpenClaw产品部署服务完整版","description":"联想企业购提供【企业购】到店OpenClaw产品部署服务完整版配置，价格等信息，为您介绍商务办公笔记本【企业购】到店OpenClaw产品部署服务完整版的商务采购流程。","original_price":"699","sale_price":"699","tags":["自营","企业购"],"source":"https://b.lenovo.com.cn/product/1053469.html","files":{"copywriting":"服务/03_SPU_到店OpenClaw产品部署服务完整版/商品文案.md","white_image":"服务/03_SPU_到店OpenClaw产品部署服务完整版/白底图.jpg","detail_image":"服务/03_SPU_到店OpenClaw产品部署服务完整版/详情图.jpg"},"uses_shared_spu_assets":true}],"asset_mode":"shared_spu_assets"},{"spu_id":"SPU-服务-004","short_name":"【Think】硬件加装升级）","category":"服务","folder":"服务/04_SPU_【Think】硬件加装升级）","configuration_count":1,"representative_files":{"copywriting":"服务/04_SPU_【Think】硬件加装升级）/商品文案.md","white_image":"服务/04_SPU_【Think】硬件加装升级）/白底图.jpg","detail_image":"服务/04_SPU_【Think】硬件加装升级）/详情图.jpg"},"configurations":[{"configuration_id":"SPU-服务-004-SKU-01","configuration_name":"提供硬盘加装升级服务，提升电脑性能","sku_id":"1017286","original_name":"【企业购】【Think】硬件加装升级（上门）","description":"提供硬盘加装升级服务，提升电脑性能","original_price":"218","sale_price":"218","tags":["自营","企业购"],"source":"https://b.lenovo.com.cn/product/1017286.html","files":{"copywriting":"服务/04_SPU_【Think】硬件加装升级）/商品文案.md","white_image":"服务/04_SPU_【Think】硬件加装升级）/白底图.jpg","detail_image":"服务/04_SPU_【Think】硬件加装升级）/详情图.jpg"},"uses_shared_spu_assets":true}],"asset_mode":"shared_spu_assets"},{"spu_id":"SPU-服务-005","short_name":"上门OpenClaw产品部署服务纯净版","category":"服务","folder":"服务/05_SPU_上门OpenClaw产品部署服务纯净版","configuration_count":1,"representative_files":{"copywriting":"服务/05_SPU_上门OpenClaw产品部署服务纯净版/商品文案.md","white_image":"服务/05_SPU_上门OpenClaw产品部署服务纯净版/白底图.jpg","detail_image":"服务/05_SPU_上门OpenClaw产品部署服务纯净版/详情图.jpg"},"configurations":[{"configuration_id":"SPU-服务-005-SKU-01","configuration_name":"联想企业购提供【企业购】上门OpenClaw产品部署服务纯净版配置，价格等信息，为您介绍商务办公笔记本【企业购】上门OpenClaw产品部署服务纯净版的商务采购流程。","sku_id":"1053468","original_name":"【企业购】上门OpenClaw产品部署服务纯净版","description":"联想企业购提供【企业购】上门OpenClaw产品部署服务纯净版配置，价格等信息，为您介绍商务办公笔记本【企业购】上门OpenClaw产品部署服务纯净版的商务采购流程。","original_price":"499","sale_price":"499","tags":["自营","企业购"],"source":"https://b.lenovo.com.cn/product/1053468.html","files":{"copywriting":"服务/05_SPU_上门OpenClaw产品部署服务纯净版/商品文案.md","white_image":"服务/05_SPU_上门OpenClaw产品部署服务纯净版/白底图.jpg","detail_image":"服务/05_SPU_上门OpenClaw产品部署服务纯净版/详情图.jpg"},"uses_shared_spu_assets":true}],"asset_mode":"shared_spu_assets"},{"spu_id":"SPU-服务-006","short_name":"全面保）-适用ThinkPad X/T/P/Z系列","category":"服务","folder":"服务/06_SPU_全面保）-适用ThinkPad_X_T_P_Z系列","configuration_count":1,"representative_files":{"copywriting":"服务/06_SPU_全面保）-适用ThinkPad_X_T_P_Z系列/商品文案.md","white_image":"服务/06_SPU_全面保）-适用ThinkPad_X_T_P_Z系列/白底图.jpg","detail_image":"服务/06_SPU_全面保）-适用ThinkPad_X_T_P_Z系列/详情图.jpg"},"configurations":[{"configuration_id":"SPU-服务-006-SKU-01","configuration_name":"为2年送修服务和2年上门服务的ThinkPad W / P / Z / X1 / X / T / A 系列设备提供自原有保修服务结束次日起，整机延长1年送修服务（不包括电池）、1年全国上门服务和3年意外保服务。在服务期限内，当其出现与标准保修服务所列的性能故障相同的故障时，联想指定服务商将前往客户指定地点，根据本协议的规定对其予以维修，但不包括对该产品的整机或主机的更换或退货，全国上门范围不包括香港、澳门和台湾地区。意外保服务范围包括客户通常使用设备过程中，液体意外泼溅、意外跌落或碰撞、外力挤压、异常电流冲击四类意外事故。","sku_id":"1027660","original_name":"三年全面保（上门）-适用ThinkPad X/T/P/Z系列","description":"为2年送修服务和2年上门服务的ThinkPad W/P/Z/X1/X/T/A 系列设备提供自原有保修服务结束次日起，整机延长1年送修服务（不包括电池）、1年全国上门服务和3年意外保服务。在服务期限内，当其出现与标准保修服务所列的性能故障相同的故障时，联想指定服务商将前往客户指定地点，根据本协议的规定对其予以维修，但不包括对该产品的整机或主机的更换或退货，全国上门范围不包括香港、澳门和台湾地区。意外保服务范围包括客户通常使用设备过程中，液体意外泼溅、意外跌落或碰撞、外力挤压、异常电流冲击四类意外事故。","original_price":"729","sale_price":"999","tags":["自营","企业购"],"source":"https://b.lenovo.com.cn/product/1027660.html","files":{"copywriting":"服务/06_SPU_全面保）-适用ThinkPad_X_T_P_Z系列/商品文案.md","white_image":"服务/06_SPU_全面保）-适用ThinkPad_X_T_P_Z系列/白底图.jpg","detail_image":"服务/06_SPU_全面保）-适用ThinkPad_X_T_P_Z系列/详情图.jpg"},"uses_shared_spu_assets":true}],"asset_mode":"shared_spu_assets"},{"spu_id":"SPU-服务-007","short_name":"系统安装）","category":"服务","folder":"服务/07_SPU_系统安装）","configuration_count":1,"representative_files":{"copywriting":"服务/07_SPU_系统安装）/商品文案.md","white_image":"服务/07_SPU_系统安装）/白底图.jpg","detail_image":"服务/07_SPU_系统安装）/详情图.jpg"},"configurations":[{"configuration_id":"SPU-服务-007-SKU-01","configuration_name":"为用户上门对桌面范围内的PC设备Windows操作系统提供安装操作系统，驱动调试、安装服务","sku_id":"1029643","original_name":"【Think】系统安装（上门）","description":"为用户上门对桌面范围内的PC设备Windows操作系统提供安装操作系统，驱动调试、安装服务","original_price":"199","sale_price":"199","tags":["自营","企业购"],"source":"https://b.lenovo.com.cn/product/1029643.html","files":{"copywriting":"服务/07_SPU_系统安装）/商品文案.md","white_image":"服务/07_SPU_系统安装）/白底图.jpg","detail_image":"服务/07_SPU_系统安装）/详情图.jpg"},"uses_shared_spu_assets":true}],"asset_mode":"shared_spu_assets"},{"spu_id":"SPU-服务-008","short_name":"新机开荒）","category":"服务","folder":"服务/08_SPU_新机开荒）","configuration_count":1,"representative_files":{"copywriting":"服务/08_SPU_新机开荒）/商品文案.md","white_image":"服务/08_SPU_新机开荒）/白底图.jpg","detail_image":"服务/08_SPU_新机开荒）/详情图.jpg"},"configurations":[{"configuration_id":"SPU-服务-008-SKU-01","configuration_name":"为用户上门提供新机开箱安装、资产盘点、资产信息录入（含贴资产标签二维码）服务","sku_id":"1029645","original_name":"【Think】新机开荒（上门）","description":"为用户上门提供新机开箱安装、资产盘点、资产信息录入（含贴资产标签二维码）服务","original_price":"159","sale_price":"159","tags":["自营","企业购"],"source":"https://b.lenovo.com.cn/product/1029645.html","files":{"copywriting":"服务/08_SPU_新机开荒）/商品文案.md","white_image":"服务/08_SPU_新机开荒）/白底图.jpg","detail_image":"服务/08_SPU_新机开荒）/详情图.jpg"},"uses_shared_spu_assets":true}],"asset_mode":"shared_spu_assets"},{"spu_id":"SPU-服务-009","short_name":"远程OpenClaw产品部署服务纯净版","category":"服务","folder":"服务/09_SPU_远程OpenClaw产品部署服务纯净版","configuration_count":1,"representative_files":{"copywriting":"服务/09_SPU_远程OpenClaw产品部署服务纯净版/商品文案.md","white_image":"服务/09_SPU_远程OpenClaw产品部署服务纯净版/白底图.jpg","detail_image":"服务/09_SPU_远程OpenClaw产品部署服务纯净版/详情图.jpg"},"configurations":[{"configuration_id":"SPU-服务-009-SKU-01","configuration_name":"联想企业购提供【企业购】远程OpenClaw产品部署服务纯净版配置，价格等信息，为您介绍商务办公笔记本【企业购】远程OpenClaw产品部署服务纯净版的商务采购流程。","sku_id":"1053263","original_name":"【企业购】远程OpenClaw产品部署服务纯净版","description":"联想企业购提供【企业购】远程OpenClaw产品部署服务纯净版配置，价格等信息，为您介绍商务办公笔记本【企业购】远程OpenClaw产品部署服务纯净版的商务采购流程。","original_price":"399","sale_price":"399","tags":["自营","企业购"],"source":"https://b.lenovo.com.cn/product/1053263.html","files":{"copywriting":"服务/09_SPU_远程OpenClaw产品部署服务纯净版/商品文案.md","white_image":"服务/09_SPU_远程OpenClaw产品部署服务纯净版/白底图.jpg","detail_image":"服务/09_SPU_远程OpenClaw产品部署服务纯净版/详情图.jpg"},"uses_shared_spu_assets":true}],"asset_mode":"shared_spu_assets"},{"spu_id":"SPU-服务-010","short_name":"联想笔记本硬盘不回收服务","category":"服务","folder":"服务/10_SPU_联想笔记本硬盘不回收服务","configuration_count":1,"representative_files":{"copywriting":"服务/10_SPU_联想笔记本硬盘不回收服务/商品文案.md","white_image":"服务/10_SPU_联想笔记本硬盘不回收服务/白底图.jpg","detail_image":"服务/10_SPU_联想笔记本硬盘不回收服务/详情图.jpg"},"configurations":[{"configuration_id":"SPU-服务-010-SKU-01","configuration_name":"自设备出库之日起,如设备出厂附带了硬盘不回收服务,则自设备原有硬盘不回收服务结束次日起,设备出厂时，配置的标准硬盘增加1年硬盘不回收服务。在设备出厂时配普的标准硬盘(HDD及SSD硬盘,不包括FusonD 等新型存储设备的硬盘)发生故障并经联想授权服务高确认故障属于标准保修或扩展保修服务范国,且符合硬盘更换条件的,联根授权服务商在将原硬盘更换为新硬盘后,新硬盘将属于买方,原故障硬盘亦归买方所有。","sku_id":"1046326","original_name":"【企业购】联想笔记本硬盘不回收服务（一年）","description":"自设备出库之日起,如设备出厂附带了硬盘不回收服务,则自设备原有硬盘不回收服务结束次日起,设备出厂时，配置的标准硬盘增加1年硬盘不回收服务。在设备出厂时配普的标准硬盘(HDD及SSD硬盘,不包括FusonD 等新型存储设备的硬盘)发生故障并经联想授权服务高确认故障属于标准保修或扩展保修服务范国,且符合硬盘更换条件的,联根授权服务商在将原硬盘更换为新硬盘后,新硬盘将属于买方,原故障硬盘亦归买方所有。","original_price":"59","sale_price":"89","tags":["自营","企业购"],"source":"https://b.lenovo.com.cn/product/1046326.html","files":{"copywriting":"服务/10_SPU_联想笔记本硬盘不回收服务/商品文案.md","white_image":"服务/10_SPU_联想笔记本硬盘不回收服务/白底图.jpg","detail_image":"服务/10_SPU_联想笔记本硬盘不回收服务/详情图.jpg"},"uses_shared_spu_assets":true}],"asset_mode":"shared_spu_assets"},{"spu_id":"SPU-服务-011","short_name":"远程管家VIP服务","category":"服务","folder":"服务/11_SPU_远程管家VIP服务","configuration_count":1,"representative_files":{"copywriting":"服务/11_SPU_远程管家VIP服务/商品文案.md","white_image":"服务/11_SPU_远程管家VIP服务/白底图.jpg","detail_image":"服务/11_SPU_远程管家VIP服务/详情图.jpg"},"configurations":[{"configuration_id":"SPU-服务-011-SKU-01","configuration_name":"远程支持为用户提供提供PC局域网系统的故障诊断，无线调试、故障诊断服务；PC Windows 系统安装、维护，常用软件维护、邮箱客户端安装、电脑病毒","sku_id":"1029648","original_name":"【Think】远程管家VIP服务","description":"远程支持为用户提供提供PC局域网系统的故障诊断，无线调试、故障诊断服务；PC Windows 系统安装、维护，常用软件维护、邮箱客户端安装、电脑病毒","original_price":"399","sale_price":"399","tags":["自营","企业购"],"source":"https://b.lenovo.com.cn/product/1029648.html","files":{"copywriting":"服务/11_SPU_远程管家VIP服务/商品文案.md","white_image":"服务/11_SPU_远程管家VIP服务/白底图.jpg","detail_image":"服务/11_SPU_远程管家VIP服务/详情图.jpg"},"uses_shared_spu_assets":true}],"asset_mode":"shared_spu_assets"},{"spu_id":"SPU-服务-012","short_name":"延长保修服务ThinkBook&ThinkPad neo/E/S&扬天NB","category":"服务","folder":"服务/12_SPU_延长保修服务ThinkBook&ThinkPad_neo_E_S&扬天NB","configuration_count":1,"representative_files":{"copywriting":"服务/12_SPU_延长保修服务ThinkBook&ThinkPad_neo_E_S&扬天NB/商品文案.md","white_image":"服务/12_SPU_延长保修服务ThinkBook&ThinkPad_neo_E_S&扬天NB/白底图.jpg","detail_image":"服务/12_SPU_延长保修服务ThinkBook&ThinkPad_neo_E_S&扬天NB/详情图.jpg"},"configurations":[{"configuration_id":"SPU-服务-012-SKU-01","configuration_name":"自原有保修服务结束次日起，ThinkPad E / S / R / L / neo / ThinkBook / 扬天笔记本系列设备整机延长1年送修服务（不包括电池）。在服务期限内，当其出现与标准保修服务所列的性能故障相同的故障时，联想根据自主决定的方式以及本协议的规定对其予以维修，但不包括对该产品的整机或主机的更换或退货。","sku_id":"1027670","original_name":"延长一年保修服务（送修）ThinkBook&ThinkPad neo/E/S&扬天NB","description":"自原有保修服务结束次日起，ThinkPad E/S/R/L/neo/ThinkBook/扬天笔记本系列设备整机延长1年送修服务（不包括电池）。在服务期限内，当其出现与标准保修服务所列的性能故障相同的故障时，联想根据自主决定的方式以及本协议的规定对其予以维修，但不包括对该产品的整机或主机的更换或退货。","original_price":"159","sale_price":"269","tags":["自营","企业购"],"source":"https://b.lenovo.com.cn/product/1027670.html","files":{"copywriting":"服务/12_SPU_延长保修服务ThinkBook&ThinkPad_neo_E_S&扬天NB/商品文案.md","white_image":"服务/12_SPU_延长保修服务ThinkBook&ThinkPad_neo_E_S&扬天NB/白底图.jpg","detail_image":"服务/12_SPU_延长保修服务ThinkBook&ThinkPad_neo_E_S&扬天NB/详情图.jpg"},"uses_shared_spu_assets":true}],"asset_mode":"shared_spu_assets"},{"spu_id":"SPU-ThinkPad-004","short_name":"联想 ThinkPad T14p","category":"ThinkPad","folder":"ThinkPad/04_SPU_联想_ThinkPad_T14p","configuration_count":1,"representative_files":{"copywriting":"ThinkPad/04_SPU_联想_ThinkPad_T14p/商品文案.md","white_image":"ThinkPad/04_SPU_联想_ThinkPad_T14p/白底图.jpg","detail_image":"ThinkPad/04_SPU_联想_ThinkPad_T14p/详情图.jpg"},"configurations":[{"configuration_id":"SPU-ThinkPad-004-SKU-01","configuration_name":"英特尔酷睿Ultra X9 388H / Windows 11 家庭中文版 / 64G LPCAMM2 / 1TB SSD / Intel ARC Graphics / 14.5英寸3K 100%DCI-P3 500nit 120Hz高色域显示屏 / 黑色","sku_id":"1055124","original_name":"[企业购】联想ThinkPad T14p 2026 酷睿 Ultra X9 高性能工程师本 01CD","description":"英特尔酷睿Ultra X9 388H/Windows 11 家庭中文版/64G LPCAMM2/1TB SSD/Intel ARC Graphics/14.5英寸3K 100%DCI-P3 500nit 120Hz高色域显示屏/黑色","original_price":"19999","sale_price":"19999","tags":["自营","企业购"],"source":"https://b.lenovo.com.cn/product/1055124.html","files":{"copywriting":"ThinkPad/04_SPU_联想_ThinkPad_T14p/商品文案.md","white_image":"ThinkPad/04_SPU_联想_ThinkPad_T14p/白底图.jpg","detail_image":"ThinkPad/04_SPU_联想_ThinkPad_T14p/详情图.jpg"},"uses_shared_spu_assets":true}],"asset_mode":"shared_spu_assets"},{"spu_id":"SPU-ThinkPad-005","short_name":"联想 ThinkPad E14","category":"ThinkPad","folder":"ThinkPad/05_SPU_联想_ThinkPad_E14","configuration_count":1,"representative_files":{"copywriting":"ThinkPad/05_SPU_联想_ThinkPad_E14/商品文案.md","white_image":"ThinkPad/05_SPU_联想_ThinkPad_E14/白底图.jpg","detail_image":"ThinkPad/05_SPU_联想_ThinkPad_E14/详情图.jpg"},"configurations":[{"configuration_id":"SPU-ThinkPad-005-SKU-01","configuration_name":"英特尔酷睿 5 220H / Windows 11 家庭中文版 / 16G DDR5 / 1TB SSD / Integrated Graphics集显 / 14英寸 2.8K 广视角 100%sRGB显示屏 400nit 120Hz刷新率 / 黑色","sku_id":"1044852","original_name":"【企业购】联想ThinkPad E14 2025 酷睿5经典商务本 超能版 07CD","description":"英特尔酷睿 5 220H/Windows 11 家庭中文版/16G DDR5/1TB SSD/Integrated Graphics集显/14英寸 2.8K 广视角 100%sRGB显示屏 400nit 120Hz刷新率/黑色","original_price":"8399","sale_price":"8399","tags":["自营","企业购"],"source":"https://b.lenovo.com.cn/product/1044852.html","files":{"copywriting":"ThinkPad/05_SPU_联想_ThinkPad_E14/商品文案.md","white_image":"ThinkPad/05_SPU_联想_ThinkPad_E14/白底图.jpg","detail_image":"ThinkPad/05_SPU_联想_ThinkPad_E14/详情图.jpg"},"uses_shared_spu_assets":true}],"asset_mode":"shared_spu_assets"},{"spu_id":"SPU-ThinkPad-006","short_name":"联想 ThinkPad X1 2in1 Aura","category":"ThinkPad","folder":"ThinkPad/06_SPU_联想_ThinkPad_X1_2in1_Aura","configuration_count":1,"representative_files":{"copywriting":"ThinkPad/06_SPU_联想_ThinkPad_X1_2in1_Aura/商品文案.md","white_image":"ThinkPad/06_SPU_联想_ThinkPad_X1_2in1_Aura/白底图.jpg","detail_image":"ThinkPad/06_SPU_联想_ThinkPad_X1_2in1_Aura/详情图.jpg"},"configurations":[{"configuration_id":"SPU-ThinkPad-006-SKU-01","configuration_name":"英特尔Ultra7 355 / Windows 11家庭中文版 / 32GB / 1TB PCIe-NVMe 固态硬盘 / 集成显卡 / 14英寸2.8K 广视角 OLED背光触控显示屏（500尼特 ）120Hz","sku_id":"1055163","original_name":"【企业购】联想ThinkPad X1 2in1 Aura 2026 酷睿Ultra 7 超能本 00CD","description":"英特尔Ultra7 355/Windows 11家庭中文版/32GB/1TB PCIe-NVMe 固态硬盘/集成显卡/14英寸2.8K 广视角 OLED背光触控显示屏（500尼特 ）120Hz","original_price":"24799","sale_price":"24799","tags":["自营","企业购"],"source":"https://b.lenovo.com.cn/product/1055163.html","files":{"copywriting":"ThinkPad/06_SPU_联想_ThinkPad_X1_2in1_Aura/商品文案.md","white_image":"ThinkPad/06_SPU_联想_ThinkPad_X1_2in1_Aura/白底图.jpg","detail_image":"ThinkPad/06_SPU_联想_ThinkPad_X1_2in1_Aura/详情图.jpg"},"uses_shared_spu_assets":true}],"asset_mode":"shared_spu_assets"},{"spu_id":"SPU-扬天-003","short_name":"联想扬天 V14","category":"扬天","folder":"扬天/03_SPU_联想扬天_V14","configuration_count":1,"representative_files":{"copywriting":"扬天/03_SPU_联想扬天_V14/商品文案.md","white_image":"扬天/03_SPU_联想扬天_V14/白底图.jpg","detail_image":"扬天/03_SPU_联想扬天_V14/详情图.jpg"},"configurations":[{"configuration_id":"SPU-扬天-003-SKU-01","configuration_name":"英特尔酷睿 5 210H / Windows 11 家庭中文版 / 16G / 1TB SSD / UHD Graphics （集显） / 14英寸FHD 广视角 300nit 显示屏 / 灰色","sku_id":"1051287","original_name":"扬天 V14 酷睿版 英特尔酷睿5 商用笔记本","description":"英特尔酷睿 5 210H/Windows 11 家庭中文版/16G/1TB SSD/UHD Graphics （集显）/14英寸FHD 广视角 300nit 显示屏/灰色","original_price":"5999","sale_price":"5999","tags":["企业购","企业购"],"source":"https://b.lenovo.com.cn/product/1051287.html","files":{"copywriting":"扬天/03_SPU_联想扬天_V14/商品文案.md","white_image":"扬天/03_SPU_联想扬天_V14/白底图.jpg","detail_image":"扬天/03_SPU_联想扬天_V14/详情图.jpg"},"uses_shared_spu_assets":true}],"asset_mode":"shared_spu_assets"},{"spu_id":"SPU-扬天-004","short_name":"联想扬天 M460","category":"扬天","folder":"扬天/04_SPU_联想扬天_M460","configuration_count":1,"representative_files":{"copywriting":"扬天/04_SPU_联想扬天_M460/商品文案.md","white_image":"扬天/04_SPU_联想扬天_M460/白底图.jpg","detail_image":"扬天/04_SPU_联想扬天_M460/详情图.jpg"},"configurations":[{"configuration_id":"SPU-扬天-004-SKU-01","configuration_name":"英特尔酷睿 i5-12400 / 16G内存 / 512G SSD / Windows 11 / 商用台式机","sku_id":"1038201","original_name":"联想扬天M460 I5-12400/16G/512GSSD/W11","description":"英特尔酷睿 i5-12400 / 16G内存 / 512G SSD / Windows 11 / 商用台式机","original_price":"登录后询价","sale_price":"登录后询价","tags":["企业购","联想官方"],"source":"https://b.lenovo.com.cn/product/1038201.html","files":{"copywriting":"扬天/04_SPU_联想扬天_M460/商品文案.md","white_image":"扬天/04_SPU_联想扬天_M460/白底图.jpg","detail_image":"扬天/04_SPU_联想扬天_M460/详情图.jpg"},"uses_shared_spu_assets":true}],"asset_mode":"shared_spu_assets"},{"spu_id":"SPU-扬天-005","short_name":"联想扬天 S660","category":"扬天","folder":"扬天/05_SPU_联想扬天_S660","configuration_count":1,"representative_files":{"copywriting":"扬天/05_SPU_联想扬天_S660/商品文案.md","white_image":"扬天/05_SPU_联想扬天_S660/白底图.jpg","detail_image":"扬天/05_SPU_联想扬天_S660/详情图.jpg"},"configurations":[{"configuration_id":"SPU-扬天-005-SKU-01","configuration_name":"英特尔N100处理器 / Windows 11 家庭中文版 / 16G / 512G SSD / 集成显卡 / 23.8英寸FHD / 3年有限保修","sku_id":"1043930","original_name":"【企业购】扬天 S660 英特尔N100 台式一体机 03CD","description":"英特尔N100处理器 / Windows 11 家庭中文版 / 16G / 512G SSD / 集成显卡 / 23.8英寸FHD / 3年有限保修","original_price":"登录后询价","sale_price":"登录后询价","tags":["企业购","联想官方"],"source":"https://b.lenovo.com.cn/product/1043930.html","files":{"copywriting":"扬天/05_SPU_联想扬天_S660/商品文案.md","white_image":"扬天/05_SPU_联想扬天_S660/白底图.jpg","detail_image":"扬天/05_SPU_联想扬天_S660/详情图.jpg"},"uses_shared_spu_assets":true}],"asset_mode":"shared_spu_assets"},{"spu_id":"SPU-扬天-006","short_name":"联想扬天 M4000s","category":"扬天","folder":"扬天/06_SPU_联想扬天_M4000s","configuration_count":1,"representative_files":{"copywriting":"扬天/06_SPU_联想扬天_M4000s/商品文案.md","white_image":"扬天/06_SPU_联想扬天_M4000s/白底图.jpg","detail_image":"扬天/06_SPU_联想扬天_M4000s/详情图.jpg"},"configurations":[{"configuration_id":"SPU-扬天-006-SKU-01","configuration_name":"第九代英特尔酷睿i5-9400 / Windows 10家庭中文版 / 8G DDR4 / 1T / 集成显卡 / 商用台式机","sku_id":"1008992","original_name":"【企业购】扬天M4000s 英特尔酷睿i5 商用台式机 0ACD","description":"第九代英特尔酷睿i5-9400 / Windows 10家庭中文版 / 8G DDR4 / 1T / 集成显卡 / 商用台式机","original_price":"登录后询价","sale_price":"登录后询价","tags":["企业购","联想官方"],"source":"https://b.lenovo.com.cn/product/1008992.html","files":{"copywriting":"扬天/06_SPU_联想扬天_M4000s/商品文案.md","white_image":"扬天/06_SPU_联想扬天_M4000s/白底图.jpg","detail_image":"扬天/06_SPU_联想扬天_M4000s/详情图.jpg"},"uses_shared_spu_assets":true}],"asset_mode":"shared_spu_assets"}];
+  const priceFormatter = new Intl.NumberFormat('zh-CN');
+  const dataBase = '../../leai product data/b-chat product data/';
+  const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+  const productsFor = (manifest, source) => manifest.filter(spu => spu.category === source).map(spu => {
+    const configurations = (spu.configurations || []).filter(configuration => Number.isFinite(Number(configuration.sale_price)));
+    const prices = configurations.map(configuration => Number(configuration.sale_price));
+    const primary = configurations.slice().sort((a, b) => Number(a.sale_price) - Number(b.sale_price))[0] || {};
+    return { id: String(primary.sku_id || ''), spuId: String(spu.spu_id), shortName: spu.short_name, name: spu.short_name, price: prices.length ? Math.min(...prices) : NaN, image: dataBase + (spu.representative_files?.white_image || primary.files?.white_image || ''), promo: configurations.flatMap(configuration => configuration.tags || []).find(tag => tag !== '自营') || '' };
+  }).filter(product => product.id && product.image);
+  const bindInteractions = () => {
+    root.querySelectorAll('.floor-count').forEach(button => button.addEventListener('click', () => {
+      const icon = button.querySelector('.floor-count-icon');
+      if (!icon || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      icon.classList.remove('is-rotating'); void icon.offsetWidth; icon.classList.add('is-rotating');
+    }));
+    root.querySelectorAll('.floor-product').forEach(product => {
+      const openProduct = () => window.__lxOpenFloorProductWithInterpretation?.({
+        sku: product.dataset.productId,
+        name: product.dataset.productName
+      });
+      product.addEventListener('click', openProduct);
+      product.addEventListener('keydown', event => { if (event.key !== 'Enter' && event.key !== ' ') return; event.preventDefault(); openProduct(); });
+    });
+    root.querySelectorAll('.rank-item').forEach(item => { const openProduct = () => window.__lxOpenFloorProductWithInterpretation?.({ sku: item.dataset.productId, name: item.dataset.productName }); item.addEventListener('click', openProduct); item.addEventListener('keydown', event => { if (event.key !== 'Enter' && event.key !== ' ') return; event.preventDefault(); openProduct(); }); });
+  };
+  const render = (manifest, source) => {
+    const catalog = Object.fromEntries(categories.map(category => [category.key, productsFor(manifest, category.source)]));
+    root.querySelectorAll('.ranking-card').forEach(card => {
+      const products = (catalog[card.dataset.key] || []).slice(0, 5);
+      card.querySelector('.list-wrap').innerHTML = products.map((product, index) => `
+        <div class="rank-item" tabindex="0" role="button" data-rank="${index + 1}" data-product-id="${escapeHtml(product.id)}" data-product-name="${escapeHtml(product.shortName)}" data-price-source="${source}">
+          <div class="rank-badge${index < 3 ? ` top${index + 1}` : ''}">${index + 1}</div>
+          <div class="thumb-box"><img src="${escapeHtml(product.image)}" alt="${escapeHtml(product.shortName)}" loading="lazy"></div>
+          <div class="item-meta"><div class="item-name" title="${escapeHtml(product.shortName)}">${escapeHtml(product.shortName)}</div><div class="item-price">${Number.isFinite(product.price) ? `¥ ${priceFormatter.format(product.price)}` : '价格面议'}</div></div>
+        </div>`).join('');
+    });
+    root.querySelector('#shopFloors').innerHTML = categories.map(category => {
+      const products = (catalog[category.key] || []);
+      return `<section class="product-floor" aria-labelledby="b-floor-${category.key}-title">
+        <div class="floor-head"><h2 class="floor-title" id="b-floor-${category.key}-title">${category.title}</h2><button class="floor-count" type="button" aria-label="换一批${category.title}商品" title="换一换"><img class="floor-count-icon" src="../icons/global-refresh.svg" alt="" aria-hidden="true">换一换</button></div>
+        <div class="floor-grid">${products.map(product => `<article class="floor-product" tabindex="0" role="button" data-product-id="${escapeHtml(product.id)}" data-product-name="${escapeHtml(product.shortName)}" data-price-source="${source}"><div class="floor-product-image"><img src="${escapeHtml(product.image)}" alt="${escapeHtml(product.shortName)}" loading="lazy"></div><h3 class="floor-product-name" title="${escapeHtml(product.shortName)}">${escapeHtml(product.shortName)}</h3><div class="floor-product-promo-row">${product.promo ? `<span class="floor-product-promo">${escapeHtml(product.promo)}</span>` : ''}</div><div class="item-price">${Number.isFinite(product.price) ? `¥ ${priceFormatter.format(product.price)}` : '价格面议'}</div></article>`).join('')}</div>
+      </section>`;
+    }).join('');
+    host.dataset.priceSource = source;
+    bindInteractions();
+  };
+  render(embeddedManifest, 'embedded-manifest-fallback');
+  fetch(new URL('../../leai product data/b-chat product data/manifest.json', nativeDocument.baseURI), { cache: 'no-store' })
+    .then(response => { if (!response.ok) throw new Error(`商品清单读取失败：${response.status}`); return response.json(); })
+    .then(manifest => render(manifest, 'manifest'))
+    .catch(() => { host.dataset.priceSource = 'embedded-manifest-fallback'; });
+  if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) root.querySelectorAll('.card-head').forEach(head => {
+    head.addEventListener('pointermove', event => { const rect=head.getBoundingClientRect(),x=event.clientX-rect.left,y=event.clientY-rect.top; head.style.setProperty('--pointer-x',`${x}px`); head.style.setProperty('--pointer-y',`${y}px`); head.style.setProperty('--title-shift-x',`${((x/rect.width)-.5)*8}px`); head.style.setProperty('--title-shift-y',`${((y/rect.height)-.5)*6}px`); });
+    head.addEventListener('pointerleave', () => ['--pointer-x','--pointer-y','--title-shift-x','--title-shift-y'].forEach(name => head.style.removeProperty(name)));
+  });
+
+  const channelContent = host.closest('.content');
+  const channelHomeAnchor = nativeDocument.createComment('channel-home-commerce-anchor');
+  host.before(channelHomeAnchor);
+  const channelHomeTabId = 'site:business';
+  const syncChannelHomeVisibility = () => {
+    const activeTab = channelContent?.querySelector(':scope > .lx-tabbar .lx-tab.is-active');
+    const activeTabId = activeTab?.getAttribute('data-tab-id') || '';
+    const contentView = channelContent?.dataset.view || 'list';
+    const isHomeTab = !activeTab || activeTabId === channelHomeTabId;
+    const isHomeView = contentView === 'home' || contentView === 'list' || contentView === '';
+    const shouldMount = isHomeTab && isHomeView;
+    if (shouldMount && !host.isConnected) {
+      channelHomeAnchor.after(host);
+      host.removeAttribute('hidden');
+      host.removeAttribute('aria-hidden');
+    } else if (!shouldMount && host.isConnected) {
+      host.remove();
+    }
+  };
+  syncChannelHomeVisibility();
+  if (channelContent && window.MutationObserver) {
+    new MutationObserver(syncChannelHomeVisibility).observe(channelContent, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['class', 'aria-selected', 'data-view']
+    });
+  }
+})();
+</script>
+
+        <nav class="category-tabs" aria-label="商品分类" hidden aria-hidden="true">
+          <button class="active" type="button">推荐</button>
+          <button type="button">企业会员权益</button>
+          <button type="button">企业定制</button>
+          <button type="button">积分商城</button>
+          <button type="button">门店</button>
+        </nav>
+
+        <div class="product-grid" data-category-grid hidden aria-hidden="true">
+          <article class="product-card">
+            <div class="brand-mini">联想小新</div>
+            <div class="product-visual"><img loading="lazy" src="../img/shop-1.jpg" alt="商品图片" /></div>
+            <h3 class="product-title">小新AIR13</h3>
+            <p class="spec">2.5K 120Hz｜轻至1.1kg</p>
+            <div class="product-promos" aria-label="促销标签"><span class="product-promo">教育特惠</span><span class="product-promo">国补优惠</span></div>
+            <p class="price">¥ 9799<span class="price-from">起</span></p>
+          </article>
+          <article class="product-card">
+            <div class="brand-mini"></div>
+            <div class="product-visual"><img loading="lazy" src="../img/shop-2.jpg" alt="商品图片" /></div>
+            <h3 class="product-title">小新AIR13</h3>
+            <p class="spec">2.5K 120Hz｜轻至1.1kg</p>
+            <p class="price">¥ 9799</p>
+          </article>
+          <article class="product-card">
+            <div class="brand-mini orange">Lecoo</div>
+            <div class="product-visual"><img loading="lazy" src="../img/shop-3.jpg" alt="商品图片" /></div>
+            <h3 class="product-title">小新AIR13</h3>
+            <p class="spec">2.5K 120Hz｜轻至1.1kg</p>
+            <p class="price">¥ 9799</p>
+          </article>
+          <article class="product-card">
+            <div class="brand-mini">拯救者 LEGION</div>
+            <div class="product-visual"><img loading="lazy" src="../img/shop-4.jpg" alt="商品图片" /></div>
+            <h3 class="product-title">小新AIR13</h3>
+            <p class="spec">2.5K 120Hz｜轻至1.1kg</p>
+            <p class="price">国补后￥9799</p>
+          </article>
+          <article class="product-card">
+            <div class="brand-mini"></div>
+            <div class="product-visual"><img loading="lazy" src="../img/shop-5.jpg" alt="商品图片" /></div>
+            <h3 class="product-title">小新AIR13</h3>
+            <p class="spec">2.5K 120Hz｜轻至1.1kg</p>
+            <p class="price">¥ 9799</p>
+          </article>
+          <article class="product-card">
+            <div class="brand-mini"></div>
+            <div class="product-visual"><img loading="lazy" src="../img/shop-7.jpg" alt="商品图片" /></div>
+            <h3 class="product-title">小新AIR13</h3>
+            <p class="spec">2.5K 120Hz｜轻至1.1kg</p>
+            <p class="price">¥ 9799</p>
+          </article>
+          <article class="product-card">
+            <div class="brand-mini">拯救者 LEGION</div>
+            <div class="product-visual"><img loading="lazy" src="../img/shop-8.jpg" alt="商品图片" /></div>
+            <h3 class="product-title">小新AIR13</h3>
+            <p class="spec">2.5K 120Hz｜轻至1.1kg</p>
+            <p class="price">¥ 9799</p>
+          </article>
+          <article class="product-card">
+            <div class="brand-mini"></div>
+            <div class="product-visual"><img loading="lazy" src="../img/shop-9.jpg" alt="商品图片" /></div>
+            <h3 class="product-title">小新AIR13</h3>
+            <p class="spec">2.5K 120Hz｜轻至1.1kg</p>
+            <p class="price">¥ 9799</p>
+          </article>
+          <article class="product-card">
+            <div class="brand-mini">联想小新</div>
+            <div class="product-visual"><img loading="lazy" src="../img/shop-10.jpg" alt="商品图片" /></div>
+            <h3 class="product-title">小新AIR13</h3>
+            <p class="spec">2.5K 120Hz｜轻至1.1kg</p>
+            <p class="price">¥ 9799</p>
+          </article>
+          <article class="product-card">
+            <div class="brand-mini"></div>
+            <div class="product-visual"><img loading="lazy" src="../img/shop-11.jpg" alt="商品图片" /></div>
+            <h3 class="product-title">小新AIR13</h3>
+            <p class="spec">2.5K 120Hz｜轻至1.1kg</p>
+            <p class="price">¥ 9799</p>
+          </article>
+          <article class="product-card">
+            <div class="brand-mini orange">Lecoo</div>
+            <div class="product-visual"><img loading="lazy" src="../img/shop-12.jpg" alt="商品图片" /></div>
+            <h3 class="product-title">小新AIR13</h3>
+            <p class="spec">2.5K 120Hz｜轻至1.1kg</p>
+            <p class="price">¥ 9799</p>
+          </article>
+          <article class="product-card">
+            <div class="brand-mini">拯救者 LEGION</div>
+            <div class="product-visual"><img loading="lazy" src="../img/shop-13.jpg" alt="商品图片" /></div>
+            <h3 class="product-title">小新AIR13</h3>
+            <p class="spec">2.5K 120Hz｜轻至1.1kg</p>
+            <p class="price">国补后￥9799</p>
+          </article>
+          <article class="product-card">
+            <div class="brand-mini"></div>
+            <div class="product-visual"><img loading="lazy" src="../img/shop-14.jpg" alt="商品图片" /></div>
+            <h3 class="product-title">小新AIR13</h3>
+            <p class="spec">2.5K 120Hz｜轻至1.1kg</p>
+            <p class="price">¥ 9799</p>
+          </article>
+          <article class="product-card">
+            <div class="brand-mini">联想小新</div>
+            <div class="product-visual"><img loading="lazy" src="../img/shop-14.jpg" alt="商品图片" /></div>
+            <h3 class="product-title">小新AIR13</h3>
+            <p class="spec">2.5K 120Hz｜轻至1.1kg</p>
+            <p class="price">¥ 9799</p>
+          </article>
+        </div>
+
+        <section class="product-detail" aria-label="商品详情">
+          <div class="detail-main">
+            <button class="detail-back" type="button">← 返回商品列表</button>
+            <div class="detail-gallery">
+              <div class="detail-badges" aria-label="商品标签"><span class="detail-badge-ai">AI 推荐</span><span class="detail-badge-hot">热销</span></div>
+              <div class="detail-visual">
+                <div class="laptop" data-detail-visual><div class="screen"></div><div class="base"></div></div>
+              </div>
+              <div class="detail-thumbs" aria-label="商品缩略图">
+                <button class="detail-thumb is-active" type="button" aria-label="商品图 1"></button>
+                <button class="detail-thumb" type="button" aria-label="商品图 2"></button>
+                <button class="detail-thumb" type="button" aria-label="商品图 3"></button>
+                <button class="detail-thumb" type="button" aria-label="商品图 4"></button>
+              </div>
+            </div>
+            <div class="detail-info">
+              <h2 class="detail-title" data-detail-title>小新AIR13</h2>
+              <p class="detail-summary" data-detail-summary>2.5K 120Hz｜轻至1.1kg，适合轻薄办公、学习创作和日常影音使用。</p>
+              <p class="detail-fit-reason" data-detail-reason hidden></p>
+              <div class="detail-variants" data-detail-variants hidden></div>
+              <div class="detail-tags">
+                <span class="detail-tag">AI 智能体验</span>
+                <span class="detail-tag">轻薄便携</span>
+                <span class="detail-tag">高刷屏幕</span>
+                <span class="detail-tag">官方服务</span>
+              </div>
+              <p class="detail-price" data-detail-price>¥ 9799</p>
+              <div class="detail-actions">
+                <button class="detail-primary" type="button">一键领优惠下单</button>
+                <button class="detail-secondary" type="button">加入购物车</button>
+              </div>
+              <div class="detail-service">
+                <div class="service-item"><strong>官方正品</strong><span>联想乐享官方渠道保障</span></div>
+                <div class="service-item"><strong>180天只换不修</strong><span>商品放心购</span></div>
+                <div class="service-item"><strong>14天无理由退换</strong><span>官方品质保障</span></div>
+              </div>
+            </div>
+          </div>
+          <section class="detail-reviews-section lx-review-b" aria-label="用户评价">
+            <div class="detail-reviews-header">
+              <h3 class="detail-reviews-title">用户评价</h3>
+              <p class="detail-reviews-note">由联想乐享 AI 总结的核心产品评价 · 仅供参考</p>
+            </div>
+            <div class="detail-review-ai-banner">
+              <div class="detail-review-ai-glow" aria-hidden="true"></div>
+              <div class="detail-review-ai-inner">
+                <div class="detail-review-ai-badge">
+                  <div class="detail-review-ai-pill"><span class="detail-review-ai-dot"></span><span>✨ 乐享 AI 总结</span></div>
+                  <span class="detail-review-ai-note">智能摘要 · 仅供参考</span>
+                </div>
+                <p class="detail-review-ai-text" data-review-sum>大多数用户认为<span class="highlight">屏幕素质高、性能强、做工精致</span>，适合创作办公；少数用户提到机身偏重、续航和风扇噪音仍有提升空间。</p>
+                <div class="detail-review-ai-tags" aria-label="评价情感标签"><span>屏幕素质高</span><span>性能强悍</span><span>做工精致</span><span>适合创作</span></div>
+              </div>
+            </div>
+            <div class="detail-review-rating-wrap">
+              <div class="detail-review-rating-card" aria-label="综合评分 4.9 分">
+                <div class="detail-review-rating-score"><strong>4.9</strong><span>/ 5 综合评分</span></div>
+                <div class="detail-review-rating-bars" aria-hidden="true">
+                  <div class="detail-review-rating-row"><span>5★</span><i><b style="width:76%"></b></i><em>76%</em></div>
+                  <div class="detail-review-rating-row"><span>4★</span><i><b style="width:18%"></b></i><em>18%</em></div>
+                  <div class="detail-review-rating-row"><span>3★</span><i><b style="width:4%"></b></i><em>4%</em></div>
+                  <div class="detail-review-rating-row"><span>2★</span><i><b style="width:1%"></b></i><em>1%</em></div>
+                  <div class="detail-review-rating-row"><span>1★</span><i><b style="width:1%"></b></i><em>1%</em></div>
+                </div>
+              </div>
+              <div class="detail-review-filter-tags" data-review-filter-tags aria-label="评价标签筛选">
+                <span class="detail-review-filter-lead">大家都在说</span>
+                <button class="detail-review-filter active" type="button">性能稳定</button>
+                <button class="detail-review-filter" type="button">屏幕观感好</button>
+                <button class="detail-review-filter" type="button">物流及时</button>
+                <button class="detail-review-filter" type="button">官方服务放心</button>
+              </div>
+            </div>
+            <div class="detail-review-cards-wrap">
+              <div class="detail-review-grid" data-detail-review-grid></div>
+              <div class="detail-review-actions" aria-label="评价横向切换">
+                <button class="detail-review-arrow" type="button" data-review-prev aria-label="查看上一组评价">‹</button>
+                <button class="detail-review-arrow" type="button" data-review-next aria-label="查看下一组评价">›</button>
+              </div>
+            </div>
+          </section>
+          <div class="detail-rich" aria-label="商品扩展详情">
+            <div class="detail-tabbar" role="tablist" aria-label="商品详情内容切换">
+              <button class="detail-tab is-active" type="button" role="tab" aria-selected="true" data-detail-tab="story">商品详情</button>
+              <button class="detail-tab" type="button" role="tab" aria-selected="false" data-detail-tab="specs">参数规格</button>
+            </div>
+            <section class="detail-panel detail-tab-pane is-active" role="tabpanel" data-detail-pane="story">
+              <div class="detail-image-stage" data-detail-images-panel>
+                <img src="../img/shop-1.jpg" alt="商品详情图" data-detail-hero-image />
+              </div>
+            </section>
+            <section class="detail-panel detail-tab-pane" role="tabpanel" data-detail-pane="specs">
+              <div class="detail-spec-body">
+                <div class="detail-spec-grid" data-detail-spec-grid>
+                  <div class="detail-spec-row"><span>品类</span><strong>联想官方商品</strong></div>
+                  <div class="detail-spec-row"><span>核心规格</span><strong>以实际页面为准</strong></div>
+                  <div class="detail-spec-row"><span>服务</span><strong>官方保修与售后支持</strong></div>
+                  <div class="detail-spec-row"><span>咨询</span><strong>支持联想乐享 AI 辅助对比</strong></div>
+                </div>
+              </div>
+            </section>
+          </div>
+        </section>
+      </section>
+    </main>
+
+
+
+    <div class="lxfd" aria-label="联想乐享全屏对话">
+      <header class="lxfd-topbar">
+        <a class="lxfd-logo-pill anim-fade" href="/" data-page="home" aria-label="返回首页">
+          <img class="lxfd-logo-full" src="../logos/logo-full-red.png" alt="联想乐享" />
+        </a>
+        <nav class="lxfd-nav-cluster anim-fade" id="lxfdNavCluster" aria-label="全屏导航">
+          <button class="lxfd-convo-pill lxfd-glass" id="lxfdConvoPill" type="button" aria-label="展开导航" aria-expanded="false" aria-controls="lxfdNavSheet" aria-haspopup="true">
+            <span class="dot" aria-hidden="true"></span>
+            <span class="lxfd-convo-name" id="lxfdConvoName" title="开启新对话">开启新对话</span>
+            <span class="lxfd-expand-btn" aria-hidden="true"><img class="icon" src="../icons/global-expand.svg" alt="" aria-hidden="true" /></span>
+          </button>
+          <div class="lxfd-nav-sheet lxfd-glass" id="lxfdNavSheet" role="menu">
+            <a href="/" role="menuitem" data-page="home">首页</a>
+            <a href="/shop-chat/" role="menuitem" data-page="personal">个人及家庭</a>
+            <a href="/b-chat/" role="menuitem" data-page="business">中小企业</a>
+            <a href="/biz-chat/" role="menuitem" data-page="enterprise">政教及大企业</a>
+          </div>
+        </nav>
+        <div class="lxfd-actions lxfd-glass anim-fade" aria-label="快捷入口">
+          <button class="lxfd-ic" type="button" aria-label="收起" title="收起全屏"><img class="icon" src="../icons/sidebar-toggle.svg" alt="" aria-hidden="true" /></button>
+          <button class="lxfd-ic lxfd-ic-history" id="lxfdTopHistBtn" data-auth-history hidden aria-hidden="true" style="display:none!important" type="button" aria-label="历史对话" title="对话记录"><img class="icon" src="../icons/sidebar-history.svg" alt="" /></button>
+          <button class="lxfd-ic" type="button" aria-label="订单，3 个订单" title="订单" data-lxfd-open="orders" data-commerce-entry="orders"><img class="icon" src="../icons/mall-orders.svg" alt="" /><span class="lxfd-badge" data-auth-order-badge hidden aria-hidden="true" style="display:none!important">3</span></button>
+          <span class="lxfd-divider" aria-hidden="true"></span>
+          <div class="lxfd-account-wrap">
+            <button class="lxfd-avatar" type="button" aria-label="个人中心" title="个人中心"><img class="icon" src="../icons/mall-account.svg" alt="" /></button>
+            <div class="account-menu lxfd-account-menu" role="menu">
+              <div class="menu-row" data-account-action="member">会员中心</div>
+              <div class="menu-row" data-account-action="logout">退出登录</div>
+            </div>
+          </div>
+        </div>
+      </header>
+      <button class="lxfd-rail-fab lxfd-glass hide" id="lxfdRailFab" data-auth-history hidden aria-hidden="true" style="display:none!important" type="button" aria-label="展开侧栏"><img class="icon" src="../icons/sidebar-history.svg" alt="" /></button>
+      <button class="lxfd-rail-new-fab lxfd-glass hide" id="lxfdRailNewFab" type="button" aria-label="新建对话"><img class="icon" src="../icons/full-create.svg" alt="" aria-hidden="true" /></button>
+      <aside class="lxfd-rail lxfd-glass open" id="lxfdRail" data-auth-history hidden aria-hidden="true" style="display:none!important" aria-label="对话与历史">
+        <div class="lxfd-rail-head"><button class="lxfd-new-chat" id="lxfdNewChat" type="button"><img class="icon" src="../icons/full-create.svg" alt="" aria-hidden="true" />新建对话</button><button class="lxfd-rail-toggle" id="lxfdRailClose" type="button" aria-label="收起侧栏"><img class="icon" src="../icons/arrow-left.svg" alt="" aria-hidden="true" /></button></div>
+        <h3>历史记录</h3>
+        <input class="lxfd-history-search" id="lxfdHistorySearch" type="search" placeholder="搜索历史对话" aria-label="搜索历史对话" autocomplete="off" />
+        <nav class="lxfd-hist" id="lxfdHist"></nav>
+        <div class="lxfd-rail-foot"><strong>乐豆商城</strong> · 积分可抵现，会员日翻倍，详情见会员中心。</div>
+      </aside>
+      <div class="lxfd-scrim" id="lxfdScrim"></div>
+      <aside class="lxfd-turn-index" id="lxfdTurnIndex" aria-label="对话轮次索引"><div class="lxfd-turn-dots" id="lxfdTurnDots" aria-hidden="true"></div><div class="lxfd-turn-panel lxfd-glass"><h4>对话问题</h4><div class="lxfd-turn-list" id="lxfdTurnList"></div></div></aside>
+      <main class="lxfd-stage shift lxfd-gallery-home" id="lxfdStage">
+        <section class="lxfd-welcome" id="lxfdWelcome"><h1 class="lxfd-hello anim-rise" id="lxfdHelloTitle"><span>联想乐享帮你</span><span class="rotating-word">找商品</span></h1><div class="lxfd-chips" id="lxfdChips"></div></section>
+        <section class="lxfd-thread" id="lxfdThread" aria-live="polite"></section>
+        <div class="lxfd-dock anim-rise"><div class="lxfd-quick" id="lxfdQuick"></div><form class="lxfd-composer" id="lxfdComposer"><textarea id="lxfdTa" rows="1" placeholder="文档解读" aria-label="输入你的问题"></textarea><div class="lxfd-comp-actions"><div class="lxfd-comp-left"><button type="button" class="lxfd-toggle on" aria-pressed="true"><img src="../icons/composer-reasoning.svg" alt="" />深度思考</button></div><div class="lxfd-scope-actions" id="lxfdScopeActions"><button type="button" class="lxfd-toggle lxfd-scope-chip">文档解读</button><button type="button" class="lxfd-toggle lxfd-scope-chip">商品导购</button><button type="button" class="lxfd-toggle lxfd-scope-chip">解决方案</button><button type="button" class="lxfd-toggle lxfd-scope-chip">门店查询</button><button type="button" class="lxfd-toggle lxfd-scope-chip">职场认证</button><button type="button" class="lxfd-toggle lxfd-scope-chip">服务预约</button><div class="lxfd-scope-more" id="lxfdScopeMore"><button type="button" class="lxfd-toggle lxfd-scope-more-btn" aria-expanded="false">更多</button><div class="lxfd-scope-menu" role="menu"><button type="button" class="lxfd-toggle lxfd-scope-chip" role="menuitem">解决方案</button><button type="button" class="lxfd-toggle lxfd-scope-chip" role="menuitem">门店查询</button><button type="button" class="lxfd-toggle lxfd-scope-chip" role="menuitem">职场认证</button><button type="button" class="lxfd-toggle lxfd-scope-chip" role="menuitem">服务预约</button></div></div></div><div class="lxfd-comp-right"><button type="button" class="lxfd-img-btn" aria-label="添加图片"><img class="icon" src="../icons/composer-image.svg" alt="" /></button><button type="submit" class="lxfd-send idle" id="lxfdSend" aria-label="发送"><img class="icon" src="../icons/composer-send.svg" alt="" /></button></div></div></form></div>
+        <section class="lxfd-home-gallery" aria-label="首页内容推荐">
+          <div class="gallery-tabs" role="tablist" aria-label="内容分类">
+            <button class="gallery-tab is-active" type="button" data-gallery-tab="new">新品</button>
+            <button class="gallery-tab" type="button" data-gallery-tab="act">活动</button>
+            <button class="gallery-tab" type="button" data-gallery-tab="news">新闻</button>
+            <button class="gallery-tab" type="button" data-gallery-tab="case">案例</button>
+            <span class="gallery-ink" id="lxfdGalleryInk" aria-hidden="true"></span>
+          </div>
+          <div class="gallery-grid" id="lxfdGalleryGrid">
+            <article class="gallery-card"><div class="gallery-shot has-image"><img class="gallery-img" src="../img/lxfd-gallery-1-1.jpg" alt="拯救者 Y9000P 2026" loading="eager" /></div><div class="gallery-meta"><span class="gallery-badge">新品首发</span><strong class="gallery-name">拯救者 Y9000P 2026</strong><span class="gallery-desc">i9-14900HX ｜ RTX 5060 ｜ 2.5K 240Hz 电竞屏</span><div class="gallery-foot"><span class="gallery-price">¥15,098</span><button class="gallery-go" type="button">了解 →</button></div></div></article>
+            <article class="gallery-card"><div class="gallery-shot has-image"><img class="gallery-img" src="../img/lxfd-gallery-1-2.jpg" alt="YOGA Air 14c 2026" loading="eager" /></div><div class="gallery-meta"><span class="gallery-badge">轻薄旗舰</span><strong class="gallery-name">YOGA Air 14c 2026</strong><span class="gallery-desc">酷睿 Ultra9 ｜ 32G/2T ｜ 2.8K OLED 触控</span><div class="gallery-foot"><span class="gallery-price">¥8,999</span><button class="gallery-go" type="button">了解 →</button></div></div></article>
+            <article class="gallery-card"><div class="gallery-shot has-image"><img class="gallery-img" src="../img/lxfd-gallery-1-3.jpg" alt="小新Pad Pro 13英寸" loading="eager" /></div><div class="gallery-meta"><span class="gallery-badge">全能之选</span><strong class="gallery-name">小新Pad Pro 13英寸</strong><span class="gallery-desc">酷睿 Ultra5 225H ｜ 32G/1T ｜ 全能轻薄</span><div class="gallery-foot"><span class="gallery-price">¥7,299</span><button class="gallery-go" type="button">了解 →</button></div></div></article>
+          </div>
+        </section>
+        <p class="lxfd-legal-line">京ICP备11035381-2 | 京公网安备110108007970号 | 营业执照：91110108700000458B</p>
+      </main>
+    </div>
+    <script src="../frontend/js/core/model-knowledge-runtime.js?v=0.13.15-stage"></script>
+    <script src="../frontend/js/shared/inline-5faa7877c846.js"></script>
+    <script src="../frontend/js/core/portal.js?v=0.13.15-stage"></script>
+    <script src="../frontend/js/core/app-intent.js?v=0.13.15-stage"></script>
+    <script src="../frontend/js/core/app-conv.js?v=0.13.16-new-chat-refresh"></script>
+  <script src="../frontend/js/pages/smb/inline-13.js?v=20260824-workplace-click-v2"></script>
+    <script src="/assets/frontend/js/core/app.member-devices-v42.min.js"></script>
+    <script src="../frontend/js/core/app-lxfd.js?v=20260827-history-rail-auth-v1"></script>
+    <script src="../frontend/js/core/app-voice.js?v=0.13.16-stage"></script>
+    <script src="../frontend/js/core/app-agent.js?v=0.13.16-unified-agent"></script>
+    <script data-shop-chat-template-behavior src="../frontend/js/pages/smb/inline-14.js?v=0.16.35-live-business-products"></script>
+    <link rel="stylesheet" data-shop-smart-cursor-fix href="../frontend/css/shared/inline-592f8f851e1f.css?v=0.16.39-borderless-product-cards">
+    <script src="../frontend/js/shared/inline-6495b30fa986.js?v=0.14.87-disable-dwell-state"></script>
+    <link rel="stylesheet" href="../frontend/css/shared/inline-e75ae5be9405.css">
+    <script src="../frontend/js/pages/smb/inline-18.js"></script>
+    <link rel="stylesheet" data-lexiang-user-bubble-token href="../frontend/css/shared/inline-c7bce3f5e8ce.css">
+    <script src="../frontend/js/pages/smb/inline-20.js"></script>
+    <script src="../frontend/js/pages/smb/inline-21.js"></script>
+    <link rel="stylesheet" data-unified-answer-card-selected href="../frontend/css/shared/inline-77378062a204.css">
+    <link rel="stylesheet" data-lxfd-chat-dock-bottom-gap href="../frontend/css/shared/inline-a6719541b94f.css">
+  <link rel="stylesheet" data-solution-result-shared href="../frontend/css/core/solution-result.css?v=20260828-compare-arrow-small-v1">
+  <link rel="stylesheet" data-product-card-borderless-final href="../frontend/css/core/product-card-borderless-v3.css">
+  <link rel="stylesheet" data-business-product-title-final href="../frontend/css/core/business-product-title-v2.css">
+  <link rel="stylesheet" data-business-product-hover-final href="../frontend/css/core/business-product-hover-v1.css">
+  <script src="../frontend/js/core/solution-result.js?v=0.15.5-disable-hover-ai"></script>
+  <script src="../frontend/js/core/split-frame-composer-sync.js"></script>
+  <script src="../frontend/js/pages/shop/inline-22.js?v=0.16.48-smb-scene-backgrounds"></script>
+</body>
+</html>
