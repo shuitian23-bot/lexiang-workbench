@@ -79,6 +79,13 @@ test('natural-language Skill creation opens the create workspace directly', asyn
   assert.doesNotMatch(aiStore, /技能管理\|创建\\s\*skill\|创建技能/)
 })
 
+test('Skill creation capability tooltip shows name above description', async () => {
+  const view = await source('../src/views/agent/AgentSkillCreateView.vue')
+
+  assert.match(view, /<strong>\{\{ contextSubtitleTooltip\.name \}\}<\/strong>\s*<span>\{\{ contextSubtitleTooltip\.text \}\}<\/span>/)
+  assert.match(view, /name: item\.name,\s*text: item\.subtitle,/)
+})
+
 test('Skill evaluation supports independent case tuning and reevaluation', async () => {
   const view = await source('../src/views/agent/AgentSkillCreateView.vue')
 

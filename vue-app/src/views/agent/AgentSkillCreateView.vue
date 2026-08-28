@@ -552,7 +552,10 @@
           transform: contextSubtitleTooltip.placement === 'top' ? 'translateY(-100%)' : 'none'
         }"
         role="tooltip"
-      >{{ contextSubtitleTooltip.text }}</div>
+      >
+        <strong>{{ contextSubtitleTooltip.name }}</strong>
+        <span>{{ contextSubtitleTooltip.text }}</span>
+      </div>
     </Teleport>
   </div>
 </template>
@@ -581,7 +584,7 @@ type ContextItem = {
   selected: boolean
   recommended: boolean
 }
-type ContextSubtitleTooltip = { code: string; text: string; left: number; top: number; width: number; placement: 'top' | 'bottom' }
+type ContextSubtitleTooltip = { code: string; name: string; text: string; left: number; top: number; width: number; placement: 'top' | 'bottom' }
 type StateStatus = 'pending' | 'running' | 'done' | 'failed' | 'blocked'
 type SkillStateItem = { kind: string; status: StateStatus; title: string; detail: string }
 type SkillTodoList = {
@@ -898,6 +901,7 @@ function showContextSubtitleTooltip(event: MouseEvent | FocusEvent, item: Contex
   const placement: 'top' | 'bottom' = window.innerHeight - rect.bottom >= 92 ? 'bottom' : 'top'
   contextSubtitleTooltip.value = {
     code: item.code,
+    name: item.name,
     text: item.subtitle,
     left,
     top: placement === 'bottom' ? rect.bottom + 6 : rect.top - 6,
@@ -3692,6 +3696,10 @@ onBeforeUnmount(() => {
   white-space: normal;
   pointer-events: none;
 }
+
+.skill-context-subtitle-tooltip strong,
+.skill-context-subtitle-tooltip span { display: block; }
+.skill-context-subtitle-tooltip strong { margin-bottom: 2px; font-weight: 600; }
 
 .skill-context-resource-metrics {
   flex: 0 0 auto;
