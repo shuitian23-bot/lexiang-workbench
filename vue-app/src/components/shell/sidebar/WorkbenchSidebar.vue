@@ -151,8 +151,8 @@ const basePocLogRecords = [
     title: 'Skill Hub 创建人字段',
     changePoint: 'Skill Hub 列表在“绑定平台”后新增“创建人”列，显示现有 Skill 负责人账号。',
     detail: '本次仅增加列表字段展示、空值兜底和相应表格宽度；不新增独立数据字段，不修改 Skill 生命周期状态、能力更新状态、操作按钮、筛选、权限、详情弹层、右侧 AI 助手或受保护 admin-runtime。',
-    deployTargets: ['new'],
-    status: '已更新 new 预览'
+    deployTargets: ['new', 'formal'],
+    status: '已合并正式'
   },
   {
     time: '2026-08-26 15:47',
