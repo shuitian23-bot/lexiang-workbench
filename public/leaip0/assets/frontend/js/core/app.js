@@ -3235,10 +3235,17 @@ function openOrderDetail(orderId) {
           pageBox.innerHTML = `<div class="reco-head"><h2>${esc(title)}</h2><span>正在加载参数明细...</span></div>`;
           const fullRaw = await Promise.all(source.slice(0, 8).map(async (item) => {
             if (item.specs && Object.keys(item.specs).length) return item;
+            const controller = typeof AbortController === "function" ? new AbortController() : null;
+            const timeoutId = window.setTimeout(() => controller?.abort(), 1800);
             try {
-              const response = await fetch(`/api/products/${encodeURIComponent(item.sku)}`, { cache: "no-store" });
+              const response = await fetch(`/api/products/${encodeURIComponent(item.sku)}`, {
+                cache: "no-store",
+                signal: controller?.signal,
+              });
               if (response.ok) return await response.json();
-            } catch {}
+            } catch {} finally {
+              window.clearTimeout(timeoutId);
+            }
             return item;
           }));
           // 本地货盘 specs 缺硬件参数（只有运营字段）→ 从 description 配置串解析补齐，参数行才有内容
@@ -5202,8 +5209,18 @@ function openOrderDetail(orderId) {
           const _hasCompareIntent = /对比|比较|哪个好|哪个更|哪个值|怎么选(?!购)|差别|区别|谁更好|选哪/.test(text);
           const _isSolutionComparison = _cmpRefs.length >= 2 && _cmpRefs.every((item) => item.type === "solution") && _hasCompareIntent;
           if (!_isSolutionComparison && _cmpRefs.length >= 2 && _cmpRefs.every((item) => item.type !== "solution") && _hasCompareIntent) {
+            // 商品对比是确定性本地操作：引用商品已经给出了完整目标，直接生成右侧对比页，
+            // 不再继续进入远程意图判断和官方 Skill 咨询链。
             lxRevealContent();
             lxUpsertCompareTab(_cmpRefs, "商品对比");
+            setTimeout(() => lxSetRef(null), 100);
+            state.queryHistory.push(text);
+            (state.queryAnchors = state.queryAnchors || []).push(($(
+              ".lx-p0-messages"
+            )?.children.length || 1) - 1);
+            renderQueryHistory();
+            try { window.__lxSaveConversationNow(); } catch (_e) {}
+            return;
           }
           // 清引用前先快照：下面的意图路由要 await 后端几百毫秒~4.5s，100ms 定时器会先把
           // 引用清掉，等构造 builtMsg 时引用已空 → 官方收到裸文本反问"这款是指哪款"
@@ -8775,7 +8792,7 @@ async function openEduZone() {
           content.appendChild(overlay);
           content.scrollTop = 0;
           content.classList.add("is-generating-tab");
-          const minVisibleMs = 2000 + Math.floor(Math.random() * 2001);
+          const minVisibleMs = tab.kind === "compare" ? 320 : 2000 + Math.floor(Math.random() * 2001);
           const token = { overlay, startedAt: Date.now(), minVisibleMs, tab, done: false };
           requestAnimationFrame(() => overlay.classList.add("is-show"));
           return token;
