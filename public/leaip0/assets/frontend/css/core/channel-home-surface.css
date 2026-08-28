@@ -47,7 +47,6 @@ body:is(
   [data-page="brand"]
 ):not(.assistant-fullscreen):not(.lx-auto-fs)
   > .shell {
-  background-color: #F6F6F6 !important;
   background-image: none !important;
   background-attachment: local !important;
 }
