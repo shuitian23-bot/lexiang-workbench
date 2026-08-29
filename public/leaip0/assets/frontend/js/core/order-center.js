@@ -395,8 +395,21 @@
           window.lxHandleCommerceEntry = function (entry) {
             if (entry === "orders") openOrdersFromChat("");
           };
+          window.__lxOpenOrdersCenter = function (options) {
+            var question = options && typeof options.question === "string" ? options.question : "";
+            openOrdersFromChat(question);
+          };
 
           var textarea = document.querySelector(".assistant-panel .composer textarea");
+
+          window.addEventListener("click", function (event) {
+            var commerceEntry = event.target.closest(".utility-btn[aria-label='订单'], [data-commerce-entry='orders'], [data-lxfd-open='orders']");
+            if (!commerceEntry) return;
+            event.preventDefault();
+            event.stopPropagation();
+            event.stopImmediatePropagation();
+            openOrdersFromChat("查看我的订单");
+          }, true);
 
           document.addEventListener("click", function (event) {
             var commerceEntry = event.target.closest("[data-commerce-entry='orders'], [data-lxfd-open='orders']");

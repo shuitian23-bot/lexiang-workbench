@@ -2118,6 +2118,13 @@ function compactProductSpec(description, category) {
           );
           if (!trigger) return;
           const kind = trigger.dataset.lxfdOpen || (trigger.getAttribute("aria-label") === "订单" ? "orders" : "cart");
+          if (kind === "orders" && typeof window.__lxOpenOrdersCenter === "function") {
+            event.preventDefault();
+            event.stopPropagation();
+            event.stopImmediatePropagation();
+            window.__lxOpenOrdersCenter({ question: "查看我的订单" });
+            return;
+          }
           event.preventDefault();
           event.stopPropagation();
           event.stopImmediatePropagation();
