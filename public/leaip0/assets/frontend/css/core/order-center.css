@@ -1681,3 +1681,25 @@ body.lx-orders-poc {
           padding: 20px 0 32px;
         }
       }
+
+      /* orders-overflow-guard-20260829: the right workspace scrolls vertically only. */
+      body.lx-orders-poc .content.lx-orders-content {
+        min-width: 0;
+        overflow-x: hidden !important;
+        overflow-y: auto;
+      }
+      .lx-orders-page,
+      .lx-orders-list,
+      .lx-order-detail,
+      .lx-orders-list .lx-order-grid,
+      .lx-orders-list .lx-order-card,
+      .lx-orders-list .lx-order-card-body,
+      .lx-orders-list .lx-order-card-products,
+      .lx-orders-list .lx-order-card-product-row {
+        min-width: 0;
+        max-width: 100%;
+      }
+      .lx-orders-page {
+        width: 100%;
+        overflow-x: clip;
+      }
