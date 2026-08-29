@@ -1662,3 +1662,22 @@ body.lx-orders-poc {
           flex-basis: auto;
         }
       }
+
+      /* orders-right-frame-sync-20260829: reuse the member-center content grid. */
+      .lx-orders-list,
+      .lx-order-detail {
+        width: min(1180px, calc(100% - 48px));
+        margin: 0 auto;
+        padding: 24px 0 40px;
+      }
+      .lx-orders-list .lx-order-grid {
+        gap: 12px;
+        padding-bottom: 0;
+      }
+      @media (max-width: 700px) {
+        .lx-orders-list,
+        .lx-order-detail {
+          width: calc(100% - 32px);
+          padding: 20px 0 32px;
+        }
+      }
