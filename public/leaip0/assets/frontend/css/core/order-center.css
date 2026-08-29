@@ -1766,8 +1766,13 @@ body.lx-orders-poc {
       }
       body.lx-orders-poc .content.lx-orders-content > .lx-orders-page {
         width: calc(100% + 36px);
+        max-width: none;
         min-height: calc(100% - 18px);
         margin: 0 -18px -18px;
+        box-sizing: border-box;
+      }
+      body.lx-orders-poc .content.lx-orders-content > .lx-orders-page:has(.lx-order-detail.is-active) {
+        padding-bottom: 32px;
       }
       @media (max-width: 700px) {
         body.lx-orders-poc .content.lx-orders-content > .lx-orders-page {
