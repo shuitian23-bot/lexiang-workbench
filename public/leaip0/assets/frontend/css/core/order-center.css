@@ -459,6 +459,20 @@ body.lx-orders-poc {
       .lx-order-detail {
         display: none;
       }
+      .content:has(> .lx-order-handoff-snapshot) {
+        position: relative;
+      }
+      .lx-order-handoff-snapshot {
+        position: absolute;
+        inset: 0;
+        z-index: 90;
+        overflow: hidden;
+        background: #fcfaff;
+        pointer-events: none;
+      }
+      .lx-order-handoff-snapshot > .lx-orders-page {
+        min-height: 100%;
+      }
       .lx-order-detail.is-active,
       .lx-orders-list.is-active {
         display: block;

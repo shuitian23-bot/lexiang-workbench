@@ -5,6 +5,7 @@
         var commerceMounted = false;
         var ordersTabObserver = null;
         var assistantQueryObserver = null;
+        var workspaceHandoffTimer = 0;
         var homeWorkspace = null;
         var orderData = window.OrderDemoData || { orders: [] };
         var orders = Array.isArray(orderData.orders) ? orderData.orders.slice() : [];
@@ -273,6 +274,7 @@
         }
 
         function mountCommerceWorkspace() {
+          removeWorkspaceHandoffSnapshot();
           if (commerceMounted || !content) return;
           var fragment = document.createDocumentFragment();
           while (content.firstChild) fragment.appendChild(content.firstChild);
@@ -298,8 +300,31 @@
           }
         }
 
-        function restoreHomeWorkspace() {
+        function removeWorkspaceHandoffSnapshot() {
+          window.clearTimeout(workspaceHandoffTimer);
+          workspaceHandoffTimer = 0;
+          document.querySelectorAll(".lx-order-handoff-snapshot").forEach(function (node) { node.remove(); });
+          if (body) body.classList.remove("lx-order-handoff-pending");
+        }
+
+        function finishWorkspaceHandoffAfterResultCard() {
+          if (!document.querySelector(".lx-order-handoff-snapshot")) return;
+          window.clearTimeout(workspaceHandoffTimer);
+          workspaceHandoffTimer = window.setTimeout(removeWorkspaceHandoffSnapshot, 760);
+        }
+
+        function restoreHomeWorkspace(preserveCurrentView) {
           if (!commerceMounted || !homeWorkspace || !content) return;
+          var snapshot = null;
+          if (preserveCurrentView) {
+            var currentOrdersPage = content.querySelector(".lx-orders-page");
+            if (currentOrdersPage) {
+              snapshot = document.createElement("div");
+              snapshot.className = "lx-order-handoff-snapshot";
+              snapshot.setAttribute("aria-hidden", "true");
+              snapshot.appendChild(currentOrdersPage.cloneNode(true));
+            }
+          }
           content.replaceChildren(homeWorkspace.fragment);
           content.className = homeWorkspace.className;
           if (homeWorkspace.ariaLabel == null) content.removeAttribute("aria-label");
@@ -313,6 +338,10 @@
           if (mainNav) mainNav.dataset.shopCurrentLabel = homeWorkspace.navLabel;
           var fullscreenName = document.querySelector(".lxfd-convo-name");
           if (fullscreenName && homeWorkspace.conversationName) fullscreenName.textContent = homeWorkspace.conversationName;
+          if (snapshot) {
+            content.appendChild(snapshot);
+            body.classList.add("lx-order-handoff-pending");
+          }
         }
 
         function isOrderQuery(text) {
@@ -325,12 +354,15 @@
         }
 
         function restoreSharedWorkspaceForQuery(node) {
-          if (!commerceMounted || orderIconFlowRunning || !node || node.nodeType !== 1) return;
+          if (!node || node.nodeType !== 1) return;
+          var resultCard = node.matches("[data-lx-result-id]") ? node : node.querySelector("[data-lx-result-id]");
+          if (resultCard) finishWorkspaceHandoffAfterResultCard();
+          if (!commerceMounted || orderIconFlowRunning) return;
           var userMessage = node.matches(".lx-p0-message.user, .msg.user") ? node : node.querySelector(".lx-p0-message.user, .msg.user");
           if (!userMessage) return;
           var bubble = userMessage.querySelector(".user-bubble");
           var query = (bubble || userMessage).textContent || "";
-          if (!isOrderQuery(query)) restoreHomeWorkspace();
+          if (!isOrderQuery(query)) restoreHomeWorkspace(true);
         }
 
         function setWorkspaceView(view) {
