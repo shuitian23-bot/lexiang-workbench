@@ -1270,7 +1270,7 @@ body.lx-orders-poc {
       }
       .lx-orders-list .lx-order-search,
       .lx-orders-list .lx-order-type-label {
-        height: 40px;
+        height: 42px;
         border-color: #e2ddeb;
         border-radius: 8px;
         background: #ffffff;
@@ -1285,7 +1285,39 @@ body.lx-orders-poc {
       .lx-orders-list .lx-order-search:focus-within,
       .lx-orders-list .lx-order-type-label:focus-within {
         border-color: #4d144a;
-        box-shadow: 0 0 0 2px #efe4f1;
+        outline: 2px solid rgba(162, 98, 215, 0.10);
+        outline-offset: 0;
+        box-shadow: none;
+      }
+      .lx-orders-list .lx-order-search input {
+        height: 40px;
+        padding: 0;
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+        color: #252525;
+        font-size: 13px;
+        line-height: 20px;
+        outline: none !important;
+        box-shadow: none !important;
+      }
+      .lx-orders-list .lx-order-search input:focus,
+      .lx-orders-list .lx-order-search input:focus-visible,
+      .lx-orders-list .lx-order-type-label select:focus,
+      .lx-orders-list .lx-order-type-label select:focus-visible {
+        outline: none !important;
+        box-shadow: none !important;
+      }
+      .lx-orders-list .lx-order-type-label select {
+        height: 40px;
+        padding-top: 0;
+        padding-bottom: 0;
+        border: 0;
+        border-radius: 0;
+        background-color: transparent;
+        color: #252525;
+        font-size: 13px;
+        line-height: 20px;
       }
       .lx-orders-list .lx-order-status-tabs {
         gap: 8px;
