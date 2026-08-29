@@ -6,6 +6,7 @@
         var ordersTabObserver = null;
         var assistantQueryObserver = null;
         var workspaceHandoffTimer = 0;
+        var orderGenerationOverlay = null;
         var homeWorkspace = null;
         var orderData = window.OrderDemoData || { orders: [] };
         var orders = Array.isArray(orderData.orders) ? orderData.orders.slice() : [];
@@ -422,6 +423,30 @@
           chat.replaceChildren();
         }
 
+        function showOrderGeneration() {
+          if (!content) return;
+          if (orderGenerationOverlay) orderGenerationOverlay.remove();
+          orderGenerationOverlay = document.createElement("div");
+          orderGenerationOverlay.className = "lx-page-generating";
+          orderGenerationOverlay.setAttribute("role", "status");
+          orderGenerationOverlay.setAttribute("aria-live", "polite");
+          orderGenerationOverlay.innerHTML = '<div class="lx-page-gen-card lx-page-gen-card--aurora"><div class="lx-page-gen-aurora-field" aria-hidden="true"><i class="lx-page-gen-aurora-wave lx-page-gen-aurora-wave--a"></i><i class="lx-page-gen-aurora-wave lx-page-gen-aurora-wave--b"></i><i class="lx-page-gen-aurora-wave lx-page-gen-aurora-wave--c"></i><i class="lx-page-gen-aurora-wave lx-page-gen-aurora-wave--d"></i><span class="lx-page-gen-aurora-lens"></span></div><div class="lx-page-gen-head"><div class="lx-page-gen-copy"><strong>正在生成订单列表</strong><em>正在加载订单状态、商品、金额与物流信息</em></div></div></div>';
+          content.appendChild(orderGenerationOverlay);
+          content.classList.add("is-generating-tab");
+          content.scrollTop = 0;
+          requestAnimationFrame(function () { orderGenerationOverlay?.classList.add("is-show"); });
+        }
+
+        function hideOrderGeneration() {
+          if (content) content.classList.remove("is-generating-tab");
+          if (!orderGenerationOverlay) return;
+          var overlay = orderGenerationOverlay;
+          orderGenerationOverlay = null;
+          if (!overlay.isConnected) return;
+          overlay.classList.add("is-done");
+          window.setTimeout(function () { overlay.remove(); }, 240);
+        }
+
         var orderIconFlowRunning = false;
         async function runOrderIconFlow(question) {
           if (orderIconFlowRunning) return;
@@ -431,6 +456,7 @@
             if (window.__lxBridge && typeof window.__lxBridge.prepareRootSplitState === "function") {
               window.__lxBridge.prepareRootSplitState();
             }
+            showOrderGeneration();
             await streamSkillAnswer(question || "我要查看订单", "订单查询", ["已为你查询到 22 笔订单，包含待付款、待发货和待收货状态。可在右侧筛选订单，并查看商品、金额与物流详情。"], {
               finalHtml: '<p>已为你查询到 <strong>22 笔订单</strong>，包含待付款、待发货和待收货状态。可在右侧筛选订单，并查看商品、金额与<strong>物流详情</strong>。</p>',
               cardHtml: '<button class="answer-cta lx-answer-page" type="button" data-open-orders data-lx-result-id="info:orders" aria-pressed="false"><span class="answer-cta-copy"><span class="answer-cta-title">查看我的订单</span><span class="answer-cta-desc">共 22 笔 · 17 笔进行中</span></span><span class="answer-cta-icon" aria-hidden="true"><img class="lx-approved-icon-img" src="../icons/global-next.svg" alt=""></span></button>',
@@ -438,6 +464,7 @@
             });
             openOrdersFromChat("");
           } finally {
+            hideOrderGeneration();
             orderIconFlowRunning = false;
           }
         }
