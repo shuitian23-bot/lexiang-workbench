@@ -302,6 +302,11 @@
           return /订单|物流|发货/.test(String(text || ""));
         }
 
+        function isDirectOrderCenterQuery(text) {
+          var normalized = String(text || "").replace(/[\s，。！？、,.!?]/g, "");
+          return /^(?:我要|我想|帮我)?(?:查看|查询|打开)?(?:我的)?订单(?:中心|列表|记录)?$/.test(normalized);
+        }
+
         function restoreSharedWorkspaceForQuery(node) {
           if (!commerceMounted || orderIconFlowRunning || !node || node.nodeType !== 1) return;
           var userMessage = node.matches(".lx-p0-message.user, .msg.user") ? node : node.querySelector(".lx-p0-message.user, .msg.user");
@@ -369,7 +374,7 @@
         }
 
         var orderIconFlowRunning = false;
-        async function runOrderIconFlow() {
+        async function runOrderIconFlow(question) {
           if (orderIconFlowRunning) return;
           orderIconFlowRunning = true;
           try {
@@ -377,7 +382,7 @@
             if (window.__lxBridge && typeof window.__lxBridge.prepareRootSplitState === "function") {
               window.__lxBridge.prepareRootSplitState();
             }
-            await streamSkillAnswer("我要查看订单", "订单查询", ["已为你查询到 22 笔订单，包含待付款、待发货和待收货状态。可在右侧筛选订单，并查看商品、金额与物流详情。"], {
+            await streamSkillAnswer(question || "我要查看订单", "订单查询", ["已为你查询到 22 笔订单，包含待付款、待发货和待收货状态。可在右侧筛选订单，并查看商品、金额与物流详情。"], {
               finalHtml: '<p>已为你查询到 <strong>22 笔订单</strong>，包含待付款、待发货和待收货状态。可在右侧筛选订单，并查看商品、金额与<strong>物流详情</strong>。</p>',
               cardHtml: '<button class="answer-cta lx-answer-page" type="button" data-open-orders data-lx-result-id="info:orders" aria-pressed="false"><span class="answer-cta-copy"><span class="answer-cta-title">查看我的订单</span><span class="answer-cta-desc">共 22 笔 · 17 笔进行中</span></span><span class="answer-cta-icon" aria-hidden="true"><img class="lx-approved-icon-img" src="../icons/global-next.svg" alt=""></span></button>',
               disclaimer: "内容由联想乐享基于当前订单数据生成，请在支付或申请售后前核对关键信息。"
@@ -477,13 +482,34 @@
 
           var textarea = document.querySelector(".assistant-panel .composer textarea");
 
+          function interceptDirectOrderQuery(event, input) {
+            input = input || textarea;
+            var query = input && input.value ? input.value.trim() : "";
+            if (!isDirectOrderCenterQuery(query)) return false;
+            event.preventDefault();
+            event.stopPropagation();
+            event.stopImmediatePropagation();
+            input.value = "";
+            input.dispatchEvent(new Event("input", { bubbles: true }));
+            runOrderIconFlow(query);
+            return true;
+          }
+
           window.addEventListener("click", function (event) {
+            var sendButton = event.target.closest(".assistant-panel .send-btn, .assistant-panel [data-send], .assistant-panel button[type='submit'], .lxfd-send");
+            var sendInput = sendButton && sendButton.closest("form") ? sendButton.closest("form").querySelector("textarea") : textarea;
+            if (sendButton && interceptDirectOrderQuery(event, sendInput)) return;
             var commerceEntry = event.target.closest(".utility-btn[aria-label='订单'], [data-commerce-entry='orders'], [data-lxfd-open='orders']");
             if (!commerceEntry) return;
             event.preventDefault();
             event.stopPropagation();
             event.stopImmediatePropagation();
             runOrderIconFlow();
+          }, true);
+
+          window.addEventListener("keydown", function (event) {
+            if (event.key !== "Enter" || event.shiftKey || event.isComposing || !event.target.matches(".assistant-panel .composer textarea, .lxfd-composer textarea")) return;
+            interceptDirectOrderQuery(event, event.target);
           }, true);
 
           document.addEventListener("click", function (event) {
