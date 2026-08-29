@@ -144,6 +144,21 @@ body.lx-orders-poc {
         padding: 18px 24px 12px;
         background: #ffffff;
       }
+      .lx-orders-page > .lx-orders-tabs.lx-tabbar {
+        position: sticky !important;
+        top: 0 !important;
+        z-index: 30 !important;
+        align-items: center !important;
+        height: 58px !important;
+        min-height: 58px !important;
+        max-height: 58px !important;
+        padding: 12px 24px !important;
+        border-bottom: 1px solid #efe4f1 !important;
+        background: #ffffff !important;
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
+        isolation: isolate;
+      }
       .lx-orders-tab {
         height: 30px;
         display: inline-flex;
@@ -1187,6 +1202,7 @@ body.lx-orders-poc {
 
       /* orders-member-visual-sync-20260829: align the order center with the member-center AUI. */
       body.lx-orders-poc .content.lx-orders-content {
+        padding: 0 !important;
         border-radius: 18px 18px 0 0;
         background: #fcfaff;
       }
