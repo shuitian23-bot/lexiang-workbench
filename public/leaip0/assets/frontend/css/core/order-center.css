@@ -1788,8 +1788,7 @@ body.lx-orders-poc {
         padding-bottom: 16px;
       }
       body.lx-orders-poc .shell > .content.lx-orders-content {
-        height: calc(100% + 16px);
-        max-height: calc(100% + 16px);
+        height: 100%;
+        max-height: 100%;
         min-height: 0;
-        margin-top: -16px;
       }
