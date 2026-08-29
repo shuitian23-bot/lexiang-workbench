@@ -3,6 +3,7 @@
         var content;
         var chat;
         var commerceMounted = false;
+        var ordersTabObserver = null;
         var homeWorkspace = null;
         var orderData = window.OrderDemoData || { orders: [] };
         var orders = Array.isArray(orderData.orders) ? orderData.orders.slice() : [];
@@ -130,7 +131,8 @@
           if (searchInput && searchInput.value !== orderListState.query) searchInput.value = orderListState.query;
         }
 
-        function streamSkillAnswer(question, skillName, paragraphs) {
+        function streamSkillAnswer(question, skillName, paragraphs, options) {
+          options = options || {};
           if (body) body.dataset.state = "chat";
           var oldFollowup = document.getElementById("lx-order-live-followup");
           if (oldFollowup) oldFollowup.hidden = true;
@@ -179,6 +181,7 @@
             skill.setAttribute("aria-expanded", String(!collapsed));
             region.classList.toggle("is-visible", !collapsed);
           });
+          return new Promise(function (resolve) {
           setTimeout(function () {
             label.textContent = "正在获取数据";
             skill.classList.remove("is-collapsed");
@@ -197,7 +200,12 @@
             function writeNext() {
               if (paragraphIndex >= paragraphs.length) {
                 answer.classList.remove("lx-stream-cursor");
+                if (options.finalHtml) answer.innerHTML = options.finalHtml;
+                if (options.cardHtml) answer.insertAdjacentHTML("beforeend", options.cardHtml);
+                if (options.disclaimer) answer.insertAdjacentHTML("beforeend", '<p class="lx-order-disclaimer">' + escapeHtml(options.disclaimer) + '</p>');
+                check.src = "../icons/global-check.svg";
                 liveChat.scrollTop = liveChat.scrollHeight;
+                requestAnimationFrame(function () { requestAnimationFrame(function () { resolve(flow); }); });
                 return;
               }
               var source = paragraphs[paragraphIndex];
@@ -211,6 +219,7 @@
             }
             writeNext();
           }, 980);
+          });
         }
 
         function buildThread() {
@@ -227,7 +236,7 @@
 
         function buildOrdersPage() {
           return '<div class="lx-orders-page">' +
-            '<nav class="lx-orders-tabs lx-tabbar" aria-label="已打开页面"><button class="lx-orders-tab lx-tab" type="button" data-workspace-view="home"><span class="lx-tab-label">个人及家庭</span><span class="lx-orders-tab-close lx-tab-close">×</span></button><button class="lx-orders-tab lx-tab is-active" type="button" data-workspace-view="orders" aria-current="page"><span class="lx-tab-label">我的订单</span><span class="lx-orders-tab-close lx-tab-close">×</span></button></nav>' +
+            '<nav class="lx-orders-tabs lx-tabbar" aria-label="已打开页面" hidden><button class="lx-orders-tab lx-tab is-active" type="button" data-workspace-view="orders" aria-current="page"><span class="lx-tab-label">我的订单</span><span class="lx-orders-tab-close lx-tab-close">×</span></button></nav>' +
             '<section class="lx-orders-list is-active" data-orders-list>' +
               '<header class="lx-orders-head"><div class="lx-orders-title-wrap"><h1>我的订单</h1><p>查看并管理你的联想乐享订单</p></div></header>' +
               '<div class="lx-order-filterbar"><label class="lx-order-search"><img src="../icons/composer-search.svg" alt=""><input type="search" value="' + escapeHtml(orderListState.query) + '" placeholder="搜索订单号或商品名称" aria-label="搜索订单" data-order-search></label>' +
@@ -259,6 +268,12 @@
           commerceMounted = true;
           renderOrderList();
           removeLegacyTabs();
+          syncOrdersTabVisibility();
+          var ordersTabbar = content.querySelector(".lx-orders-tabs");
+          if (ordersTabbar && window.MutationObserver) {
+            ordersTabObserver = new MutationObserver(syncOrdersTabVisibility);
+            ordersTabObserver.observe(ordersTabbar, { childList: true });
+          }
         }
 
         function restoreHomeWorkspace() {
@@ -268,6 +283,8 @@
           if (homeWorkspace.ariaLabel == null) content.removeAttribute("aria-label");
           else content.setAttribute("aria-label", homeWorkspace.ariaLabel);
           body.classList.remove("lx-orders-poc");
+          if (ordersTabObserver) ordersTabObserver.disconnect();
+          ordersTabObserver = null;
           commerceMounted = false;
           content.scrollTop = 0;
           var mainNav = document.querySelector(".main-nav");
@@ -292,6 +309,15 @@
           content.setAttribute("aria-label", "我的订单");
           renderOrderList();
           content.scrollTop = 0;
+          syncOrdersTabVisibility();
+        }
+
+        function syncOrdersTabVisibility() {
+          if (!content) return;
+          var tabbar = content.querySelector(".lx-orders-tabs");
+          if (!tabbar) return;
+          var realTabs = tabbar.querySelectorAll(".lx-orders-tab:not([hidden])");
+          tabbar.hidden = realTabs.length <= 1;
         }
 
         function removeLegacyTabs() {
@@ -311,6 +337,37 @@
           if (list) list.classList.add("is-active");
           removeLegacyTabs();
           if (question) streamSkillAnswer(question, "订单查询", ["已为你打开我的订单页面，共查询到 22 笔订单。", "你可以在右侧查看每笔订单的状态、实付款和下单时间；点击“详情”可继续查看订单信息与物流轨迹。"]);
+        }
+
+        function clearFreshHomeConversationBeforeOrders() {
+          var logicalPath = String(window.__LX_TEMPLATE_PATH || location.pathname || "/").replace(/\/+$/, "") || "/";
+          var isFullscreenHome = logicalPath === "/" && (body.classList.contains("assistant-fullscreen") || body.classList.contains("lx-auto-fs"));
+          var hasCurrentFullscreenQuery = !!document.querySelector(".lxfd-thread .lxfd-msg-user");
+          if (!isFullscreenHome || hasCurrentFullscreenQuery) return;
+          if (window.__lxBridge && typeof window.__lxBridge.resetConversationContext === "function") {
+            window.__lxBridge.resetConversationContext();
+          }
+          chat.replaceChildren();
+        }
+
+        var orderIconFlowRunning = false;
+        async function runOrderIconFlow() {
+          if (orderIconFlowRunning) return;
+          orderIconFlowRunning = true;
+          try {
+            clearFreshHomeConversationBeforeOrders();
+            if (window.__lxBridge && typeof window.__lxBridge.prepareRootSplitState === "function") {
+              window.__lxBridge.prepareRootSplitState();
+            }
+            await streamSkillAnswer("我要查看订单", "订单查询", ["已为你查询到 22 笔订单，包含待付款、待发货和待收货状态。可在右侧筛选订单，并查看商品、金额与物流详情。"], {
+              finalHtml: '<p>已为你查询到 <strong>22 笔订单</strong>，包含待付款、待发货和待收货状态。可在右侧筛选订单，并查看商品、金额与<strong>物流详情</strong>。</p>',
+              cardHtml: '<button class="lx-order-result-card" type="button" data-open-orders data-lx-result-id="info:orders" aria-pressed="false"><span class="lx-order-result-icon"><img src="../icons/global-next.svg" alt=""></span><span><strong>查看我的订单</strong><small>共 22 笔 · 17 笔进行中</small></span><img src="../icons/arrow-left.svg" alt=""></button>',
+              disclaimer: "内容由联想乐享基于当前订单数据生成，请在支付或申请售后前核对关键信息。"
+            });
+            openOrdersFromChat("");
+          } finally {
+            orderIconFlowRunning = false;
+          }
         }
 
         function infoRows(rows) {
@@ -402,25 +459,13 @@
 
           var textarea = document.querySelector(".assistant-panel .composer textarea");
 
-          function clearFreshHomeConversationBeforeOrders() {
-            var logicalPath = String(window.__LX_TEMPLATE_PATH || location.pathname || "/").replace(/\/+$/, "") || "/";
-            var isFullscreenHome = logicalPath === "/" && (body.classList.contains("assistant-fullscreen") || body.classList.contains("lx-auto-fs"));
-            var hasCurrentFullscreenQuery = !!document.querySelector(".lxfd-thread .lxfd-msg-user");
-            if (!isFullscreenHome || hasCurrentFullscreenQuery) return;
-            if (window.__lxBridge && typeof window.__lxBridge.resetConversationContext === "function") {
-              window.__lxBridge.resetConversationContext();
-            }
-            chat.replaceChildren();
-          }
-
           window.addEventListener("click", function (event) {
             var commerceEntry = event.target.closest(".utility-btn[aria-label='订单'], [data-commerce-entry='orders'], [data-lxfd-open='orders']");
             if (!commerceEntry) return;
             event.preventDefault();
             event.stopPropagation();
             event.stopImmediatePropagation();
-            clearFreshHomeConversationBeforeOrders();
-            openOrdersFromChat("");
+            runOrderIconFlow();
           }, true);
 
           document.addEventListener("click", function (event) {
