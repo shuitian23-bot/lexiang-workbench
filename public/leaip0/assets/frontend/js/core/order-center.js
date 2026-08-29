@@ -227,7 +227,7 @@
 
         function buildOrdersPage() {
           return '<div class="lx-orders-page">' +
-            '<nav class="lx-orders-tabs" aria-label="已打开页面"><button class="lx-orders-tab" type="button" data-workspace-view="home">个人及家庭 <span class="lx-orders-tab-close">×</span></button><button class="lx-orders-tab is-active" type="button" data-workspace-view="orders" aria-current="page">我的订单 <span class="lx-orders-tab-close">×</span></button></nav>' +
+            '<nav class="lx-orders-tabs lx-tabbar" aria-label="已打开页面"><button class="lx-orders-tab lx-tab" type="button" data-workspace-view="home"><span class="lx-tab-label">个人及家庭</span><span class="lx-orders-tab-close lx-tab-close">×</span></button><button class="lx-orders-tab lx-tab is-active" type="button" data-workspace-view="orders" aria-current="page"><span class="lx-tab-label">我的订单</span><span class="lx-orders-tab-close lx-tab-close">×</span></button></nav>' +
             '<section class="lx-orders-list is-active" data-orders-list>' +
               '<header class="lx-orders-head"><div class="lx-orders-title-wrap"><h1>我的订单</h1><p>查看并管理你的联想乐享订单</p></div></header>' +
               '<div class="lx-order-filterbar"><label class="lx-order-search"><img src="../icons/composer-search.svg" alt=""><input type="search" value="' + escapeHtml(orderListState.query) + '" placeholder="搜索订单号或商品名称" aria-label="搜索订单" data-order-search></label>' +

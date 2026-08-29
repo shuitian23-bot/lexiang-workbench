@@ -1106,6 +1106,85 @@ body.lx-orders-poc {
         }
       }
 
+      /* orders-global-tab-sync-20260829: reuse the production result-tab dimensions and states. */
+      .lx-orders-tabs.lx-tabbar {
+        box-sizing: border-box !important;
+        display: flex !important;
+        align-items: flex-start !important;
+        flex-wrap: nowrap !important;
+        gap: 6px !important;
+        width: 100% !important;
+        height: 43px !important;
+        min-height: 43px !important;
+        max-height: 43px !important;
+        margin: 0 !important;
+        padding: 18px 18px 0 24px !important;
+        border: 0 !important;
+        background: #ffffff !important;
+        box-shadow: none !important;
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
+        scrollbar-width: none !important;
+      }
+      .lx-orders-tabs.lx-tabbar::-webkit-scrollbar {
+        display: none !important;
+      }
+      .lx-orders-tabs.lx-tabbar > .lx-orders-tab.lx-tab {
+        display: inline-flex !important;
+        align-items: center !important;
+        flex: 0 0 auto !important;
+        gap: 6px !important;
+        max-width: 200px !important;
+        min-height: 0 !important;
+        height: auto !important;
+        padding: 4px 6px 4px 12px !important;
+        border: 1px solid #e6e0ed !important;
+        border-radius: 8px !important;
+        background: #ffffff !important;
+        box-shadow: none !important;
+        color: #625b68 !important;
+        font-size: 12.5px !important;
+        line-height: 1.2 !important;
+        font-weight: 400 !important;
+        cursor: pointer !important;
+        user-select: none !important;
+      }
+      .lx-orders-tabs.lx-tabbar > .lx-orders-tab.lx-tab:hover,
+      .lx-orders-tabs.lx-tabbar > .lx-orders-tab.lx-tab:focus-visible,
+      .lx-orders-tabs.lx-tabbar > .lx-orders-tab.lx-tab.is-active {
+        border-color: #4d144a !important;
+        background: #efe4f1 !important;
+        color: #4d144a !important;
+        font-weight: 400 !important;
+        outline: none !important;
+      }
+      .lx-orders-tabs .lx-tab-label {
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
+      }
+      .lx-orders-tabs .lx-orders-tab-close.lx-tab-close {
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        width: auto !important;
+        height: auto !important;
+        margin: 0 !important;
+        padding: 2px 4px !important;
+        border: 0 !important;
+        border-radius: 4px !important;
+        background: transparent !important;
+        color: #979797 !important;
+        font-size: 14px !important;
+        line-height: 1 !important;
+        opacity: 1 !important;
+        transform: none !important;
+      }
+      .lx-orders-tabs .lx-orders-tab-close.lx-tab-close:hover {
+        background: #f3edf6 !important;
+        color: #bb1836 !important;
+      }
+
       /* orders-member-visual-sync-20260829: align the order center with the member-center AUI. */
       body.lx-orders-poc .content.lx-orders-content {
         border-radius: 18px 18px 0 0;
