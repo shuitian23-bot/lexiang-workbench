@@ -408,7 +408,7 @@
             event.preventDefault();
             event.stopPropagation();
             event.stopImmediatePropagation();
-            openOrdersFromChat("查看我的订单");
+            openOrdersFromChat("");
           }, true);
 
           document.addEventListener("click", function (event) {
