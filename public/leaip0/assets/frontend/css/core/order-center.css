@@ -1753,3 +1753,25 @@ body.lx-orders-poc {
           padding: 0;
         }
       }
+
+      /* orders-mounted-frame-20260829: keep the shared workspace frame stable
+         across the generation -> result transition. The outer 18px inset is
+         owned by the site shell; the order page only cancels it horizontally
+         so its existing 24px content rhythm remains unchanged. */
+      body.lx-orders-poc .content.lx-orders-content {
+        padding: 18px !important;
+        border-radius: 20px;
+        background: #ffffff !important;
+        scrollbar-gutter: auto;
+      }
+      body.lx-orders-poc .content.lx-orders-content > .lx-orders-page {
+        width: calc(100% + 36px);
+        min-height: calc(100% - 18px);
+        margin: 0 -18px -18px;
+      }
+      @media (max-width: 700px) {
+        body.lx-orders-poc .content.lx-orders-content > .lx-orders-page {
+          width: calc(100% + 36px);
+          margin-inline: -18px;
+        }
+      }
