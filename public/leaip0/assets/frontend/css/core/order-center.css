@@ -1487,46 +1487,68 @@ body.lx-orders-poc {
         background: #f3f0f7;
       }
       .lx-order-detail-head {
-        align-items: flex-start;
-        margin: 0 0 18px;
-        padding: 0;
+        min-height: 48px;
+        align-items: center;
+        margin: 0 0 12px;
+        padding: 6px 0 8px;
         border: 0;
+        border-radius: 0;
+        background: rgba(255, 255, 255, 0.98);
+        box-shadow: none;
       }
-      .lx-order-detail-title::before {
-        display: block;
-        margin-bottom: 5px;
-        color: #4d144a;
-        font-size: 13px;
-        line-height: 20px;
-        font-weight: 600;
-        content: "订单管理";
+      .lx-order-detail-title {
+        width: 100%;
+      }
+      .lx-order-detail-title-row {
+        min-height: 32px;
+        display: flex;
+        align-items: center;
+        gap: 0;
       }
       .lx-order-detail-title h1 {
+        padding-left: 8px;
         color: #252525;
-        font-size: 22px;
-        line-height: 32px;
-        font-weight: 500;
+        font-size: 20px;
+        line-height: 30px;
+        font-weight: 650;
+        letter-spacing: -0.2px;
       }
       .lx-order-detail-title p {
-        margin-top: 6px;
+        margin: 3px 0 0 40px;
         color: #625b68;
-        font-size: 13px;
-        line-height: 21px;
+        font-size: 12px;
+        line-height: 18px;
       }
       .lx-order-back {
-        margin-top: 25px;
-        border-color: #e2ddeb;
+        width: 32px;
+        height: 32px;
+        flex: 0 0 32px;
+        justify-content: center;
+        margin: 0;
+        padding: 0;
+        border: 0;
         border-radius: 8px;
+        background: transparent;
+        box-shadow: none;
       }
       .lx-order-back:hover,
       .lx-order-back:focus-visible {
-        border-color: #4d144a;
-        background: #f3f0f7;
+        border: 0;
+        background: transparent;
         outline: none;
+        opacity: 0.72;
+      }
+      .lx-order-back img {
+        width: 16px;
+        height: 16px;
+        opacity: 0.72;
+        transform: rotate(180deg);
       }
       .lx-order-detail-status {
-        min-height: 30px;
-        height: 30px;
+        min-height: 26px;
+        height: 26px;
+        margin-left: 12px;
+        padding: 0 10px;
         border-radius: 999px;
         background: #f3f0f7;
         color: #4d144a;
@@ -1542,12 +1564,13 @@ body.lx-orders-poc {
         box-shadow: 0 3px 10px rgba(77, 20, 74, 0.035);
       }
       .lx-order-detail-summary {
-        padding: 18px;
+        margin-bottom: 12px;
+        padding: 16px;
       }
       .lx-detail-tabs {
         position: static;
         gap: 8px;
-        margin: 14px 0;
+        margin: 12px 0;
         padding: 0;
         border: 0;
         background: transparent;
@@ -1580,8 +1603,8 @@ body.lx-orders-poc {
         background: transparent;
       }
       .lx-detail-section {
-        margin-top: 14px;
-        padding: 18px;
+        margin-top: 12px;
+        padding: 16px;
       }
       .lx-detail-section:first-child {
         margin-top: 0;
