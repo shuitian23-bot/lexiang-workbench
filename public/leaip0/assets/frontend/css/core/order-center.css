@@ -1717,3 +1717,39 @@ body.lx-orders-poc {
         border-width: 0 0 1.5px 1.5px;
         transform: rotate(45deg);
       }
+
+      /* orders-template-frame-final-20260829: restore the source order-page geometry. */
+      .lx-orders-page {
+        width: 100%;
+        min-height: 100%;
+        padding: 18px 24px 44px;
+        overflow-x: hidden;
+      }
+      .lx-orders-list,
+      .lx-order-detail {
+        width: 100%;
+        max-width: none;
+        margin: 0;
+        padding: 0;
+      }
+      .lx-orders-page > .lx-orders-tabs.lx-tabbar {
+        margin: -18px -24px 0 !important;
+        padding: 12px 24px !important;
+      }
+      .lx-orders-list .lx-order-grid {
+        gap: 14px;
+      }
+      @media (max-width: 700px) {
+        .lx-orders-page {
+          padding: 18px 16px 32px;
+        }
+        .lx-orders-page > .lx-orders-tabs.lx-tabbar {
+          margin-inline: -16px !important;
+          padding-inline: 16px !important;
+        }
+        .lx-orders-list,
+        .lx-order-detail {
+          width: 100%;
+          padding: 0;
+        }
+      }
