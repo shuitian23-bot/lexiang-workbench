@@ -1703,3 +1703,17 @@ body.lx-orders-poc {
         width: 100%;
         overflow-x: clip;
       }
+
+      /* orders-detail-back-chevron-20260829: match the coupon detail navigation. */
+      .lx-order-back img {
+        display: none;
+      }
+      .lx-order-back::before {
+        content: "";
+        display: block;
+        width: 9px;
+        height: 9px;
+        border: solid #979797;
+        border-width: 0 0 1.5px 1.5px;
+        transform: rotate(45deg);
+      }
