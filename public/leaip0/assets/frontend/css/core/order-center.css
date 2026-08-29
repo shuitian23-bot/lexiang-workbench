@@ -1306,6 +1306,8 @@ body.lx-orders-poc {
       }
       .lx-orders-list .lx-order-type-label {
         min-width: 220px;
+        position: relative;
+        z-index: 12;
       }
       .lx-orders-list .lx-order-search:focus-within,
       .lx-orders-list .lx-order-type-label:focus-within {
@@ -1343,6 +1345,81 @@ body.lx-orders-poc {
         color: #252525;
         font-size: 13px;
         line-height: 20px;
+      }
+      .lx-orders-list .lx-order-type-trigger {
+        min-width: 112px;
+        height: 40px;
+        display: inline-flex;
+        flex: 1 1 auto;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        padding: 0;
+        border: 0;
+        background: transparent;
+        color: #252525;
+        font-size: 13px;
+        line-height: 20px;
+        text-align: left;
+      }
+      .lx-orders-list .lx-order-type-trigger strong {
+        font-weight: 500;
+        white-space: nowrap;
+      }
+      .lx-orders-list .lx-order-type-chevron {
+        width: 7px;
+        height: 7px;
+        flex: 0 0 auto;
+        border-right: 1.5px solid #625b68;
+        border-bottom: 1.5px solid #625b68;
+        transform: translate(-2px, -2px) rotate(45deg);
+        transition: transform .16s ease;
+      }
+      .lx-orders-list .lx-order-type-label.is-open .lx-order-type-chevron {
+        transform: translate(-2px, 2px) rotate(225deg);
+      }
+      .lx-orders-list .lx-order-type-menu {
+        position: absolute;
+        top: calc(100% + 10px);
+        right: -1px;
+        width: 100%;
+        min-width: 220px;
+        max-height: 364px;
+        padding: 8px;
+        overflow-y: auto;
+        border: 1px solid #e2ddeb;
+        border-radius: 14px;
+        background: #ffffff;
+        box-shadow: 0 12px 30px rgba(50, 29, 57, 0.08);
+      }
+      .lx-orders-list .lx-order-type-menu[hidden] {
+        display: none;
+      }
+      .lx-orders-list .lx-order-type-option {
+        width: 100%;
+        min-height: 34px;
+        display: flex;
+        align-items: center;
+        padding: 0 12px;
+        border: 0;
+        border-radius: 7px;
+        background: transparent;
+        color: #625b68;
+        font-size: 13px;
+        line-height: 20px;
+        text-align: left;
+        white-space: nowrap;
+      }
+      .lx-orders-list .lx-order-type-option:hover,
+      .lx-orders-list .lx-order-type-option:focus-visible {
+        background: #f3edf6;
+        color: #4d144a;
+        outline: none;
+      }
+      .lx-orders-list .lx-order-type-option.is-selected {
+        background: #f3edf6;
+        color: #4d144a;
+        font-weight: 500;
       }
       .lx-orders-list .lx-order-status-tabs {
         gap: 8px;

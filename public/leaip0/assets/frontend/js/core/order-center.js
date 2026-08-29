@@ -126,10 +126,27 @@
             button.classList.toggle("is-active", active);
             button.setAttribute("aria-selected", String(active));
           });
-          var typeSelect = list.querySelector("[data-order-type]");
-          if (typeSelect && typeSelect.value !== orderListState.type) typeSelect.value = orderListState.type;
+          var typeLabel = (orderTypeOptions.find(function (item) { return item[0] === orderListState.type; }) || orderTypeOptions[0])[1];
+          var typeValue = list.querySelector("[data-order-type-value]");
+          if (typeValue) typeValue.textContent = typeLabel;
+          list.querySelectorAll("[data-order-type-option]").forEach(function (button) {
+            var selected = button.dataset.orderTypeOption === orderListState.type;
+            button.classList.toggle("is-selected", selected);
+            button.setAttribute("aria-selected", String(selected));
+          });
           var searchInput = list.querySelector("[data-order-search]");
           if (searchInput && searchInput.value !== orderListState.query) searchInput.value = orderListState.query;
+        }
+
+        function setOrderTypeMenu(open) {
+          if (!content) return;
+          var picker = content.querySelector("[data-order-type-picker]");
+          if (!picker) return;
+          var trigger = picker.querySelector("[data-order-type-trigger]");
+          var menu = picker.querySelector("[data-order-type-menu]");
+          picker.classList.toggle("is-open", open);
+          if (trigger) trigger.setAttribute("aria-expanded", String(open));
+          if (menu) menu.hidden = !open;
         }
 
         function streamSkillAnswer(question, skillName, paragraphs, options) {
@@ -245,7 +262,7 @@
             '<section class="lx-orders-list is-active" data-orders-list>' +
               '<header class="lx-orders-head"><div class="lx-orders-title-wrap"><h1>我的订单</h1><p>查看并管理你的联想乐享订单</p></div></header>' +
               '<div class="lx-order-filterbar"><label class="lx-order-search"><img src="../icons/global-search.svg" alt=""><input type="search" value="' + escapeHtml(orderListState.query) + '" placeholder="搜索订单号或商品名称" aria-label="搜索订单" data-order-search></label>' +
-                '<label class="lx-order-type-label"><span>订单类型</span><select data-order-type aria-label="筛选订单类型">' + orderTypeOptions.map(function (item) { return '<option value="' + item[0] + '"' + (item[0] === orderListState.type ? ' selected' : '') + '>' + item[1] + '</option>'; }).join("") + '</select></label></div>' +
+                '<div class="lx-order-type-label" data-order-type-picker><span>订单类型</span><button class="lx-order-type-trigger" type="button" data-order-type-trigger aria-haspopup="listbox" aria-expanded="false"><strong data-order-type-value>' + escapeHtml(orderTypeOptions.find(function (item) { return item[0] === orderListState.type; })[1]) + '</strong><span class="lx-order-type-chevron" aria-hidden="true"></span></button><div class="lx-order-type-menu" data-order-type-menu role="listbox" aria-label="筛选订单类型" hidden>' + orderTypeOptions.map(function (item) { var selected = item[0] === orderListState.type; return '<button type="button" role="option" aria-selected="' + selected + '" class="lx-order-type-option' + (selected ? ' is-selected' : '') + '" data-order-type-option="' + item[0] + '"><span>' + item[1] + '</span></button>'; }).join("") + '</div></div></div>' +
               '<div class="lx-order-status-tabs" role="tablist" aria-label="按订单状态筛选">' + orderStatusOptions.map(function (status) { var active = status === orderListState.status; return '<button type="button" role="tab" aria-selected="' + active + '" class="' + (active ? 'is-active' : '') + '" data-order-status="' + status + '">' + status + '</button>'; }).join("") + '</div>' +
               '<div class="lx-order-result-meta"><strong data-order-count>' + orders.length + '</strong><span>笔订单</span></div>' +
               '<div class="lx-order-grid" data-order-grid>' + orders.map(orderCard).join("") + '</div>' +
@@ -528,8 +545,25 @@
             var back = event.target.closest("[data-order-back]");
             var tab = event.target.closest("[data-detail-tab]");
             var copyTracking = event.target.closest("[data-copy-tracking]");
+            var typeTrigger = event.target.closest("[data-order-type-trigger]");
+            var typeOption = event.target.closest("[data-order-type-option]");
+            if (!event.target.closest("[data-order-type-picker]")) setOrderTypeMenu(false);
             if (commerceMounted && event.target.closest(".brand a, .main-nav [data-page]")) restoreHomeWorkspace();
-            if (workspaceTab || orderStatus || orderClear || card || detailButton || back || tab || copyTracking) event.stopPropagation();
+            if (workspaceTab || orderStatus || orderClear || card || detailButton || back || tab || copyTracking || typeTrigger || typeOption) event.stopPropagation();
+            if (typeTrigger) {
+              var picker = typeTrigger.closest("[data-order-type-picker]");
+              var open = !picker.classList.contains("is-open");
+              setOrderTypeMenu(open);
+              if (open) picker.querySelector('[data-order-type-option][aria-selected="true"]')?.focus();
+              return;
+            }
+            if (typeOption) {
+              orderListState.type = typeOption.dataset.orderTypeOption;
+              setOrderTypeMenu(false);
+              renderOrderList();
+              content.querySelector("[data-order-type-trigger]")?.focus();
+              return;
+            }
             if (orderStatus) {
               orderListState.status = orderStatus.dataset.orderStatus;
               renderOrderList();
@@ -606,6 +640,32 @@
             if (!event.target.matches("[data-order-type]")) return;
             orderListState.type = event.target.value;
             renderOrderList();
+          });
+
+          content.addEventListener("keydown", function (event) {
+            var trigger = event.target.closest("[data-order-type-trigger]");
+            var option = event.target.closest("[data-order-type-option]");
+            if (trigger && ["ArrowDown", "ArrowUp", "Enter", " "].includes(event.key)) {
+              event.preventDefault();
+              setOrderTypeMenu(true);
+              var options = Array.from(content.querySelectorAll("[data-order-type-option]"));
+              (event.key === "ArrowUp" ? options[options.length - 1] : options.find(function (item) { return item.getAttribute("aria-selected") === "true"; }) || options[0])?.focus();
+              return;
+            }
+            if (!option) return;
+            var options = Array.from(content.querySelectorAll("[data-order-type-option]"));
+            var index = options.indexOf(option);
+            if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+              event.preventDefault();
+              options[(index + (event.key === "ArrowDown" ? 1 : -1) + options.length) % options.length].focus();
+            } else if (event.key === "Escape") {
+              event.preventDefault();
+              setOrderTypeMenu(false);
+              content.querySelector("[data-order-type-trigger]")?.focus();
+            } else if (event.key === "Home" || event.key === "End") {
+              event.preventDefault();
+              options[event.key === "Home" ? 0 : options.length - 1].focus();
+            }
           });
 
           chat.addEventListener("click", function (event) {
