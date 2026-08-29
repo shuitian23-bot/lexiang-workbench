@@ -1144,6 +1144,9 @@ body.lx-orders-poc {
       .lx-orders-tabs.lx-tabbar::-webkit-scrollbar {
         display: none !important;
       }
+      .lx-orders-tabs.lx-tabbar[hidden] {
+        display: none !important;
+      }
       .lx-orders-tabs.lx-tabbar > .lx-orders-tab.lx-tab {
         display: inline-flex !important;
         align-items: center !important;
