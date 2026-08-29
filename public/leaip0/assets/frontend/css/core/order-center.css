@@ -1769,7 +1769,6 @@ body.lx-orders-poc {
         max-width: none;
         min-height: calc(100% - 18px);
         margin: 0 -18px -18px;
-        padding-top: 0;
         box-sizing: border-box;
       }
       body.lx-orders-poc .content.lx-orders-content > .lx-orders-page:has(.lx-order-detail.is-active) {
