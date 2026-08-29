@@ -294,6 +294,12 @@
           content.classList.add("lx-orders-content");
           content.setAttribute("aria-label", "我的订单");
           content.innerHTML = buildOrdersPage();
+          // Shared result tabs are direct children of the right workspace.
+          // Keeping the order rail inside .lx-orders-page bypassed the global
+          // :has(> .lx-tabbar) spacing contract and left a second top inset.
+          var mountedOrdersPage = content.querySelector(".lx-orders-page");
+          var mountedOrdersTabbar = mountedOrdersPage && mountedOrdersPage.querySelector(":scope > .lx-orders-tabs");
+          if (mountedOrdersPage && mountedOrdersTabbar) content.insertBefore(mountedOrdersTabbar, mountedOrdersPage);
           commerceMounted = true;
           renderOrderList();
           removeLegacyTabs();
@@ -427,7 +433,7 @@
         }
 
         function removeLegacyTabs() {
-          var legacyBars = content.querySelectorAll(":scope > .lx-tabbar, :scope > [data-shop-detail-tabs], :scope > [aria-label='已打开页面']");
+          var legacyBars = content.querySelectorAll(":scope > .lx-tabbar:not(.lx-orders-tabs), :scope > [data-shop-detail-tabs]:not(.lx-orders-tabs), :scope > [aria-label='已打开页面']:not(.lx-orders-tabs)");
           for (var index = 0; index < legacyBars.length; index += 1) legacyBars[index].hidden = true;
         }
 
