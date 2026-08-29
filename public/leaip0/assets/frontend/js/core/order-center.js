@@ -4,6 +4,7 @@
         var chat;
         var commerceMounted = false;
         var ordersTabObserver = null;
+        var assistantQueryObserver = null;
         var homeWorkspace = null;
         var orderData = window.OrderDemoData || { orders: [] };
         var orders = Array.isArray(orderData.orders) ? orderData.orders.slice() : [];
@@ -297,6 +298,19 @@
           if (fullscreenName && homeWorkspace.conversationName) fullscreenName.textContent = homeWorkspace.conversationName;
         }
 
+        function isOrderQuery(text) {
+          return /订单|物流|发货/.test(String(text || ""));
+        }
+
+        function restoreSharedWorkspaceForQuery(node) {
+          if (!commerceMounted || orderIconFlowRunning || !node || node.nodeType !== 1) return;
+          var userMessage = node.matches(".lx-p0-message.user, .msg.user") ? node : node.querySelector(".lx-p0-message.user, .msg.user");
+          if (!userMessage) return;
+          var bubble = userMessage.querySelector(".user-bubble");
+          var query = (bubble || userMessage).textContent || "";
+          if (!isOrderQuery(query)) restoreHomeWorkspace();
+        }
+
         function setWorkspaceView(view) {
           if (view === "home") {
             restoreHomeWorkspace();
@@ -573,6 +587,15 @@
             event.stopPropagation();
             openOrdersFromChat("");
           });
+
+          if (window.MutationObserver) {
+            assistantQueryObserver = new MutationObserver(function (records) {
+              records.forEach(function (record) {
+                record.addedNodes.forEach(restoreSharedWorkspaceForQuery);
+              });
+            });
+            assistantQueryObserver.observe(chat, { childList: true, subtree: true });
+          }
 
           document.querySelectorAll("[data-commerce-entry='orders']").forEach(function (button) {
             button.addEventListener("click", function (event) {
