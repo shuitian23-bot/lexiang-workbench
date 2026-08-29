@@ -14,9 +14,9 @@ body.lx-orders-poc {
         background: #ffffff;
         scrollbar-gutter: stable;
       }
-      body.lx-orders-poc .content.lx-orders-content > .lx-tabbar,
-      body.lx-orders-poc .content.lx-orders-content > [data-shop-detail-tabs],
-      body.lx-orders-poc .content.lx-orders-content > [aria-label="已打开页面"] { display: none !important; }
+      body.lx-orders-poc .content.lx-orders-content > .lx-tabbar:not(.lx-orders-tabs),
+      body.lx-orders-poc .content.lx-orders-content > [data-shop-detail-tabs]:not(.lx-orders-tabs),
+      body.lx-orders-poc .content.lx-orders-content > [aria-label="已打开页面"]:not(.lx-orders-tabs) { display: none !important; }
       body.lx-orders-poc .assistant-panel {
         background: var(--assistant-panel-top-glow), #ffffff;
         border-color: rgba(226, 221, 235, 0.92);
