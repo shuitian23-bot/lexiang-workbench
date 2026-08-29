@@ -585,6 +585,14 @@
             var sendInput = sendButton && sendButton.closest("form") ? sendButton.closest("form").querySelector("textarea") : textarea;
             if (sendButton && interceptDirectOrderQuery(event, sendInput)) return;
             if (sendButton) restoreBeforeSharedQuery(sendInput);
+            var orderResultCard = event.target.closest("[data-open-orders], [data-lx-result-id='info:orders']");
+            if (orderResultCard) {
+              event.preventDefault();
+              event.stopPropagation();
+              event.stopImmediatePropagation();
+              openOrdersFromChat("");
+              return;
+            }
             var sharedResultCard = event.target.closest("[data-lx-result-id], [data-lx-open-tab], [data-lxfd-reco-id], [data-open-product], [data-lxfd-open-feature]");
             if (commerceMounted && sharedResultCard && !sharedResultCard.matches("[data-open-orders], [data-lx-result-id='info:orders']")) {
               restoreHomeWorkspace(false);
