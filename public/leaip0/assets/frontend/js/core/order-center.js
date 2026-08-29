@@ -402,12 +402,24 @@
 
           var textarea = document.querySelector(".assistant-panel .composer textarea");
 
+          function clearFreshHomeConversationBeforeOrders() {
+            var logicalPath = String(window.__LX_TEMPLATE_PATH || location.pathname || "/").replace(/\/+$/, "") || "/";
+            var isFullscreenHome = logicalPath === "/" && (body.classList.contains("assistant-fullscreen") || body.classList.contains("lx-auto-fs"));
+            var hasCurrentFullscreenQuery = !!document.querySelector(".lxfd-thread .lxfd-msg-user");
+            if (!isFullscreenHome || hasCurrentFullscreenQuery) return;
+            if (window.__lxBridge && typeof window.__lxBridge.resetConversationContext === "function") {
+              window.__lxBridge.resetConversationContext();
+            }
+            chat.replaceChildren();
+          }
+
           window.addEventListener("click", function (event) {
             var commerceEntry = event.target.closest(".utility-btn[aria-label='订单'], [data-commerce-entry='orders'], [data-lxfd-open='orders']");
             if (!commerceEntry) return;
             event.preventDefault();
             event.stopPropagation();
             event.stopImmediatePropagation();
+            clearFreshHomeConversationBeforeOrders();
             openOrdersFromChat("");
           }, true);
 
