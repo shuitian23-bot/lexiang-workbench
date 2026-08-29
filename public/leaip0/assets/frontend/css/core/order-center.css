@@ -1760,7 +1760,7 @@ body.lx-orders-poc {
          so its existing 24px content rhythm remains unchanged. */
       body.lx-orders-poc .content.lx-orders-content {
         padding: 18px !important;
-        border-radius: 20px;
+        border-radius: 20px 20px 0 0;
         background: #ffffff !important;
         scrollbar-gutter: auto;
       }
