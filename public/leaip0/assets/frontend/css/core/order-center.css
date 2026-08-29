@@ -1232,7 +1232,6 @@ body.lx-orders-poc {
       .lx-orders-page {
         min-height: 100%;
         padding: 0;
-        background: #fcfaff;
       }
       .lx-orders-tabs {
         position: sticky;
