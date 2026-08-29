@@ -218,6 +218,8 @@
             label.textContent = "已完成 1 个 Skill 调用";
             detail.classList.remove("current");
             detail.textContent = "Skill（" + skillName + "）已调用";
+            trace.classList.add("is-collapsed");
+            skill.setAttribute("aria-expanded", "false");
             answer.hidden = false;
             answer.classList.add("lx-stream-cursor");
             var paragraphIndex = 0;
