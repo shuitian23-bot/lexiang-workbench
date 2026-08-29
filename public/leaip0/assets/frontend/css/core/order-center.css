@@ -1780,3 +1780,15 @@ body.lx-orders-poc {
           margin-inline: -18px;
         }
       }
+
+      /* orders-outer-shell-spacing-20260829: match the shared two-column
+         result frame. These values belong to the shell, not the order page. */
+      body.lx-orders-poc .shell {
+        column-gap: 16px;
+        padding-bottom: 16px;
+      }
+      body.lx-orders-poc .shell > .content.lx-orders-content {
+        height: 100%;
+        max-height: 100%;
+        min-height: 0;
+      }
