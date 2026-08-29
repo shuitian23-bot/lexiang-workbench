@@ -288,7 +288,10 @@
             conversationName: document.querySelector(".lxfd-convo-name")?.textContent || ""
           };
           body.classList.add("lx-orders-poc", "lx-template-file");
-          content.className = "content lx-orders-content";
+          // Keep the page template's original workspace classes. Replacing the
+          // complete className here made the right-hand frame jump as soon as
+          // the generated order content was mounted.
+          content.classList.add("lx-orders-content");
           content.setAttribute("aria-label", "我的订单");
           content.innerHTML = buildOrdersPage();
           commerceMounted = true;
