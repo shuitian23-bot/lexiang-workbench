@@ -136,62 +136,67 @@
           if (body) body.dataset.state = "chat";
           var oldFollowup = document.getElementById("lx-order-live-followup");
           if (oldFollowup) oldFollowup.hidden = true;
-          var flow = document.createElement("section");
-          flow.className = "lx-order-followup";
-          flow.id = "lx-order-live-followup";
-          flow.setAttribute("data-order-followup", "");
-          var userLine = document.createElement("p");
-          userLine.className = "lx-order-user";
-          userLine.textContent = question;
+          var liveChat = document.querySelector(".assistant-panel .chat-state");
+          var messages = liveChat.querySelector(".lx-p0-messages");
+          if (!messages) {
+            messages = document.createElement("div");
+            messages.className = "lx-p0-messages";
+            messages.setAttribute("aria-live", "polite");
+            liveChat.appendChild(messages);
+          }
+          var userLine = document.createElement("div");
+          userLine.className = "lx-p0-message msg user";
+          userLine.innerHTML = '<div class="user-bubble">' + escapeHtml(question) + '</div>';
           var aiBlock = document.createElement("div");
-          aiBlock.className = "lx-order-ai";
+          aiBlock.className = "lx-p0-message msg ai lx-chat-skin";
+          aiBlock.id = "lx-order-live-followup";
+          aiBlock.setAttribute("data-order-followup", "");
+          var aiBody = document.createElement("div");
+          aiBody.className = "ai-body";
+          var trace = document.createElement("div");
+          trace.className = "lx-skill-trace is-foldable";
           var skill = document.createElement("button");
           skill.type = "button";
-          skill.className = "lx-skill-call is-running is-collapsed";
-          skill.setAttribute("aria-expanded", "false");
+          skill.className = "lx-skill-trace-fold";
+          skill.setAttribute("data-lx-trace-toggle", "");
+          skill.setAttribute("aria-expanded", "true");
           var label = document.createElement("span");
-          label.textContent = "正在分析用户意图";
+          label.className = "lx-skill-trace-fold-text";
+          label.textContent = "正在调用 1 个 Skill";
           var caret = document.createElement("span");
-          caret.className = "lx-skill-caret";
-          caret.setAttribute("aria-hidden", "true");
+          caret.className = "lx-skill-trace-fold-caret";
+          caret.innerHTML = '<img src="../icons/global-collapse.svg" alt="" aria-hidden="true">';
           skill.appendChild(label);
           skill.appendChild(caret);
           var region = document.createElement("div");
-          region.className = "lx-skill-region";
-          var check = document.createElement("img");
-          check.src = "../icons/mall-orders.svg";
-          check.alt = "";
+          region.className = "lx-skill-trace-list";
           var detail = document.createElement("span");
+          detail.className = "lx-skill-trace-item current";
           detail.textContent = "Skill（" + skillName + "）调用中";
-          region.appendChild(check);
           region.appendChild(detail);
           var answer = document.createElement("div");
-          answer.className = "lx-stream-answer";
+          answer.className = "lx-order-standard-answer";
           answer.hidden = true;
-          aiBlock.appendChild(skill);
-          aiBlock.appendChild(region);
-          aiBlock.appendChild(answer);
-          flow.appendChild(userLine);
-          flow.appendChild(aiBlock);
-          document.querySelector(".assistant-panel .chat-state").appendChild(flow);
-          var liveChat = document.querySelector(".assistant-panel .chat-state");
+          trace.appendChild(skill);
+          trace.appendChild(region);
+          aiBody.appendChild(trace);
+          aiBody.appendChild(answer);
+          aiBlock.appendChild(aiBody);
+          messages.appendChild(userLine);
+          messages.appendChild(aiBlock);
           liveChat.scrollTop = liveChat.scrollHeight;
           skill.addEventListener("click", function () {
-            var collapsed = skill.classList.toggle("is-collapsed");
+            var collapsed = trace.classList.toggle("is-collapsed");
             skill.setAttribute("aria-expanded", String(!collapsed));
-            region.classList.toggle("is-visible", !collapsed);
           });
           return new Promise(function (resolve) {
           setTimeout(function () {
             label.textContent = "正在获取数据";
-            skill.classList.remove("is-collapsed");
-            skill.setAttribute("aria-expanded", "true");
-            region.classList.add("is-visible");
+            detail.textContent = "Skill（" + skillName + "）正在获取订单数据";
           }, 320);
           setTimeout(function () {
-            skill.classList.remove("is-running");
-            skill.classList.add("is-complete");
-            label.textContent = "已完成 1 个 Skill 调用 · " + skillName;
+            label.textContent = "已完成 1 个 Skill 调用";
+            detail.classList.remove("current");
             detail.textContent = "Skill（" + skillName + "）已调用";
             answer.hidden = false;
             answer.classList.add("lx-stream-cursor");
@@ -202,10 +207,9 @@
                 answer.classList.remove("lx-stream-cursor");
                 if (options.finalHtml) answer.innerHTML = options.finalHtml;
                 if (options.cardHtml) answer.insertAdjacentHTML("beforeend", options.cardHtml);
-                if (options.disclaimer) answer.insertAdjacentHTML("beforeend", '<p class="lx-order-disclaimer">' + escapeHtml(options.disclaimer) + '</p>');
-                check.src = "../icons/global-check.svg";
+                if (options.disclaimer) answer.insertAdjacentHTML("beforeend", '<p class="lx-p0-disclaimer">' + escapeHtml(options.disclaimer) + '</p>');
                 liveChat.scrollTop = liveChat.scrollHeight;
-                requestAnimationFrame(function () { requestAnimationFrame(function () { resolve(flow); }); });
+                requestAnimationFrame(function () { requestAnimationFrame(function () { resolve(aiBlock); }); });
                 return;
               }
               var source = paragraphs[paragraphIndex];
@@ -361,7 +365,7 @@
             }
             await streamSkillAnswer("我要查看订单", "订单查询", ["已为你查询到 22 笔订单，包含待付款、待发货和待收货状态。可在右侧筛选订单，并查看商品、金额与物流详情。"], {
               finalHtml: '<p>已为你查询到 <strong>22 笔订单</strong>，包含待付款、待发货和待收货状态。可在右侧筛选订单，并查看商品、金额与<strong>物流详情</strong>。</p>',
-              cardHtml: '<button class="lx-order-result-card" type="button" data-open-orders data-lx-result-id="info:orders" aria-pressed="false"><span class="lx-order-result-icon"><img src="../icons/global-next.svg" alt=""></span><span><strong>查看我的订单</strong><small>共 22 笔 · 17 笔进行中</small></span><img src="../icons/arrow-left.svg" alt=""></button>',
+              cardHtml: '<button class="answer-cta lx-answer-page" type="button" data-open-orders data-lx-result-id="info:orders" aria-pressed="false"><span class="answer-cta-copy"><span class="answer-cta-title">查看我的订单</span><span class="answer-cta-desc">共 22 笔 · 17 笔进行中</span></span><span class="answer-cta-icon" aria-hidden="true"><img class="lx-approved-icon-img" src="../icons/global-next.svg" alt=""></span></button>',
               disclaimer: "内容由联想乐享基于当前订单数据生成，请在支付或申请售后前核对关键信息。"
             });
             openOrdersFromChat("");
