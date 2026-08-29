@@ -591,6 +591,12 @@
             interceptDirectOrderQuery(event, event.target);
           }, true);
 
+          window.addEventListener("submit", function (event) {
+            var form = event.target;
+            if (!form || !form.matches(".assistant-panel .composer, .lxfd-composer")) return;
+            interceptDirectOrderQuery(event, form.querySelector("textarea"));
+          }, true);
+
           document.addEventListener("click", function (event) {
             var commerceEntry = event.target.closest("[data-commerce-entry='orders'], [data-lxfd-open='orders']");
             if (commerceEntry) {
