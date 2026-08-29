@@ -1105,3 +1105,319 @@ body.lx-orders-poc {
           height: 68px;
         }
       }
+
+      /* orders-member-visual-sync-20260829: align the order center with the member-center AUI. */
+      body.lx-orders-poc .content.lx-orders-content {
+        border-radius: 18px 18px 0 0;
+        background: #fcfaff;
+      }
+      .lx-orders-page {
+        min-height: 100%;
+        padding: 0;
+        background: #fcfaff;
+      }
+      .lx-orders-tabs {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        min-height: 58px;
+        margin: 0;
+        padding: 12px 18px;
+        border-bottom: 1px solid #efe4f1;
+        background: #ffffff;
+      }
+      .lx-orders-tab {
+        min-height: 34px;
+        height: 34px;
+        padding: 0 10px 0 12px;
+        border-color: #e2ddeb;
+        border-radius: 8px;
+        background: #ffffff;
+        color: #625b68;
+        font-size: 13px;
+      }
+      .lx-orders-tab:hover,
+      .lx-orders-tab:focus-visible,
+      .lx-orders-tab.is-active {
+        border-color: #4d144a;
+        background: #f3f0f7;
+        color: #4d144a;
+      }
+      .lx-orders-list,
+      .lx-order-detail {
+        width: min(1120px, 100%);
+        margin: 0 auto;
+        padding: 24px;
+      }
+      .lx-orders-head {
+        align-items: flex-start;
+        margin: 0 0 18px;
+        padding: 0;
+        border: 0;
+      }
+      .lx-orders-title-wrap::before {
+        display: block;
+        margin-bottom: 6px;
+        color: #4d144a;
+        font-size: 13px;
+        line-height: 20px;
+        font-weight: 600;
+        content: "个人及家庭";
+      }
+      .lx-orders-title-wrap h1 {
+        padding: 0;
+        color: #252525;
+        font-size: 22px;
+        line-height: 32px;
+        font-weight: 500;
+      }
+      .lx-orders-title-wrap h1::before {
+        display: none;
+      }
+      .lx-orders-title-wrap p {
+        margin: 8px 0 0;
+        color: #625b68;
+        font-size: 13px;
+        line-height: 21px;
+      }
+      .lx-orders-list .lx-order-filterbar {
+        gap: 12px;
+        margin-top: 0;
+        padding: 16px;
+        border: 1px solid #e2ddeb;
+        border-radius: 14px;
+        background: #ffffff;
+        box-shadow: 0 3px 10px rgba(77, 20, 74, 0.035);
+      }
+      .lx-orders-list .lx-order-search,
+      .lx-orders-list .lx-order-type-label {
+        height: 40px;
+        border-color: #e2ddeb;
+        border-radius: 8px;
+        background: #ffffff;
+      }
+      .lx-orders-list .lx-order-search {
+        width: min(500px, 58%);
+        flex: 1 1 420px;
+      }
+      .lx-orders-list .lx-order-type-label {
+        min-width: 220px;
+      }
+      .lx-orders-list .lx-order-search:focus-within,
+      .lx-orders-list .lx-order-type-label:focus-within {
+        border-color: #4d144a;
+        box-shadow: 0 0 0 2px #efe4f1;
+      }
+      .lx-orders-list .lx-order-status-tabs {
+        gap: 8px;
+        margin-top: 12px;
+        padding: 0;
+      }
+      .lx-orders-list .lx-order-status-tabs button {
+        min-height: 34px;
+        height: 34px;
+        padding: 0 13px;
+        border-radius: 8px;
+        background: #ffffff;
+      }
+      .lx-orders-list .lx-order-status-tabs button:hover,
+      .lx-orders-list .lx-order-status-tabs button:focus-visible,
+      .lx-orders-list .lx-order-status-tabs button.is-active {
+        border-color: #4d144a;
+        background: #f3f0f7;
+        color: #4d144a;
+      }
+      .lx-orders-list .lx-order-result-meta {
+        min-height: 44px;
+        margin: 14px 0 10px;
+        padding: 0 2px;
+        color: #625b68;
+      }
+      .lx-orders-list .lx-order-result-meta strong {
+        color: #4d144a;
+        font-size: 16px;
+      }
+      .lx-orders-list .lx-order-grid {
+        gap: 14px;
+      }
+      .lx-orders-list .lx-order-card {
+        overflow: hidden;
+        border-color: #e2ddeb;
+        border-radius: 14px;
+        background: #ffffff;
+        box-shadow: 0 3px 10px rgba(77, 20, 74, 0.035);
+      }
+      .lx-orders-list .lx-order-card:hover,
+      .lx-orders-list .lx-order-card:focus-within {
+        border-color: #4d144a;
+        background: #ffffff;
+        box-shadow: 0 10px 26px rgba(50, 29, 57, 0.08);
+      }
+      .lx-orders-list .lx-order-card-head {
+        min-height: 44px;
+        padding: 8px 16px;
+        border-bottom-color: #efe4f1;
+        background: #fcfaff;
+      }
+      .lx-orders-list .lx-order-card-body {
+        min-height: 116px;
+        padding: 16px;
+      }
+      .lx-orders-list .lx-order-thumb {
+        border-color: #efe4f1;
+        border-radius: 10px;
+        background: #ffffff;
+      }
+      .lx-orders-list .lx-order-product h2 {
+        color: #252525;
+        font-weight: 600;
+      }
+      .lx-orders-list .lx-order-card-actions button {
+        height: 34px;
+        border-radius: 8px;
+        background: #ffffff;
+        color: #4d144a;
+      }
+      .lx-orders-list .lx-order-card-actions button:hover,
+      .lx-orders-list .lx-order-card-actions button:focus-visible {
+        background: #f3f0f7;
+      }
+      .lx-order-detail-head {
+        align-items: flex-start;
+        margin: 0 0 18px;
+        padding: 0;
+        border: 0;
+      }
+      .lx-order-detail-title::before {
+        display: block;
+        margin-bottom: 5px;
+        color: #4d144a;
+        font-size: 13px;
+        line-height: 20px;
+        font-weight: 600;
+        content: "订单管理";
+      }
+      .lx-order-detail-title h1 {
+        color: #252525;
+        font-size: 22px;
+        line-height: 32px;
+        font-weight: 500;
+      }
+      .lx-order-detail-title p {
+        margin-top: 6px;
+        color: #625b68;
+        font-size: 13px;
+        line-height: 21px;
+      }
+      .lx-order-back {
+        margin-top: 25px;
+        border-color: #e2ddeb;
+        border-radius: 8px;
+      }
+      .lx-order-back:hover,
+      .lx-order-back:focus-visible {
+        border-color: #4d144a;
+        background: #f3f0f7;
+        outline: none;
+      }
+      .lx-order-detail-status {
+        min-height: 30px;
+        height: 30px;
+        border-radius: 999px;
+        background: #f3f0f7;
+        color: #4d144a;
+        font-size: 12px;
+        font-weight: 500;
+      }
+      .lx-order-detail-summary,
+      .lx-detail-section,
+      .lx-logistics-package {
+        border: 1px solid #e2ddeb;
+        border-radius: 14px;
+        background: #ffffff;
+        box-shadow: 0 3px 10px rgba(77, 20, 74, 0.035);
+      }
+      .lx-order-detail-summary {
+        padding: 18px;
+      }
+      .lx-detail-tabs {
+        position: static;
+        gap: 8px;
+        margin: 14px 0;
+        padding: 0;
+        border: 0;
+        background: transparent;
+      }
+      .lx-detail-tab {
+        min-height: 34px;
+        padding: 0 13px;
+        border: 1px solid #e2ddeb;
+        border-radius: 8px;
+        background: #ffffff;
+        color: #625b68;
+        font-size: 13px;
+        font-weight: 500;
+      }
+      .lx-detail-tab:hover,
+      .lx-detail-tab:focus-visible,
+      .lx-detail-tab.is-active {
+        border-color: #4d144a;
+        background: #f3f0f7;
+        color: #4d144a;
+        outline: none;
+      }
+      .lx-detail-tab.is-active::after {
+        display: none;
+      }
+      .lx-detail-pane[data-detail-pane="info"] {
+        overflow: visible;
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+      }
+      .lx-detail-section {
+        margin-top: 14px;
+        padding: 18px;
+      }
+      .lx-detail-section:first-child {
+        margin-top: 0;
+      }
+      .lx-detail-section + .lx-detail-section {
+        border-top: 1px solid #e2ddeb;
+      }
+      .lx-detail-section h3 {
+        margin-bottom: 14px;
+        color: #252525;
+        font-size: 16px;
+        line-height: 24px;
+        font-weight: 600;
+      }
+      .lx-detail-note,
+      .lx-logistics-meta,
+      .lx-detail-special > div {
+        background: #fcfaff;
+      }
+      .lx-order-empty {
+        min-height: 320px;
+        margin-top: 14px;
+        border: 1px solid #e2ddeb;
+        border-radius: 14px;
+        background: #ffffff;
+        box-shadow: 0 3px 10px rgba(77, 20, 74, 0.035);
+      }
+      @media (max-width: 1120px) {
+        .lx-orders-list,
+        .lx-order-detail {
+          padding: 20px;
+        }
+        .lx-orders-list .lx-order-filterbar {
+          align-items: stretch;
+          flex-direction: column;
+        }
+        .lx-orders-list .lx-order-search,
+        .lx-orders-list .lx-order-type-label {
+          width: 100%;
+          min-width: 0;
+          flex-basis: auto;
+        }
+      }
