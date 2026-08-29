@@ -1259,15 +1259,6 @@ body.lx-orders-poc {
         padding: 0;
         border: 0;
       }
-      .lx-orders-title-wrap::before {
-        display: block;
-        margin-bottom: 6px;
-        color: #4d144a;
-        font-size: 13px;
-        line-height: 20px;
-        font-weight: 600;
-        content: "个人及家庭";
-      }
       .lx-orders-title-wrap h1 {
         padding: 0;
         color: #252525;
