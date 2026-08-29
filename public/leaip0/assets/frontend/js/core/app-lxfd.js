@@ -684,10 +684,16 @@
     lxfdEnsureRootSplitState();
     lxfdAssertSplitEndState();
     if (hasConversation && thread) thread.innerHTML = "";
-    requestAnimationFrame(() => {
+    const stabilizeSplit = () => {
       lxfdEnsureRootSplitState();
       lxfdAssertSplitEndState();
-    });
+    };
+    requestAnimationFrame(stabilizeSplit);
+    // Restored history cards can start an asynchronous result-page generator.
+    // Root-home guards may run again during that window and remove the split
+    // class after the first frame. Keep asserting the shared two-column end
+    // state until the result page has replaced its generation overlay.
+    [80, 240, 520, 900].forEach((delay) => window.setTimeout(stabilizeSplit, reduceMotion ? 0 : delay));
   }
   // 退出动画收尾断言：分屏已成形则全屏类必须不在。防御外部"回全屏"钩子在动画窗口内
   // (补分屏类之前的一瞬守卫失效)把全屏类加回来，造成两态共存的混合花屏
