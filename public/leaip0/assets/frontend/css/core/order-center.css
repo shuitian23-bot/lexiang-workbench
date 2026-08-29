@@ -1792,3 +1792,49 @@ body.lx-orders-poc {
         max-height: 100%;
         min-height: 0;
       }
+
+      /* orders-shared-tabbar-final-20260830: the order workspace participates
+         in the same compact result-tab rail as member/store/recommendation
+         pages. Reset the older order-only 58px and padded variants so adding
+         a store tab cannot stretch this rail or cover the page heading. */
+      body.lx-orders-poc .lx-orders-page > .lx-orders-tabs.lx-tabbar:not([hidden]) {
+        box-sizing: border-box !important;
+        position: sticky !important;
+        top: 0 !important;
+        z-index: 30 !important;
+        display: flex !important;
+        align-items: flex-start !important;
+        flex-wrap: nowrap !important;
+        gap: 6px !important;
+        width: auto !important;
+        height: 43px !important;
+        min-height: 43px !important;
+        max-height: 43px !important;
+        margin: -18px -24px 0 !important;
+        padding: 18px 24px 0 !important;
+        border: 0 !important;
+        border-bottom: 0 !important;
+        background: #ffffff !important;
+        box-shadow: none !important;
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
+        scrollbar-width: none !important;
+      }
+      body.lx-orders-poc .lx-orders-page > .lx-orders-tabs.lx-tabbar:not([hidden])::-webkit-scrollbar {
+        display: none !important;
+      }
+      body.lx-orders-poc .lx-orders-page > .lx-orders-tabs.lx-tabbar:not([hidden]) > .lx-orders-tab.lx-tab {
+        flex: 0 0 auto !important;
+        box-sizing: border-box !important;
+        height: 25px !important;
+        min-height: 25px !important;
+        max-height: 25px !important;
+        margin: 0 !important;
+        padding: 4px 6px 4px 12px !important;
+      }
+      @media (max-width: 700px) {
+        body.lx-orders-poc .lx-orders-page > .lx-orders-tabs.lx-tabbar:not([hidden]) {
+          margin-inline: -16px !important;
+          padding-inline: 16px !important;
+        }
+      }
