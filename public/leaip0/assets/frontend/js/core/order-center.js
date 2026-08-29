@@ -393,8 +393,37 @@
           if (!content) return;
           var tabbar = content.querySelector(".lx-orders-tabs");
           if (!tabbar) return;
+          var sharedTabs = window.__lxState && Array.isArray(window.__lxState.tabs) ? window.__lxState.tabs : [];
+          var desiredTabs = sharedTabs.filter(function (tab) { return tab && tab.id && tab.id !== "info:orders"; });
+          var currentIds = Array.from(tabbar.querySelectorAll("[data-order-global-tab]")).map(function (tab) { return tab.dataset.orderGlobalTab; }).join("|");
+          var desiredIds = desiredTabs.map(function (tab) { return tab.id; }).join("|");
+          if (currentIds !== desiredIds) {
+            tabbar.querySelectorAll("[data-order-global-tab]").forEach(function (tab) { tab.remove(); });
+            desiredTabs.forEach(function (tab) {
+              var button = document.createElement("button");
+              button.className = "lx-orders-tab lx-tab";
+              button.type = "button";
+              button.dataset.orderGlobalTab = tab.id;
+              button.innerHTML = '<span class="lx-tab-label">' + escapeHtml(tab.label || "页面") + '</span><span class="lx-orders-tab-close lx-tab-close">×</span>';
+              tabbar.appendChild(button);
+            });
+          }
           var realTabs = tabbar.querySelectorAll(".lx-orders-tab:not([hidden])");
           tabbar.hidden = realTabs.length <= 1;
+        }
+
+        function registerOrdersResultTab() {
+          var state = window.__lxState;
+          if (!state) return;
+          state.tabs = Array.isArray(state.tabs) ? state.tabs : [];
+          var existing = state.tabs.find(function (tab) { return tab && tab.id === "info:orders"; });
+          if (existing) {
+            existing.kind = "info";
+            existing.label = "我的订单";
+          } else {
+            state.tabs.push({ id: "info:orders", kind: "info", label: "我的订单" });
+          }
+          state.activeTabId = "info:orders";
         }
 
         function removeLegacyTabs() {
@@ -403,6 +432,7 @@
         }
 
         function openOrdersFromChat(question) {
+          registerOrdersResultTab();
           if (window.__lxBridge && typeof window.__lxBridge.prepareRootSplitState === "function") {
             window.__lxBridge.prepareRootSplitState();
           }
@@ -585,8 +615,8 @@
             var sendInput = sendButton && sendButton.closest("form") ? sendButton.closest("form").querySelector("textarea") : textarea;
             if (sendButton && interceptDirectOrderQuery(event, sendInput)) return;
             if (sendButton) restoreBeforeSharedQuery(sendInput);
-            var orderResultCard = event.target.closest("[data-open-orders], [data-lx-result-id='info:orders']");
-            if (orderResultCard) {
+            var orderResultCard = event.target.closest("[data-open-orders], [data-lx-result-id='info:orders'], [data-tab-id='info:orders']");
+            if (orderResultCard && !event.target.closest(".lx-tab-close")) {
               event.preventDefault();
               event.stopPropagation();
               event.stopImmediatePropagation();
@@ -623,6 +653,25 @@
               event.preventDefault();
               event.stopImmediatePropagation();
               openOrdersFromChat("");
+              return;
+            }
+            var sharedWorkspaceTab = event.target.closest("[data-order-global-tab]");
+            if (sharedWorkspaceTab) {
+              event.preventDefault();
+              event.stopImmediatePropagation();
+              var sharedTabId = sharedWorkspaceTab.dataset.orderGlobalTab;
+              if (event.target.closest(".lx-tab-close")) {
+                if (window.__lxState && Array.isArray(window.__lxState.tabs)) {
+                  window.__lxState.tabs = window.__lxState.tabs.filter(function (tab) { return tab && tab.id !== sharedTabId; });
+                }
+                syncOrdersTabVisibility();
+                return;
+              }
+              restoreHomeWorkspace(false);
+              requestAnimationFrame(function () {
+                if (window.__lxBridge && typeof window.__lxBridge.activateTab === "function" && window.__lxBridge.activateTab(sharedTabId)) return;
+                if (window.__lxBridge && typeof window.__lxBridge.restoreResultTab === "function") window.__lxBridge.restoreResultTab(sharedTabId);
+              });
               return;
             }
             var workspaceTab = event.target.closest("[data-workspace-view]");
