@@ -367,7 +367,7 @@
           if (!userMessage) return;
           var bubble = userMessage.querySelector(".user-bubble");
           var query = (bubble || userMessage).textContent || "";
-          if (!isOrderQuery(query)) restoreHomeWorkspace(true);
+          if (!isOrderQuery(query)) restoreHomeWorkspace(false);
         }
 
         function setWorkspaceView(view) {
@@ -574,10 +574,21 @@
             return true;
           }
 
+          function restoreBeforeSharedQuery(input) {
+            if (!commerceMounted || orderIconFlowRunning || !input) return;
+            var query = String(input.value || "").trim();
+            if (query && !isOrderQuery(query)) restoreHomeWorkspace(false);
+          }
+
           window.addEventListener("click", function (event) {
             var sendButton = event.target.closest(".assistant-panel .send-btn, .assistant-panel [data-send], .assistant-panel button[type='submit'], .lxfd-send");
             var sendInput = sendButton && sendButton.closest("form") ? sendButton.closest("form").querySelector("textarea") : textarea;
             if (sendButton && interceptDirectOrderQuery(event, sendInput)) return;
+            if (sendButton) restoreBeforeSharedQuery(sendInput);
+            var sharedResultCard = event.target.closest("[data-lx-result-id], [data-lx-open-tab], [data-lxfd-reco-id], [data-open-product], [data-lxfd-open-feature]");
+            if (commerceMounted && sharedResultCard && !sharedResultCard.matches("[data-open-orders], [data-lx-result-id='info:orders']")) {
+              restoreHomeWorkspace(false);
+            }
             var commerceEntry = event.target.closest(".utility-btn[aria-label='订单'], [data-commerce-entry='orders'], [data-lxfd-open='orders']");
             if (!commerceEntry) return;
             event.preventDefault();
@@ -588,13 +599,14 @@
 
           window.addEventListener("keydown", function (event) {
             if (event.key !== "Enter" || event.shiftKey || event.isComposing || !event.target.matches(".assistant-panel .composer textarea, .lxfd-composer textarea")) return;
-            interceptDirectOrderQuery(event, event.target);
+            if (!interceptDirectOrderQuery(event, event.target)) restoreBeforeSharedQuery(event.target);
           }, true);
 
           window.addEventListener("submit", function (event) {
             var form = event.target;
             if (!form || !form.matches(".assistant-panel .composer, .lxfd-composer")) return;
-            interceptDirectOrderQuery(event, form.querySelector("textarea"));
+            var formInput = form.querySelector("textarea");
+            if (!interceptDirectOrderQuery(event, formInput)) restoreBeforeSharedQuery(formInput);
           }, true);
 
           document.addEventListener("click", function (event) {
