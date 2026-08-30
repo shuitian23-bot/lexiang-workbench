@@ -10,6 +10,91 @@
         var homeWorkspace = null;
         var orderData = window.OrderDemoData || { orders: [] };
         var orders = Array.isArray(orderData.orders) ? orderData.orders.slice() : [];
+        var demoOrders = orders.slice();
+        var liveOrderKey = "lexiang.orders.v1";
+
+        function readLiveOrders() {
+          try {
+            var value = JSON.parse(localStorage.getItem(liveOrderKey) || "[]");
+            return Array.isArray(value) ? value : [];
+          } catch (error) {
+            return [];
+          }
+        }
+
+        function normalizeOrderTime(value) {
+          if (!value) return "";
+          var date = new Date(value);
+          if (Number.isNaN(date.getTime())) return String(value).replace("T", " ").slice(0, 19);
+          var pad = function (number) { return String(number).padStart(2, "0"); };
+          return date.getFullYear() + "-" + pad(date.getMonth() + 1) + "-" + pad(date.getDate()) + " " + pad(date.getHours()) + ":" + pad(date.getMinutes()) + ":" + pad(date.getSeconds());
+        }
+
+        function normalizeLiveOrder(source) {
+          source = source || {};
+          var id = source.orderId || source.id;
+          if (!id) return null;
+          var paid = Boolean(source.paidAt || source.paymentStatus === "paid" || source.payStatus === "paid" || source.status === "paid" || source.status === "已支付" || source.status === "已完成");
+          var amount = Number(source.paidAmount ?? source.payable ?? source.price ?? source.payment?.actual ?? source.payment?.payable ?? 0);
+          var original = Number(source.originalPrice ?? amount);
+          var discount = Number(source.discountAmount ?? Math.max(0, original - amount));
+          var config = source.configurationLabel || source.configLabel || source.specs || source.configuration || "";
+          var color = source.colorLabel || source.color || "";
+          var description = [config, color].filter(Boolean).join("｜") || "已同步订单配置";
+          var address = source.address || source.shippingAddress || "";
+          var recipient = source.recipient || {};
+          if (typeof recipient !== "object" || Array.isArray(recipient)) recipient = {};
+          return {
+            id: String(id),
+            type: source.type || "normal",
+            typeLabel: source.typeLabel || "普通订单",
+            status: paid ? "待发货" : "待付款",
+            createdAt: normalizeOrderTime(source.createdAt || source.created_at || source.paidAt || Date.now()),
+            paidAt: paid ? normalizeOrderTime(source.paidAt || source.updatedAt || Date.now()) : "",
+            paymentMethod: source.paymentMethodLabel || source.paymentMethod || source.payMethod || "支付宝",
+            items: [{
+              role: "主品",
+              name: source.name || source.productName || "联想商品",
+              description: description,
+              image: source.image_url || source.image || "/assets/img/shop-1.jpg",
+              quantity: Number(source.quantity || 1),
+              amount: amount,
+              beans: 0
+            }],
+            recipient: {
+              name: recipient.name || source.recipientName || "演示用户",
+              phone: recipient.phone || source.phone || "138****0000",
+              address: recipient.address || address || "北京市海淀区西北旺地区联想总部-东区"
+            },
+            invoice: source.invoice || { text: source.invoiceText || "不开发票" },
+            remark: source.note || source.remark || "无",
+            payment: {
+              goods: original || amount,
+              freight: Number(source.freight || 0),
+              discount: discount,
+              payable: amount,
+              actual: paid ? amount : 0,
+              beans: Number(source.beans || 0)
+            },
+            shipping: { mode: "physical", packages: [] },
+            timeline: [
+              { label: "提交订单", state: "complete", time: normalizeOrderTime(source.createdAt || source.paidAt || Date.now()) },
+              { label: "支付成功", state: paid ? "complete" : "current", time: paid ? normalizeOrderTime(source.paidAt || Date.now()) : "" },
+              { label: "等待发货", state: paid ? "current" : "upcoming", time: "" },
+              { label: "交易完成", state: "upcoming", time: "" }
+            ],
+            __lxLiveOrder: true
+          };
+        }
+
+        function syncLiveOrders() {
+          var live = readLiveOrders().map(normalizeLiveOrder).filter(Boolean);
+          var liveIds = new Set(live.map(function (order) { return String(order.id); }));
+          orders = live.concat(demoOrders.filter(function (order) { return !liveIds.has(String(order.id)); }));
+          if (commerceMounted) renderOrderList();
+        }
+
+        syncLiveOrders();
 
         var orderListState = { query: "", type: "all", status: "全部" };
         var orderTypeOptions = [
@@ -611,6 +696,12 @@
             var question = options && typeof options.question === "string" ? options.question : "";
             openOrdersFromChat(question);
           };
+
+          window.addEventListener("lx:orders-updated", syncLiveOrders);
+          window.addEventListener("storage", function (event) {
+            if (!event || event.key === liveOrderKey) syncLiveOrders();
+          });
+          window.addEventListener("pageshow", syncLiveOrders);
 
           var textarea = document.querySelector(".assistant-panel .composer textarea");
 
