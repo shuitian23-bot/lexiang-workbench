@@ -42,6 +42,10 @@
     // 接入主应用既有商品引用状态、飞入动画和对比页，不复制业务状态。
     card.classList.add('lx-floor-product');
     card.dataset.sku = sku;
+    // 勾选按钮由本补丁先注入时，主应用会跳过重复初始化；因此需在这里
+    // 同步补齐原生商品/解决方案卡使用的 draggable 标记。
+    card.draggable = true;
+    card.setAttribute('draggable', 'true');
     let button = card.querySelector(':scope > .lx-pick-btn');
     if (!button) {
       button = document.createElement('button');
