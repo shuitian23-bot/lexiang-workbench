@@ -1311,7 +1311,7 @@ body.lx-orders-poc {
       .lx-orders-list .lx-order-filterbar {
         gap: 12px;
         margin-top: 0;
-        padding: 16px;
+        padding: 16px 0;
         border: 0;
         border-radius: 0;
         background: transparent;
