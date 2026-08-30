@@ -1312,10 +1312,10 @@ body.lx-orders-poc {
         gap: 12px;
         margin-top: 0;
         padding: 16px;
-        border: 1px solid #e2ddeb;
-        border-radius: 14px;
-        background: #ffffff;
-        box-shadow: 0 3px 10px rgba(77, 20, 74, 0.035);
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+        box-shadow: none;
       }
       .lx-orders-list .lx-order-search,
       .lx-orders-list .lx-order-type-label {
