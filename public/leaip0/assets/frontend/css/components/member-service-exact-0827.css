@@ -11299,3 +11299,10 @@ body .leai-member-page > .leai-member-education-slot .leai-education-actions .le
   line-height: 1;
   vertical-align: middle;
 }
+/* Device list aligns to the full shared workspace width. */
+body [data-member-device-page] {
+  width: 100%;
+  max-width: none;
+  margin-right: 0;
+  margin-left: 0;
+}

@@ -407,10 +407,11 @@
             tabbar.querySelectorAll("[data-order-global-tab]").forEach(function (tab) { tab.remove(); });
             desiredTabs.forEach(function (tab) {
               var button = document.createElement("button");
+              var isChannelTab = /^site:(?:personal|business|enterprise)$/.test(tab.id);
               button.className = "lx-orders-tab lx-tab";
               button.type = "button";
               button.dataset.orderGlobalTab = tab.id;
-              button.innerHTML = '<span class="lx-tab-label">' + escapeHtml(tab.label || "页面") + '</span><span class="lx-orders-tab-close lx-tab-close">×</span>';
+              button.innerHTML = '<span class="lx-tab-label">' + escapeHtml(tab.label || "页面") + '</span>' + (isChannelTab ? "" : '<span class="lx-orders-tab-close lx-tab-close">×</span>');
               tabbar.appendChild(button);
             });
           }
