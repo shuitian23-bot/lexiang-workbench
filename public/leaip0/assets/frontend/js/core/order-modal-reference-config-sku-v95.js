@@ -599,11 +599,11 @@
     document.querySelectorAll(".lx-order-modal-mask .prod-list .prod").forEach(function (row, index) {
       var button = row.querySelector(".pview");
       if (!button) return;
-      button.textContent = "修改配置";
-      button.removeAttribute("data-occ-view-detail");
-      button.removeAttribute("data-occ-modify-order");
-      button.dataset.lxModifyConfig = "1";
-      button.dataset.lxItemIndex = String(index);
+      if (button.textContent !== "修改配置") button.textContent = "修改配置";
+      if (button.hasAttribute("data-occ-view-detail")) button.removeAttribute("data-occ-view-detail");
+      if (button.hasAttribute("data-occ-modify-order")) button.removeAttribute("data-occ-modify-order");
+      if (button.dataset.lxModifyConfig !== "1") button.dataset.lxModifyConfig = "1";
+      if (button.dataset.lxItemIndex !== String(index)) button.dataset.lxItemIndex = String(index);
     });
   }
 
@@ -660,5 +660,13 @@
 
   installStyle();
   syncButtons();
-  new MutationObserver(syncButtons).observe(document.documentElement, { childList: true, subtree: true });
+  var syncQueued = false;
+  new MutationObserver(function () {
+    if (syncQueued) return;
+    syncQueued = true;
+    window.requestAnimationFrame(function () {
+      syncQueued = false;
+      syncButtons();
+    });
+  }).observe(document.documentElement, { childList: true, subtree: true });
 })();
