@@ -709,8 +709,8 @@ addEventListener('pageshow',function(e){if(e.persisted)try{S.setItem(K,String(Da
  const productsFor=(items,source)=>items.filter(spu=>spu.category===source).map(spu=>{const configurations=(spu.configurations||[]).filter(configuration=>Number.isFinite(Number(configuration.sale_price))),prices=configurations.map(configuration=>Number(configuration.sale_price)),primary=configurations.slice().sort((a,b)=>Number(a.sale_price)-Number(b.sale_price))[0]||{};return{id:String(primary.sku_id||''),spuId:String(spu.spu_id),shortName:spu.short_name,name:spu.short_name,price:prices.length?Math.min(...prices):NaN,image:dataBase+(spu.representative_files?.white_image||primary.files?.white_image||''),promo:configurations.flatMap(configuration=>configuration.tags||[]).find(tag=>tag!=='自营')||''}}).filter(product=>product.id&&product.image);
  const bindInteractions=()=>{
   root.querySelectorAll('.floor-count').forEach(button=>button.addEventListener('click',()=>{const icon=button.querySelector('.floor-count-icon');if(!icon||window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;icon.classList.remove('is-rotating');void icon.offsetWidth;icon.classList.add('is-rotating')}));
-  root.querySelectorAll('.floor-product').forEach(product=>{const openProduct=()=>window.__lxAgentAPI?.openProduct?.(product.dataset.productId);product.addEventListener('click',openProduct);product.addEventListener('keydown',event=>{if(event.key!=='Enter'&&event.key!==' ')return;event.preventDefault();openProduct()})});
-  root.querySelectorAll('.rank-item').forEach(item=>{const openProduct=()=>window.__lxAgentAPI?.openProduct?.(item.dataset.productId);item.addEventListener('click',openProduct);item.addEventListener('keydown',event=>{if(event.key!=='Enter'&&event.key!==' ')return;event.preventDefault();openProduct()})});
+  root.querySelectorAll('.floor-product').forEach(product=>{const openProduct=()=>window.__lxOpenFloorProductWithInterpretation?.(product.dataset.productId);product.addEventListener('click',openProduct);product.addEventListener('keydown',event=>{if(event.key!=='Enter'&&event.key!==' ')return;event.preventDefault();openProduct()})});
+  root.querySelectorAll('.rank-item').forEach(item=>{const openProduct=()=>window.__lxOpenFloorProductWithInterpretation?.(item.dataset.productId);item.addEventListener('click',openProduct);item.addEventListener('keydown',event=>{if(event.key!=='Enter'&&event.key!==' ')return;event.preventDefault();openProduct()})});
  };
  const render=(items,source)=>{
   const catalog=Object.fromEntries(categories.map(category=>[category.key,productsFor(items,category.source)]));
@@ -1040,7 +1040,7 @@ addEventListener('pageshow',function(e){if(e.persisted)try{S.setItem(K,String(Da
     <script src="../frontend/js/core/app-conv.js?v=0.13.16-new-chat-refresh"></script>
     <script src="/assets/frontend/js/core/app.product-detail-actions-v53.min.js?v=20260830-product-detail-actions-v53"></script>
     <script src="/assets/frontend/js/core/order-modal-reference-exact-v57.js?v=20260830-order-modal-reference-exact-v57"></script>
-    <script src="/assets/frontend/js/core/order-modal-reference-1to1-v63.js?v=20260830-order-modal-reopen-v63"></script>
+    <script src="/assets/frontend/js/core/order-modal-reference-pay-grid-v67.js?v=20260830-order-pay-grid-v67"></script>
     <script src="../frontend/js/core/app-lxfd.js?v=20260830-history-result-split-v2"></script>
     <script src="../frontend/js/core/app-voice.js?v=0.13.16-stage"></script>
     <script src="../frontend/js/core/app-agent.js?v=0.13.16-unified-agent"></script>
@@ -1060,5 +1060,40 @@ addEventListener('pageshow',function(e){if(e.persisted)try{S.setItem(K,String(Da
   <link rel="stylesheet" href="../frontend/css/core/order-center.css?v=20260830-orders-detail-v25">
   <script src="../frontend/js/core/order-demo-data.js?v=20260829-orders-v2"></script>
   <script src="../frontend/js/core/order-center.js?v=20260830-orders-v30"></script>
+  <script>
+    (() => {
+      const openProductDetail = input => {
+        const sku = String(typeof input === 'object' ? input?.sku || input?.productId || '' : input || '').trim();
+        if (!sku) return;
+        const preserveDefault = document.body.dataset.state === 'default';
+        const restoreLeftState = () => {
+          if (preserveDefault) document.body.dataset.state = 'default';
+        };
+        const opening = window.__lxAgentAPI?.openProduct?.(sku);
+        restoreLeftState();
+        Promise.resolve(opening).finally(restoreLeftState);
+      };
+      window.__lxOpenFloorProductWithInterpretation = openProductDetail;
+      const syncLeftConversationState = () => {
+        if (document.body.classList.contains('assistant-fullscreen')) return;
+        const hasMessages = Boolean(document.querySelector('.chat-state .lx-p0-messages > *'));
+        const expectedState = hasMessages ? 'chat' : 'default';
+        if (document.body.dataset.state !== expectedState) document.body.dataset.state = expectedState;
+      };
+      const leftStateObserver = new MutationObserver(syncLeftConversationState);
+      leftStateObserver.observe(document.body, { attributes: true, attributeFilter: ['data-state'] });
+      const chatState = document.querySelector('.chat-state');
+      if (chatState) leftStateObserver.observe(chatState, { childList: true, subtree: true });
+      queueMicrotask(syncLeftConversationState);
+      document.addEventListener('click', event => {
+        const card = event.composedPath().find(node => node?.matches?.('.rank-item, .floor-product, .lx-floor-product'));
+        const sku = card?.dataset?.productId || card?.dataset?.sku || '';
+        if (!sku) return;
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        openProductDetail(sku);
+      }, true);
+    })();
+  </script>
 </body>
 </html>
