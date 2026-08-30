@@ -1124,8 +1124,9 @@ addEventListener('pageshow',function(e){if(e.persisted)try{S.setItem(K,String(Da
       if (chatState) leftStateObserver.observe(chatState, { childList: true, subtree: true });
       queueMicrotask(syncLeftConversationState);
       document.addEventListener('click', event => {
+        if (event.composedPath().some(node => node?.matches?.('.lx-pick-btn'))) return;
         const card = event.composedPath().find(node => node?.matches?.('.rank-item, .floor-product, .lx-floor-product'));
-        const sku = card?.dataset?.productId || card?.dataset?.sku || '';
+        const sku = card?.dataset?.productId || card?.dataset?.sku || card?.dataset?.openProduct || '';
         if (!sku) return;
         event.preventDefault();
         event.stopImmediatePropagation();
@@ -1133,6 +1134,7 @@ addEventListener('pageshow',function(e){if(e.persisted)try{S.setItem(K,String(Da
       }, true);
     })();
   </script>
+  <script src="/assets/frontend/js/core/product-floor-compare-v107.js?v=20260831-product-floor-compare-v107"></script>
   <script src="/assets/frontend/js/core/composer-association-popup-toggle-v106.js?v=20260831-composer-associations-off-v106"></script>
 </body>
 </html>
