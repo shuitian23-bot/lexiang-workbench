@@ -711,14 +711,11 @@ addEventListener('pageshow',function(e){if(e.persisted)try{S.setItem(K,String(Da
       icon.classList.remove('is-rotating'); void icon.offsetWidth; icon.classList.add('is-rotating');
     }));
     root.querySelectorAll('.floor-product').forEach(product => {
-      const openProduct = () => window.__lxOpenFloorProductWithInterpretation?.({
-        sku: product.dataset.productId,
-        name: product.dataset.productName
-      });
+      const openProduct = () => window.__lxAgentAPI?.openProduct?.(product.dataset.productId);
       product.addEventListener('click', openProduct);
       product.addEventListener('keydown', event => { if (event.key !== 'Enter' && event.key !== ' ') return; event.preventDefault(); openProduct(); });
     });
-    root.querySelectorAll('.rank-item').forEach(item => { const openProduct = () => window.__lxOpenFloorProductWithInterpretation?.({ sku: item.dataset.productId, name: item.dataset.productName }); item.addEventListener('click', openProduct); item.addEventListener('keydown', event => { if (event.key !== 'Enter' && event.key !== ' ') return; event.preventDefault(); openProduct(); }); });
+    root.querySelectorAll('.rank-item').forEach(item => { const openProduct = () => window.__lxAgentAPI?.openProduct?.(item.dataset.productId); item.addEventListener('click', openProduct); item.addEventListener('keydown', event => { if (event.key !== 'Enter' && event.key !== ' ') return; event.preventDefault(); openProduct(); }); });
   };
   const render = (manifest, source) => {
     const catalog = Object.fromEntries(categories.map(category => [category.key, productsFor(manifest, category.source)]));
