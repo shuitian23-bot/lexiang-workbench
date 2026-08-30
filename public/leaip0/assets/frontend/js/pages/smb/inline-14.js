@@ -284,7 +284,8 @@
     bar.hidden = detailTabs.length <= 1;
     bar.innerHTML = detailTabs.map(function (tab) {
       var active = tab.id === activeDetailTab;
-      return '<span class="lx-tab' + (active ? " is-active" : "") + '" data-shop-tab-id="' + escapeHtml(tab.id) + '" role="tab" tabindex="' + (active ? "0" : "-1") + '" aria-selected="' + (active ? "true" : "false") + '"><span class="lx-tab-label">' + escapeHtml(tab.label) + '</span><button class="lx-tab-close" type="button" data-shop-tab-close="' + escapeHtml(tab.id) + '" aria-label="关闭' + escapeHtml(tab.label) + '标签">×</button></span>';
+      var close = /^site:(?:personal|business|enterprise)$/.test(tab.id) ? "" : '<button class="lx-tab-close" type="button" data-shop-tab-close="' + escapeHtml(tab.id) + '" aria-label="关闭' + escapeHtml(tab.label) + '标签">×</button>';
+      return '<span class="lx-tab' + (active ? " is-active" : "") + '" data-shop-tab-id="' + escapeHtml(tab.id) + '" role="tab" tabindex="' + (active ? "0" : "-1") + '" aria-selected="' + (active ? "true" : "false") + '"><span class="lx-tab-label">' + escapeHtml(tab.label) + '</span>' + close + '</span>';
     }).join("") + '<span class="lx-tab-ink" aria-hidden="true"></span>';
     syncDetailConversationSelection();
     requestAnimationFrame(moveTabInk);
