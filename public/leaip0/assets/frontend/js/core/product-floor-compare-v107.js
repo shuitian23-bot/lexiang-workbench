@@ -1,29 +1,35 @@
 (() => {
-  const CARD_SELECTOR = '.rank-item, .floor-product, .lx-floor-product, .product-card, .lx-floor-product-card, [data-floor-product]';
+  const CARD_SELECTORS = ['.rank-item', '.floor-product', '.lx-floor-product', '.product-card', '.lx-floor-product-card', '[data-floor-product]'];
+  const CARD_SELECTOR = CARD_SELECTORS.join(', ');
+  const PICK_SELECTOR = CARD_SELECTORS.map(selector => `${selector} > .lx-pick-btn`).join(', ');
+  const HOVER_SELECTOR = CARD_SELECTORS.map(selector => `${selector}:hover > .lx-pick-btn`).join(', ');
+  const FOCUS_SELECTOR = CARD_SELECTORS.map(selector => `${selector}:focus-within > .lx-pick-btn`).join(', ');
+  const CHECKED_SELECTOR = CARD_SELECTORS.map(selector => `${selector}.is-checked > .lx-pick-btn`).join(', ');
+  const PICKED_SELECTOR = CARD_SELECTORS.map(selector => `${selector} > .lx-pick-btn.picked`).join(', ');
   const AUTO_PROMPTS = new Set(['帮我对比下这几款商品', '请帮我对比这几款商品', '对比这几款商品']);
 
   const style = document.createElement('style');
   style.dataset.productFloorCompare = 'v107';
   style.textContent = `
     ${CARD_SELECTOR}{position:relative}
-    ${CARD_SELECTOR} > .lx-pick-btn{
+    ${PICK_SELECTOR}{
       position:absolute;top:16px;right:16px;z-index:12;width:24px;height:24px;
       display:grid;place-items:center;padding:0;border:2px solid #b9a8ca;border-radius:6px;
       background:#fff;opacity:0;transform:scale(.9);cursor:pointer;
       transition:opacity .2s ease,transform .2s ease,background .2s ease,border-color .2s ease;
     }
-    ${CARD_SELECTOR}:hover > .lx-pick-btn,
-    ${CARD_SELECTOR}:focus-within > .lx-pick-btn,
-    ${CARD_SELECTOR}.is-checked > .lx-pick-btn,
-    ${CARD_SELECTOR} > .lx-pick-btn.picked{opacity:1;transform:scale(1)}
-    ${CARD_SELECTOR} > .lx-pick-btn:hover{border-color:#4d144a;background:#f7f1f8}
-    ${CARD_SELECTOR} > .lx-pick-btn.picked{border-color:#4d144a;background:#4d144a}
-    ${CARD_SELECTOR} > .lx-pick-btn img{display:none!important}
-    ${CARD_SELECTOR} > .lx-pick-btn::after{
+    ${HOVER_SELECTOR},
+    ${FOCUS_SELECTOR},
+    ${CHECKED_SELECTOR},
+    ${PICKED_SELECTOR}{opacity:1;transform:scale(1)}
+    ${CARD_SELECTORS.map(selector => `${selector} > .lx-pick-btn:hover`).join(', ')}{border-color:#4d144a;background:#f7f1f8}
+    ${PICKED_SELECTOR}{border-color:#4d144a;background:#4d144a}
+    ${CARD_SELECTORS.map(selector => `${selector} > .lx-pick-btn img`).join(', ')}{display:none!important}
+    ${CARD_SELECTORS.map(selector => `${selector} > .lx-pick-btn::after`).join(', ')}{
       content:'';width:6px;height:11px;border-right:2px solid transparent;border-bottom:2px solid transparent;
       transform:rotate(45deg) translate(-1px,-1px);transition:border-color .2s ease;
     }
-    ${CARD_SELECTOR} > .lx-pick-btn.picked::after{border-color:#fff}
+    ${CARD_SELECTORS.map(selector => `${selector} > .lx-pick-btn.picked::after`).join(', ')}{border-color:#fff}
   `;
   document.head.appendChild(style);
 
