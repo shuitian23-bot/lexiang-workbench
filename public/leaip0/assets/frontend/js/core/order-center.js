@@ -70,7 +70,7 @@
         }
 
         function orderBadges(order) {
-          return [order.typeLabel || "普通订单"];
+          return [(order.typeLabel || "普通订单") + " XXXX 上线后去掉"];
         }
 
         function statusExtra(order) {
