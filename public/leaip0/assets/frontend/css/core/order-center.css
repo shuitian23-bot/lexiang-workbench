@@ -546,12 +546,20 @@ body.lx-orders-poc {
       }
       .lx-order-detail-meta {
         grid-column: 1 / -1;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
         margin: -2px 0 2px;
         padding: 0 0 10px;
         border-bottom: 1px solid #efe4f1;
         color: #625b68;
         font-size: 12px;
         line-height: 18px;
+      }
+      .lx-order-detail-meta .lx-order-detail-status {
+        flex: 0 0 auto;
+        margin-left: auto;
       }
       .lx-order-detail-summary .lx-order-thumb {
         width: 112px;
@@ -1559,9 +1567,9 @@ body.lx-orders-poc {
       .lx-order-back:hover,
       .lx-order-back:focus-visible {
         border: 0;
-        background: transparent;
+        background: #f3f0f7;
         outline: none;
-        opacity: 0.72;
+        opacity: 1;
       }
       .lx-order-back img {
         width: 16px;
@@ -1727,6 +1735,10 @@ body.lx-orders-poc {
         border: solid #979797;
         border-width: 0 0 1.5px 1.5px;
         transform: rotate(45deg);
+      }
+      .lx-order-back:hover::before,
+      .lx-order-back:focus-visible::before {
+        border-color: #4d144a;
       }
 
       /* orders-template-frame-final-20260829: restore the source order-page geometry. */
