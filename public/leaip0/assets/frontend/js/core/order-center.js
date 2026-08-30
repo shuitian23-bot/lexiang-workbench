@@ -414,6 +414,21 @@
               tabbar.appendChild(button);
             });
           }
+          // Activating the order workspace must not promote its tab to the
+          // first position. Reapply the authoritative shared-tab sequence
+          // after creating the order-specific mirror buttons.
+          var desiredVisualIds = sharedTabs.filter(function (tab) { return tab && tab.id; }).map(function (tab) { return tab.id; });
+          var currentVisualIds = Array.from(tabbar.querySelectorAll(".lx-orders-tab")).map(function (tab) {
+            return tab.dataset.workspaceView === "orders" ? "info:orders" : tab.dataset.orderGlobalTab;
+          });
+          if (currentVisualIds.join("|") !== desiredVisualIds.join("|")) {
+            desiredVisualIds.forEach(function (tabId) {
+              var node = tabId === "info:orders"
+                ? tabbar.querySelector("[data-workspace-view='orders']")
+                : Array.from(tabbar.querySelectorAll("[data-order-global-tab]")).find(function (tab) { return tab.dataset.orderGlobalTab === tabId; });
+              if (node) tabbar.appendChild(node);
+            });
+          }
           var realTabs = tabbar.querySelectorAll(".lx-orders-tab:not([hidden])");
           tabbar.hidden = realTabs.length <= 1;
         }
