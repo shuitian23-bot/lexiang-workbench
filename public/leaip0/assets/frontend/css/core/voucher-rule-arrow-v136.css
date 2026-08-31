@@ -1,0 +1,10 @@
+/* Voucher usage tooltip is below its trigger: point upward. */
+html body .leai-member-asset-page .leai-summary-card.leai-member-main > #leaiAssetRule-vouchers.leai-asset-rule-tooltip {
+ top: calc(100% + 8px) !important;
+ bottom: auto !important;
+}
+html body .leai-member-asset-page .leai-summary-card.leai-member-main > #leaiAssetRule-vouchers.leai-asset-rule-tooltip::after {
+ top: -6px !important;
+ bottom: auto !important;
+ transform: rotate(225deg) !important;
+}
