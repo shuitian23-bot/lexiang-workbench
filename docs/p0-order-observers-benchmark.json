@@ -1,0 +1,98 @@
+{
+  "scope": "Synthetic DOM workload; storage read and timer counts, not page load time or CPU benchmark",
+  "results": [
+    {
+      "variant": "before",
+      "unrelated": {
+        "mutations": 100,
+        "storageReads": 200,
+        "scheduledSyncs": 100
+      },
+      "batchCards": {
+        "cards": 50,
+        "storageReads": 51
+      },
+      "tests": [
+        {
+          "name": "订单容器动态重建仍同步",
+          "pass": true
+        },
+        {
+          "name": "订单内部局部替换仍同步",
+          "pass": true
+        },
+        {
+          "name": "新挂载嵌套结果卡按 ID 更新",
+          "pass": true
+        },
+        {
+          "name": "移除后重建订单容器仍同步",
+          "pass": true
+        },
+        {
+          "name": "批量新增卡片全部正确更新",
+          "pass": true
+        },
+        {
+          "name": "订单事件触发刷新",
+          "pass": true
+        },
+        {
+          "name": "storage 事件触发刷新",
+          "pass": true
+        },
+        {
+          "name": "仅展示和刷新不写订单",
+          "pass": true
+        }
+      ]
+    },
+    {
+      "variant": "after",
+      "unrelated": {
+        "mutations": 100,
+        "storageReads": 0,
+        "scheduledSyncs": 0
+      },
+      "batchCards": {
+        "cards": 50,
+        "storageReads": 1
+      },
+      "tests": [
+        {
+          "name": "订单容器动态重建仍同步",
+          "pass": true
+        },
+        {
+          "name": "订单内部局部替换仍同步",
+          "pass": true
+        },
+        {
+          "name": "新挂载嵌套结果卡按 ID 更新",
+          "pass": true
+        },
+        {
+          "name": "移除后重建订单容器仍同步",
+          "pass": true
+        },
+        {
+          "name": "批量新增卡片全部正确更新",
+          "pass": true
+        },
+        {
+          "name": "订单事件触发刷新",
+          "pass": true
+        },
+        {
+          "name": "storage 事件触发刷新",
+          "pass": true
+        },
+        {
+          "name": "仅展示和刷新不写订单",
+          "pass": true
+        }
+      ]
+    }
+  ],
+  "pass": true
+}

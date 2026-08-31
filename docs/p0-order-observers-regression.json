@@ -1,0 +1,58 @@
+{
+  "passed": 13,
+  "total": 13,
+  "results": [
+    {
+      "name": "启动不改写 pending",
+      "pass": true
+    },
+    {
+      "name": "启动不改写 unpaid",
+      "pass": true
+    },
+    {
+      "name": "启动不改写 cancelled",
+      "pass": true
+    },
+    {
+      "name": "启动不改写 refunded",
+      "pass": true
+    },
+    {
+      "name": "空订单与存储读取失败",
+      "pass": true
+    },
+    {
+      "name": "其他订单已支付不升级待付款卡与无身份历史卡",
+      "pass": true
+    },
+    {
+      "name": "仅对应订单升级，兼容旧 paidAt",
+      "pass": true
+    },
+    {
+      "name": "明确未支付状态优先于旧 paidAt",
+      "pass": true
+    },
+    {
+      "name": "只有点击没有成功记录不写入",
+      "pass": true
+    },
+    {
+      "name": "未知订单号不回退第一笔",
+      "pass": true
+    },
+    {
+      "name": "成功后只补全对应订单，零金额保留，重复同步幂等",
+      "pass": true
+    },
+    {
+      "name": "跨标签页 storage 事件同步卡片",
+      "pass": true
+    },
+    {
+      "name": "重复渲染不再产生 DOM 写入且不覆盖订单中心数量",
+      "pass": true
+    }
+  ]
+}

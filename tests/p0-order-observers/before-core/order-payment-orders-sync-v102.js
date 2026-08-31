@@ -206,16 +206,6 @@
   window.addEventListener("lx:orders-updated", scheduleSync);
   window.addEventListener("storage", function (event) { if (!event || event.key === ORDER_KEY) scheduleSync(); });
   installStyle();
-  // Keep a lightweight mount detector, but ignore changes outside the order center.
-  new MutationObserver(function (records) {
-    var relevant = records.some(function (record) {
-      if (record.target.nodeType === 1 && record.target.closest(".lx-orders-wrap")) return true;
-      return Array.prototype.some.call(record.addedNodes, function (node) {
-        return node.nodeType === 1 && node.isConnected &&
-          (node.matches(".lx-orders-wrap") || node.querySelector(".lx-orders-wrap"));
-      });
-    });
-    if (relevant) scheduleSync();
-  }).observe(document.documentElement, { childList: true, subtree: true });
+  new MutationObserver(function () { scheduleSync(); }).observe(document.documentElement, { childList: true, subtree: true });
   window.setTimeout(scheduleSync, 600); // Startup is read-only; never infer payment success.
 })();

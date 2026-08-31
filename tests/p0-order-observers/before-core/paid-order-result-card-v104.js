@@ -42,25 +42,16 @@
     if (title) title.textContent = "已支付订单";
   }
 
-  var pendingCardSelector = '.lx-payment-confirm-reco[data-open-payment-confirm], .lx-payment-confirm-reco[data-lx-recommended-modal="pending-payment"]';
-
-  function collectCards(root, cards) {
-    if (root.matches && root.matches(pendingCardSelector)) cards.add(root);
-    root.querySelectorAll(pendingCardSelector).forEach(function (card) { cards.add(card); });
-  }
-
-  function syncCards(cards) {
-    if (!cards.size) return; // No order storage read for unrelated DOM additions.
+  function sync(root) {
     var orders = readOrders();
     if (!orders.length) return;
-    cards.forEach(function (card) { upgradeMatching(card, orders); });
-  }
-
-  function sync(root) {
     var scope = root && root.querySelectorAll ? root : document;
-    var cards = new Set();
-    collectCards(scope, cards);
-    syncCards(cards);
+    if (scope.matches && scope.matches('.lx-payment-confirm-reco[data-open-payment-confirm], .lx-payment-confirm-reco[data-lx-recommended-modal="pending-payment"]')) {
+      upgradeMatching(scope, orders);
+    }
+    scope
+      .querySelectorAll('.lx-payment-confirm-reco[data-open-payment-confirm], .lx-payment-confirm-reco[data-lx-recommended-modal="pending-payment"]')
+      .forEach(function (card) { upgradeMatching(card, orders); });
   }
 
   function syncDocument() {
@@ -79,13 +70,11 @@
     });
 
     new MutationObserver(function (records) {
-      var cards = new Set();
       records.forEach(function (record) {
         record.addedNodes.forEach(function (node) {
-          if (node.nodeType === 1 && node.isConnected) collectCards(node, cards);
+          if (node.nodeType === 1) sync(node);
         });
       });
-      syncCards(cards); // One storage snapshot per mutation batch; overlapping roots are deduplicated.
     }).observe(document.documentElement, { childList: true, subtree: true });
   }
 
