@@ -1,0 +1,49 @@
+{
+  "sourceSHA256": "f04500bf1847f530c15eaec2443f005e010bc98b09f7e5cb0f4b7905610fba12",
+  "runtimeBytes": 49339,
+  "sourceStylesUnchanged": true,
+  "assets": [
+    {
+      "name": "1faaf8893b2863ba.jpg",
+      "originalBytes": 164178,
+      "servedBytes": 164178,
+      "originalSHA256": "1faaf8893b2863ba98b0cb6cd354cba56826c0dc5e9b05ae2c777466bafe4a20",
+      "pixelIdentical": true
+    },
+    {
+      "name": "ab787895da52422f.webp",
+      "originalBytes": 1021503,
+      "servedBytes": 613262,
+      "originalSHA256": "ab787895da52422f3ea19c712db2468fa59c5e4891e4963112d8838564f40170",
+      "pixelIdentical": true
+    },
+    {
+      "name": "a507f0a98967435b.webp",
+      "originalBytes": 1193757,
+      "servedBytes": 764252,
+      "originalSHA256": "a507f0a98967435b4946b87bc8dafc83b9ead4edf85256e9674d62ef7dfa196a",
+      "pixelIdentical": true
+    },
+    {
+      "name": "821306b6a3b66209.webp",
+      "originalBytes": 826513,
+      "servedBytes": 528776,
+      "originalSHA256": "821306b6a3b6620969cf3b330f9685bf01e74101ac590b6fd9142f3cb8448277",
+      "pixelIdentical": true
+    },
+    {
+      "name": "1a1ee5badda7ffce.jpg",
+      "originalBytes": 176104,
+      "servedBytes": 176104,
+      "originalSHA256": "1a1ee5badda7ffce1cf41485eea832f1d03777db8aa3acd5c366d07565c0cbc8",
+      "pixelIdentical": true
+    },
+    {
+      "name": "be8564fb000dcc39.jpg",
+      "originalBytes": 175671,
+      "servedBytes": 175671,
+      "originalSHA256": "be8564fb000dcc397deec40c56e6c651b35c001c5d925aca98ddc4464ed9f2c3",
+      "pixelIdentical": true
+    }
+  ]
+}
