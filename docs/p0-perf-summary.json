@@ -1,0 +1,232 @@
+[
+  {
+    "channel": "home",
+    "loadMs": [
+      193.6,
+      192.6,
+      151.8
+    ],
+    "syncScriptMs": [
+      44.5,
+      10.6,
+      10.1
+    ],
+    "fcpMs": [
+      136,
+      156,
+      100
+    ],
+    "lcpMs": [
+      184,
+      156,
+      168
+    ],
+    "longTaskCount": [
+      0,
+      0,
+      0
+    ],
+    "scriptTopFirst": [
+      {
+        "path": "/assets/frontend/js/core/home.ref-sync-v140.js",
+        "ms": 19.5
+      },
+      {
+        "path": "/assets/frontend/js/core/portal.js",
+        "ms": 16.699999999254942
+      },
+      {
+        "path": "/assets/frontend/js/core/split-frame-composer-sync.js",
+        "ms": 2.800000000745058
+      },
+      {
+        "path": "/assets/frontend/js/core/app-lxfd.home-conversation-v122.js",
+        "ms": 1.5
+      }
+    ]
+  },
+  {
+    "channel": "shop",
+    "loadMs": [
+      198.9,
+      182.8,
+      190.8
+    ],
+    "syncScriptMs": [
+      46.9,
+      23.9,
+      25.2
+    ],
+    "fcpMs": [
+      104,
+      88,
+      124
+    ],
+    "lcpMs": [
+      204,
+      172,
+      176
+    ],
+    "longTaskCount": [
+      0,
+      0,
+      0
+    ],
+    "scriptTopFirst": [
+      {
+        "path": "/assets/frontend/js/core/shop-chat.ref-sync-v140.js",
+        "ms": 19
+      },
+      {
+        "path": "/assets/frontend/js/core/portal.js",
+        "ms": 7.400000000372529
+      },
+      {
+        "path": "/assets/frontend/js/pages/shop/inline-13.js",
+        "ms": 5.400000000372529
+      },
+      {
+        "path": "/assets/frontend/js/pages/shop/inline-22.banner-detail-v111.js",
+        "ms": 4.699999999254942
+      }
+    ]
+  },
+  {
+    "channel": "smb",
+    "loadMs": [
+      181.6,
+      177.8,
+      149.5
+    ],
+    "syncScriptMs": [
+      37.9,
+      19.9,
+      21.4
+    ],
+    "fcpMs": [
+      116,
+      128,
+      68
+    ],
+    "lcpMs": [
+      232,
+      228,
+      200
+    ],
+    "longTaskCount": [
+      0,
+      0,
+      0
+    ],
+    "scriptTopFirst": [
+      {
+        "path": "/assets/frontend/js/core/b-chat.ref-sync-v140.js",
+        "ms": 19.100000001490116
+      },
+      {
+        "path": "/assets/frontend/js/core/portal.js",
+        "ms": 4.099999999627471
+      },
+      {
+        "path": "/assets/frontend/js/pages/smb/inline-14.js",
+        "ms": 3.899999998509884
+      },
+      {
+        "path": "/assets/frontend/js/core/split-frame-composer-sync.js",
+        "ms": 3.299999998882413
+      }
+    ]
+  },
+  {
+    "channel": "biz",
+    "loadMs": [
+      205.7,
+      219.3,
+      182.6
+    ],
+    "syncScriptMs": [
+      35.7,
+      19.1,
+      21.3
+    ],
+    "fcpMs": [
+      128,
+      120,
+      144
+    ],
+    "lcpMs": [
+      228,
+      268,
+      208
+    ],
+    "longTaskCount": [
+      0,
+      0,
+      0
+    ],
+    "scriptTopFirst": [
+      {
+        "path": "/assets/frontend/js/core/biz-chat.ref-sync-v140.js",
+        "ms": 16.5
+      },
+      {
+        "path": "/assets/frontend/js/pages/biz/inline-13.js",
+        "ms": 5.799999998882413
+      },
+      {
+        "path": "/assets/frontend/js/core/portal.js",
+        "ms": 4
+      },
+      {
+        "path": "/assets/frontend/js/core/app-lxfd.industry-v114.js",
+        "ms": 2.899999998509884
+      }
+    ]
+  },
+  {
+    "channel": "brand",
+    "loadMs": [
+      202.3,
+      138.4,
+      134
+    ],
+    "syncScriptMs": [
+      41.9,
+      17.8,
+      20.1
+    ],
+    "fcpMs": [
+      92,
+      124,
+      92
+    ],
+    "lcpMs": [
+      192,
+      140,
+      144
+    ],
+    "longTaskCount": [
+      0,
+      0,
+      0
+    ],
+    "scriptTopFirst": [
+      {
+        "path": "/assets/frontend/js/core/app-brand.industry-v114.trace-first-v117.tabs-v120.min.js",
+        "ms": 30.90000000037253
+      },
+      {
+        "path": "/assets/frontend/js/pages/brand/inline-13.js",
+        "ms": 4.599999999627471
+      },
+      {
+        "path": "/assets/frontend/js/core/portal.js",
+        "ms": 2.399999998509884
+      },
+      {
+        "path": "/assets/frontend/js/core/app-lxfd.industry-v114.js",
+        "ms": 2.099999999627471
+      }
+    ]
+  }
+]

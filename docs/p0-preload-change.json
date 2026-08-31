@@ -1,0 +1,7 @@
+{
+  "baseline": "f1f6f8b8",
+  "beforeSha256": "fafb37bee2dd9a21274186a737040fd7575d3cbe4a1dad30d7ce551ab42cbf6c",
+  "afterSha256": "5cb01513f1ebf0b3472a1f62946e3d1c5ed7a393ded4c7c6aad434f2351094b6",
+  "removedTag": "  <link rel=\"preload\" href=\"/assets/frontend/js/core/app.product-detail-actions-v53.min.js?v=20260830-product-detail-actions-v53&amp;p0v=741379f463ef466f\" as=\"script\">\n",
+  "resourceRetained": true
+}
