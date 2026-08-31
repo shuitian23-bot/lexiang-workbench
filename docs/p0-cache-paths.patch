@@ -1,0 +1,48 @@
+--- p0.nginx.before.conf
++++ p0.nginx.after.conf
+@@ -1,3 +1,8 @@
++map $arg_p0v $p0_asset_cache_policy {
++    default "no-cache, must-revalidate";
++    "~^[a-f0-9]{16}$" "public, max-age=2592000, immutable";
++}
++
+ server {
+     server_name p0.leaibot.cn;
+ 
+@@ -8,23 +13,30 @@
+     # remains revalidated so deployments become visible immediately.
+     location ^~ /frontend/ {
+         alias /opt/projects/lexiang/public/leaip0/assets/frontend/;
+-        expires 30d;
+-        add_header Cache-Control "public, max-age=2592000, immutable" always;
++        add_header Cache-Control $p0_asset_cache_policy always;
+         access_log off;
+     }
+ 
+     location ^~ /img/ {
+         alias /opt/projects/lexiang/public/leaip0/assets/img/;
+-        expires 30d;
+-        add_header Cache-Control "public, max-age=2592000, immutable" always;
++        add_header Cache-Control $p0_asset_cache_policy always;
+         access_log off;
+     }
+ 
+     location ^~ /assets/ {
+-        expires 30d;
+-        add_header Cache-Control "public, max-age=2592000, immutable" always;
++        add_header Cache-Control $p0_asset_cache_policy always;
+         access_log off;
+     }
++
++    # Preserve old entry URLs while serving the current canonical pages.
++    location = /index.html { return 302 /$is_args$args; }
++    location = /shop-chat.html { return 302 /shop-chat/$is_args$args; }
++    location = /b-chat.html { return 302 /b-chat/$is_args$args; }
++    location = /biz-chat.html { return 302 /biz-chat/$is_args$args; }
++    location = /shop-chat/index.html { return 302 /shop-chat/$is_args$args; }
++    location = /b-chat/index.html { return 302 /b-chat/$is_args$args; }
++    location = /biz-chat/index.html { return 302 /biz-chat/$is_args$args; }
++    location = /brand/index.html { return 302 /brand/$is_args$args; }
+ 
+     location / {
+         try_files $uri $uri/ =404;

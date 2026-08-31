@@ -4,6 +4,8 @@ import argparse
 import hashlib
 import json
 import shutil
+import subprocess
+import sys
 from html.parser import HTMLParser
 from pathlib import Path
 from urllib.parse import unquote, urljoin, urlsplit
@@ -74,6 +76,9 @@ def main():
     root = args.root.resolve()
     if not root.is_dir(): parser.error('root must be an existing directory')
     report = inspect(root)
+    fingerprint_check = subprocess.run([sys.executable, str(Path(__file__).with_name('p0-assets.py')), '--root', str(root)], capture_output=True, text=True)
+    if fingerprint_check.returncode:
+        report['errors'].append('Asset URL/fingerprint validation failed: ' + fingerprint_check.stdout + fingerprint_check.stderr)
     if report['errors']:
         print(json.dumps({'errors': report['errors']}, ensure_ascii=False, indent=2)); raise SystemExit(1)
     if args.output:
