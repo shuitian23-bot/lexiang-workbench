@@ -9,7 +9,7 @@
  server {
      server_name p0.leaibot.cn;
  
-@@ -8,23 +13,30 @@
+@@ -8,22 +13,61 @@
      # remains revalidated so deployments become visible immediately.
      location ^~ /frontend/ {
          alias /opt/projects/lexiang/public/leaip0/assets/frontend/;
@@ -32,17 +32,48 @@
 -        add_header Cache-Control "public, max-age=2592000, immutable" always;
 +        add_header Cache-Control $p0_asset_cache_policy always;
          access_log off;
-     }
++    }
 +
 +    # Preserve old entry URLs while serving the current canonical pages.
-+    location = /index.html { return 302 /$is_args$args; }
-+    location = /shop-chat.html { return 302 /shop-chat/$is_args$args; }
-+    location = /b-chat.html { return 302 /b-chat/$is_args$args; }
-+    location = /biz-chat.html { return 302 /biz-chat/$is_args$args; }
-+    location = /shop-chat/index.html { return 302 /shop-chat/$is_args$args; }
-+    location = /b-chat/index.html { return 302 /b-chat/$is_args$args; }
-+    location = /biz-chat/index.html { return 302 /biz-chat/$is_args$args; }
-+    location = /brand/index.html { return 302 /brand/$is_args$args; }
++    location = /index.html {
++        if ($request_uri ~ "^/index[.]html([?]|$)") { return 302 /$is_args$args; }
++        try_files $uri =404;
++        add_header Cache-Control "no-cache, must-revalidate" always;
++    }
++    location = /shop-chat.html {
++        if ($request_uri ~ "^/shop-chat[.]html([?]|$)") { return 302 /shop-chat/$is_args$args; }
++        try_files $uri =404;
++        add_header Cache-Control "no-cache, must-revalidate" always;
++    }
++    location = /b-chat.html {
++        if ($request_uri ~ "^/b-chat[.]html([?]|$)") { return 302 /b-chat/$is_args$args; }
++        try_files $uri =404;
++        add_header Cache-Control "no-cache, must-revalidate" always;
++    }
++    location = /biz-chat.html {
++        if ($request_uri ~ "^/biz-chat[.]html([?]|$)") { return 302 /biz-chat/$is_args$args; }
++        try_files $uri =404;
++        add_header Cache-Control "no-cache, must-revalidate" always;
++    }
++    location = /shop-chat/index.html {
++        if ($request_uri ~ "^/shop-chat/index[.]html([?]|$)") { return 302 /shop-chat/$is_args$args; }
++        try_files $uri =404;
++        add_header Cache-Control "no-cache, must-revalidate" always;
++    }
++    location = /b-chat/index.html {
++        if ($request_uri ~ "^/b-chat/index[.]html([?]|$)") { return 302 /b-chat/$is_args$args; }
++        try_files $uri =404;
++        add_header Cache-Control "no-cache, must-revalidate" always;
++    }
++    location = /biz-chat/index.html {
++        if ($request_uri ~ "^/biz-chat/index[.]html([?]|$)") { return 302 /biz-chat/$is_args$args; }
++        try_files $uri =404;
++        add_header Cache-Control "no-cache, must-revalidate" always;
++    }
++    location = /brand/index.html {
++        if ($request_uri ~ "^/brand/index[.]html([?]|$)") { return 302 /brand/$is_args$args; }
++        try_files $uri =404;
++        add_header Cache-Control "no-cache, must-revalidate" always;
+     }
  
      location / {
-         try_files $uri $uri/ =404;
