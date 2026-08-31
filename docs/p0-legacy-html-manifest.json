@@ -1,0 +1,23 @@
+[
+  {
+    "file": "shop-chat.html",
+    "oldBytes": 99196,
+    "oldSha256": "cb369c70608cfb8b5838adf8591beede57d008618c5808a5cc9fc1838c3a5976",
+    "newBytes": 348,
+    "target": "/shop-chat/"
+  },
+  {
+    "file": "b-chat.html",
+    "oldBytes": 159999,
+    "oldSha256": "c607e8c436b788387243c91fe16c6bec9e017b45d96d3a1a72559c3628868b26",
+    "newBytes": 342,
+    "target": "/b-chat/"
+  },
+  {
+    "file": "biz-chat.html",
+    "oldBytes": 109453,
+    "oldSha256": "a02cf87a59a87521baa6109319a6d3ad176bfdf0bd9d7b28ea48c3c557f74da1",
+    "newBytes": 346,
+    "target": "/biz-chat/"
+  }
+]
