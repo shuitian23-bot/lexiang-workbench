@@ -1,0 +1,20 @@
+--- p0.nginx.before.conf
++++ p0.nginx.after.conf
+@@ -42,15 +42,9 @@
+         proxy_buffering off;
+         proxy_read_timeout 300s;
+     }
+-    # 前端看门狗上报：上次加载卡死的浏览器把本地存储原样 POST 到这里，正文落盘 /var/log/nginx/lxdiag/，随时可删
++    # Retired full-storage diagnostic: reject legacy clients without saving bodies.
+     location = /_lxdiag {
+-        client_max_body_size 30m;
+-        client_body_in_file_only on;
+-        client_body_temp_path /var/log/nginx/lxdiag;
+-        proxy_pass http://127.0.0.1:3031/api/_lxdiag_sink;
+-        proxy_pass_request_body off;
+-        proxy_set_header Content-Length "";
+-        proxy_set_header Host $host;
++        return 410;
+     }
+     location /api/ {
+         proxy_pass http://127.0.0.1:3031;
