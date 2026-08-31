@@ -1,0 +1,12 @@
+[
+  {
+    "path": "assets/pages/shop-chat-appointment-offline.html",
+    "bytes": 5560832,
+    "sha256": "301711343617ea599189dcfe675e9f0e61932952f7366ecef91e54ed8f4bdeb1"
+  },
+  {
+    "path": "shop-chat/member-stage.html",
+    "bytes": 50339,
+    "sha256": "f0ccc8a4aa163c6f2e59a3313ff0d3905fb4596aca2f0684fa768983b0d41ba3"
+  }
+]

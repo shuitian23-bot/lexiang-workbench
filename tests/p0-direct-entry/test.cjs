@@ -1,0 +1,8 @@
+const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');const source=fs.readFileSync(process.argv[2]||__dirname+'/../../public/leaip0/assets/frontend/js/core/p0-direct-entry.js','utf8');let passed=0;
+function run(path,search,loading=false,late=false){let now=0,calls=[],queue=[],ready;const location={pathname:path,search},window={requestAnimationFrame:fn=>queue.push(fn),setTimeout:fn=>queue.push(fn)};if(!late)window.__lxOpenFeature=x=>calls.push(x);const document={readyState:loading?'loading':'complete',addEventListener:(name,fn)=>{assert.equal(name,'DOMContentLoaded');ready=fn}};vm.runInNewContext(source,{window,document,location,URLSearchParams,Date:{now:()=>now}});return{calls,clearQuery(){location.search=''},start(){ready?.()},register(){window.__lxOpenFeature=x=>calls.push(x)},tick(){const fn=queue.shift();now+=50;fn?.()},drain(){for(let i=0;i<200&&queue.length;i++)this.tick()},get pending(){return queue.length}}}
+for(const feature of ['member','stores']){const e=run('/shop-chat/','?p0entry='+feature,true);e.clearQuery();e.start();e.drain();assert.deepEqual(e.calls,[feature]);passed++}
+for(const [path,query] of [['/shop-chat/',''],['/shop-chat/','?p0entry=delete'],['/brand/','?p0entry=member']]){const e=run(path,query);e.drain();assert.equal(e.calls.length,0);passed++}
+{const e=run('/shop-chat/index.html','?p0entry=member&p0entry=stores');e.drain();assert.deepEqual(e.calls,['member']);passed++}
+{const e=run('/shop-chat/','?p0entry=stores',false,true);e.tick();e.register();e.drain();assert.deepEqual(e.calls,['stores']);passed++}
+{const e=run('/shop-chat/','?p0entry=member',false,true);e.drain();assert.equal(e.calls.length,0);assert.equal(e.pending,0);passed++}
+console.log(JSON.stringify({passed,total:8}));
