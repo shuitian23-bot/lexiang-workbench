@@ -1,0 +1,27 @@
+/* Keep enterprise authentication actions on a dedicated row below every field. */
+html body form#lxEnterpriseAuthForm > .lx-lead-actions {
+ grid-column: 1 / -1 !important;
+ grid-row: auto !important;
+ width: 100% !important;
+ box-sizing: border-box !important;
+ position: static !important;
+ inset: auto !important;
+ margin: 20px 0 0 !important;
+ padding: 0 !important;
+ display: flex !important;
+ justify-content: flex-end !important;
+ align-items: center !important;
+ gap: 12px !important;
+ background: transparent !important;
+}
+html body form#lxEnterpriseAuthForm > .lx-lead-actions > button {
+ flex: 0 1 auto !important;
+ width: auto !important;
+ min-width: 120px !important;
+}
+@media (max-width: 480px) {
+ html body form#lxEnterpriseAuthForm > .lx-lead-actions > button {
+  flex: 1 1 0 !important;
+  min-width: 0 !important;
+ }
+}

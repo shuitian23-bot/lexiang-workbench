@@ -88,6 +88,9 @@ addEventListener('pageshow',function(e){if(e.persisted)try{S.setItem(K,String(Da
   <link rel="stylesheet" href="/assets/frontend/css/components/member-device-bind-fix-v39.css?v=20260828-member-device-bind-v40">
   <link rel="stylesheet" href="/assets/frontend/css/components/member-device-actions-v38.css?v=20260828-member-device-actions-v38">
   <link rel="preload" href="/assets/pages/store-v5-detail-surface-v27.js" as="script">
+<link rel="stylesheet" href="/assets/frontend/css/core/composer-reference-font-v130.css?v=20260831-composer-font-v130">
+<link rel="stylesheet" href="/assets/frontend/css/core/enterprise-lead-card-v133.css?v=20260831-lead-v133">
+<link rel="stylesheet" href="/assets/frontend/css/core/enterprise-auth-footer-v134.css?v=20260831-auth-footer-v134">
 </head>
   <body data-page="enterprise" data-state="default">
     <script src="../frontend/js/shared/inline-54fe4c623706.js"></script>
@@ -715,7 +718,7 @@ addEventListener('pageshow',function(e){if(e.persisted)try{S.setItem(K,String(Da
  const render=(items,source)=>{
   const catalog=Object.fromEntries(categories.map(category=>[category.key,productsFor(items,category.source)]));
   root.querySelectorAll('.ranking-card').forEach(card=>{const products=(catalog[card.dataset.key]||[]).slice(0,5);card.querySelector('.list-wrap').innerHTML=products.map((product,index)=>`<div class="rank-item" tabindex="0" role="button" data-rank="${index+1}" data-product-id="${escapeHtml(product.id)}" data-product-name="${escapeHtml(product.shortName)}" data-price-source="${source}"><div class="rank-badge${index<3?` top${index+1}`:''}">${index+1}</div><div class="thumb-box"><img src="${escapeHtml(product.image)}" alt="${escapeHtml(product.shortName)}" loading="lazy"></div><div class="item-meta"><div class="item-name" title="${escapeHtml(product.shortName)}">${escapeHtml(product.shortName)}</div><div class="item-price">${Number.isFinite(product.price) ? `¥ ${priceFormatter.format(product.price)}` : '价格面议'}</div></div></div>`).join('')});
-  root.querySelector('#shopFloors').innerHTML=categories.map(category=>{const products=(catalog[category.key]||[]);return `<section class="product-floor" aria-labelledby="biz-floor-${category.key}-title"><div class="floor-head"><h2 class="floor-title" id="biz-floor-${category.key}-title">${category.title}</h2><button class="floor-count" type="button" aria-label="换一批${category.title}商品" title="换一换"><img class="floor-count-icon" src="../icons/global-refresh.svg" alt="" aria-hidden="true">换一换</button></div><div class="floor-grid">${products.map(product=>`<article class="floor-product" tabindex="0" role="button" data-product-id="${escapeHtml(product.id)}" data-product-name="${escapeHtml(product.shortName)}" data-price-source="${source}"><div class="floor-product-image"><img src="${escapeHtml(product.image)}" alt="${escapeHtml(product.shortName)}" loading="lazy"></div><h3 class="floor-product-name" title="${escapeHtml(product.shortName)}">${escapeHtml(product.shortName)}</h3><div class="floor-product-promo-row">${product.promo?`<span class="floor-product-promo">${escapeHtml(product.promo)}</span>`:''}</div><div class="item-price">${Number.isFinite(product.price) ? `¥ ${priceFormatter.format(product.price)}` : '价格面议'}</div></article>`).join('')}</div></section>`}).join('');
+  root.querySelector('#shopFloors').innerHTML=categories.map(category=>{const products=(catalog[category.key]||[]);return `<section class="product-floor" aria-labelledby="biz-floor-${category.key}-title"><div class="floor-head"><h2 class="floor-title" id="biz-floor-${category.key}-title">${category.title}</h2><button class="floor-count" type="button" aria-label="换一批${category.title}商品" title="换一换"><img class="floor-count-icon" src="../icons/global-refresh.svg" alt="" aria-hidden="true">换一换</button></div><div class="floor-grid">${products.map(product=>`<article class="floor-product" tabindex="0" role="button" data-product-id="${escapeHtml(product.id)}" data-product-name="${escapeHtml(product.shortName)}" data-price-source="${source}"><div class="floor-product-image"><img src="${escapeHtml(product.image)}" alt="${escapeHtml(product.shortName)}" loading="lazy"></div><h3 class="floor-product-name" title="${escapeHtml(product.shortName)}">${escapeHtml(product.shortName)}</h3><div class="floor-product-promo-row" aria-hidden="true"></div><div class="item-price">${Number.isFinite(product.price) ? `¥ ${priceFormatter.format(product.price)}` : '价格面议'}</div></article>`).join('')}</div></section>`}).join('');
   host.dataset.priceSource=source;bindInteractions();
  };
  render(embeddedManifest,'embedded-manifest-fallback');
@@ -1040,7 +1043,7 @@ addEventListener('pageshow',function(e){if(e.persisted)try{S.setItem(K,String(Da
     <script src="/assets/frontend/js/core/app-intent.industry-v114.js?v=20260831-industry-v114"></script>
     <script src="../frontend/js/core/app-conv.js?v=0.13.16-new-chat-refresh"></script>
     <script src="/assets/frontend/js/core/enterprise-banner-v122.js?v=20260831-biz-banner-v122"></script>
-<script src="/assets/frontend/js/core/app-biz.banner-details-v122.min.js?v=20260831-biz-banner-v122"></script>
+<script src="/assets/frontend/js/core/biz-chat.compare-v131.js?v=20260831-compare-v131"></script>
     <script src="/assets/frontend/js/core/order-modal-reference-exact-no-body-max-v58.js?v=20260830-no-body-max-v58"></script>
     <script src="/assets/frontend/js/core/order-modal-reference-config-sku-v100.js?v=20260831-config-sku-v100"></script>
     <script src="/assets/frontend/js/core/scanpay-button-standard-v101.js?v=20260831-scanpay-gradient-v105"></script>
@@ -1103,8 +1106,10 @@ addEventListener('pageshow',function(e){if(e.persisted)try{S.setItem(K,String(Da
       }, true);
     })();
   </script>
-  <script src="/assets/frontend/js/core/product-floor-compare-v107.js?v=20260831-compare-events-fix-v120"></script>
+  <script src="/assets/frontend/js/core/product-floor-compare-v127.js?v=20260831-ranking-no-pick-v127"></script>
   <script src="/assets/frontend/js/core/composer-association-popup-toggle-v106.js?v=20260831-composer-associations-off-v106"></script>
-  <script src="../channel-customer-service-v110.js?v=20260831-customer-rerender-fix-v121"></script>
+  <script src="/channel-customer-service-v126.js?v=20260831-customer-v126"></script>
+<script src="/assets/frontend/js/core/whitepaper-action-cards-v124.js?v=20260831-whitepaper-v124"></script>
+<script src="/assets/frontend/js/core/channel-hotline-v125.js?v=20260831-hotline-v125"></script>
 </body>
 </html>

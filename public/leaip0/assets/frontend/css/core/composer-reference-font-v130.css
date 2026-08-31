@@ -1,0 +1,5 @@
+/* Keep referenced-product input text on the standard channel composer scale. */
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"]):not(.assistant-fullscreen) .assistant-panel .assistant-bottom .composer.has > textarea {
+  font-size:15px!important;
+  line-height:1.5!important;
+}
