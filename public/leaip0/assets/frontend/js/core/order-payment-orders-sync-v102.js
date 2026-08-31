@@ -59,26 +59,30 @@
   function capturePendingOrder() {
     var state = window.__lxState || {};
     var pending = state.pendingOrderProduct || state._pendingOrderProduct || null;
-    if (!pending) return;
+    if (!pending) { capturedPending = null; capturedAt = 0; return; }
     capturedPending = clone(pending);
     capturedAt = Date.now();
     capturedPending._capturedAddress = clone(state.pendingOrderAddr || state._pendingOrderAddr || pending.address || null);
     capturedPending._capturedPaymentMethod = state.pendingOrderPayMethod || state._pendingOrderPayMethod || pending.payMethod || "alipay";
   }
 
-  function selectedFallback() {
-    var store = window.__lxOrderConfigSelections || {};
-    return clone(store["item-0"] || store[0] || null);
+  // Explicit status takes precedence over legacy paidAt. No substring matching (unpaid != paid).
+  function isPaid(order) {
+    var value = String(order.paymentStatus || order.payStatus || order.status || "").trim().toLowerCase();
+    if (value) return ["paid", "success", "completed", "已支付", "支付成功", "已完成", "待发货", "待收货", "交易完成"].indexOf(value) !== -1;
+    return Boolean(order.paidAt);
   }
 
   function reconcileLatestOrder() {
+    if (!capturedPending || Date.now() - capturedAt > 10000) return;
     var orders = readOrders();
     if (!orders.length) return;
     var pending = capturedPending;
-    var selection = selectedFallback();
+    var selection = null; // Never use another product's global selection as an order fallback.
     var wantedId = pending && String(pending._pendingOrderNo || pending.orderId || "");
-    var index = wantedId ? orders.findIndex(function (item) { return String(item.orderId || "") === wantedId; }) : 0;
-    if (index < 0) index = 0;
+    if (!wantedId) return;
+    var index = orders.findIndex(function (item) { return String(item.orderId || "") === wantedId; });
+    if (index < 0 || !isPaid(orders[index])) return; // Enrich only the matching completed demo payment.
     var old = orders[index] || {};
     var items = pending && Array.isArray(pending.items) ? clone(pending.items) : (Array.isArray(old.items) ? clone(old.items) : []);
     var first = items[0] || {};
@@ -87,7 +91,7 @@
     var payable = number((pending && (pending.payable != null ? pending.payable : pending.price)) != null ? (pending.payable != null ? pending.payable : pending.price) : (old.paidAmount != null ? old.paidAmount : old.price));
     var original = number((pending && (pending.originalPrice != null ? pending.originalPrice : pending.original_price)) != null ? (pending.originalPrice != null ? pending.originalPrice : pending.original_price) : (first.original_price != null ? first.original_price : old.originalPrice));
     var method = (pending && (pending.payMethod || pending.paymentMethod || pending._capturedPaymentMethod)) || old.payMethod || old.paymentMethod || "alipay";
-    var paidAt = old.paidAt || new Date().toLocaleString("zh-CN", { hour12: false });
+    var paidAt = old.paidAt;
     var merged = Object.assign({}, old, {
       sku: first.sku || (selection && selection.sku) || old.sku,
       name: first.name || old.name,
@@ -97,11 +101,11 @@
       colorLabel: color,
       specs: clone(first.specs || old.specs || {}),
       items: items.length ? items : old.items,
-      price: payable || number(old.price),
-      payable: payable || number(old.price),
-      paidAmount: payable || number(old.price),
-      originalPrice: original || number(old.originalPrice),
-      discountAmount: Math.max(0, (original || payable) - payable),
+      price: payable,
+      payable: payable,
+      paidAmount: payable,
+      originalPrice: original,
+      discountAmount: Math.max(0, original - payable),
       address: (pending && (pending._capturedAddress || pending.address)) || old.address,
       payMethod: method,
       paymentMethod: method,
@@ -110,8 +114,9 @@
       payStatus: "paid",
       status: "paid",
       paidAt: paidAt,
-      transactionNo: old.transactionNo || ("PAY" + String(Date.now()).slice(-12))
+      transactionNo: old.transactionNo
     });
+    if (JSON.stringify(old) === JSON.stringify(merged)) return;
     orders[index] = merged;
     writeOrders(orders);
   }
@@ -129,8 +134,11 @@
   }
 
   function statusText(order) {
+    if (isPaid(order)) return "已支付";
     var raw = String(order.paymentStatus || order.payStatus || order.status || "").toLowerCase();
-    return /paid|success|完成|已支付/.test(raw) ? "已支付" : "待付款";
+    if (["cancelled", "canceled", "已取消"].indexOf(raw) !== -1) return "已取消";
+    if (["refunded", "已退款"].indexOf(raw) !== -1) return "已退款";
+    return "待付款";
   }
 
   function syncOrdersDom() {
@@ -138,20 +146,21 @@
     if (!root) return;
     var orders = readOrders();
     var count = root.querySelector(".ohead .cnt");
-    if (count) count.textContent = "共 " + orders.length + " 笔订单";
+    // The order center owns the count, including its demo orders and filtering.
     root.querySelectorAll(".ord").forEach(function (card, cardIndex) {
       var detail = card.querySelector("[data-order-detail]");
       var orderId = detail && detail.getAttribute("data-order-detail");
-      var order = orders.find(function (item) { return String(item.orderId || "") === String(orderId || ""); }) || orders[cardIndex];
+      var order = orders.find(function (item) { return String(item.orderId || "") === String(orderId || ""); });
       if (!order) return;
       var name = card.querySelector(".nm");
-      if (name) { name.textContent = order.name || "订单商品"; name.title = order.name || "订单商品"; }
+      if (name) { var nextName = order.name || "订单商品"; if (name.textContent !== nextName) name.textContent = nextName; if (name.title !== nextName) name.title = nextName; }
       var img = card.querySelector(".shot img");
-      if (img) { img.src = imageUrl(order.image_url); img.alt = order.name || "订单商品"; }
+      if (img) { var nextSrc = imageUrl(order.image_url); if (img.getAttribute("src") !== nextSrc) img.src = nextSrc; var nextAlt = order.name || "订单商品"; if (img.alt !== nextAlt) img.alt = nextAlt; }
       var amount = card.querySelector(".amt");
-      if (amount) amount.innerHTML = '<span class="cur">¥</span>' + money(order.paidAmount != null ? order.paidAmount : order.price);
+      var amountHtml = '<span class="cur">¥</span>' + money(order.paidAmount != null ? order.paidAmount : order.price);
+      if (amount && amount.innerHTML !== amountHtml) amount.innerHTML = amountHtml;
       var status = card.querySelector(".ost");
-      if (status) { status.className = "ost done"; status.innerHTML = '<span class="d"></span>' + statusText(order); }
+      if (status) { var statusHtml = '<span class="d"></span>' + statusText(order); var statusClass = isPaid(order) ? "ost done" : "ost"; if (status.className !== statusClass) status.className = statusClass; if (status.innerHTML !== statusHtml) status.innerHTML = statusHtml; }
       var mid = card.querySelector(".mid");
       if (!mid) return;
       var block = mid.querySelector(".lx-order-live-sync");
@@ -166,7 +175,7 @@
           (config ? '<span><b>配置：</b>' + esc(config) + '</span>' : "") +
           (color ? '<span><b>颜色：</b>' + esc(color) + '</span>' : "") +
         '</div>' +
-        '<div class="lx-order-payment-line"><span class="lx-paid-badge">已支付</span><span><b>支付方式：</b>' + esc(method) + '</span><span><b>实付：</b>¥' + esc(paid) + '</span>' + transaction + '</div>';
+        '<div class="lx-order-payment-line"><span class="lx-paid-badge">' + esc(statusText(order)) + '</span><span><b>支付方式：</b>' + esc(method) + '</span><span><b>' + (isPaid(order) ? '实付' : '应付') + '：</b>¥' + esc(paid) + '</span>' + transaction + '</div>';
       if (block.innerHTML !== nextHtml) block.innerHTML = nextHtml;
     });
   }
@@ -198,5 +207,5 @@
   window.addEventListener("storage", function (event) { if (!event || event.key === ORDER_KEY) scheduleSync(); });
   installStyle();
   new MutationObserver(function () { scheduleSync(); }).observe(document.documentElement, { childList: true, subtree: true });
-  window.setTimeout(function () { reconcileLatestOrder(); scheduleSync(); }, 600);
+  window.setTimeout(scheduleSync, 600); // Startup is read-only; never infer payment success.
 })();

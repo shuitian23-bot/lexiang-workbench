@@ -6,22 +6,22 @@
 
   var ORDER_KEY = "lexiang.orders.v1";
 
+  // Explicit status takes precedence over legacy paidAt. No substring matching (unpaid != paid).
   function isPaid(order) {
-    if (!order || typeof order !== "object") return false;
-    var value = [order.paymentStatus, order.payStatus, order.status]
-      .filter(Boolean)
-      .join(" ")
-      .toLowerCase();
-    return /(^|\s)(paid|success|completed)(\s|$)/.test(value) || /已支付|支付成功|已完成/.test(value);
+    var value = String(order.paymentStatus || order.payStatus || order.status || "").trim().toLowerCase();
+    if (value) return ["paid", "success", "completed", "已支付", "支付成功", "已完成", "待发货", "待收货", "交易完成"].indexOf(value) !== -1;
+    return Boolean(order.paidAt);
   }
 
-  function hasPaidOrder() {
-    try {
-      var orders = JSON.parse(localStorage.getItem(ORDER_KEY) || "[]");
-      return Array.isArray(orders) && orders.some(isPaid);
-    } catch (error) {
-      return false;
-    }
+  function readOrders() {
+    try { var orders = JSON.parse(localStorage.getItem(ORDER_KEY) || "[]"); return Array.isArray(orders) ? orders : []; }
+    catch (error) { return []; }
+  }
+  function upgradeMatching(card, orders) {
+    var id = card.getAttribute("data-lx-order-id");
+    if (!id) return; // Legacy cards without an identity must not borrow another order's status.
+    var order = orders.find(function (item) { return String(item.orderId || "") === id; });
+    if (order && isPaid(order)) upgrade(card);
   }
 
   function upgrade(card) {
@@ -43,14 +43,15 @@
   }
 
   function sync(root) {
-    if (!hasPaidOrder()) return;
+    var orders = readOrders();
+    if (!orders.length) return;
     var scope = root && root.querySelectorAll ? root : document;
     if (scope.matches && scope.matches('.lx-payment-confirm-reco[data-open-payment-confirm], .lx-payment-confirm-reco[data-lx-recommended-modal="pending-payment"]')) {
-      upgrade(scope);
+      upgradeMatching(scope, orders);
     }
     scope
       .querySelectorAll('.lx-payment-confirm-reco[data-open-payment-confirm], .lx-payment-confirm-reco[data-lx-recommended-modal="pending-payment"]')
-      .forEach(upgrade);
+      .forEach(function (card) { upgradeMatching(card, orders); });
   }
 
   function syncDocument() {
@@ -59,7 +60,7 @@
 
   function start() {
     syncDocument();
-    document.addEventListener("lx:orders-updated", syncDocument);
+    window.addEventListener("lx:orders-updated", syncDocument);
     window.addEventListener("pageshow", syncDocument);
     document.addEventListener("visibilitychange", function () {
       if (!document.hidden) syncDocument();

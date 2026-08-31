@@ -1,0 +1,18 @@
+[
+  {
+    "channel": "home",
+    "cardAndPaymentIdStable": true
+  },
+  {
+    "channel": "shop-chat",
+    "cardAndPaymentIdStable": true
+  },
+  {
+    "channel": "b-chat",
+    "cardAndPaymentIdStable": true
+  },
+  {
+    "channel": "biz-chat",
+    "cardAndPaymentIdStable": true
+  }
+]
