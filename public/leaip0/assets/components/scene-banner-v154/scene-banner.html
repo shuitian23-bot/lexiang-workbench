@@ -1205,9 +1205,62 @@
       pageNum.textContent = currentBanner + 1;
       hero.setAttribute('aria-label', `${slide.tag}，第 ${currentBanner + 1} 张，共 ${bannerSlides.length} 张`);
     }
-    function moveBanner(direction) {
-      currentBanner = (currentBanner + direction + bannerSlides.length) % bannerSlides.length;
-      renderBanner();
+    // Decode the next product photo ahead of navigation to avoid a blank frame.
+    const slideImages = bannerSlides.map(slide => {
+      const preload = new Image();
+      preload.src = slide.image;
+      return preload;
+    });
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    let bannerMoving = false;
+    async function moveBanner(direction) {
+      if (bannerMoving) return;
+      const nextIndex = (currentBanner + direction + bannerSlides.length) % bannerSlides.length;
+      if (reducedMotion.matches || typeof image.animate !== 'function') {
+        currentBanner = nextIndex;
+        renderBanner();
+        return;
+      }
+      bannerMoving = true;
+      previousButton.disabled = nextButton.disabled = true;
+      hero.setAttribute('aria-busy', 'true');
+      const elements = [tag, title, description, price, hero.querySelector('.cta'),
+        image, tooltip, ...hero.querySelectorAll('.thumb-card')];
+      const animations = [];
+      const play = (element, frames, options) => {
+        const animation = element.animate(frames, options);
+        animations.push(animation);
+        return animation.finished.catch(() => {});
+      };
+      let loadTimer;
+      try {
+        // Keep the current slide visible while a cold-cache photo is prepared.
+        await Promise.race([
+          slideImages[nextIndex].decode().catch(() => {}),
+          new Promise(resolve => { loadTimer = setTimeout(resolve, 1800); })
+        ]);
+        clearTimeout(loadTimer);
+        await Promise.all(elements.map(element => play(element,
+          [{opacity:1, translate:'0 0'}, {opacity:0, translate:`${-direction * 12}px 0`}],
+          {duration:140, easing:'ease-in', fill:'forwards'})));
+        currentBanner = nextIndex;
+        renderBanner();
+        animations.forEach(animation => animation.cancel());
+        animations.length = 0;
+        await Promise.all(elements.map((element, index) => play(element,
+          [{opacity:0, translate:`${direction * (element === image ? 22 : 14)}px 0`},
+           {opacity:1, translate:'0 0'}],
+          {duration:380, delay:element === image ? 0 : Math.min(index * 22, 110),
+           easing:'cubic-bezier(.22,1,.36,1)', fill:'both'})));
+      } finally {
+        clearTimeout(loadTimer);
+        animations.forEach(animation => animation.cancel());
+        previousButton.disabled = nextButton.disabled = false;
+        hero.removeAttribute('aria-busy');
+        bannerMoving = false;
+        updateControlsTone();
+        positionProductCallout();
+      }
     }
     document.getElementById('prevBtn').addEventListener('click', () => moveBanner(-1));
     document.getElementById('nextBtn').addEventListener('click', () => moveBanner(1));
