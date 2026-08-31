@@ -82,6 +82,7 @@
   };
 
   document.addEventListener('click', event => {
+    if (event.composedPath().some(node => node?.matches?.('[data-pick-sku], .lx-pick-btn'))) return;
     const card = event.composedPath().find(node => node?.matches?.(CARD_SELECTOR));
     if (!card || card.closest?.('.product-detail, .lx-product-detail-page')) return;
     if (!openCard(card)) return;
@@ -91,6 +92,7 @@
 
   document.addEventListener('keydown', event => {
     if (event.key !== 'Enter' && event.key !== ' ') return;
+    if (event.target?.closest?.('[data-pick-sku], .lx-pick-btn')) return;
     const card = event.target?.closest?.(CARD_SELECTOR);
     if (!card || !openCard(card)) return;
     event.preventDefault();

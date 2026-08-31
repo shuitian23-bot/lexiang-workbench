@@ -1,4 +1,6 @@
 (() => {
+  if (window.__lxFloorCompareFixed) return;
+  window.__lxFloorCompareFixed = true;
   const CARD_SELECTORS = ['.rank-item', '.floor-product', '.lx-floor-product', '.product-card', '.lx-floor-product-card', '[data-floor-product]'];
   const CARD_SELECTOR = CARD_SELECTORS.join(', ');
   const PICK_SELECTOR = CARD_SELECTORS.map(selector => `${selector} > .lx-pick-btn`).join(', ');
@@ -40,12 +42,11 @@
     const sku = cardSku(card);
     if (!sku) return;
     // 接入主应用既有商品引用状态、飞入动画和对比页，不复制业务状态。
-    card.classList.add('lx-floor-product');
-    card.dataset.sku = sku;
+    if (!card.classList.contains('lx-floor-product')) card.classList.add('lx-floor-product');
+    if (card.dataset.sku !== sku) card.dataset.sku = sku;
     // 勾选按钮由本补丁先注入时，主应用会跳过重复初始化；因此需在这里
     // 同步补齐原生商品/解决方案卡使用的 draggable 标记。
-    card.draggable = true;
-    card.setAttribute('draggable', 'true');
+    if (!card.draggable) card.draggable = true;
     let button = card.querySelector(':scope > .lx-pick-btn');
     if (!button) {
       button = document.createElement('button');
@@ -68,7 +69,16 @@
   function normalizePrompt() {
     const textarea = document.querySelector('.assistant-panel .composer textarea, .composer textarea');
     if (!textarea) return;
-    const selected = document.querySelectorAll('.lx-pick-btn.picked').length;
+    const refs = window.__lxState?.refProducts;
+    if (!Array.isArray(refs)) return;
+    const products = refs.filter(item => item.type !== 'solution');
+    const selectedSkus = new Set(products.map(item => String(item.sku)));
+    const selected = selectedSkus.size;
+    document.querySelectorAll(PICK_SELECTOR).forEach(button => {
+      const picked = selectedSkus.has(button.dataset.pickSku);
+      if (button.classList.contains('picked') !== picked) button.classList.toggle('picked', picked);
+      if (button.getAttribute('aria-pressed') !== String(picked)) button.setAttribute('aria-pressed', String(picked));
+    });
     const current = textarea.value.trim();
     if (selected >= 2 && (!current || AUTO_PROMPTS.has(current))) {
       if (textarea.value !== '对比这几款商品') {
