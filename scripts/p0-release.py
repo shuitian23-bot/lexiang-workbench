@@ -11,7 +11,7 @@ from pathlib import Path
 from urllib.parse import unquote, urljoin, urlsplit
 
 ENTRIES = ['index.html', 'shop-chat/index.html', 'b-chat/index.html', 'biz-chat/index.html', 'brand/index.html']
-ROOT_FILES = {'index.html', 'shop-chat.html', 'b-chat.html', 'biz-chat.html',
+ROOT_FILES = {'index.html',
               'channel-customer-service-v110.js', 'channel-customer-service-v126.js'}
 ROOT_DIRS = {'assets', 'shop-chat', 'b-chat', 'biz-chat', 'brand', 'leai product data'}
 

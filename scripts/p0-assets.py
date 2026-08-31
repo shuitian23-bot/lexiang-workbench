@@ -9,7 +9,7 @@ from html.parser import HTMLParser
 from pathlib import Path
 from urllib.parse import unquote, urljoin, urlsplit, parse_qsl, urlencode, urlunsplit, quote
 
-ENTRIES = ['index.html', 'shop-chat/index.html', 'b-chat/index.html', 'biz-chat/index.html', 'brand/index.html', 'shop-chat.html', 'b-chat.html', 'biz-chat.html']
+ENTRIES = ['index.html', 'shop-chat/index.html', 'b-chat/index.html', 'biz-chat/index.html', 'brand/index.html']
 
 class Tags(HTMLParser):
     def __init__(self, source):
