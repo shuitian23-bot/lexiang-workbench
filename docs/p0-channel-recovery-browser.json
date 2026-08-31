@@ -1,0 +1,57 @@
+{
+  "browser": {
+    "complete": true,
+    "results": [
+      {
+        "case": "shop-chat-member",
+        "pass": true,
+        "mounts": 3
+      },
+      {
+        "case": "shop-chat-store",
+        "pass": true,
+        "mounts": 3
+      },
+      {
+        "case": "b-chat-member",
+        "pass": true,
+        "mounts": 3
+      },
+      {
+        "case": "biz-chat-member",
+        "pass": true,
+        "mounts": 3
+      },
+      {
+        "case": "biz-chat-store",
+        "pass": true,
+        "mounts": 3
+      },
+      {
+        "case": "b-chat-store",
+        "pass": true,
+        "mounts": 3
+      },
+      {
+        "case": "brand-member",
+        "pass": true,
+        "mounts": 3
+      },
+      {
+        "case": "brand-store",
+        "pass": true,
+        "mounts": 3
+      }
+    ]
+  },
+  "requests": {
+    "shop-chat-member": 2,
+    "shop-chat-store": 2,
+    "b-chat-member": 2,
+    "biz-chat-member": 2,
+    "biz-chat-store": 2,
+    "b-chat-store": 2,
+    "brand-member": 2,
+    "brand-store": 2
+  }
+}

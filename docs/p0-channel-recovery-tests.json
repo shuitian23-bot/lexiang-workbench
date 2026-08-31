@@ -1,0 +1,990 @@
+{
+  "shop-chat": {
+    "before": {
+      "source": "p0频道加载恢复-20260831/shop-chat-before.js",
+      "passed": 11,
+      "total": 22,
+      "results": [
+        {
+          "kind": "member",
+          "name": "成功加载并清理计时器",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "网络失败后重新进入可重新请求",
+          "pass": false,
+          "error": "Expected values to be strictly equal:\n\n1 !== 2\n"
+        },
+        {
+          "kind": "member",
+          "name": "首次加载超时后可重试",
+          "pass": false,
+          "error": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "kind": "member",
+          "name": "加载完成但组件未注册可重试",
+          "pass": false,
+          "error": "Expected values to be strictly equal:\n\n1 !== 2\n"
+        },
+        {
+          "kind": "member",
+          "name": "已有未完成脚本超时清理",
+          "pass": false,
+          "error": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "kind": "member",
+          "name": "连续进入共用一个脚本请求",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "已注册组件不重新下载",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "切换标签后不挂载旧视图",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "离开视图后不挂载已移除节点",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "旧请求迟到事件不清理新请求",
+          "pass": false,
+          "error": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "kind": "member",
+          "name": "既有脚本成功事件可复用",
+          "pass": false,
+          "error": "Expected values to be strictly equal:\n\n1 !== 0\n"
+        },
+        {
+          "kind": "store",
+          "name": "成功加载并清理计时器",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "网络失败后重新进入可重新请求",
+          "pass": false,
+          "error": "Expected values to be strictly equal:\n\n1 !== 2\n"
+        },
+        {
+          "kind": "store",
+          "name": "首次加载超时后可重试",
+          "pass": false,
+          "error": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "kind": "store",
+          "name": "加载完成但组件未注册可重试",
+          "pass": false,
+          "error": "Expected values to be strictly equal:\n\n1 !== 2\n"
+        },
+        {
+          "kind": "store",
+          "name": "已有未完成脚本超时清理",
+          "pass": false,
+          "error": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "kind": "store",
+          "name": "连续进入共用一个脚本请求",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "已注册组件不重新下载",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "切换标签后不挂载旧视图",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "离开视图后不挂载已移除节点",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "旧请求迟到事件不清理新请求",
+          "pass": false,
+          "error": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "kind": "store",
+          "name": "既有脚本成功事件可复用",
+          "pass": true
+        }
+      ]
+    },
+    "after": {
+      "source": "p0频道加载恢复-20260831/shop-chat-after.js",
+      "passed": 22,
+      "total": 22,
+      "results": [
+        {
+          "kind": "member",
+          "name": "成功加载并清理计时器",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "网络失败后重新进入可重新请求",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "首次加载超时后可重试",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "加载完成但组件未注册可重试",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "已有未完成脚本超时清理",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "连续进入共用一个脚本请求",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "已注册组件不重新下载",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "切换标签后不挂载旧视图",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "离开视图后不挂载已移除节点",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "旧请求迟到事件不清理新请求",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "既有脚本成功事件可复用",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "成功加载并清理计时器",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "网络失败后重新进入可重新请求",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "首次加载超时后可重试",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "加载完成但组件未注册可重试",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "已有未完成脚本超时清理",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "连续进入共用一个脚本请求",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "已注册组件不重新下载",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "切换标签后不挂载旧视图",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "离开视图后不挂载已移除节点",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "旧请求迟到事件不清理新请求",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "既有脚本成功事件可复用",
+          "pass": true
+        }
+      ]
+    }
+  },
+  "b-chat": {
+    "before": {
+      "source": "p0频道加载恢复-20260831/b-chat-before.js",
+      "passed": 11,
+      "total": 22,
+      "results": [
+        {
+          "kind": "member",
+          "name": "成功加载并清理计时器",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "网络失败后重新进入可重新请求",
+          "pass": false,
+          "error": "Expected values to be strictly equal:\n\n1 !== 2\n"
+        },
+        {
+          "kind": "member",
+          "name": "首次加载超时后可重试",
+          "pass": false,
+          "error": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "kind": "member",
+          "name": "加载完成但组件未注册可重试",
+          "pass": false,
+          "error": "Expected values to be strictly equal:\n\n1 !== 2\n"
+        },
+        {
+          "kind": "member",
+          "name": "已有未完成脚本超时清理",
+          "pass": false,
+          "error": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "kind": "member",
+          "name": "连续进入共用一个脚本请求",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "已注册组件不重新下载",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "切换标签后不挂载旧视图",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "离开视图后不挂载已移除节点",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "旧请求迟到事件不清理新请求",
+          "pass": false,
+          "error": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "kind": "member",
+          "name": "既有脚本成功事件可复用",
+          "pass": false,
+          "error": "Expected values to be strictly equal:\n\n1 !== 0\n"
+        },
+        {
+          "kind": "store",
+          "name": "成功加载并清理计时器",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "网络失败后重新进入可重新请求",
+          "pass": false,
+          "error": "Expected values to be strictly equal:\n\n1 !== 2\n"
+        },
+        {
+          "kind": "store",
+          "name": "首次加载超时后可重试",
+          "pass": false,
+          "error": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "kind": "store",
+          "name": "加载完成但组件未注册可重试",
+          "pass": false,
+          "error": "Expected values to be strictly equal:\n\n1 !== 2\n"
+        },
+        {
+          "kind": "store",
+          "name": "已有未完成脚本超时清理",
+          "pass": false,
+          "error": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "kind": "store",
+          "name": "连续进入共用一个脚本请求",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "已注册组件不重新下载",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "切换标签后不挂载旧视图",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "离开视图后不挂载已移除节点",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "旧请求迟到事件不清理新请求",
+          "pass": false,
+          "error": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "kind": "store",
+          "name": "既有脚本成功事件可复用",
+          "pass": true
+        }
+      ]
+    },
+    "after": {
+      "source": "p0频道加载恢复-20260831/b-chat-after.js",
+      "passed": 22,
+      "total": 22,
+      "results": [
+        {
+          "kind": "member",
+          "name": "成功加载并清理计时器",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "网络失败后重新进入可重新请求",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "首次加载超时后可重试",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "加载完成但组件未注册可重试",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "已有未完成脚本超时清理",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "连续进入共用一个脚本请求",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "已注册组件不重新下载",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "切换标签后不挂载旧视图",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "离开视图后不挂载已移除节点",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "旧请求迟到事件不清理新请求",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "既有脚本成功事件可复用",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "成功加载并清理计时器",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "网络失败后重新进入可重新请求",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "首次加载超时后可重试",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "加载完成但组件未注册可重试",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "已有未完成脚本超时清理",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "连续进入共用一个脚本请求",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "已注册组件不重新下载",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "切换标签后不挂载旧视图",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "离开视图后不挂载已移除节点",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "旧请求迟到事件不清理新请求",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "既有脚本成功事件可复用",
+          "pass": true
+        }
+      ]
+    }
+  },
+  "biz-chat": {
+    "before": {
+      "source": "p0频道加载恢复-20260831/biz-chat-before.js",
+      "passed": 11,
+      "total": 22,
+      "results": [
+        {
+          "kind": "member",
+          "name": "成功加载并清理计时器",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "网络失败后重新进入可重新请求",
+          "pass": false,
+          "error": "Expected values to be strictly equal:\n\n1 !== 2\n"
+        },
+        {
+          "kind": "member",
+          "name": "首次加载超时后可重试",
+          "pass": false,
+          "error": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "kind": "member",
+          "name": "加载完成但组件未注册可重试",
+          "pass": false,
+          "error": "Expected values to be strictly equal:\n\n1 !== 2\n"
+        },
+        {
+          "kind": "member",
+          "name": "已有未完成脚本超时清理",
+          "pass": false,
+          "error": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "kind": "member",
+          "name": "连续进入共用一个脚本请求",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "已注册组件不重新下载",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "切换标签后不挂载旧视图",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "离开视图后不挂载已移除节点",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "旧请求迟到事件不清理新请求",
+          "pass": false,
+          "error": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "kind": "member",
+          "name": "既有脚本成功事件可复用",
+          "pass": false,
+          "error": "Expected values to be strictly equal:\n\n1 !== 0\n"
+        },
+        {
+          "kind": "store",
+          "name": "成功加载并清理计时器",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "网络失败后重新进入可重新请求",
+          "pass": false,
+          "error": "Expected values to be strictly equal:\n\n1 !== 2\n"
+        },
+        {
+          "kind": "store",
+          "name": "首次加载超时后可重试",
+          "pass": false,
+          "error": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "kind": "store",
+          "name": "加载完成但组件未注册可重试",
+          "pass": false,
+          "error": "Expected values to be strictly equal:\n\n1 !== 2\n"
+        },
+        {
+          "kind": "store",
+          "name": "已有未完成脚本超时清理",
+          "pass": false,
+          "error": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "kind": "store",
+          "name": "连续进入共用一个脚本请求",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "已注册组件不重新下载",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "切换标签后不挂载旧视图",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "离开视图后不挂载已移除节点",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "旧请求迟到事件不清理新请求",
+          "pass": false,
+          "error": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "kind": "store",
+          "name": "既有脚本成功事件可复用",
+          "pass": true
+        }
+      ]
+    },
+    "after": {
+      "source": "p0频道加载恢复-20260831/biz-chat-after.js",
+      "passed": 22,
+      "total": 22,
+      "results": [
+        {
+          "kind": "member",
+          "name": "成功加载并清理计时器",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "网络失败后重新进入可重新请求",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "首次加载超时后可重试",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "加载完成但组件未注册可重试",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "已有未完成脚本超时清理",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "连续进入共用一个脚本请求",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "已注册组件不重新下载",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "切换标签后不挂载旧视图",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "离开视图后不挂载已移除节点",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "旧请求迟到事件不清理新请求",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "既有脚本成功事件可复用",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "成功加载并清理计时器",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "网络失败后重新进入可重新请求",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "首次加载超时后可重试",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "加载完成但组件未注册可重试",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "已有未完成脚本超时清理",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "连续进入共用一个脚本请求",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "已注册组件不重新下载",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "切换标签后不挂载旧视图",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "离开视图后不挂载已移除节点",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "旧请求迟到事件不清理新请求",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "既有脚本成功事件可复用",
+          "pass": true
+        }
+      ]
+    }
+  },
+  "brand": {
+    "before": {
+      "source": "p0频道加载恢复-20260831/brand-before.js",
+      "passed": 11,
+      "total": 22,
+      "results": [
+        {
+          "kind": "member",
+          "name": "成功加载并清理计时器",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "网络失败后重新进入可重新请求",
+          "pass": false,
+          "error": "Expected values to be strictly equal:\n\n1 !== 2\n"
+        },
+        {
+          "kind": "member",
+          "name": "首次加载超时后可重试",
+          "pass": false,
+          "error": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "kind": "member",
+          "name": "加载完成但组件未注册可重试",
+          "pass": false,
+          "error": "Expected values to be strictly equal:\n\n1 !== 2\n"
+        },
+        {
+          "kind": "member",
+          "name": "已有未完成脚本超时清理",
+          "pass": false,
+          "error": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "kind": "member",
+          "name": "连续进入共用一个脚本请求",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "已注册组件不重新下载",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "切换标签后不挂载旧视图",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "离开视图后不挂载已移除节点",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "旧请求迟到事件不清理新请求",
+          "pass": false,
+          "error": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "kind": "member",
+          "name": "既有脚本成功事件可复用",
+          "pass": false,
+          "error": "Expected values to be strictly equal:\n\n1 !== 0\n"
+        },
+        {
+          "kind": "store",
+          "name": "成功加载并清理计时器",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "网络失败后重新进入可重新请求",
+          "pass": false,
+          "error": "Expected values to be strictly equal:\n\n1 !== 2\n"
+        },
+        {
+          "kind": "store",
+          "name": "首次加载超时后可重试",
+          "pass": false,
+          "error": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "kind": "store",
+          "name": "加载完成但组件未注册可重试",
+          "pass": false,
+          "error": "Expected values to be strictly equal:\n\n1 !== 2\n"
+        },
+        {
+          "kind": "store",
+          "name": "已有未完成脚本超时清理",
+          "pass": false,
+          "error": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "kind": "store",
+          "name": "连续进入共用一个脚本请求",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "已注册组件不重新下载",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "切换标签后不挂载旧视图",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "离开视图后不挂载已移除节点",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "旧请求迟到事件不清理新请求",
+          "pass": false,
+          "error": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "kind": "store",
+          "name": "既有脚本成功事件可复用",
+          "pass": true
+        }
+      ]
+    },
+    "after": {
+      "source": "p0频道加载恢复-20260831/brand-after.js",
+      "passed": 22,
+      "total": 22,
+      "results": [
+        {
+          "kind": "member",
+          "name": "成功加载并清理计时器",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "网络失败后重新进入可重新请求",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "首次加载超时后可重试",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "加载完成但组件未注册可重试",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "已有未完成脚本超时清理",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "连续进入共用一个脚本请求",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "已注册组件不重新下载",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "切换标签后不挂载旧视图",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "离开视图后不挂载已移除节点",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "旧请求迟到事件不清理新请求",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "既有脚本成功事件可复用",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "成功加载并清理计时器",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "网络失败后重新进入可重新请求",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "首次加载超时后可重试",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "加载完成但组件未注册可重试",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "已有未完成脚本超时清理",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "连续进入共用一个脚本请求",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "已注册组件不重新下载",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "切换标签后不挂载旧视图",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "离开视图后不挂载已移除节点",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "旧请求迟到事件不清理新请求",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "既有脚本成功事件可复用",
+          "pass": true
+        }
+      ]
+    }
+  }
+}
