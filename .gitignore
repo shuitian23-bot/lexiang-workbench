@@ -70,3 +70,6 @@ public/admin-vue/poc-release-ledger.json
 # 带斜杠的规则只匹配目录，匹配不到软链，会一直挂在 untracked 里干扰视线
 /node_modules
 /uploads
+
+# P0 catalog history stays outside public releases
+/public/leaip0/leai product data.backup-*/
