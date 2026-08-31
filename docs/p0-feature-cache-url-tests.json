@@ -1,0 +1,23 @@
+[
+  {
+    "runtime": "home.ref-sync-v140.js",
+    "path": "/assets/frontend/js/components/member-service-clean-v45.js",
+    "preload": "https://p0.leaibot.cn/assets/frontend/js/components/member-service-clean-v45.js?v=20260829-member-service-clean-v45&p0v=22f3a4dfa7a04b4c",
+    "resolvedMatchesPreload": true,
+    "missingPreloadKeepsFallback": true
+  },
+  {
+    "runtime": "home.ref-sync-v140.js",
+    "path": "/assets/frontend/css/components/member-service-exact-0827.css",
+    "preload": "https://p0.leaibot.cn/assets/frontend/css/components/member-service-exact-0827.css?v=20260830-member-exact-v35&p0v=a4f1585e77dd1380",
+    "resolvedMatchesPreload": true,
+    "missingPreloadKeepsFallback": true
+  },
+  {
+    "runtime": "home.ref-sync-v140.js",
+    "path": "/assets/pages/store-v5-detail-surface-v27.js",
+    "preload": "https://p0.leaibot.cn/assets/pages/store-v5-detail-surface-v27.js?p0v=c8e63d51847b2b26",
+    "resolvedMatchesPreload": true,
+    "missingPreloadKeepsFallback": true
+  }
+]
