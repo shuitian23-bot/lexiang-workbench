@@ -1,0 +1,1617 @@
+{
+  "shop-chat": {
+    "before": {
+      "source": "p0会员样式恢复-20260831/shop-chat-before.js",
+      "passed": 23,
+      "total": 30,
+      "results": [
+        {
+          "kind": "member",
+          "name": "CSS:失败阻止无样式挂载并可重试",
+          "pass": false,
+          "error": "Expected values to be strictly equal:\n\n1 !== 0\n"
+        },
+        {
+          "kind": "member",
+          "name": "CSS:已有组件仍等待样式",
+          "pass": false,
+          "error": "Expected values to be strictly equal:\n\n1 !== 0\n"
+        },
+        {
+          "kind": "member",
+          "name": "CSS:超时后清理并可重新请求",
+          "pass": false,
+          "error": "Expected values to be strictly equal:\n\n1 !== 0\n"
+        },
+        {
+          "kind": "member",
+          "name": "CSS:并发进入共用样式请求",
+          "pass": false,
+          "error": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "kind": "member",
+          "name": "CSS:已加载样式直接复用",
+          "pass": false,
+          "error": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "kind": "member",
+          "name": "CSS:旧事件不移除新的样式链接",
+          "pass": false,
+          "error": "The expression evaluated to a falsy value:\n\n  assert.ok(old)\n"
+        },
+        {
+          "kind": "member",
+          "name": "CSS:样式成功但脚本失败保留样式",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "CSS:移除已加载样式后重新加载",
+          "pass": false,
+          "error": "The expression evaluated to a falsy value:\n\n  assert.ok(e.styles[0])\n"
+        },
+        {
+          "kind": "member",
+          "name": "成功加载并清理计时器",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "网络失败后重新进入可重新请求",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "首次加载超时后可重试",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "加载完成但组件未注册可重试",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "已有未完成脚本超时清理",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "连续进入共用一个脚本请求",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "已注册组件不重新下载",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "切换标签后不挂载旧视图",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "离开视图后不挂载已移除节点",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "旧请求迟到事件不清理新请求",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "既有脚本成功事件可复用",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "成功加载并清理计时器",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "网络失败后重新进入可重新请求",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "首次加载超时后可重试",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "加载完成但组件未注册可重试",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "已有未完成脚本超时清理",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "连续进入共用一个脚本请求",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "已注册组件不重新下载",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "切换标签后不挂载旧视图",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "离开视图后不挂载已移除节点",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "旧请求迟到事件不清理新请求",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "既有脚本成功事件可复用",
+          "pass": true
+        }
+      ]
+    },
+    "after": {
+      "source": "p0会员样式恢复-20260831/shop-chat-after.js",
+      "passed": 30,
+      "total": 30,
+      "results": [
+        {
+          "kind": "member",
+          "name": "CSS:失败阻止无样式挂载并可重试",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "CSS:已有组件仍等待样式",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "CSS:超时后清理并可重新请求",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "CSS:并发进入共用样式请求",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "CSS:已加载样式直接复用",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "CSS:旧事件不移除新的样式链接",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "CSS:样式成功但脚本失败保留样式",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "CSS:移除已加载样式后重新加载",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "成功加载并清理计时器",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "网络失败后重新进入可重新请求",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "首次加载超时后可重试",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "加载完成但组件未注册可重试",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "已有未完成脚本超时清理",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "连续进入共用一个脚本请求",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "已注册组件不重新下载",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "切换标签后不挂载旧视图",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "离开视图后不挂载已移除节点",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "旧请求迟到事件不清理新请求",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "既有脚本成功事件可复用",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "成功加载并清理计时器",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "网络失败后重新进入可重新请求",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "首次加载超时后可重试",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "加载完成但组件未注册可重试",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "已有未完成脚本超时清理",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "连续进入共用一个脚本请求",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "已注册组件不重新下载",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "切换标签后不挂载旧视图",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "离开视图后不挂载已移除节点",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "旧请求迟到事件不清理新请求",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "既有脚本成功事件可复用",
+          "pass": true
+        }
+      ]
+    }
+  },
+  "b-chat": {
+    "before": {
+      "source": "p0会员样式恢复-20260831/b-chat-before.js",
+      "passed": 23,
+      "total": 30,
+      "results": [
+        {
+          "kind": "member",
+          "name": "CSS:失败阻止无样式挂载并可重试",
+          "pass": false,
+          "error": "Expected values to be strictly equal:\n\n1 !== 0\n"
+        },
+        {
+          "kind": "member",
+          "name": "CSS:已有组件仍等待样式",
+          "pass": false,
+          "error": "Expected values to be strictly equal:\n\n1 !== 0\n"
+        },
+        {
+          "kind": "member",
+          "name": "CSS:超时后清理并可重新请求",
+          "pass": false,
+          "error": "Expected values to be strictly equal:\n\n1 !== 0\n"
+        },
+        {
+          "kind": "member",
+          "name": "CSS:并发进入共用样式请求",
+          "pass": false,
+          "error": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "kind": "member",
+          "name": "CSS:已加载样式直接复用",
+          "pass": false,
+          "error": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "kind": "member",
+          "name": "CSS:旧事件不移除新的样式链接",
+          "pass": false,
+          "error": "The expression evaluated to a falsy value:\n\n  assert.ok(old)\n"
+        },
+        {
+          "kind": "member",
+          "name": "CSS:样式成功但脚本失败保留样式",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "CSS:移除已加载样式后重新加载",
+          "pass": false,
+          "error": "The expression evaluated to a falsy value:\n\n  assert.ok(e.styles[0])\n"
+        },
+        {
+          "kind": "member",
+          "name": "成功加载并清理计时器",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "网络失败后重新进入可重新请求",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "首次加载超时后可重试",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "加载完成但组件未注册可重试",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "已有未完成脚本超时清理",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "连续进入共用一个脚本请求",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "已注册组件不重新下载",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "切换标签后不挂载旧视图",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "离开视图后不挂载已移除节点",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "旧请求迟到事件不清理新请求",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "既有脚本成功事件可复用",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "成功加载并清理计时器",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "网络失败后重新进入可重新请求",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "首次加载超时后可重试",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "加载完成但组件未注册可重试",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "已有未完成脚本超时清理",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "连续进入共用一个脚本请求",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "已注册组件不重新下载",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "切换标签后不挂载旧视图",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "离开视图后不挂载已移除节点",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "旧请求迟到事件不清理新请求",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "既有脚本成功事件可复用",
+          "pass": true
+        }
+      ]
+    },
+    "after": {
+      "source": "p0会员样式恢复-20260831/b-chat-after.js",
+      "passed": 30,
+      "total": 30,
+      "results": [
+        {
+          "kind": "member",
+          "name": "CSS:失败阻止无样式挂载并可重试",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "CSS:已有组件仍等待样式",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "CSS:超时后清理并可重新请求",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "CSS:并发进入共用样式请求",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "CSS:已加载样式直接复用",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "CSS:旧事件不移除新的样式链接",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "CSS:样式成功但脚本失败保留样式",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "CSS:移除已加载样式后重新加载",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "成功加载并清理计时器",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "网络失败后重新进入可重新请求",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "首次加载超时后可重试",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "加载完成但组件未注册可重试",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "已有未完成脚本超时清理",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "连续进入共用一个脚本请求",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "已注册组件不重新下载",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "切换标签后不挂载旧视图",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "离开视图后不挂载已移除节点",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "旧请求迟到事件不清理新请求",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "既有脚本成功事件可复用",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "成功加载并清理计时器",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "网络失败后重新进入可重新请求",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "首次加载超时后可重试",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "加载完成但组件未注册可重试",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "已有未完成脚本超时清理",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "连续进入共用一个脚本请求",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "已注册组件不重新下载",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "切换标签后不挂载旧视图",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "离开视图后不挂载已移除节点",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "旧请求迟到事件不清理新请求",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "既有脚本成功事件可复用",
+          "pass": true
+        }
+      ]
+    }
+  },
+  "biz-chat": {
+    "before": {
+      "source": "p0会员样式恢复-20260831/biz-chat-before.js",
+      "passed": 23,
+      "total": 30,
+      "results": [
+        {
+          "kind": "member",
+          "name": "CSS:失败阻止无样式挂载并可重试",
+          "pass": false,
+          "error": "Expected values to be strictly equal:\n\n1 !== 0\n"
+        },
+        {
+          "kind": "member",
+          "name": "CSS:已有组件仍等待样式",
+          "pass": false,
+          "error": "Expected values to be strictly equal:\n\n1 !== 0\n"
+        },
+        {
+          "kind": "member",
+          "name": "CSS:超时后清理并可重新请求",
+          "pass": false,
+          "error": "Expected values to be strictly equal:\n\n1 !== 0\n"
+        },
+        {
+          "kind": "member",
+          "name": "CSS:并发进入共用样式请求",
+          "pass": false,
+          "error": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "kind": "member",
+          "name": "CSS:已加载样式直接复用",
+          "pass": false,
+          "error": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "kind": "member",
+          "name": "CSS:旧事件不移除新的样式链接",
+          "pass": false,
+          "error": "The expression evaluated to a falsy value:\n\n  assert.ok(old)\n"
+        },
+        {
+          "kind": "member",
+          "name": "CSS:样式成功但脚本失败保留样式",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "CSS:移除已加载样式后重新加载",
+          "pass": false,
+          "error": "The expression evaluated to a falsy value:\n\n  assert.ok(e.styles[0])\n"
+        },
+        {
+          "kind": "member",
+          "name": "成功加载并清理计时器",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "网络失败后重新进入可重新请求",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "首次加载超时后可重试",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "加载完成但组件未注册可重试",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "已有未完成脚本超时清理",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "连续进入共用一个脚本请求",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "已注册组件不重新下载",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "切换标签后不挂载旧视图",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "离开视图后不挂载已移除节点",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "旧请求迟到事件不清理新请求",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "既有脚本成功事件可复用",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "成功加载并清理计时器",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "网络失败后重新进入可重新请求",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "首次加载超时后可重试",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "加载完成但组件未注册可重试",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "已有未完成脚本超时清理",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "连续进入共用一个脚本请求",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "已注册组件不重新下载",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "切换标签后不挂载旧视图",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "离开视图后不挂载已移除节点",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "旧请求迟到事件不清理新请求",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "既有脚本成功事件可复用",
+          "pass": true
+        }
+      ]
+    },
+    "after": {
+      "source": "p0会员样式恢复-20260831/biz-chat-after.js",
+      "passed": 30,
+      "total": 30,
+      "results": [
+        {
+          "kind": "member",
+          "name": "CSS:失败阻止无样式挂载并可重试",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "CSS:已有组件仍等待样式",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "CSS:超时后清理并可重新请求",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "CSS:并发进入共用样式请求",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "CSS:已加载样式直接复用",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "CSS:旧事件不移除新的样式链接",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "CSS:样式成功但脚本失败保留样式",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "CSS:移除已加载样式后重新加载",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "成功加载并清理计时器",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "网络失败后重新进入可重新请求",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "首次加载超时后可重试",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "加载完成但组件未注册可重试",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "已有未完成脚本超时清理",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "连续进入共用一个脚本请求",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "已注册组件不重新下载",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "切换标签后不挂载旧视图",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "离开视图后不挂载已移除节点",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "旧请求迟到事件不清理新请求",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "既有脚本成功事件可复用",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "成功加载并清理计时器",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "网络失败后重新进入可重新请求",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "首次加载超时后可重试",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "加载完成但组件未注册可重试",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "已有未完成脚本超时清理",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "连续进入共用一个脚本请求",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "已注册组件不重新下载",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "切换标签后不挂载旧视图",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "离开视图后不挂载已移除节点",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "旧请求迟到事件不清理新请求",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "既有脚本成功事件可复用",
+          "pass": true
+        }
+      ]
+    }
+  },
+  "brand": {
+    "before": {
+      "source": "p0会员样式恢复-20260831/brand-before.js",
+      "passed": 23,
+      "total": 30,
+      "results": [
+        {
+          "kind": "member",
+          "name": "CSS:失败阻止无样式挂载并可重试",
+          "pass": false,
+          "error": "Expected values to be strictly equal:\n\n1 !== 0\n"
+        },
+        {
+          "kind": "member",
+          "name": "CSS:已有组件仍等待样式",
+          "pass": false,
+          "error": "Expected values to be strictly equal:\n\n1 !== 0\n"
+        },
+        {
+          "kind": "member",
+          "name": "CSS:超时后清理并可重新请求",
+          "pass": false,
+          "error": "Expected values to be strictly equal:\n\n1 !== 0\n"
+        },
+        {
+          "kind": "member",
+          "name": "CSS:并发进入共用样式请求",
+          "pass": false,
+          "error": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "kind": "member",
+          "name": "CSS:已加载样式直接复用",
+          "pass": false,
+          "error": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "kind": "member",
+          "name": "CSS:旧事件不移除新的样式链接",
+          "pass": false,
+          "error": "The expression evaluated to a falsy value:\n\n  assert.ok(old)\n"
+        },
+        {
+          "kind": "member",
+          "name": "CSS:样式成功但脚本失败保留样式",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "CSS:移除已加载样式后重新加载",
+          "pass": false,
+          "error": "The expression evaluated to a falsy value:\n\n  assert.ok(e.styles[0])\n"
+        },
+        {
+          "kind": "member",
+          "name": "成功加载并清理计时器",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "网络失败后重新进入可重新请求",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "首次加载超时后可重试",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "加载完成但组件未注册可重试",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "已有未完成脚本超时清理",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "连续进入共用一个脚本请求",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "已注册组件不重新下载",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "切换标签后不挂载旧视图",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "离开视图后不挂载已移除节点",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "旧请求迟到事件不清理新请求",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "既有脚本成功事件可复用",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "成功加载并清理计时器",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "网络失败后重新进入可重新请求",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "首次加载超时后可重试",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "加载完成但组件未注册可重试",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "已有未完成脚本超时清理",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "连续进入共用一个脚本请求",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "已注册组件不重新下载",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "切换标签后不挂载旧视图",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "离开视图后不挂载已移除节点",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "旧请求迟到事件不清理新请求",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "既有脚本成功事件可复用",
+          "pass": true
+        }
+      ]
+    },
+    "after": {
+      "source": "p0会员样式恢复-20260831/brand-after.js",
+      "passed": 30,
+      "total": 30,
+      "results": [
+        {
+          "kind": "member",
+          "name": "CSS:失败阻止无样式挂载并可重试",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "CSS:已有组件仍等待样式",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "CSS:超时后清理并可重新请求",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "CSS:并发进入共用样式请求",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "CSS:已加载样式直接复用",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "CSS:旧事件不移除新的样式链接",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "CSS:样式成功但脚本失败保留样式",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "CSS:移除已加载样式后重新加载",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "成功加载并清理计时器",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "网络失败后重新进入可重新请求",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "首次加载超时后可重试",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "加载完成但组件未注册可重试",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "已有未完成脚本超时清理",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "连续进入共用一个脚本请求",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "已注册组件不重新下载",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "切换标签后不挂载旧视图",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "离开视图后不挂载已移除节点",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "旧请求迟到事件不清理新请求",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "既有脚本成功事件可复用",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "成功加载并清理计时器",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "网络失败后重新进入可重新请求",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "首次加载超时后可重试",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "加载完成但组件未注册可重试",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "已有未完成脚本超时清理",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "连续进入共用一个脚本请求",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "已注册组件不重新下载",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "切换标签后不挂载旧视图",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "离开视图后不挂载已移除节点",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "旧请求迟到事件不清理新请求",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "既有脚本成功事件可复用",
+          "pass": true
+        }
+      ]
+    }
+  },
+  "home": {
+    "before": {
+      "source": "p0会员样式恢复-20260831/home-before.js",
+      "passed": 23,
+      "total": 30,
+      "results": [
+        {
+          "kind": "member",
+          "name": "CSS:失败阻止无样式挂载并可重试",
+          "pass": false,
+          "error": "Expected values to be strictly equal:\n\n1 !== 0\n"
+        },
+        {
+          "kind": "member",
+          "name": "CSS:已有组件仍等待样式",
+          "pass": false,
+          "error": "Expected values to be strictly equal:\n\n1 !== 0\n"
+        },
+        {
+          "kind": "member",
+          "name": "CSS:超时后清理并可重新请求",
+          "pass": false,
+          "error": "Expected values to be strictly equal:\n\n1 !== 0\n"
+        },
+        {
+          "kind": "member",
+          "name": "CSS:并发进入共用样式请求",
+          "pass": false,
+          "error": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "kind": "member",
+          "name": "CSS:已加载样式直接复用",
+          "pass": false,
+          "error": "Expected values to be strictly equal:\n\n0 !== 1\n"
+        },
+        {
+          "kind": "member",
+          "name": "CSS:旧事件不移除新的样式链接",
+          "pass": false,
+          "error": "The expression evaluated to a falsy value:\n\n  assert.ok(old)\n"
+        },
+        {
+          "kind": "member",
+          "name": "CSS:样式成功但脚本失败保留样式",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "CSS:移除已加载样式后重新加载",
+          "pass": false,
+          "error": "The expression evaluated to a falsy value:\n\n  assert.ok(e.styles[0])\n"
+        },
+        {
+          "kind": "member",
+          "name": "成功加载并清理计时器",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "网络失败后重新进入可重新请求",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "首次加载超时后可重试",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "加载完成但组件未注册可重试",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "已有未完成脚本超时清理",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "连续进入共用一个脚本请求",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "已注册组件不重新下载",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "切换标签后不挂载旧视图",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "离开视图后不挂载已移除节点",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "旧请求迟到事件不清理新请求",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "既有脚本成功事件可复用",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "成功加载并清理计时器",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "网络失败后重新进入可重新请求",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "首次加载超时后可重试",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "加载完成但组件未注册可重试",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "已有未完成脚本超时清理",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "连续进入共用一个脚本请求",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "已注册组件不重新下载",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "切换标签后不挂载旧视图",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "离开视图后不挂载已移除节点",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "旧请求迟到事件不清理新请求",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "既有脚本成功事件可复用",
+          "pass": true
+        }
+      ]
+    },
+    "after": {
+      "source": "p0会员样式恢复-20260831/home-after.js",
+      "passed": 30,
+      "total": 30,
+      "results": [
+        {
+          "kind": "member",
+          "name": "CSS:失败阻止无样式挂载并可重试",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "CSS:已有组件仍等待样式",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "CSS:超时后清理并可重新请求",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "CSS:并发进入共用样式请求",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "CSS:已加载样式直接复用",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "CSS:旧事件不移除新的样式链接",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "CSS:样式成功但脚本失败保留样式",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "CSS:移除已加载样式后重新加载",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "成功加载并清理计时器",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "网络失败后重新进入可重新请求",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "首次加载超时后可重试",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "加载完成但组件未注册可重试",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "已有未完成脚本超时清理",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "连续进入共用一个脚本请求",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "已注册组件不重新下载",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "切换标签后不挂载旧视图",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "离开视图后不挂载已移除节点",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "旧请求迟到事件不清理新请求",
+          "pass": true
+        },
+        {
+          "kind": "member",
+          "name": "既有脚本成功事件可复用",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "成功加载并清理计时器",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "网络失败后重新进入可重新请求",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "首次加载超时后可重试",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "加载完成但组件未注册可重试",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "已有未完成脚本超时清理",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "连续进入共用一个脚本请求",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "已注册组件不重新下载",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "切换标签后不挂载旧视图",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "离开视图后不挂载已移除节点",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "旧请求迟到事件不清理新请求",
+          "pass": true
+        },
+        {
+          "kind": "store",
+          "name": "既有脚本成功事件可复用",
+          "pass": true
+        }
+      ]
+    }
+  }
+}

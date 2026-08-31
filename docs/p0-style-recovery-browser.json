@@ -1,0 +1,64 @@
+{
+  "browser": {
+    "complete": true,
+    "results": [
+      {
+        "case": "home",
+        "pass": true,
+        "colors": [
+          "rgb(18, 52, 86)",
+          "rgb(18, 52, 86)",
+          "rgb(18, 52, 86)"
+        ]
+      },
+      {
+        "case": "biz-chat",
+        "pass": true,
+        "colors": [
+          "rgb(18, 52, 86)",
+          "rgb(18, 52, 86)",
+          "rgb(18, 52, 86)"
+        ]
+      },
+      {
+        "case": "b-chat",
+        "pass": true,
+        "colors": [
+          "rgb(18, 52, 86)",
+          "rgb(18, 52, 86)",
+          "rgb(18, 52, 86)"
+        ]
+      },
+      {
+        "case": "shop-chat",
+        "pass": true,
+        "colors": [
+          "rgb(18, 52, 86)",
+          "rgb(18, 52, 86)",
+          "rgb(18, 52, 86)"
+        ]
+      },
+      {
+        "case": "brand",
+        "pass": true,
+        "colors": [
+          "rgb(18, 52, 86)",
+          "rgb(18, 52, 86)",
+          "rgb(18, 52, 86)"
+        ]
+      }
+    ]
+  },
+  "requests": {
+    "home/fixture.css": 2,
+    "home/fixture.js": 1,
+    "biz-chat/fixture.css": 2,
+    "biz-chat/fixture.js": 1,
+    "b-chat/fixture.css": 2,
+    "b-chat/fixture.js": 1,
+    "shop-chat/fixture.css": 2,
+    "shop-chat/fixture.js": 1,
+    "brand/fixture.css": 2,
+    "brand/fixture.js": 1
+  }
+}
