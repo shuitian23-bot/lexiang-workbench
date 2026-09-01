@@ -209,6 +209,16 @@
   const TEAM_OPTS = [{ label: '成都IS', value: 'chengdu' }, { label: '北京IS', value: 'beijing' }];
   const PERSON_OPTS = ['xuhq5', 'peicui2', 'wangw3', 'lihua5'];
   const KB_SOURCE_FILTER_OPTIONS = [{ label: '官网注册', value: 'web' }, { label: 'AI营销', value: 'ai' }, { label: '批量导入', value: 'batch' }, { label: '自挖掘', value: 'self' }, { label: '外呼', value: 'call' }];
+  const PRODUCT_TYPE_OPTIONS = [{ label: 'PC', value: 'PC' }, { label: '选件', value: '选件' }, { label: '服务', value: '服务' }];
+  const PRODUCT_TYPE_WEIGHTS = { PC: 0.6, 服务: 0.25, 选件: 0.15 };
+  const MOCK_IMPORT_BATCHES = [
+    { id: 'IMP20260815001', file: '线索批量导入_0815.csv', time: '2026-08-15 14:26', user: 'yunying2', status: '执行完成', total: 20, success: 18, fail: 2, rows: [
+      { oneId: 'OID-081501', lenovoId: 'LD081501', name: '陈晨', phone: '138****2101', company: '星河科技有限公司', grade: 'B4', source: '批量导入', reason: '手机号格式不正确' },
+      { oneId: 'OID-081502', lenovoId: '', name: '林晓', phone: '139****3782', company: '', grade: 'B3', source: '批量导入', reason: '客户名称不能为空' },
+    ] },
+    { id: 'IMP20260812002', file: '线索导入模板_0812.csv', time: '2026-08-12 10:08', user: 'huangjq5', status: '执行中', total: 8, success: 5, fail: 0, rows: [] },
+    { id: 'IMP20260810003', file: '线索批量导入_0810.csv', time: '2026-08-10 09:35', user: 'yunying2', status: '待执行', total: 12, success: 0, fail: 0, rows: [] },
+  ];
 
   // ── 模块状态 ──
   const DE_LOGS_KEY = 'clue_data_edit_logs';
@@ -222,10 +232,11 @@
     sk: 'createdAt', sd: 'desc', sel: new Set(),
     // 看板
     kbTab: 'funnel',
-    kbFilters: { period: 'month', yoy: false, mom: false, team: [], person: [], source: [], source2: '', source3: '' },
+    kbFilters: { period: 'month', yoy: false, mom: false, team: [], person: [], source: [], grade: [], productType: [], source2: '', source3: '' },
     kbTab2Period: 'month', kbTab2Yoy: false, kbTab2Mom: false,
     kbMainFrom: '', kbMainTo: '', kbTab2From: '', kbTab2To: '',
     dataEditLogs: JSON.parse(localStorage.getItem(DE_LOGS_KEY) || '[]'),
+    poolView: 'list', importBatchId: '', importBatches: MOCK_IMPORT_BATCHES.map(batch => ({ ...batch, rows: batch.rows.map(row => ({ ...row })) })),
     // 弹窗临时表单
     ff: null, _modalCharts: [],
   };
@@ -236,8 +247,8 @@
     return snapshot;
   }
   LEAD.poolAppliedFilters = capturePoolFilters();
-  const KB_FILTER_KEYS = ['period', 'yoy', 'mom', 'team', 'person', 'source', 'source2', 'source3'];
-  function defaultKbFilters() { return { period: 'month', yoy: false, mom: false, team: [], person: [], source: [], source2: '', source3: '' }; }
+  const KB_FILTER_KEYS = ['period', 'yoy', 'mom', 'team', 'person', 'source', 'grade', 'productType', 'source2', 'source3'];
+  function defaultKbFilters() { return { period: 'month', yoy: false, mom: false, team: [], person: [], source: [], grade: [], productType: [], source2: '', source3: '' }; }
   function captureKbFilters() {
     const snapshot = {};
     KB_FILTER_KEYS.forEach(key => { snapshot[key] = Array.isArray(LEAD.kbFilters[key]) ? [...LEAD.kbFilters[key]] : LEAD.kbFilters[key]; });
@@ -294,7 +305,7 @@
     if (filters.fs.length) list = list.filter(l => filters.fs.includes(l.status) || (filters.fs.includes('__none__') && !l.status)); // 线索状态（含"无"=状态为空）
     if (filters.fAssign.length) list = list.filter(l => filters.fAssign.includes(dispAssign(l, LEAD.role))); // 分配状态
     if (filters.fown.trim()) list = list.filter(l => inc(l.owner, filters.fown));         // 所属IS 模糊
-    if (filters.fCustomerManagerCodes.length) list = list.filter(l => filters.fCustomerManagerCodes.includes(l.customerManagerCode) || (filters.fCustomerManagerCodes.includes('__none__') && !l.customerManagerCode));
+    if (filters.fCustomerManagerCodes.length) list = list.filter(l => filters.fCustomerManagerCodes.includes(l.customerManagerCode) || (filters.fCustomerManagerCodes.includes('__none__') && !l.customerManagerCode)); // 客户经理编码（含无）
     if (filters.fdTeam && filters.fdTeam !== 'all') {                                      // 销售团队（仅运营）
       const codes = SPS.filter(s => s.team === filters.fdTeam).map(s => s.itcode);
       list = list.filter(l => codes.includes(l.owner));
@@ -328,11 +339,13 @@
   }
   function kbTeamSel() { const rt = roleTeam(); if (rt && rt.length) return rt; const t = activeKbFilters().team; return (!t || !t.length) ? ['chengdu', 'beijing'] : t; }
   // 团队漏斗：销售个人(itcode) / 线索来源 筛选 → 数据按比例缩放（demo）
+  function productTypeRatio(filters) { const selected = filters.productType || []; return selected.length ? selected.reduce((sum, type) => sum + (PRODUCT_TYPE_WEIGHTS[type] || 0), 0) : 1; }
   function teamRatio() {
     const filters = activeKbFilters();
-    let r = 1; const person = filters.person, source = filters.source;
+    let r = productTypeRatio(filters); const person = filters.person, source = filters.source, grade = filters.grade;
     if (person && person.length) r *= Math.min(0.5 * person.length, 1);
     if (source && source.length) r *= Math.min(source.length / KB_SOURCE_KEYS.length, 1);
+    if (grade && grade.length) r *= Math.min(grade.length / GRADES.length, 1);
     if (filters.source2 && filters.source2.trim()) r *= 0.8;
     if (filters.source3 && filters.source3.trim()) r *= 0.8;
     return r;
@@ -352,7 +365,7 @@
       if (rs.length) { const sc = ci => rs.reduce((s, r) => s + r[ci], 0); base = { iql: sc(0), mql: sc(1), sql: sc(2), opp: sc(3), oppAmt: sc(4), actUserTTL: sc(5), actCorpTTL: sc(6), ca: sc(9), gmv: sc(10) }; }
       else base = KB_FUNNEL[p].cur;
     } else base = KB_FUNNEL[p].cur;
-    let ratio = 1;
+    let ratio = productTypeRatio(filters);
     if (person && person.length) ratio *= Math.min(0.5 * person.length, 1);
     if (ratio === 1) return base;
     const sc = v => Math.round(v * ratio), sa = v => +((v * ratio).toFixed(2));
@@ -451,7 +464,9 @@
       html += msHtml('source', KB_SOURCE_FILTER_OPTIONS, LEAD.kbFilters.source, '线索来源');
       html += `<span class="lead-fl" style="color:var(--text-tertiary)">数据范围：本人（北京IS）</span>`;
     }
+    html += msHtml('productType', PRODUCT_TYPE_OPTIONS, LEAD.kbFilters.productType, '产品类型');
     if (LEAD.kbTab === 'team') {
+      html += msHtml('grade', GRADE_OPTS, LEAD.kbFilters.grade, '客户分级');
       // 销售团队漏斗：线索二级来源 / 三级来源 检索
       html += `<input class="ops-select" style="width:150px" placeholder="线索二级来源" value="${esc(LEAD.kbFilters.source2 || '')}" onchange="leadSetKbInput('source2',this.value)">`;
       html += `<input class="ops-select" style="width:150px" placeholder="线索三级来源" value="${esc(LEAD.kbFilters.source3 || '')}" onchange="leadSetKbInput('source3',this.value)">`;
@@ -557,11 +572,12 @@
   window.leadTeamDrill = function (mi, teamKey) {
     const d = kbTeamTableData()[mi]; if (!d) return;
     // 清空线索池筛选
-    Object.assign(LEAD, { fdFrom: '', fdTo: '', fadFrom: '', fadTo: '', fpdFrom: '', fpdTo: '', ffdFrom: '', ffdTo: '', fcvFrom: '', fcvTo: '', fLeadNo: '', fLenovo: '', fPhone: '', fCompany: '', fName: '', fQuality: '', fSource2: '', fSource3: '', fs: [], fAssign: [], fown: '', fdTeam: 'all', fdGrade: [], fSource: [], fMql: [], sf: null, page: 1 });
+    Object.assign(LEAD, { fdFrom: '', fdTo: '', fadFrom: '', fadTo: '', fpdFrom: '', fpdTo: '', ffdFrom: '', ffdTo: '', fcvFrom: '', fcvTo: '', fLeadNo: '', fLenovo: '', fPhone: '', fCompany: '', fName: '', fQuality: '', fScoreMin: '', fScoreMax: '', fSource2: '', fSource3: '', fs: [], fAssign: [], fown: '', fCustomerManagerCodes: [], fdTeam: 'all', fdGrade: [], fSource: [], fMql: [], sf: null, page: 1 });
     // 按团队（仅运营可按团队筛选）
     if (LEAD.role === 'ops' && (teamKey === 'chengdu' || teamKey === 'beijing')) LEAD.fdTeam = teamKey;
     // 按指标
     Object.assign(LEAD, TEAM_METRIC_FILTER[d.metric] || {});
+    LEAD.fdGrade = [...activeKbFilters().grade];
     LEAD.poolAppliedFilters = capturePoolFilters();
     switchPage('lead.pool');
     setTimeout(() => { LEAD.page = 1; poolRefresh(); }, 60);
@@ -652,8 +668,8 @@
 
   // ===================== 渲染：线索池 =====================
   function renderPool() {
-    Object.assign(LEAD, { fScoreMin: '', fScoreMax: '', fCustomerManagerCodes: [] });
-    LEAD.poolAppliedFilters = capturePoolFilters();
+    if (LEAD.poolView === 'import-results') return renderImportResultsPage();
+    if (LEAD.poolView === 'import-failures') return renderImportFailurePage();
     return `
       <div class="page-header">
         <div><div class="page-title">线索池</div><div class="page-desc">企业客户管理 · 线索分配、跟进、触达与转商机</div></div>
@@ -665,7 +681,6 @@
       <div id="lead-pool-alloc"></div>
       <div id="lead-pool-table"></div>`;
   }
-
   function clearGovernmentHiddenFilters() {
     Object.assign(LEAD, { fadFrom: '', fadTo: '', fpdFrom: '', fpdTo: '', ffdFrom: '', ffdTo: '', fcvFrom: '', fcvTo: '', fQuality: '', fSource2: '', fSource3: '', fs: [], fAssign: [], fown: '', fdTeam: 'all', fSource: [], fMql: [], sf: null });
     LEAD.poolAppliedFilters = capturePoolFilters();
@@ -675,7 +690,22 @@
     return `<div class="page-header"><div><div class="page-title">线索池-政企</div><div class="page-desc">企业客户管理 · 政企线索只读查询与导出</div></div></div>
       ${governmentPoolToolbarHtml()}${governmentPoolFilterHtml()}<div id="lead-government-pool-table"></div>`;
   }
-
+  function importPageShell(title, desc, action, content) {
+    return `<div id="lead-pool-stats" style="display:none"></div><div class="page-header"><div><div class="page-title">${title}</div><div class="page-desc">${desc}</div></div>${action || ''}</div>${content}`;
+  }
+  function renderImportResultsPage() {
+    const statusTag = status => `<span class="badge ${status === '执行完成' ? 'badge-green' : status === '执行中' ? 'badge-blue' : 'badge-orange'}">${status}</span>`;
+    const rows = LEAD.importBatches.map(batch => `<tr><td>${esc(batch.file)}</td><td>${esc(batch.time)}</td><td>${esc(batch.user)}</td><td>${statusTag(batch.status)}</td><td>${batch.total}</td><td style="color:var(--success)">${batch.success}</td><td style="color:${batch.fail ? 'var(--danger)' : 'var(--text-tertiary)'}">${batch.fail}</td><td><div style="display:flex;gap:8px;white-space:nowrap"><button class="btn btn-sm btn-secondary" ${batch.fail ? '' : 'disabled'} onclick="leadOpenImportFailureDetail('${batch.id}')">失败明细</button><button class="btn btn-sm btn-secondary" ${batch.fail ? '' : 'disabled'} onclick="leadDownloadImportFailures('${batch.id}')">下载失败数据</button></div></td></tr>`).join('');
+    const body = rows || '<tr><td colspan="8"><div class="empty" style="padding:48px 0">暂无导入记录</div></td></tr>';
+    return importPageShell('导入结果', '查看线索导入及数据处理结果', '<button class="btn btn-sm btn-secondary" onclick="leadCloseImportResults()">返回线索池</button>', `<div class="card" style="padding:0"><div class="card-header" style="padding:13px 18px"><div class="card-title">导入记录</div><span style="font-size:13px;color:var(--text-tertiary)">共 ${LEAD.importBatches.length} 条</span></div><div style="overflow-x:auto"><table class="lead-table"><thead><tr><th>文件名</th><th>导入时间</th><th>导入人</th><th>执行状态</th><th>总条数</th><th>成功</th><th>失败</th><th>操作</th></tr></thead><tbody>${body}</tbody></table></div></div>`);
+  }
+  function renderImportFailurePage() {
+    const batch = LEAD.importBatches.find(item => item.id === LEAD.importBatchId);
+    if (!batch) { LEAD.poolView = 'import-results'; return renderImportResultsPage(); }
+    const rows = batch.rows.map(row => `<tr><td>${esc(row.oneId || '-')}</td><td>${esc(row.lenovoId || '-')}</td><td>${esc(row.name || '-')}</td><td>${esc(row.phone || '-')}</td><td>${esc(row.company || '-')}</td><td>${esc(row.grade || '-')}</td><td>${esc(row.source || '-')}</td><td style="color:var(--danger)">${esc(row.reason)}</td></tr>`).join('');
+    const actions = `<div style="display:flex;gap:8px"><button class="btn btn-sm btn-secondary" onclick="leadOpenImportResults()">返回导入结果</button><button class="btn btn-sm btn-primary" onclick="leadDownloadImportFailures('${batch.id}')">下载失败数据</button></div>`;
+    return importPageShell('失败明细', `${esc(batch.file)}`, actions, `<div class="card" style="padding:0"><div class="card-header" style="padding:13px 18px"><div class="card-title">失败数据</div><span style="font-size:13px;color:var(--text-tertiary)">共 ${batch.fail} 条</span></div><div style="overflow-x:auto"><table class="lead-table"><thead><tr><th>ONE ID</th><th>Lenovo ID</th><th>姓名</th><th>手机号</th><th>客户名称</th><th>客户分级</th><th>线索来源</th><th>失败原因</th></tr></thead><tbody>${rows}</tbody></table></div></div>`);
+  }
   function poolStatsHtml() {
     // 2.1 运营/Leader/Sales 统一 6 张；计数基于筛选栏联动结果（poolBase）
     const cl = poolBase();
@@ -698,15 +728,16 @@
         <div class="lead-dd-item" onclick="leadOpenAssignBatch()">批量（上传）分配</div>
       </div></span>`;
   }
+  function touchDropdown() { return '<span class="lead-dd"><button class="btn btn-sm btn-secondary" onclick="leadAssignMenu(this,event)">触达 ▾</button><div class="lead-dd-menu"><div class="lead-dd-item" onclick="leadCloseDd();leadOpenTouchChecked()">勾选触达</div><div class="lead-dd-item" onclick="leadOpenTouchCond()">条件触达</div><div class="lead-dd-item" onclick="leadOpenTouchBatch()">批量（上传）触达</div></div></span>'; }
+  function mqlDropdown() { return '<span class="lead-dd"><button class="btn btn-sm btn-secondary" onclick="leadAssignMenu(this,event)">更新 MQL ▾</button><div class="lead-dd-menu"><div class="lead-dd-item" onclick="leadCloseDd();leadOpenMqlChecked()">勾选更新 MQL</div><div class="lead-dd-item" onclick="leadOpenMqlCond()">条件更新 MQL</div><div class="lead-dd-item" onclick="leadOpenMqlBatch()">批量（上传）更新 MQL</div></div></span>'; }
   window.leadAssignMenu = function (btn, e) { e.stopPropagation(); const dd = btn.parentElement; const open = dd.classList.contains('open'); document.querySelectorAll('.lead-dd.open').forEach(m => m.classList.remove('open')); if (!open) dd.classList.add('open'); };
   window.leadCloseDd = function () { document.querySelectorAll('.lead-dd.open').forEach(m => m.classList.remove('open')); };
   document.addEventListener('click', e => { if (!(e.target.closest && e.target.closest('.lead-dd'))) leadCloseDd(); });
   function poolToolbarHtml() {
     let btns = '';
-    if (LEAD.role !== 'sales') btns += `<button class="btn btn-sm btn-secondary" onclick="leadMockImport()">📥 导入线索</button>`;
-    if (LEAD.role === 'ops') btns += `<button class="btn btn-sm btn-secondary" onclick="leadOpenTouch()">触达</button>` + assignDropdown();
+    if (LEAD.role !== 'sales') btns += `<button class="btn btn-sm btn-secondary" onclick="leadMockImport()">📥 导入线索</button><button class="btn btn-sm btn-secondary" onclick="leadOpenImportResults()">📋 导入结果${LEAD.importBatches.reduce((sum, batch) => sum + batch.fail, 0) ? ` <span style="color:var(--danger)">${LEAD.importBatches.reduce((sum, batch) => sum + batch.fail, 0)}</span>` : ''}</button>`;
+    if (LEAD.role === 'ops') btns += touchDropdown() + assignDropdown() + mqlDropdown();
     else if (LEAD.role === 'leader') btns += assignDropdown();
-    if (LEAD.role === 'ops') btns += `<button class="btn btn-sm btn-secondary" onclick="leadOpenMql()">批量更新MQL</button>`;
     // sales：无分配功能
     const tip = LEAD.sel.size > 0 ? `<span style="font-size:13px;color:var(--primary);font-weight:500;margin-left:4px">已选 ${LEAD.sel.size} 条</span>` : '';
     // 2.2 导出：脱敏导出直接下载；明文导出（含手机号等）走审批
@@ -782,7 +813,10 @@
       ${txt('fName', '姓名', 120)}
       ${txt('fCompany', '客户名称', 140)}
       ${txt('fown', '所属IS', 120)}
+      ${poolMs('fCustomerManagerCodes', CUSTOMER_MANAGER_CODE_OPTS, '客户经理编码')}
       ${txt('fQuality', 'Leads质量', 140)}
+      <input id="lead-score-min" class="ops-select" style="width:120px" type="number" min="0" max="100" step="1" placeholder="线索分 ≥" value="${esc(LEAD.fScoreMin)}" oninput="leadSet('fScoreMin',this.value);leadPoolPageReset()"/>
+      <input id="lead-score-max" class="ops-select" style="width:120px" type="number" min="0" max="100" step="1" placeholder="线索分 <" value="${esc(LEAD.fScoreMax)}" oninput="leadSet('fScoreMax',this.value);leadPoolPageReset()"/>
       ${txt('fSource2', '线索二级来源', 140)}
       ${txt('fSource3', '线索三级来源', 140)}
       ${poolMs('fs', STATUS_FILTER_OPTS, '线索状态')}
@@ -817,11 +851,11 @@
     const regularHead = `<tr><th style="width:40px"><input type="checkbox" ${allChk ? 'checked' : ''} onchange="leadToggleAll(this)"/></th>
       <th style="min-width:${isSL ? 230 : 96}px;text-align:left">操作</th>
       ${sortable('oneId', 'ONE ID')}${sortable('lenovoId', 'Lenovo ID')}${sortable('leadNo', '线索编号')}${sortable('name', '姓名')}${sortable('company', '客户名称')}
-      ${sortable('phone', '手机号')}${sortable('grade', '客户分级')}${sortable('status', '线索状态')}${sortable('assignStatus', '分配状态')}${sortable('isMql', '是否MQL')}${sortable('source', '线索一级来源')}${sortable('source2', '线索二级来源')}${sortable('source3', '线索三级来源')}${sortable('quality', 'Leads质量')}${SQL_AMOUNT_FIELDS.map(f => sortable(f.key, f.label)).join('')}${sortable('owner', '所属IS')}
+      ${sortable('phone', '手机号')}${sortable('grade', '客户分级')}${sortable('status', '线索状态')}${sortable('assignStatus', '分配状态')}${sortable('isMql', '是否MQL')}${sortable('source', '线索一级来源')}${sortable('source2', '线索二级来源')}${sortable('source3', '线索三级来源')}${sortable('quality', 'Leads质量')}${sortable('score', '线索分')}${SQL_AMOUNT_FIELDS.map(f => sortable(f.key, f.label)).join('')}${sortable('owner', '所属IS')}${sortable('customerManagerCode', '客户经理编码')}
       ${sortable('createdAt', '创建时间')}${sortable('pushAt', '推送销售时间')}${sortable('assignedAt', '分配时间')}${sortable('feedbackAt', '反馈时间')}${sortable('convertedAt', '转商机时间')}</tr>`;
     const head = government ? governmentHead : regularHead;
     let body;
-    if (!total) body = `<tr><td colspan="${government ? 14 : 26}" style="text-align:center;color:var(--text-tertiary);padding:40px">暂无数据</td></tr>`;
+    if (!total) body = `<tr><td colspan="${government ? 14 : 28}" style="text-align:center;color:var(--text-tertiary);padding:40px">暂无数据</td></tr>`;
     else body = pageRows.map(l => {
       const ds = dispStatus(l, LEAD.role);
       // 3.2 已退回线索：Leader/Sales 只能查看不能操作（隐藏反馈/转商机），由运营重新分配
@@ -840,8 +874,8 @@
         <td>${locked ? '<span class="badge">已重新分配</span>' : dispAssign(l, LEAD.role) === '已分配' ? '<span class="badge badge-blue">已分配</span>' : '<span class="badge badge-orange">待分配</span>'}</td>
         <td>${l.isMql === '是' ? '<span class="badge badge-green">是</span>' : '<span class="badge">否</span>'}</td>
         <td>${l.source || '-'}</td><td>${l.source2 || '-'}</td><td>${l.source3 || '-'}</td>
-        <td>${l.quality ? `<span class="badge badge-blue" style="font-size:11px">${l.quality}</span>` : '-'}</td>${SQL_AMOUNT_FIELDS.map(f => `<td>${fmtSqlAmount(leadSqlAmount(l, f.key))}</td>`).join('')}
-        <td>${l.owner || '-'}</td><td>${fmt(l.createdAt)}</td><td>${fmt(l.pushAt)}</td><td>${fmt(l.assignedAt)}</td><td>${fmt(l.feedbackAt)}</td><td>${fmt(l.convertedAt)}</td>`;
+        <td>${l.quality ? `<span class="badge badge-blue" style="font-size:11px">${l.quality}</span>` : '-'}</td><td>${l.score}</td>${SQL_AMOUNT_FIELDS.map(f => `<td>${fmtSqlAmount(leadSqlAmount(l, f.key))}</td>`).join('')}
+        <td>${l.owner || '-'}</td><td>${l.customerManagerCode || '-'}</td><td>${fmt(l.createdAt)}</td><td>${fmt(l.pushAt)}</td><td>${fmt(l.assignedAt)}</td><td>${fmt(l.feedbackAt)}</td><td>${fmt(l.convertedAt)}</td>`;
       return `<tr class="${!government && LEAD.sel.has(l.rowId) ? 'sel' : ''}">
         ${government ? '' : `<td><input type="checkbox" ${LEAD.sel.has(l.rowId) ? 'checked' : ''} ${noAssign ? `disabled title="${locked ? '已重新分配，锁定' : '已退回线索仅运营可重新分配'}"` : ''} onchange="leadToggleRow('${l.rowId}')"/></td>`}
         ${opCell}${government ? governmentCells : regularCells}</tr>`;
@@ -922,8 +956,8 @@
     LEAD.kbAppliedFilters = captureKbFilters();
     renderKbBody();
   };
-  const KB_MS_OPTS = { team: TEAM_OPTS, person: PERSON_OPTS.map(p => ({ label: p, value: p })), source: KB_SOURCE_FILTER_OPTIONS };
-  const KB_MS_PH = { team: '销售团队', person: '销售个人', source: '线索来源' };
+  const KB_MS_OPTS = { team: TEAM_OPTS, person: PERSON_OPTS.map(p => ({ label: p, value: p })), source: KB_SOURCE_FILTER_OPTIONS, grade: GRADE_OPTS, productType: PRODUCT_TYPE_OPTIONS };
+  const KB_MS_PH = { team: '销售团队', person: '销售个人', source: '线索来源', grade: '客户分级', productType: '产品类型' };
   window.leadMsToggle = function (key, val) {
     const arr = LEAD.kbFilters[key]; const i = arr.indexOf(val);
     if (i >= 0) arr.splice(i, 1); else arr.push(val);
@@ -1033,7 +1067,19 @@
   };
   window.leadMockImport = function () {
     const l = Object.assign(mkLead(LEAD.leads.length % 20), { oneId: uid(), leadNo: '', status: '', quality: '', isMql: '否', assignStatus: '待分配', owner: '', assignLevel: 0, pushAt: null, assignedAt: null, feedbackAt: null, sqlAmt: 0, sqlAmountPc: null, sqlAmountSd: null, sqlAmountSs: null, sqlAmountSi: null });
-    LEAD.leads.unshift(l); poolRefresh(); toast('导入成功，已追加 1 条模拟数据');
+    LEAD.leads.unshift(l);
+    const now = new Date();
+    LEAD.importBatches.unshift({ id: `IMP${now.getFullYear()}${z(now.getMonth() + 1)}${z(now.getDate())}${z(now.getHours())}${z(now.getMinutes())}`, file: `线索批量导入_${ts()}.csv`, time: `${now.getFullYear()}-${z(now.getMonth() + 1)}-${z(now.getDate())} ${z(now.getHours())}:${z(now.getMinutes())}`, user: LEAD.role === 'ops' ? 'yunying2' : 'leader01', status: '待执行', total: 1, success: 0, fail: 0, rows: [] });
+    poolRefresh(); toast('导入成功，已追加 1 条模拟数据并生成批次记录');
+  };
+  window.leadOpenImportResults = function () { LEAD.poolView = 'import-results'; LEAD.importBatchId = ''; rerenderCurrent(); };
+  window.leadCloseImportResults = function () { LEAD.poolView = 'list'; LEAD.importBatchId = ''; rerenderCurrent(); };
+  window.leadOpenImportFailureDetail = function (id) { const batch = LEAD.importBatches.find(item => item.id === id); if (!batch || !batch.fail) return; LEAD.importBatchId = id; LEAD.poolView = 'import-failures'; rerenderCurrent(); };
+  window.leadDownloadImportFailures = function (id) {
+    const batch = LEAD.importBatches.find(item => item.id === id); if (!batch || !batch.rows.length) return toast('该批次没有失败数据', 'warn');
+    const e = value => `"${String(value == null ? '' : value).replace(/"/g, '""')}"`;
+    const rows = [['ONE ID', 'Lenovo ID', '姓名', '手机号', '客户名称', '客户分级', '线索来源', '失败原因'], ...batch.rows.map(row => [row.oneId, row.lenovoId, row.name, row.phone, row.company, row.grade, row.source, row.reason])];
+    downloadCsv(rows.map(row => row.map(e).join(',')).join('\r\n'), `${batch.file.replace(/\.[^.]+$/, '')}_失败数据.csv`);
   };
 
   // 分配
@@ -1185,6 +1231,39 @@
     leadCloseModal(); LEAD.sel = new Set(); poolRefresh(); toast(`已更新 ${list.length} 条线索的 MQL 为「${v}」`);
   };
 
+  // 触达与更新 MQL：勾选、条件和 ONE ID 批量上传
+  let TCH_MENU = [], MQL_MENU = [];
+  function parseBatchOneIds(text) { return [...new Set(String(text || '').split(/\r?\n/).slice(1).map(line => line.split(',')[0].trim()).filter(Boolean))]; }
+  function leadMenuModal(title, body, action, primaryText) { openModal(title, body, '<button class="btn btn-sm btn-secondary" onclick="leadCloseModal()">取消</button><button class="btn btn-sm btn-primary" onclick="' + action + '">' + (primaryText || '确定') + '</button>', 480); }
+  window.leadMenuFileName = function (input, labelId) {
+    const label = document.getElementById(labelId), file = input && input.files && input.files[0];
+    if (!label) return;
+    label.textContent = file ? file.name : '未选择文件';
+    label.style.color = file ? 'var(--text)' : 'var(--text-tertiary)';
+  };
+  function leadMenuUploadField(fileId, labelId) {
+    return '<input type="file" accept=".csv" id="' + fileId + '" style="display:none" onchange="leadMenuFileName(this,\'' + labelId + '\')"><div style="display:flex;align-items:center;gap:10px"><button type="button" class="btn btn-sm btn-secondary" onclick="document.getElementById(\'' + fileId + '\').click()">选择文件</button><span id="' + labelId + '" style="font-size:13px;color:var(--text-tertiary)">未选择文件</span></div>';
+  }
+  function touchForm(prefix) { return field('触达对象', '<span style="color:var(--text-secondary)">' + prefix + '</span>') + field('触达名称', '<input class="lead-inp" id="tch-name" placeholder="请输入触达名称">') + field('触达描述', '<textarea class="lead-inp" id="tch-desc" rows="3" placeholder="请输入触达描述"></textarea>'); }
+  function saveTouch(list, source) { const name = val('tch-name'); if (!name) return toast('请输入触达名称', 'warn'); const desc = val('tch-desc'); list.forEach(lead => pushLog(lead, 'touch', source + '触达：' + name + (desc ? '，描述=' + desc : ''))); leadCloseModal(); LEAD.sel = new Set(); poolRefresh(); toast(source + '已保存，共 ' + list.length + ' 条线索'); }
+  window.leadOpenTouchChecked = function () { TCH_MENU=LEAD.leads.filter(lead=>LEAD.sel.has(lead.rowId)); if(!TCH_MENU.length)return toast('请先勾选线索','warn'); leadMenuModal('勾选触达',touchForm('共 '+TCH_MENU.length+' 条'),'leadConfirmTouchMenu()'); };
+  window.leadOpenTouchCond = function () { leadCloseDd(); TCH_MENU=poolBase(); if(!TCH_MENU.length)return toast('当前筛选条件下没有线索','warn'); leadMenuModal('条件触达',touchForm('共 '+TCH_MENU.length+' 条'),'leadConfirmTouchMenu()'); };
+  window.leadConfirmTouchMenu = function () { saveTouch(TCH_MENU,'触达：'); };
+  window.leadDownloadTouchTpl = function () { downloadCsv('ONE ID\nOID-00001','线索触达导入模板.csv'); };
+  window.leadOpenTouchBatch = function () { leadCloseDd(); leadMenuModal('批量（上传）触达','<div style="font-size:13px;color:var(--text-secondary);line-height:1.7;margin-bottom:8px">下载模板，填写需触达的线索（按 ONE ID 匹配），再上传 CSV 导入触达。</div>'+field('模板','<button class="btn btn-sm btn-secondary" onclick="leadDownloadTouchTpl()">⬇ 下载模板</button>')+field('上传文件',leadMenuUploadField('tb-file','tb-file-name'))+touchForm('上传后按 ONE ID 匹配'),'leadConfirmTouchBatch()','导入并触达'); };
+  window.leadConfirmTouchBatch = function () { const name=val('tch-name'), f=document.getElementById('tb-file'); if(!name)return toast('请输入触达名称','warn');if(!f||!f.files[0])return toast('请先上传文件','warn');const desc=val('tch-desc'),r=new FileReader();r.onload=e=>{const ids=parseBatchOneIds(e.target.result),list=curLeads().filter(lead=>ids.includes(lead.oneId));if(!list.length)return toast('文件中未匹配到当前可见线索（按 ONE ID 匹配）','warn');list.forEach(lead=>pushLog(lead,'touch','批量（上传）触达：触达：'+name+(desc?'，描述='+desc:'')));leadCloseModal();LEAD.sel=new Set();poolRefresh();toast('批量触达已保存，匹配 '+list.length+' 条');};r.readAsText(f.files[0],'utf-8'); };
+  window.leadOpenTouch = function (id) { if(id){const x=findLead(id);TCH_MENU=x?[x]:[];if(TCH_MENU.length)leadMenuModal('触达记录',touchForm('共 1 条'),'leadConfirmTouchMenu()');return;}window.leadOpenTouchChecked(); };
+  window.leadConfirmTouch = window.leadConfirmTouchMenu;
+  function mqlForm(prefix) { return field('目标线索','<span style="color:var(--text-secondary)">'+prefix+'</span>')+field('是否MQL','<select class="lead-inp" id="mql-val"><option value="是">是</option><option value="否">否</option></select>'); }
+  function saveMql(list,source){const v=val('mql-val')||'是';if(!list.length)return toast('没有可更新的线索','warn');list.forEach(lead=>{lead.isMql=v;pushLog(lead,'mql',source+'更新 是否MQL → '+v);});leadCloseModal();LEAD.sel=new Set();poolRefresh();toast(source+'完成，共 '+list.length+' 条线索');}
+  window.leadOpenMqlChecked=function(){if(LEAD.role!=='ops')return toast('仅运营可更新MQL','warn');MQL_MENU=LEAD.leads.filter(lead=>LEAD.sel.has(lead.rowId));if(!MQL_MENU.length)return toast('请先勾选线索','warn');leadMenuModal('勾选更新 MQL',mqlForm('共 '+MQL_MENU.length+' 条'),'leadConfirmMqlMenu()');};
+  window.leadOpenMqlCond=function(){if(LEAD.role!=='ops')return toast('仅运营可更新MQL','warn');leadCloseDd();MQL_MENU=poolBase();if(!MQL_MENU.length)return toast('当前筛选条件下没有线索','warn');leadMenuModal('条件更新 MQL',mqlForm('共 '+MQL_MENU.length+' 条'),'leadConfirmMqlMenu()');};
+  window.leadConfirmMqlMenu=function(){if(LEAD.role!=='ops')return toast('仅运营可更新MQL','warn');saveMql(MQL_MENU,'更新 MQL：');};
+  window.leadDownloadMqlTpl=function(){downloadCsv('ONE ID\nOID-00001','更新MQL导入模板.csv');};
+  window.leadOpenMqlBatch=function(){if(LEAD.role!=='ops')return toast('仅运营可更新MQL','warn');leadCloseDd();leadMenuModal('批量（上传）更新 MQL','<div style="font-size:13px;color:var(--text-secondary);line-height:1.7;margin-bottom:8px">下载模板，填写需更新的线索（按 ONE ID 匹配），再上传 CSV 导入更新。</div>'+field('模板','<button class="btn btn-sm btn-secondary" onclick="leadDownloadMqlTpl()">⬇ 下载模板</button>')+field('上传文件',leadMenuUploadField('mb-file','mb-file-name'))+mqlForm('上传后按 ONE ID 匹配'),'leadConfirmMqlBatch()','导入并更新 MQL');};
+  window.leadConfirmMqlBatch=function(){if(LEAD.role!=='ops')return toast('仅运营可更新MQL','warn');const f=document.getElementById('mb-file'),v=val('mql-val')||'是';if(!f||!f.files[0])return toast('请先上传文件','warn');const r=new FileReader();r.onload=e=>{const ids=parseBatchOneIds(e.target.result),list=curLeads().filter(lead=>ids.includes(lead.oneId));if(!list.length)return toast('文件中未匹配到当前可见线索（按 ONE ID 匹配）','warn');list.forEach(lead=>{lead.isMql=v;pushLog(lead,'mql','批量（上传）更新 是否MQL → '+v);});leadCloseModal();LEAD.sel=new Set();poolRefresh();toast('批量更新 MQL 完成，匹配 '+list.length+' 条');};r.readAsText(f.files[0],'utf-8');};
+  window.leadOpenMql=function(){window.leadOpenMqlChecked();};
+  window.leadConfirmMql=window.leadConfirmMqlMenu;
   // 反馈线索（质量→状态映射 + 四类 SQL 金额）
   let FT = null;
   window.leadOpenFollow = function (id) {
@@ -1375,8 +1454,7 @@
   };
   function renderLeadDetailPage() {
     const d = window.__leadDetail;
-    const backPage = window.__leadDetailBackPage === 'lead.governmentPool' ? 'lead.governmentPool' : 'lead.pool';
-    const backLabel = backPage === 'lead.governmentPool' ? '线索池-政企' : '线索池';
+    const backPage = window.__leadDetailBackPage === 'lead.governmentPool' ? 'lead.governmentPool' : 'lead.pool', backLabel = backPage === 'lead.governmentPool' ? '线索池-政企' : '线索池';
     if (!d) return `<div class="empty-state"><div class="title">未选择线索</div><div><button class="btn btn-secondary" onclick="switchPage('${backPage}')">返回${backLabel}</button></div></div>`;
     const pill = d.status === '已退回' ? 'danger' : (d.status === '已接收' || d.status === '跟进中') ? 'success' : 'muted';
     const fld = (lbl, v, strong) => `<div><div class="employee-field-label">${lbl}</div><div class="employee-field-value${strong ? ' strong' : ''}">${v == null || v === '' ? '-' : v}</div></div>`;
@@ -1577,25 +1655,26 @@
     { key: 'isKeyBuyer', label: '是否为关键采购人', options: ['是', '否'] },
     { key: 'industry', label: '行业', options: ['制造业', '服务业', '批发零售业', '建筑业', '其他'] },
     { key: 'companyType', label: '企业', options: ['国企', '民企', '外企', '事业单位', '初创公司', '专精特新'] },
-    { key: 'companyScale', label: '企业规模', options: ['B3', 'B4', 'B5'] },
+    { key: 'companyScale', label: '企业规模', options: ['B1', 'B2', 'B3', 'B4', 'B5'] },
     { key: 'budgetCA', label: '预算（CA）', options: ['1-5台', '5-10台', '10台以上'] },
   ];
+  const RULE_SITES=[{value:'enterprise',label:'企业购'},{value:'government',label:'政企'}];
+  const PAGE_SITES=['政企','企业购','自定义页面'],NO_BROWSE_SITES=['政企','企业购','官网','自定义页面'],COUPON_CATEGORIES=['主机','选件','服务','通用券'];
   const BEHAVIOR_FIELDS = [
     { key: 'consultCount', label: '在线咨询次数', target: 'select', opts: ['1次', '2-3次', '4-7次', '7次以上'], noCount: true },
     { key: 'phoneDuration', label: '电话沟通时长', target: 'select', opts: ['小于30s', '大于30s'], noCount: true },
-    { key: 'addCart', label: '加购', target: 'select', opts: ['是', '否'], noCount: true },
-    { key: 'submitUnpaid', label: '提交未支付', target: 'select', opts: ['是', '否'], noCount: true },
+    { key: 'addCart', label: '加购', target: 'select', opts: ['是', '否'], noCount: true, productScope: true },
+    { key: 'submitUnpaid', label: '提交未支付', target: 'select', opts: ['是', '否'], noCount: true, productScope: true },
     { key: 'leaveContact', label: '留资', target: 'select', opts: ['是', '否'], noCount: true },
-    { key: 'signUpActivity', label: '报名参与指定活动', target: 'select', opts: ['是', '否'], noCount: true },
-    { key: 'historyCategory', label: '历史采购过品类', target: 'select', opts: ['主机', '选件', '服务'], noCount: true },
+    { key: 'historyCategory', label: '历史采购过品类', noCount: true, categoryScope: true },
     { key: 'companyRegistIncomplete', label: '企业注册未完成', target: 'select', opts: ['是'], noCount: true },
-    { key: 'pageView', label: '页面浏览', sub: ['企业购', '惠采', '活动页', '留资页面', '自定义页面'], url: true, countMode: 'visit' },
+    { key: 'pageView', label: '页面浏览', sub: PAGE_SITES, noCount: true },
     { key: 'productDetail', label: '商详页浏览', productTarget: true, noCount: true },
     { key: 'search', label: '搜索', sub: ['搜索页面', '搜索关键词'], searchTarget: true, noCount: true },
-    { key: 'touch', label: '触达', sub: ['点击短信', '点击push', '点击站内信'], countMode: 'click' },
-    { key: 'coupon', label: '领取', sub: ['领取优惠券'], countMode: 'receive' },
-    { key: 'login', label: '登录', countMode: 'login' },
-    { key: 'noOpportunity', label: '销售经理确认无商机/无经营必要' },
+    { key: 'coupon', label: '领取优惠券', couponTarget: true, noCount: true },
+    { key: 'login', label: '未登陆', daysAbove: true },
+    { key: 'noBrowse', label: '未浏览', daysAbove: true, siteTarget: true },
+    { key: 'noOpportunity', label: '无商机' },
   ];
   const ATTR_OPS = [{ value: 'eq', label: '等于' }, { value: 'ne', label: '不等于' }];
   const COUNT_OPS = [{ value: 'eq', label: '=' }, { value: 'gte', label: '≥' }, { value: 'lte', label: '≤' }];
@@ -1605,11 +1684,12 @@
   const behField = k => BEHAVIOR_FIELDS.find(f => f.key === k) || BEHAVIOR_FIELDS[0];
   const srReqTarget = k => { const f = behField(k); return !!(f.url || f.code || f.productTarget || f.searchTarget); }; // 需填 url/编码/业务对象
   const DEFAULT_RULES = [
-    { name: '潜客 + 浏览商品详情', kind: 'add', score: 10, cap: 3, enabled: true, attrLogic: 'and', attrConditions: [{ field: 'isNewProspect', op: 'eq', value: '是' }], groupLogic: 'and', behaviorLogic: 'and', behaviorConditions: [{ dayFrom: '', dayTo: '', toNow: false, verb: 'did', behavior: 'productDetail', sub: '', targetMode: 'code', target: '10001234', fa: '', productGroup: '', links: [''], keywords: [''] }] },
-    { name: '长期未登录', kind: 'sub', score: 5, cap: 1, enabled: true, attrLogic: 'and', attrConditions: [], groupLogic: 'and', behaviorLogic: 'and', behaviorConditions: [{ dayFrom: '', dayTo: '', verb: 'not', behavior: 'login', sub: '', target: '', count: '180', device: 'PC端' }] },
+    { name: '潜客 + 浏览商品详情', site: 'enterprise', kind: 'add', score: 10, cap: 3, enabled: true, attrLogic: 'and', attrConditions: [{ field: 'isNewProspect', op: 'eq', value: '是' }], groupLogic: 'and', behaviorLogic: 'and', behaviorConditions: [{ dayFrom: '', dayTo: '', toNow: false, verb: 'did', behavior: 'productDetail', sub: '', targetMode: 'code', target: '10001234', fa: '', productGroup: '', links: [''], keywords: [''] }] },
+    { name: '长期未登录', site: 'government', kind: 'sub', score: 5, cap: 1, enabled: true, attrLogic: 'and', attrConditions: [], groupLogic: 'and', behaviorLogic: 'and', behaviorConditions: [{ dayFrom: '', dayTo: '', verb: 'not', behavior: 'login', sub: '', target: '', count: '180', device: 'PC端' }] },
   ];
-  LEAD.scoreRules = ((JSON.parse(localStorage.getItem(SR_KEY) || 'null')) || DEFAULT_RULES).map((r, i) => Object.assign({ id: 'SR-' + (Date.now() + i), createdAt: Date.now() + i }, r));
-  LEAD.srf = null; LEAD.srEditId = null;
+  function normalizeScoreRule(rule,i){const z=Object.assign({id:'SR-'+(Date.now()+i),createdAt:Date.now()+i,site:'enterprise'},rule);z.behaviorConditions=(z.behaviorConditions||[]).map(raw=>{const c=Object.assign({toNow:false,verb:'did',urlMatch:'contains',siteTarget:'政企',couponCategory:'',links:[''],keywords:[]},raw);if(c.behavior==='touch')c.behavior='pageView';if(c.behavior==='pageView'&&raw.verb==='not'){c.behavior='noBrowse';c.siteTarget=NO_BROWSE_SITES.includes(c.sub)?c.sub:'政企'}c.verb='did';return c});const dated=z.behaviorConditions.find(c=>c.dayFrom||c.dayTo||c.toNow)||{};if(z.behaviorDayFrom==null)z.behaviorDayFrom=dated.dayFrom||'';if(z.behaviorDayTo==null)z.behaviorDayTo=dated.dayTo||'';if(z.behaviorToNow==null)z.behaviorToNow=!!dated.toNow;return z}
+  LEAD.scoreRules=((JSON.parse(localStorage.getItem(SR_KEY)||'null'))||DEFAULT_RULES).map(normalizeScoreRule);
+  LEAD.srf = null; LEAD.srEditId = null; LEAD.scoreSiteFilter = 'enterprise';
   function saveScoreRules() { localStorage.setItem(SR_KEY, JSON.stringify(LEAD.scoreRules)); }
   function makeAttrCond() { return { field: ATTR_FIELDS[0].key, op: 'eq', value: ATTR_FIELDS[0].options[0] }; }
   function makeBehCond() { const b = BEHAVIOR_FIELDS[0]; return { dayFrom: '', dayTo: '', toNow: false, verb: 'did', behavior: b.key, sub: b.sub ? b.sub[0] : (b.opts ? b.opts[0] : ''), target: '', count: '', targetMode: 'fa', fa: '', productGroup: '', links: [''], keywords: [''] }; }
@@ -1619,11 +1699,11 @@
   function condCountText(c) {
     const bf = behField(c.behavior);
     if (bf.noCount || bf.key === 'noOpportunity') return '';
-    if (bf.key === 'login') return ` 距离最近一次登录 ${c.count || 'N'} 天内`;
+    if (bf.daysAbove) return ` ${c.count||'N'} 天以上`;
     if (c.verb === 'not') return bf.key === 'pageView' ? ` 距离最近一次浏览 ${c.count || 'N'} 天内` : ''; // 未做过：仅页面浏览展示天数，其余不展示
     return ` ${COUNT_WORD[bf.countMode] || '每发生'} ${c.count || 'N'} 次`;
   }
-  function blankRuleForm() { return { name: '', kind: 'add', score: '', cap: '', attrLogic: 'and', attrConditions: [makeAttrCond()], groupLogic: 'and', behaviorLogic: 'and', behaviorConditions: [makeBehCond()] }; }
+  function blankRuleForm() { return { name: '', site: 'enterprise', kind: 'add', score: '', cap: '', attrLogic: 'and', attrConditions: [makeAttrCond()], groupLogic: 'and', behaviorLogic: 'and', behaviorDayFrom: '', behaviorDayTo: '', behaviorToNow: false, behaviorConditions: [makeBehCond()] }; }
 
   function renderCondText(rule) {
     const opT = o => o === 'ne' ? '≠' : '=';
@@ -1634,22 +1714,26 @@
       parts.push(`(${ap})`);
     }
     if (rule.behaviorConditions && rule.behaviorConditions.length) {
+      const behaviorDayT=rule.behaviorToNow?(rule.behaviorDayFrom?rule.behaviorDayFrom+'~至今 ':'至今 '):((rule.behaviorDayFrom||rule.behaviorDayTo)?(rule.behaviorDayFrom||'')+'~'+(rule.behaviorDayTo||'')+' ':'');
       const bp = rule.behaviorConditions.map(c => {
         const bf = behField(c.behavior);
-        const dayT = (c.dayFrom || c.dayTo || c.toNow) ? (c.dayFrom || '') + '~' + (c.toNow ? '至今' : (c.dayTo || '')) + ' ' : '';
-        const verbT = c.verb === 'not' ? '未做过 ' : '做过 ';
+        const verbT='做过 ';
         const subT = c.sub ? c.sub : '';
         let tg = c.target ? '"' + c.target + '"' : '';
+        if((bf.productScope&&c.target==='是')||bf.categoryScope) tg=(bf.productScope?' 是':'')+' FA：'+(c.fa||'-')+' / 产品组：'+(c.productGroup||'-');
         if (bf.key === 'leaveContact' && c.target === '是') tg = ' 留资链接：' + (c.links || []).filter(Boolean).join('、');
         if (bf.key === 'productDetail') {
           if (c.targetMode === 'faProduct') tg = ' FA + 产品组：' + (c.fa || '-') + ' / ' + (c.productGroup || '-');
           else if (c.targetMode === 'code') tg = ' 商品编码：' + (c.target || '-');
           else tg = ' FA：' + (c.fa || '-');
         }
-        if (bf.key === 'search' && c.sub === '搜索关键词') tg = ' 搜索关键词：' + (c.keywords || []).filter(Boolean).join('、');
-        return dayT + verbT + bf.label + (subT ? '·' + subT : '') + tg + condCountText(c);
+        if(bf.key==='search'&&c.sub==='搜索关键词')tg=' 搜索关键词：' + (c.keywords || []).filter(Boolean).join('、');
+        if(bf.key==='pageView')tg=c.sub==='自定义页面'?' '+(c.urlMatch==='equals'?'等于':'包含')+'：'+(c.target||'-'):'';
+        if(bf.key==='coupon')tg=' 品类：'+(c.couponCategory||'-');
+        if(bf.key==='noBrowse')tg=' 站点：'+(c.siteTarget||'-')+(c.siteTarget==='自定义页面'?' URL：'+(c.target||'-'):'');
+        return verbT + bf.label + (subT ? '·' + subT : '') + tg + condCountText(c);
       }).join(rule.behaviorLogic === 'or' ? ' 或 ' : ' 且 ');
-      parts.push(`(${bp})`);
+      parts.push(`(${behaviorDayT}${bp})`);
     }
     if (!parts.length) return '—';
     return parts.join(rule.groupLogic === 'or' ? ' 或 ' : ' 且 ');
@@ -1670,7 +1754,7 @@
       <div id="lead-score-sub"></div>`;
   }
   function scoreStatsHtml() {
-    const rules = LEAD.scoreRules;
+    const rules = LEAD.scoreRules.filter(r => r.site === LEAD.scoreSiteFilter);
     const addMax = rules.filter(r => r.kind === 'add' && r.enabled).reduce((s, r) => s + (+r.score) * (+r.cap), 0);
     const subMax = rules.filter(r => r.kind === 'sub' && r.enabled).reduce((s, r) => s + (+r.score) * (+r.cap), 0);
     const enabled = rules.filter(r => r.enabled).length;
@@ -1683,11 +1767,11 @@
     return `<div class="lead-stat-grid" style="grid-template-columns:repeat(4,minmax(0,1fr))">${cards.map(c => `<div class="lead-stat" style="cursor:default"><div class="lead-stat-label">${c.label}</div><div class="lead-stat-val">${c.val}</div></div>`).join('')}</div>`;
   }
   function scoreToolbarHtml() {
-    return `<div class="lead-toolbar"><button class="btn btn-sm btn-primary" ${canEditScore() ? '' : 'disabled'} onclick="leadScoreOpenAdd()">＋ 新建规则</button>${canEditScore() ? '' : '<span style="font-size:12px;color:var(--text-tertiary)">当前角色仅可查看</span>'}</div>`;
+    return `<div class="lead-toolbar" style="display:flex;align-items:center;justify-content:space-between;gap:12px"><div><button class="btn btn-sm btn-primary" ${canEditScore() ? '' : 'disabled'} onclick="leadScoreOpenAdd()">＋ 新建规则</button>${canEditScore() ? '' : '<span style="font-size:12px;color:var(--text-tertiary)">当前角色仅可查看</span>'}</div><div class="lead-site-view"><span>查看站点</span><div class="lead-seg">${RULE_SITES.map(site => `<button type="button" class="lead-seg-btn ${LEAD.scoreSiteFilter === site.value ? 'active' : ''}" onclick="leadScoreSetSite('${site.value}')">${site.label}</button>`).join('')}</div></div></div>`;
   }
   function canEditScore() { return LEAD.role === 'ops'; }
   function scoreTableHtml(kind, title) {
-    const rules = LEAD.scoreRules.filter(r => r.kind === kind);
+    const rules = LEAD.scoreRules.filter(r => r.site === LEAD.scoreSiteFilter).filter(r => r.kind === kind);
     const ops = canEditScore();
     const head = `<tr><th style="text-align:left;width:64px">分类</th><th style="text-align:right;width:70px">分值</th><th style="text-align:left;min-width:120px">名称</th><th style="text-align:right;width:110px">累计次数上限</th><th style="text-align:left">条件</th><th style="text-align:center;width:80px">状态</th>${ops ? '<th style="text-align:center;width:130px">操作</th>' : ''}</tr>`;
     let body;
@@ -1716,7 +1800,8 @@
   }
 
   // 弹窗：新建 / 编辑规则
-  window.leadScoreOpenAdd = function () { if (!canEditScore()) return; LEAD.srEditId = null; LEAD.srf = blankRuleForm(); renderRuleModal(); };
+  window.leadScoreSetSite = function (site) { if (!RULE_SITES.some(x => x.value === site)) return; LEAD.scoreSiteFilter = site; scoreRefresh(); };
+  window.leadScoreOpenAdd = function () { if (!canEditScore()) return; LEAD.srEditId = null; LEAD.srf = blankRuleForm(); LEAD.srf.site = LEAD.scoreSiteFilter; renderRuleModal(); };
   window.leadScoreOpenEdit = function (id) { if (!canEditScore()) return; const r = LEAD.scoreRules.find(x => x.id === id); if (!r) return; LEAD.srEditId = id; LEAD.srf = JSON.parse(JSON.stringify(r)); renderRuleModal(); };
   window.leadScoreToggle = function (id) { const r = LEAD.scoreRules.find(x => x.id === id); if (!r) return; r.enabled = !r.enabled; saveScoreRules(); scoreRefresh(); toast(r.enabled ? '规则已启用' : '规则已停用'); };
 
@@ -1735,21 +1820,22 @@
     const behRows = f.behaviorConditions.map((c, i) => {
       const bf = behField(c.behavior);
       const hasVerb = !(bf.noCount || bf.key === 'noOpportunity'); // 是否有计数控件
-      // 做过/未做过 下拉（所有行为都展示）
-      const verbCtl = `<select class="lead-inp" style="width:96px;flex:none" onchange="leadSRBeh(${i},'verb',this.value)"><option value="did" ${c.verb !== 'not' ? 'selected' : ''}>做过</option><option value="not" ${c.verb === 'not' ? 'selected' : ''}>未做过</option></select>`;
+      // 行为统一按做过处理。
       // 行为
       const behSel = `<select class="lead-inp" style="min-width:170px" onchange="leadSRBehField(${i},this.value)">${BEHAVIOR_FIELDS.map(b => `<option value="${b.key}" ${c.behavior === b.key ? 'selected' : ''}>${b.label}</option>`).join('')}</select>`;
       // 子选项：noCount 用 opts 绑 target（未做过时不展示取值条件）；页面类用 sub 绑 sub
       let subCtl = '';
-      if (bf.noCount && bf.opts) subCtl = (c.verb === 'not') ? '' : `<select class="lead-inp" style="min-width:120px" onchange="leadSRBeh(${i},'target',this.value)"><option value="">请选择</option>${bf.opts.map(o => `<option ${c.target === o ? 'selected' : ''}>${o}</option>`).join('')}</select>`;
+      if(bf.noCount&&bf.opts)subCtl=`<select class="lead-inp" style="min-width:120px" onchange="leadSRBeh(${i},'target',this.value)"><option value="">请选择</option>${bf.opts.map(o => `<option ${c.target === o ? 'selected' : ''}>${o}</option>`).join('')}</select>`;
       else if (bf.sub) subCtl = `<select class="lead-inp" style="min-width:120px" onchange="leadSRBeh(${i},'sub',this.value)">${bf.sub.map(o => `<option ${c.sub === o ? 'selected' : ''}>${o}</option>`).join('')}</select>`;
       // url / 商品编码 输入（加长）
       let inputCtl = '';
-      if (bf.url) inputCtl = `<input class="lead-inp" style="flex:1;min-width:280px" placeholder="请输入url" value="${esc(c.target || '')}" oninput="leadSRBeh(${i},'target',this.value)">`;
+      if(bf.key==='pageView'&&c.sub==='自定义页面')inputCtl=`<select class="lead-inp" onchange="leadSRBeh(${i},'urlMatch',this.value)"><option value="contains" ${c.urlMatch!=='equals'?'selected':''}>包含</option><option value="equals" ${c.urlMatch==='equals'?'selected':''}>等于</option></select><input class="lead-inp" placeholder="请输入URL" value="${esc(c.target||'')}" oninput="leadSRBeh(${i},'target',this.value)">`;
+      else if(bf.url)inputCtl=`<input class="lead-inp" placeholder="请输入url" value="${esc(c.target||'')}" oninput="leadSRBeh(${i},'target',this.value)">`;
       else if (bf.code) inputCtl = `<input class="lead-inp" style="flex:1;min-width:320px" placeholder="请输入商品编码，多个用英文,隔开" value="${esc(c.target || '')}" oninput="leadSRBeh(${i},'target',this.value)">`;
+      if((bf.productScope&&c.target==='是')||bf.categoryScope)inputCtl=`<select class="lead-inp" style="min-width:120px" onchange="leadSRBeh(${i},'fa',this.value)"><option value="">选择FA</option>${SCORE_FA_OPTIONS.map(v=>`<option ${c.fa===v?'selected':''}>${v}</option>`).join('')}</select><select class="lead-inp" style="min-width:130px" onchange="leadSRBeh(${i},'productGroup',this.value)"><option value="">选择产品组</option>${SCORE_PRODUCT_GROUP_OPTIONS.map(v=>`<option ${c.productGroup===v?'selected':''}>${v}</option>`).join('')}</select>`;
       if (bf.key === 'leaveContact' && c.target === '是') {
         const links = (c.links && c.links.length ? c.links : ['']);
-        inputCtl = `<div class="lead-score-inline-list"><span style="font-size:13px;color:var(--text-secondary);white-space:nowrap">留资链接</span>${links.map((link, li) => `<div class="lead-pa-row" style="margin-left:0;gap:6px"><input class="lead-inp" style="min-width:260px" placeholder="请输入链接" value="${esc(link || '')}" oninput="leadSRLinkSet(${i},${li},this.value)"><button class="lead-abtn dan" ${links.length === 1 ? 'disabled' : ''} onclick="leadSRLinkDel(${i},${li})">×</button></div>`).join('')}<button type="button" class="btn btn-sm btn-secondary" onclick="leadSRLinkAdd(${i})">+ 添加链接</button></div>`;
+        inputCtl = `<div class="lead-score-inline-list">${links.map((link, li) => `<div class="lead-score-link-row"><input class="lead-inp" placeholder="请输入留资链接" value="${esc(link || '')}" oninput="leadSRLinkSet(${i},${li},this.value)"><button class="lead-abtn dan" ${links.length === 1 ? 'disabled' : ''} onclick="leadSRLinkDel(${i},${li})">×</button></div>`).join('')}<button type="button" class="btn btn-sm btn-secondary lead-score-link-add" onclick="leadSRLinkAdd(${i})">+ 添加链接</button></div>`;
       }
       if (bf.productTarget) {
         const mode = c.targetMode || 'fa';
@@ -1759,6 +1845,8 @@
         const codeCtl = mode === 'code' ? `<input class="lead-inp" style="flex:1;min-width:260px" placeholder="请输入商品编码，多个用英文,隔开" value="${esc(c.target || '')}" oninput="leadSRBeh(${i},'target',this.value)">` : '';
         inputCtl = modeCtl + (mode === 'code' ? codeCtl : faCtl + pgCtl);
       }
+      if(bf.key==='coupon')inputCtl=`<select class="lead-inp" onchange="leadSRBeh(${i},'couponCategory',this.value)"><option value="">请选择</option>${COUPON_CATEGORIES.map(v=>`<option ${c.couponCategory===v?'selected':''}>${v}</option>`).join('')}</select>`;
+      if(bf.key==='noBrowse'){subCtl='';inputCtl=`<select class="lead-inp" onchange="leadSRBeh(${i},'siteTarget',this.value)">${NO_BROWSE_SITES.map(v=>`<option ${c.siteTarget===v?'selected':''}>${v}</option>`).join('')}</select>`+(c.siteTarget==='自定义页面'?`<input class="lead-inp" placeholder="请输入URL" value="${esc(c.target||'')}" oninput="leadSRBeh(${i},'target',this.value)">`:'')}
       if (bf.key === 'search') {
         if (c.sub === '搜索关键词') {
           inputCtl = `<input class="lead-inp" style="flex:1;min-width:280px" placeholder="请输入搜索关键词，多个关键词用英文,隔开" value="${esc((c.keywords || []).filter(Boolean).join(','))}" oninput="leadSRKeywordsSet(${i},this.value)">`;
@@ -1767,24 +1855,17 @@
         }
       }
       // 日期区间（每条行为条件）
-      const dayCtl = `<input type="date" class="lead-inp" style="width:140px;flex:none" value="${c.dayFrom || ''}" onchange="leadSRBeh(${i},'dayFrom',this.value)"><span style="color:var(--text-tertiary);font-size:12px">至</span><input type="date" class="lead-inp" style="width:140px;flex:none" value="${c.toNow ? '' : (c.dayTo || '')}" ${c.toNow ? 'disabled' : ''} onchange="leadSRBeh(${i},'dayTo',this.value)"><label class="lead-ck" style="white-space:nowrap"><input type="checkbox" ${c.toNow ? 'checked' : ''} onchange="leadSRBehToNow(${i},this.checked)">至今</label>`;
       // 计数/天数 控件（登录恒为天数；未做过仅页面浏览展示天数，其余不展示）
       const cntInput = (key, val, ph) => `<input class="lead-inp" type="number" min="1" style="width:90px;flex:none" placeholder="${ph || 'N'}" value="${val}" oninput="leadSRBeh(${i},'${key}',this.value)">`;
       let countCtl = '';
       if (hasVerb) {
-        if (bf.key === 'login') {
-          countCtl = `<div class="lead-pa-row" style="margin-left:0"><span style="font-size:13px;color:var(--text-secondary);white-space:nowrap">距离最近一次登录</span>${cntInput('count', c.count)}<span style="font-size:13px;color:var(--text-secondary)">天内</span></div>`;
-        } else if (c.verb === 'not') {
-          if (bf.key === 'pageView') countCtl = `<div class="lead-pa-row" style="margin-left:0"><span style="font-size:13px;color:var(--text-secondary);white-space:nowrap">距离最近一次浏览</span>${cntInput('count', c.count)}<span style="font-size:13px;color:var(--text-secondary)">天内</span></div>`;
-          // 其余行为：未做过不展示计数筛选
-        } else {
-          countCtl = `<div class="lead-pa-row" style="margin-left:0"><span style="font-size:13px;color:var(--text-secondary);white-space:nowrap">${COUNT_WORD[bf.countMode] || '每发生'}</span>${cntInput('count', c.count)}<span style="font-size:13px;color:var(--text-secondary)">次</span></div>`;
-        }
+        if(bf.daysAbove) countCtl=`<div class="lead-pa-row" style="margin-left:0"><span style="font-size:13px;color:var(--text-secondary)">${bf.key==='login'?'连续未登陆':'距离最近一次浏览'}</span>${cntInput('count',c.count)}<span style="font-size:13px;color:var(--text-secondary)">天以上</span></div>`;
+        else countCtl = `<div class="lead-pa-row" style="margin-left:0"><span style="font-size:13px;color:var(--text-secondary);white-space:nowrap">${COUNT_WORD[bf.countMode] || '每发生'}</span>${cntInput('count', c.count)}<span style="font-size:13px;color:var(--text-secondary)">次</span></div>`;
       }
       return `<div class="lead-beh-row">
         <div class="lead-pa-row">
-          ${dayCtl}${verbCtl}${behSel}${subCtl}${inputCtl}
-          <button class="lead-abtn dan" ${(f.behaviorConditions.length === 1 && f.attrConditions.length === 0) ? 'disabled' : ''} onclick="leadSRBehDel(${i})">×</button>
+          ${behSel}${subCtl}${inputCtl}
+          <button class="lead-abtn dan lead-beh-delete" ${(f.behaviorConditions.length === 1 && f.attrConditions.length === 0) ? 'disabled' : ''} onclick="leadSRBehDel(${i})">×</button>
         </div>
         ${countCtl}</div>`;
     }).join('');
@@ -1794,6 +1875,7 @@
         ${field('获得分值', `<input class="lead-inp" id="sr-score" type="number" min="1" placeholder="≥1 整数" value="${f.score}" oninput="leadSRSet('score',this.value)">`)}
         ${field('累计次数上限', `<input class="lead-inp" id="sr-cap" type="number" min="1" placeholder="≥1 整数" value="${f.cap}" oninput="leadSRSet('cap',this.value)">`)}
       </div>
+      <div class="lead-field"><label>站点</label><div class="lead-field-c lead-rule-sites">${RULE_SITES.map(s=>`<label class="lead-ck"><input type="radio" name="sr-site" ${f.site===s.value?'checked':''} onchange="leadSRSet('site','${s.value}')">${s.label}</label>`).join('')}</div></div>
       <div class="lead-field"><label>规则类型</label><div class="lead-field-c">
         <label class="lead-ck" style="margin-right:16px"><input type="radio" name="sr-kind" ${f.kind === 'add' ? 'checked' : ''} onchange="leadSRSet('kind','add')">加分规则</label>
         <label class="lead-ck"><input type="radio" name="sr-kind" ${f.kind === 'sub' ? 'checked' : ''} onchange="leadSRSet('kind','sub')">减分规则</label></div></div>
@@ -1804,6 +1886,7 @@
       <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin:10px 0"><span style="font-size:12px;color:var(--text-secondary)">属性组与行为组之间</span>${srSeg(f.groupLogic, 'groupLogic')}</div>
       <div class="lead-cond-group">
         <div class="lead-cond-head"><span>用户行为</span>${f.behaviorConditions.length > 1 ? `<span style="font-weight:400;color:var(--text-secondary);font-size:12px">组内</span>${srSeg(f.behaviorLogic, 'behaviorLogic')}` : ''}<button type="button" class="btn btn-sm btn-secondary" style="margin-left:auto" onclick="leadSRBehAdd()">+ 添加</button></div>
+        <div class="lead-behavior-time"><span class="lead-behavior-time-label">时间范围</span><input type="date" class="lead-inp" value="${f.behaviorDayFrom||''}" onchange="leadSRBehaviorTime('behaviorDayFrom',this.value)"><span>至</span><input type="date" class="lead-inp" value="${f.behaviorToNow?'':(f.behaviorDayTo||'')}" ${f.behaviorToNow?'disabled':''} onchange="leadSRBehaviorTime('behaviorDayTo',this.value)"><label class="lead-ck"><input type="checkbox" ${f.behaviorToNow?'checked':''} onchange="leadSRBehaviorTime('behaviorToNow',this.checked)">至今</label></div>
         ${behRows || '<div style="font-size:12px;color:var(--text-tertiary);padding:4px 0">暂无行为条件</div>'}
       </div>`;
     openModal(LEAD.srEditId ? '编辑规则' : '新增规则', body, `<button class="btn btn-sm btn-secondary" onclick="leadSRReset()">重置</button><button class="btn btn-sm btn-primary" onclick="leadScoreConfirm()">确认</button>`, 720);
@@ -1814,35 +1897,40 @@
   window.leadSRAttrField = function (i, v) { const c = LEAD.srf.attrConditions[i]; c.field = v; c.value = attrField(v).options[0]; renderRuleModal(); };
   window.leadSRAttrAdd = function () { LEAD.srf.attrConditions.push(makeAttrCond()); renderRuleModal(); };
   window.leadSRAttrDel = function (i) { LEAD.srf.attrConditions.splice(i, 1); renderRuleModal(); };
-  window.leadSRBeh = function (i, k, v) { const c = LEAD.srf.behaviorConditions[i]; c[k] = v; if (k === 'verb' || k === 'target' || k === 'sub') renderRuleModal(); };
+  window.leadSRBeh = function (i, k, v) { const c = LEAD.srf.behaviorConditions[i]; c[k] = v; if (k === 'target' || k === 'sub' || k === 'siteTarget') renderRuleModal(); };
   window.leadSRBehField = function (i, v) {
     const c = LEAD.srf.behaviorConditions[i], bf = behField(v);
-    c.behavior = v; c.target = ''; c.count = ''; c.targetMode = bf.productTarget ? 'fa' : 'fa'; c.fa = ''; c.productGroup = ''; c.links = ['']; c.keywords = ['']; c.toNow = false;
+    c.behavior=v;c.verb='did';c.target='';c.count='';c.urlMatch='contains';c.siteTarget='政企';c.couponCategory=''; c.targetMode = bf.productTarget ? 'fa' : 'fa'; c.fa = ''; c.productGroup = ''; c.links = ['']; c.keywords = ['']; c.toNow = false;
     c.sub = bf.sub ? bf.sub[0] : (bf.opts ? bf.opts[0] : '');
     renderRuleModal();
   };
-  window.leadSRBehToNow = function (i, checked) { const c = LEAD.srf.behaviorConditions[i]; c.toNow = checked; if (checked) c.dayTo = ''; renderRuleModal(); };
+  window.leadSRBehaviorTime=function(k,v){LEAD.srf[k]=v;if(k==='behaviorToNow'&&v)LEAD.srf.behaviorDayTo='';renderRuleModal();};
   window.leadSRProductTargetMode = function (i, mode) { const c = LEAD.srf.behaviorConditions[i]; c.targetMode = mode; c.target = ''; c.fa = ''; c.productGroup = ''; renderRuleModal(); };
   window.leadSRLinkSet = function (i, li, v) { const c = LEAD.srf.behaviorConditions[i]; c.links = c.links && c.links.length ? c.links : ['']; c.links[li] = v; };
   window.leadSRLinkAdd = function (i) { const c = LEAD.srf.behaviorConditions[i]; c.links = c.links && c.links.length ? c.links : ['']; c.links.push(''); renderRuleModal(); };
   window.leadSRLinkDel = function (i, li) { const c = LEAD.srf.behaviorConditions[i]; c.links = c.links && c.links.length ? c.links : ['']; c.links.splice(li, 1); if (!c.links.length) c.links.push(''); renderRuleModal(); };
-  window.leadSRKeywordsSet = function (i, value) { LEAD.srf.behaviorConditions[i].keywords = String(value || '').split(',').map(x => x.trim()).filter(Boolean); };
+  window.leadSRKeywordsSet=function(i,value){LEAD.srf.behaviorConditions[i].keywords=[...new Set(String(value||'').split(',').map(x=>x.trim()).filter(Boolean))]};
   window.leadSRBehDate = function (i, idx, v) { const c = LEAD.srf.behaviorConditions[i]; let dr = c.dateRange ? c.dateRange.slice() : ['', '']; dr[idx] = v; c.dateRange = (dr[0] || dr[1]) ? dr : null; };
   window.leadSRBehAdd = function () { LEAD.srf.behaviorConditions.push(makeBehCond()); renderRuleModal(); };
   window.leadSRBehDel = function (i) { LEAD.srf.behaviorConditions.splice(i, 1); renderRuleModal(); };
   window.leadSRReset = function () { const kind = LEAD.srf.kind; LEAD.srf = blankRuleForm(); LEAD.srf.kind = kind; renderRuleModal(); };
   window.leadScoreConfirm = function () {
     const f = LEAD.srf;
-    if (!f.name || !f.name.trim()) return toast('请输入规则名称', 'warn');
+    if(!f.name||!f.name.trim())return toast('请输入规则名称','warn');
+    if(!RULE_SITES.some(s=>s.value===f.site))return toast('请选择站点','warn');
     if (f.name.length > 30) return toast('规则名称最长 30 字', 'warn');
     const score = Number(f.score), cap = Number(f.cap);
     if (!Number.isInteger(score) || score < 1) return toast('获得分值需为 ≥1 的整数', 'warn');
     if (!Number.isInteger(cap) || cap < 1) return toast('累计次数上限需为 ≥1 的整数', 'warn');
     if (f.attrConditions.length === 0 && f.behaviorConditions.length === 0) return toast('至少添加 1 条属性或行为条件', 'warn');
+    if(!f.behaviorToNow&&((f.behaviorDayFrom&&!f.behaviorDayTo)||(!f.behaviorDayFrom&&f.behaviorDayTo)))return toast('开始日期和结束日期需同时填写','warn');
+    if(!f.behaviorToNow&&f.behaviorDayFrom&&f.behaviorDayTo&&f.behaviorDayFrom>f.behaviorDayTo)return toast('开始日期不能晚于结束日期','warn');
     for (const c of f.behaviorConditions) {
-      const bf = behField(c.behavior);
+      const bf=behField(c.behavior);c.verb='did';
+      if(bf.categoryScope){if(!String(c.fa||'').trim())return toast('历史采购过品类请选择 FA','warn');if(!String(c.productGroup||'').trim())return toast('历史采购过品类请选择产品组','warn')}
+      if(bf.productScope&&c.target==='是'){if(!String(c.fa||'').trim())return toast('加购/提交未支付请选择 FA','warn');if(!String(c.productGroup||'').trim())return toast('加购/提交未支付请选择产品组','warn')}
       if (bf.key === 'leaveContact' && c.target === '是') {
-        c.links = (c.links || []).map(x => String(x || '').trim()).filter(Boolean);
+        c.links=[...new Set((c.links||[]).map(x=>String(x||'').trim()).filter(Boolean))];
         if (!c.links.length) return toast('留资为「是」时请至少填写 1 条链接', 'warn');
       }
       if (bf.productTarget) {
@@ -1854,20 +1942,17 @@
         }
       } else if (bf.key === 'search') {
         if (c.sub === '搜索关键词') {
-          c.keywords = (c.keywords || []).map(x => String(x || '').trim()).filter(Boolean);
+          c.keywords=[...new Set((c.keywords||[]).map(x=>String(x||'').trim()).filter(Boolean))];
           if (!c.keywords.length) return toast('请至少填写 1 个搜索关键词', 'warn');
         } else if (!String(c.target || '').trim()) return toast('搜索页面请填写 URL', 'warn');
-      } else if ((bf.url || bf.code) && !c.target) return toast(`行为「${bf.label}」需填写${bf.code ? '商品编码' : 'URL'}`, 'warn');
+      }else if(bf.key==='pageView'&&c.sub==='自定义页面'&&!String(c.target||'').trim())return toast('自定义页面请填写 URL','warn');
+      else if(bf.key==='coupon'&&!c.couponCategory)return toast('请选择优惠券品类','warn');
+      else if(bf.key==='noBrowse'&&c.siteTarget==='自定义页面'&&!String(c.target||'').trim())return toast('未浏览选择自定义页面时请填写 URL','warn');
+      else if ((bf.url || bf.code) && !c.target) return toast(`行为「${bf.label}」需填写${bf.code ? '商品编码' : 'URL'}`, 'warn');
       if (bf.noCount || bf.key === 'noOpportunity') continue;
-      if (bf.key === 'login') {
-        const n = Number(c.count); if (!Number.isInteger(n) || n < 1) return toast('登录请填写天数（≥1 整数）', 'warn');
-      } else if (c.verb === 'not') {
-        if (bf.key === 'pageView') { const n = Number(c.count); if (!Number.isInteger(n) || n < 1) return toast('页面浏览（未做过）请填写天数（≥1 整数）', 'warn'); }
-      } else {
-        const n = Number(c.count); if (!Number.isInteger(n) || n < 1) return toast(`行为「${bf.label}」请填写次数（≥1 整数）`, 'warn');
-      }
+      if(bf.daysAbove){const n=Number(c.count);if(!Number.isInteger(n)||n<1)return toast(`行为「${bf.label}」请填写 N 天以上（≥1 整数）`,'warn')}else{const n=Number(c.count);if(!Number.isInteger(n)||n<1)return toast(`行为「${bf.label}」请填写次数（≥1 整数）`,'warn')}
     }
-    const payload = { name: f.name.trim(), kind: f.kind, score, cap, attrLogic: f.attrLogic, attrConditions: f.attrConditions.map(c => ({ ...c })), groupLogic: f.groupLogic, behaviorConditions: f.behaviorConditions.map(c => ({ ...c })) };
+    const payload={name:f.name.trim(),site:f.site,behaviorDayFrom:f.behaviorDayFrom,behaviorDayTo:f.behaviorDayTo,behaviorToNow:f.behaviorToNow,kind: f.kind, score, cap, attrLogic: f.attrLogic, attrConditions: f.attrConditions.map(c => ({ ...c })), groupLogic: f.groupLogic, behaviorConditions: f.behaviorConditions.map(c => { const {dayFrom,dayTo,toNow,...condition}=c; return condition; }) };
     if (LEAD.srEditId) {
       const idx = LEAD.scoreRules.findIndex(r => r.id === LEAD.srEditId);
       if (idx >= 0) LEAD.scoreRules[idx] = Object.assign({}, LEAD.scoreRules[idx], payload);
@@ -1893,7 +1978,15 @@
     .lead-seg-btn{height:28px;padding:0 13px;border:none;background:transparent;color:var(--text-secondary);border-radius:6px;cursor:pointer;font-size:12px;font-weight:500;transition:all .15s}
     .lead-seg-btn:hover{color:var(--text)}
     .lead-seg-btn.active{background:var(--card-bg);color:var(--primary);font-weight:600;box-shadow:0 1px 2px rgba(15,23,42,.06)}
-    .lead-filter{display:flex;align-items:center;gap:12px;padding:14px 16px;margin-bottom:14px;flex-wrap:wrap;position:relative;z-index:30;overflow:visible}
+    .lead-site-view{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-secondary);white-space:nowrap}
+    .lead-behavior-time{display:flex;align-items:center;gap:8px;padding:10px 12px;margin-bottom:10px;border:1px solid var(--border-light);border-radius:8px;background:var(--bg)}
+    .lead-behavior-time .lead-inp{width:150px;flex:none}
+    .lead-behavior-time-label{font-size:13px;font-weight:600;color:var(--text);margin-right:4px}
+    .lead-score-inline-list{display:flex;flex:1 1 420px;min-width:320px;flex-direction:column;align-items:stretch;gap:6px}
+    .lead-score-link-row{display:flex;align-items:center;gap:6px;flex-wrap:nowrap;width:100%}
+    .lead-score-link-row .lead-inp{flex:1 1 auto;min-width:0;width:auto}
+    .lead-score-link-row .lead-abtn{flex:0 0 auto;margin:0}
+    .lead-score-link-add{align-self:flex-start}    .lead-filter{display:flex;align-items:center;gap:12px;padding:14px 16px;margin-bottom:14px;flex-wrap:wrap;position:relative;z-index:30;overflow:visible}
     /* 与在职员工管理筛选框统一：高36 / 圆角8 / padding 0 12 / 13px（排除复选框/单选框）*/
     .lead-filter .ops-select,.lead-filter input:not([type=checkbox]):not([type=radio]),.lead-filter select{height:36px;min-height:36px;padding:0 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:var(--card-bg);color:var(--text)}
     .lead-filter .ops-select:focus,.lead-filter input:not([type=checkbox]):not([type=radio]):focus,.lead-filter select:focus{border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-light)}

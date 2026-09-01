@@ -200,6 +200,12 @@ test('adjustment log renders independent preview and formal release evidence', a
   const releaseLog = sidebar.slice(releaseLogStart, releaseLogEnd)
   assert.match(releaseLog, /deployTargets: \['new', 'formal'\]/)
   assert.match(releaseLog, /status: '已合并正式'/)
+
+  const enterpriseReleaseStart = sidebar.indexOf("releaseKey: 'enterprise-customer-agreement-order-20260901'")
+  const enterpriseReleaseEnd = sidebar.indexOf('\n  },', enterpriseReleaseStart)
+  const enterpriseRelease = sidebar.slice(enterpriseReleaseStart, enterpriseReleaseEnd)
+  assert.match(enterpriseRelease, /deployTargets: \['new', 'formal'\]/)
+  assert.match(enterpriseRelease, /status: '已合并正式'/)
 })
 
 test('permission workspace follows the supplied 0825 rail and approval-route design', async () => {

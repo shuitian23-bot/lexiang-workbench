@@ -15,7 +15,7 @@ test('enterprise customer and order menus add the requested entries without repl
 
   assert.match(appStore, /'lead\.governmentPool':\s*\{ label: '线索池-政企', path: '\/lead\/government-pool' \}/)
   assert.match(appStore, /'order\.purchaseOrders':\s*\{ label: '协议采购单管理', path: '\/order\/purchase-orders' \}/)
-  assert.match(appStore, /'order\.agreement':\s*\{ label: '协议产品订单管理', path: '\/order\/agreement' \}/)
+  assert.match(appStore, /'order\.agreement':\s*\{ label: '协议采购订单', path: '\/order\/agreement' \}/)
 })
 
 test('new menu entries have isolated visible routes and an order detail route', async () => {
@@ -36,7 +36,7 @@ test('advertising product video POC is added without replacing existing menu ent
   assert.match(appStore, /'advertising\.productVideo':\s*\{ label: '商品视频管理', path: '\/advertising\/product-videos' \}/)
   assert.match(appStore, /\['employee', 'lead', 'order', 'advertising'\]/)
   assert.match(appStore, /'lead\.governmentPool':\s*\{ label: '线索池-政企'/)
-  assert.match(appStore, /'order\.agreement':\s*\{ label: '协议产品订单管理'/)
+  assert.match(appStore, /'order\.agreement':\s*\{ label: '协议采购订单'/)
 })
 
 test('advertising product video POC keeps its route and mock data isolated', async () => {
@@ -69,22 +69,32 @@ test('new pages use the established native runtime bridge', async () => {
   assert.match(adapter, /pageId === 'order\.agreement'/)
 })
 
-test('government lead runtime is added without importing unrelated score-model changes', async () => {
+test('enterprise customer runtime includes the confirmed filters, batch actions, import results and score sites', async () => {
   const leadRuntime = await source('../public/admin-runtime/workbench-lead.js')
 
   assert.match(leadRuntime, /function renderGovernmentPool\(\)/)
   assert.match(leadRuntime, /function governmentPoolRefresh\(\)/)
   assert.match(leadRuntime, /PAGE_RENDERERS\['lead\.governmentPool'\] = renderGovernmentPool/)
-  assert.doesNotMatch(leadRuntime, /const RULE_SITES=/)
-  assert.doesNotMatch(leadRuntime, /LEAD\.scoreSiteFilter/)
+  assert.match(leadRuntime, /const PRODUCT_TYPE_OPTIONS =/)
+  assert.match(leadRuntime, /function renderImportResultsPage\(\)/)
+  assert.match(leadRuntime, /function touchDropdown\(\)/)
+  assert.match(leadRuntime, /function mqlDropdown\(\)/)
+  assert.match(leadRuntime, /const RULE_SITES=/)
+  assert.match(leadRuntime, /window\.leadScoreSetSite = function/)
 })
 
-test('agreement product order runtime keeps the requested list and detail behavior isolated', async () => {
+test('agreement purchase order runtime keeps purchase, PO and SO status plus protected plain-data access', async () => {
   const orderRuntime = await source('../public/admin-runtime/workbench-agreement-orders.js')
 
   assert.match(orderRuntime, /PAGE_RENDERERS\['order\.agreement'\]=renderProductOrders/)
   assert.match(orderRuntime, /PAGE_RENDERERS\['order\.agreement\.detail'\]=renderAgreementProductOrderDetail/)
+  assert.match(orderRuntime, /var purchaseStates =/)
+  assert.match(orderRuntime, /function poShippingStatus\(o\)/)
+  assert.match(orderRuntime, /function purchaseMembers\(purchase\)/)
+  assert.match(orderRuntime, /function renderPoDetail\(po,members\)/)
+  assert.match(orderRuntime, /agreementProductOrderViewPlain/)
+  assert.match(orderRuntime, /URL\.createObjectURL/)
   assert.match(orderRuntime, /采购单编号/)
-  assert.match(orderRuntime, /收货地址明细/)
+  assert.match(orderRuntime, /协议采购订单/)
   assert.match(orderRuntime, /agreementProductOrderQuery/)
 })

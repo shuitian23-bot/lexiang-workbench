@@ -41,25 +41,30 @@ test('government lead pool uses the package read-only table and shared actions',
   for (const field of ['REL-GAB IS', 'REL-KAB IS', 'REL-新兴市场 IS']) assert.match(table, new RegExp(field))
 })
 
-test('agreement orders follow the package list and export contract', async () => {
+test('agreement orders follow the package hierarchy and masked export contract', async () => {
   const runtime = await source('../public/admin-runtime/workbench-agreement-orders.js')
   const renderer = functionBlock(runtime, 'renderProductOrders', 'detailField')
 
-  assert.match(runtime, /agreement:\s*'KO260403250008'/)
-  assert.match(runtime, /agreementName:\s*'单显示器'/)
-  assert.match(renderer, /onclick="agreementProductOrderExport\(\)">导出<\/button>/)
+  assert.match(runtime, /var purchaseStates =/)
+  assert.match(runtime, /var purchaseOrders =/)
+  assert.match(runtime, /function purchaseStatus\(o\)/)
+  assert.match(runtime, /function poShippingStatus\(o\)/)
+  assert.match(renderer, /onclick="agreementProductOrderExport\(\)">导出（脱敏）<\/button>/)
+  assert.match(renderer, /onclick="agreementProductOrderExport\(true\)">导出（明文）<\/button>/)
   assert.doesNotMatch(renderer, />重置<|agreementProductOrderReset/)
   assert.doesNotMatch(runtime, /window\.agreementProductOrderReset/)
-  assert.match(runtime, /workspaceNotify\('协议产品订单导出已生成'\)/)
-  assert.doesNotMatch(runtime, /URL\.createObjectURL|text\/csv/)
+  assert.match(runtime, /link\.download='协议采购订单_'/)
+  assert.match(runtime, /URL\.createObjectURL|text\/csv/)
 })
 
-test('agreement order detail follows the package address and section styling', async () => {
+test('agreement order detail follows the package purchase and PO grouping contract', async () => {
   const runtime = await source('../public/admin-runtime/workbench-agreement-orders.js')
 
-  assert.match(runtime, /← 返回协议产品订单管理/)
-  assert.match(runtime, /<div class="apo-address-item"><b>地址 2<\/b>/)
-  assert.match(runtime, /北京市朝阳区望京街道/)
+  assert.match(runtime, /← 返回协议采购订单/)
+  assert.match(runtime, /function purchaseMembers\(purchase\)/)
+  assert.match(runtime, /function renderPoDetail\(po,members\)/)
+  assert.match(runtime, /查看明文信息/)
+  assert.match(runtime, /function maskAddress\(value\)/)
   assert.match(runtime, /\.apo-section h2:before/)
-  assert.match(runtime, /@media\(max-width:900px\)[\s\S]*?\.apo-address-item\{grid-template-columns:1fr\}/)
+  assert.match(runtime, /@media\(max-width:900px\)/)
 })
