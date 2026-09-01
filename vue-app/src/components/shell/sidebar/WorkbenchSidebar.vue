@@ -146,6 +146,15 @@ const pocReleaseLedger = ref({ records: {} })
 
 const basePocLogRecords = [
   {
+    time: '2026-09-01 17:27',
+    releaseKey: 'enterprise-customer-agreement-order-20260901',
+    title: '企业客户管理与协议采购订单更新',
+    changePoint: '更新企业客户管理筛选、导入结果和批量触达能力；升级协议采购订单的采购单、PO、SO 分层展示及明脱敏查看与导出。',
+    detail: '本次仅合入 0901 POC 中企业客户管理和协议订单相关差异，并将菜单、页签、页面标题及导出文件统一命名为“协议采购订单”。保留现有线索池-政企、协议采购单管理、商品视频管理、Skill Hub、权限管理、右侧 AI 助手、公共路由及其他运行文件，不采用压缩包中的整站源码和公共构建产物。',
+    deployTargets: ['new'],
+    status: '已更新 new 预览'
+  },
+  {
     time: '2026-08-28 17:23',
     releaseKey: 'skill-create-tooltip-name-20260828',
     title: 'Skill 创建能力提示补充名称',

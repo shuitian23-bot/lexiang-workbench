@@ -21,7 +21,7 @@ const pageHtml = ref('')
 onMounted(async () => {
   appStore.ensureStaticTab(pageId)
   appStore.setActiveStaticTab(pageId)
-  document.title = '协议产品订单管理 - 乐享 AI 工作台'
+  document.title = '协议采购订单 - 乐享 AI 工作台'
   await ensureNativeWorkbenchRuntime(router)
   pageHtml.value = renderNativeWorkbenchPage(pageId)
   await nextTick()
