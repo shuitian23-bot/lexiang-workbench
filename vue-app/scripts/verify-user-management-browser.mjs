@@ -112,7 +112,7 @@ const roleDialog = page.getByRole('dialog', { name: '添加角色', exact: true 
 await roleDialog.waitFor()
 assert.equal(await roleDialog.locator('.modal-search-input').first().evaluate((element) => element === document.activeElement), true, '用户管理添加角色必须自动聚焦搜索框')
 assert.equal(await roleDialog.getAttribute('aria-modal'), 'true', '用户管理添加角色必须复用标准模态语义')
-const activeRoleRow = roleDialog.locator('.role-picker-row').filter({ hasText: /\/ [1-9]\d* 项数据权限/ }).first()
+const activeRoleRow = roleDialog.locator('.role-picker-row').filter({ hasText: '商品运营' }).first()
 await activeRoleRow.click()
 const activeRoleCheckbox = activeRoleRow.locator('.role-picker-check input')
 if (await activeRoleCheckbox.isChecked()) await activeRoleCheckbox.uncheck()

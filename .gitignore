@@ -50,6 +50,7 @@ backups/
 data/
 server.out
 *.tmp
+*.tsbuildinfo
 public/wiki-index.html.tmp
 
 # macOS AppleDouble 垃圾
