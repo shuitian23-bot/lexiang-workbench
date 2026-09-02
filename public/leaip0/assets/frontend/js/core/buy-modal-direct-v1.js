@@ -1,4 +1,4 @@
-/* v36-benefit-inputs */
+/* v39-live-order-center-detail-entry */
 (() => {
   const AIR_13_IMAGE = '/leai%20product%20data/shop-chat%20product%20data/%E7%AC%94%E8%AE%B0%E6%9C%AC/08_SPU_%E8%81%94%E6%83%B3%E5%B0%8F%E6%96%B0_Air_13/%E7%99%BD%E5%BA%95%E5%9B%BE.jpg';
   const FALLBACK_IMAGE = '/assets/product-placeholder.svg';
@@ -36,6 +36,7 @@
     style.textContent += `.lx-order-code-menu{top:calc(100% + 4px);bottom:auto}`;
     style.textContent += `.lx-buy-direct-detail{margin-top:8px}.lx-buy-direct-detail-button,.lx-buy-direct-detail-button:hover,.lx-buy-direct-detail-button:focus{text-decoration:underline!important;text-underline-offset:3px}.lx-buy-price-line.is-clickable:hover{background:#fcf8fc}.lx-buy-benefit-dialog{height:min(560px,calc(100vh - 32px))}.lx-buy-benefit-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;min-height:0;overflow:auto}.lx-buy-coupon-card{position:relative;min-height:84px;display:grid;grid-template-columns:88px minmax(0,1fr) 18px;gap:8px;align-items:center;padding:12px;border:1px solid transparent;border-radius:9px;background:linear-gradient(110deg,#fff3f7,#e8edff);color:#332d35;text-align:left;cursor:pointer}.lx-buy-coupon-card.is-selected{border-color:#681057;box-shadow:0 0 0 1px rgba(104,16,87,.08)}.lx-buy-coupon-value{color:#ff3434;font-size:14px;line-height:1}.lx-buy-coupon-value b{font-size:30px}.lx-buy-coupon-value small{display:block;margin-top:5px;font-size:10px}.lx-buy-coupon-copy{min-width:0;font-size:10px;line-height:1.5}.lx-buy-coupon-copy strong,.lx-buy-coupon-copy span{display:block}.lx-buy-coupon-copy span{color:#6f6872}.lx-buy-benefit-radio{width:16px;height:16px;box-sizing:border-box;border:1px solid #c7bdc7;border-radius:50%;background:#fff}.lx-buy-coupon-card.is-selected .lx-buy-benefit-radio{border:5px solid #681057}.lx-buy-wallet-box{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;width:min(350px,100%);height:42px;box-sizing:border-box;border:1px solid #e4dce7;border-radius:4px;background:#fcfaff}.lx-buy-wallet-box input{width:100%;height:40px;padding:0 14px;border:0;background:transparent;outline:0;font:inherit}.lx-buy-wallet-box span{padding:0 14px;color:#ff3434}.lx-buy-wallet-hint{margin:10px 0 0;color:#665f68}.lx-buy-wallet-hint em{color:#ff3434;font-style:normal}.lx-invoice-dialog{height:min(620px,calc(100vh - 32px))}.lx-invoice-type-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.lx-invoice-type-grid .lx-order-channel{display:flex;min-height:42px;align-items:center;justify-content:center;padding:8px;color:#38333a;text-align:center;white-space:nowrap}.lx-invoice-type-grid .lx-order-channel.is-active{padding:8px;color:#4d144a}.lx-invoice-notice{margin:0 0 18px;padding:12px 14px;border-radius:7px;background:#faf8fc;color:#7b747e;font-size:11px;line-height:1.6}.lx-invoice-form{grid-template-columns:112px minmax(0,1fr);gap:12px 14px}.lx-invoice-form input{height:42px}.lx-invoice-form input:disabled{background:#f7f5f8;color:#8e8791}.lx-invoice-consent{display:flex;align-items:center;gap:10px;margin-top:18px;color:#3f3942}.lx-invoice-consent input{accent-color:#681057}.lx-order-edit-footer.has-secondary{gap:12px}.lx-order-edit-footer .secondary{border:1px solid #d3bfd2;background:#fff;color:#4d144a}.lx-order-edit-footer.has-secondary button{width:104px}@media(max-width:620px){.lx-buy-benefit-list{grid-template-columns:1fr}.lx-invoice-type-grid{grid-template-columns:1fr}.lx-invoice-form{grid-template-columns:92px minmax(0,1fr)}}`;
     style.textContent += `.lx-buy-wallet-box{width:100%;border-color:#f0c6cc;background:#fff1f2}.lx-buy-wallet-box input{min-width:0;-webkit-appearance:none;appearance:none}.lx-buy-coupon-field input{width:100%;border-color:#f0c6cc;background:#fff1f2}`;
+    style.textContent += `.lx-payment-dialog{display:flex;flex-direction:column;overflow:hidden}.lx-payment-dialog h2{margin-bottom:0}.lx-payment-stage{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:22px 18px;text-align:center}.lx-payment-state{margin:0 0 18px;color:#4d144a;font-size:17px;font-weight:700}.lx-payment-wait{display:flex;align-items:center;gap:18px;margin:0 0 18px;color:#6c6570;font-size:13px}.lx-payment-wait strong{color:#19171b;font-size:18px}.lx-payment-countdown{color:#b8252e;font-variant-numeric:tabular-nums}.lx-payment-product{max-width:420px;margin:0;color:#4d474f;font-size:13px;line-height:1.8}.lx-payment-actions{display:flex;justify-content:flex-end;gap:12px;margin-top:auto;padding-top:16px}.lx-payment-actions button{height:38px;min-width:108px;padding:0 22px;border:1px solid #d3bfd2;border-radius:100px;background:#fff;color:#4d144a;font-size:13px;font-weight:600;cursor:pointer}.lx-payment-actions .primary{border:0;background:linear-gradient(90deg,#4d144a 12%,#b8252e);color:#fff}.lx-payment-success-icon{width:58px;height:58px;display:grid;place-items:center;margin-bottom:18px;border-radius:50%;background:linear-gradient(135deg,#4d144a,#b8252e);color:#fff;font-size:30px}.lx-payment-success-title{margin:0 0 10px;font-size:20px}.lx-payment-success-meta{margin:0;color:#77717d;line-height:1.8}.lx-payment-success-meta b{color:#19171b}`;
     document.head.appendChild(style);
   }
 
@@ -77,7 +78,9 @@
   };
 
   const openOrderModal = (product) => {
-    document.querySelector('[data-buy-modal-direct]')?.remove();
+    const previousModal = document.querySelector('[data-buy-modal-direct]');
+    previousModal?._lxCleanup?.();
+    previousModal?.remove();
     document.querySelectorAll('.lx-p0-toast').forEach((toast) => toast.classList.remove('show'));
     const modal = document.createElement('div');
     modal.dataset.buyModalDirect = 'true';
@@ -88,11 +91,133 @@
     const payableAmount = () => Math.max(0, (Number(product.originalPrice) || 0) * configState.quantity - benefitState.couponAmount - benefitState.beanAmount - benefitState.redPacketAmount);
     const totalDiscount = () => benefitState.couponAmount + benefitState.beanAmount + benefitState.redPacketAmount;
     const invoicePreview = () => orderState.invoice === '普通发票-个人' ? '电子普通发票（个人）' : orderState.invoice === '普通发票-单位' ? '电子普通发票（单位）' : '增值税专用发票';
-    const orderHtml = () => `<button class="lx-buy-direct-close" type="button" aria-label="关闭">×</button><h2 id="lxBuyDirectTitle">联想乐享为你生成订单</h2><div class="lx-buy-direct-card"><div class="lx-buy-direct-product"><img src="${escapeHtml(product.image_url)}" alt="${escapeHtml(product.name)}"><div class="lx-buy-direct-product-copy"><strong>${escapeHtml(product.name)}</strong><span>X${configState.quantity}</span></div><button class="lx-buy-direct-config" type="button" data-edit-config>修改配置<i aria-hidden="true"></i></button></div><div class="lx-buy-direct-section"><div class="lx-buy-direct-row"><strong>系列：</strong><span>Lenovo</span></div><div class="lx-buy-direct-row"><strong>型号：</strong><span>${escapeHtml(product.name)}</span></div><div class="lx-buy-direct-row"><strong>尺寸：</strong><span>${configState.size}</span></div><div class="lx-buy-direct-row"><strong>配置：</strong><span>${configState.spec} · ${configState.color}</span></div></div><div class="lx-buy-direct-section"><div class="lx-buy-direct-row"><strong>收货信息：</strong><span>演示用户　138****0000</span></div><div class="lx-buy-direct-row"><strong>收货地址：</strong><span>北京市海淀区西北旺地区联想总部东区</span></div></div><div class="lx-buy-direct-section"><div class="lx-buy-direct-row"><strong>支付方式：</strong><span data-order-preview-payment>${escapeHtml(orderState.payment.includes('支付') || orderState.payment.includes('分期') ? orderState.payment : `${orderState.payment}支付`)}</span></div><div class="lx-buy-direct-row"><strong>发票信息：</strong><span data-order-preview-invoice>${escapeHtml(invoicePreview())}</span></div></div><div class="lx-buy-direct-price"><strong>等待支付：</strong><b>¥${payableAmount().toLocaleString('zh-CN')}</b><span>节省了：<em>¥${totalDiscount().toLocaleString('zh-CN')}</em></span></div><div class="lx-buy-direct-detail"><button class="lx-buy-direct-detail-button" type="button" data-price-detail>查看价格明细</button><span>可修改优惠券/乐豆等优惠</span></div><div class="lx-buy-direct-actions"><button type="button" data-edit-order>修改订单</button><button type="button" class="primary">立即支付</button></div><p class="lx-buy-direct-footnote">*修改订单包括改商品配置、收货地址、支付方式</p></div>`;
+    const orderHtml = () => `<button class="lx-buy-direct-close" type="button" aria-label="关闭">×</button><h2 id="lxBuyDirectTitle">联想乐享为你生成订单</h2><div class="lx-buy-direct-card"><div class="lx-buy-direct-product"><img src="${escapeHtml(product.image_url)}" alt="${escapeHtml(product.name)}"><div class="lx-buy-direct-product-copy"><strong>${escapeHtml(product.name)}</strong><span>X${configState.quantity}</span></div><button class="lx-buy-direct-config" type="button" data-edit-config>修改配置<i aria-hidden="true"></i></button></div><div class="lx-buy-direct-section"><div class="lx-buy-direct-row"><strong>系列：</strong><span>Lenovo</span></div><div class="lx-buy-direct-row"><strong>型号：</strong><span>${escapeHtml(product.name)}</span></div><div class="lx-buy-direct-row"><strong>尺寸：</strong><span>${configState.size}</span></div><div class="lx-buy-direct-row"><strong>配置：</strong><span>${configState.spec} · ${configState.color}</span></div></div><div class="lx-buy-direct-section"><div class="lx-buy-direct-row"><strong>收货信息：</strong><span>演示用户　138****0000</span></div><div class="lx-buy-direct-row"><strong>收货地址：</strong><span>北京市海淀区西北旺地区联想总部东区</span></div></div><div class="lx-buy-direct-section"><div class="lx-buy-direct-row"><strong>支付方式：</strong><span data-order-preview-payment>${escapeHtml(orderState.payment.includes('支付') || orderState.payment.includes('分期') ? orderState.payment : `${orderState.payment}支付`)}</span></div><div class="lx-buy-direct-row"><strong>发票信息：</strong><span data-order-preview-invoice>${escapeHtml(invoicePreview())}</span></div></div><div class="lx-buy-direct-price"><strong>等待支付：</strong><b>¥${payableAmount().toLocaleString('zh-CN')}</b><span>节省了：<em>¥${totalDiscount().toLocaleString('zh-CN')}</em></span></div><div class="lx-buy-direct-detail"><button class="lx-buy-direct-detail-button" type="button" data-price-detail>查看价格明细</button><span>可修改优惠券/乐豆等优惠</span></div><div class="lx-buy-direct-actions"><button type="button" data-edit-order>修改订单</button><button type="button" class="primary" data-pay-now>立即支付</button></div><p class="lx-buy-direct-footnote">*修改订单包括改商品配置、收货地址、支付方式</p></div>`;
     modal.innerHTML = `<div class="lx-buy-direct-mask"></div><section class="lx-buy-direct-dialog" role="dialog" aria-modal="true" aria-labelledby="lxBuyDirectTitle">${orderHtml()}</section>`;
     document.body.appendChild(modal);
     modal.querySelector('img')?.addEventListener('error', (event) => { event.currentTarget.src = FALLBACK_IMAGE; }, { once: true });
     const dialog = modal.querySelector('.lx-buy-direct-dialog');
+    const paymentState = { orderId: `LX${Date.now()}`, remaining: 23 * 60 * 60 + 59 * 60 + 51, timer: 0, width: 0, height: 0, paidOrder: null };
+    const stopPaymentTimer = () => { if (paymentState.timer) window.clearInterval(paymentState.timer); paymentState.timer = 0; };
+    modal._lxCleanup = stopPaymentTimer;
+    const formatRemaining = () => {
+      const hours = Math.floor(paymentState.remaining / 3600);
+      const minutes = Math.floor((paymentState.remaining % 3600) / 60);
+      const seconds = paymentState.remaining % 60;
+      return [hours, minutes, seconds].map((value) => String(value).padStart(2, '0')).join(':');
+    };
+    const lockPaymentDialogSize = () => {
+      if (!paymentState.width || !paymentState.height) {
+        const rect = dialog.getBoundingClientRect();
+        paymentState.width = Math.round(rect.width);
+        paymentState.height = Math.round(rect.height);
+      }
+      dialog.style.width = `${paymentState.width}px`;
+      dialog.style.height = `${paymentState.height}px`;
+    };
+    const persistPaidOrder = () => {
+      if (paymentState.paidOrder) return paymentState.paidOrder;
+      const benefits = [];
+      if (benefitState.couponAmount) benefits.push(`优惠券 -¥${benefitState.couponAmount.toLocaleString('zh-CN')}`);
+      if (benefitState.beanAmount) benefits.push(`乐豆 -¥${benefitState.beanAmount.toLocaleString('zh-CN')}`);
+      if (benefitState.redPacketAmount) benefits.push(`限时红包 -¥${benefitState.redPacketAmount.toLocaleString('zh-CN')}`);
+      const paidOrder = {
+        sku: product.sku || product.name,
+        name: product.name,
+        image_url: product.image_url,
+        category: product.category || '联想商品',
+        type: 'normal',
+        typeLabel: '普通订单',
+        price: payableAmount(),
+        paidAmount: payableAmount(),
+        payable: payableAmount(),
+        originalPrice: (Number(product.originalPrice) || 0) * configState.quantity,
+        discountAmount: totalDiscount(),
+        quantity: configState.quantity,
+        configurationLabel: `${configState.size}｜${configState.spec}｜${configState.color}`,
+        orderId: paymentState.orderId,
+        createdAt: new Date().toLocaleString('zh-CN'),
+        paidAt: new Date().toLocaleString('zh-CN'),
+        status: '待发货',
+        address: { name: '演示用户', phone: '138****0000', region: '北京市海淀区西北旺地区', detail: '联想总部东区' },
+        recipient: { name: '演示用户', phone: '138****0000', address: '北京市海淀区西北旺地区联想总部东区' },
+        shippingAddress: '北京市海淀区西北旺地区联想总部东区',
+        note: orderState.note,
+        customerCode: orderState.customerCode,
+        payMethod: orderState.payment,
+        paymentMethod: orderState.payment,
+        invoice: { text: invoicePreview() },
+        invoiceText: invoicePreview(),
+        benefitNote: benefits.join('、')
+      };
+      let orders = Array.isArray(window.__lxState?.orders) ? window.__lxState.orders : [];
+      orders = orders.filter((item) => item?.orderId !== paidOrder.orderId);
+      orders.unshift(paidOrder);
+      if (window.__lxState) window.__lxState.orders = orders;
+      try { localStorage.setItem('lexiang.orders.v1', JSON.stringify(orders)); } catch (error) {}
+      window.dispatchEvent(new Event('lx:orders-updated'));
+      paymentState.paidOrder = paidOrder;
+      return paidOrder;
+    };
+    const showPaymentProcessing = () => {
+      lockPaymentDialogSize();
+      stopPaymentTimer();
+      dialog.className = 'lx-buy-direct-dialog lx-payment-dialog';
+      dialog.innerHTML = `<button class="lx-buy-direct-close" type="button" aria-label="关闭">×</button><h2 id="lxBuyDirectTitle">正在支付</h2><div class="lx-payment-stage"><p class="lx-payment-state">正在支付</p><div class="lx-payment-wait"><strong>待付款</strong><span>剩余：<b class="lx-payment-countdown" data-payment-countdown>${formatRemaining()}</b></span></div><p class="lx-payment-product">【${escapeHtml(product.name)}】正在支付中，请稍等...</p></div><div class="lx-payment-actions"><button type="button" data-go-pay>去支付</button><button type="button" class="primary" data-confirm-payment>确认支付状态</button></div>`;
+      paymentState.timer = window.setInterval(() => {
+        paymentState.remaining = Math.max(0, paymentState.remaining - 1);
+        const countdown = dialog.querySelector('[data-payment-countdown]');
+        if (countdown) countdown.textContent = formatRemaining();
+        if (!paymentState.remaining) stopPaymentTimer();
+      }, 1000);
+    };
+    const showPaymentSuccess = () => {
+      stopPaymentTimer();
+      const paidOrder = persistPaidOrder();
+      lockPaymentDialogSize();
+      dialog.className = 'lx-buy-direct-dialog lx-payment-dialog';
+      dialog.innerHTML = `<button class="lx-buy-direct-close" type="button" aria-label="关闭">×</button><h2 id="lxBuyDirectTitle">支付成功</h2><div class="lx-payment-stage"><span class="lx-payment-success-icon" aria-hidden="true">✓</span><strong class="lx-payment-success-title">订单支付成功</strong><p class="lx-payment-success-meta">订单号：<b>${escapeHtml(paidOrder.orderId)}</b><br>实付：<b>¥${payableAmount().toLocaleString('zh-CN')}</b></p></div><div class="lx-payment-actions"><button type="button" class="primary" data-view-paid-order>查看订单</button></div>`;
+    };
+    const openPaymentPage = () => {
+      const paymentUrl = /支付宝|花呗/.test(orderState.payment) ? 'https://www.alipay.com/' : /微信/.test(orderState.payment) ? 'https://pay.weixin.qq.com/' : /京东/.test(orderState.payment) ? 'https://www.jdpay.com/' : 'https://www.alipay.com/';
+      window.open(paymentUrl, '_blank', 'noopener,noreferrer');
+    };
+    const openPaidOrderDetail = () => {
+      const paidOrder = persistPaidOrder();
+      stopPaymentTimer();
+      modal.remove();
+      window.dispatchEvent(new Event('lx:orders-updated'));
+
+      const clickOrderCenterDetail = () => {
+        const trigger = Array.from(document.querySelectorAll('[data-order-detail-id]')).find((item) => String(item.dataset.orderDetailId) === String(paidOrder.orderId));
+        if (!trigger) return false;
+        trigger.click();
+        return true;
+      };
+
+      if (typeof window.__lxOpenOrdersCenter === 'function') {
+        window.__lxOpenOrdersCenter({ question: '' });
+        let attempts = 0;
+        const openWhenReady = () => {
+          if (clickOrderCenterDetail()) return;
+          attempts += 1;
+          if (attempts < 30) window.setTimeout(openWhenReady, 100);
+          else showToast('订单已生成，请从右上角“订单”中查看');
+        };
+        window.requestAnimationFrame(openWhenReady);
+        return;
+      }
+
+      // 单文件离线版保留旧订单中心，仍通过它自己的“订单详情”委托入口打开。
+      window.__lxBridge?.prepareRootSplitState?.();
+      window.__lxAgentAPI?.lxRevealContent?.();
+      const legacyTrigger = document.createElement('button');
+      legacyTrigger.type = 'button';
+      legacyTrigger.hidden = true;
+      legacyTrigger.dataset.orderDetail = paidOrder.orderId;
+      document.body.appendChild(legacyTrigger);
+      legacyTrigger.click();
+      legacyTrigger.remove();
+    };
     const showOrder = () => { dialog.className = 'lx-buy-direct-dialog'; dialog.innerHTML = orderHtml(); };
     const showConfigEdit = () => {
       const options = (name, values, disabled = []) => values.map((value) => `<button class="lx-config-option${configState[name] === value ? ' is-active' : ''}" type="button" data-config-key="${name}" data-config-value="${value}" ${disabled.includes(value) ? 'disabled' : ''}>${value}</button>`).join('');
@@ -186,7 +311,11 @@
       const target = event.target;
       const openCodeMenu = dialog.querySelector('[data-order-code-menu]:not([hidden])');
       if (openCodeMenu && !target.closest('.lx-order-combobox')) { openCodeMenu.hidden = true; dialog.querySelector('[data-order-customer]')?.setAttribute('aria-expanded','false'); }
-      if (target.closest('.lx-buy-direct-close,.lx-buy-direct-mask')) return modal.remove();
+      if (target.closest('.lx-buy-direct-close,.lx-buy-direct-mask')) { stopPaymentTimer(); return modal.remove(); }
+      if (target.closest('[data-pay-now]')) { openPaymentPage(); return showPaymentProcessing(); }
+      if (target.closest('[data-go-pay]')) return openPaymentPage();
+      if (target.closest('[data-confirm-payment]')) return showPaymentSuccess();
+      if (target.closest('[data-view-paid-order]')) return openPaidOrderDetail();
       if (target.closest('[data-price-detail]')) return showPriceDetail();
       if (target.closest('[data-open-coupon-code]')) return showCouponCode();
       const benefitButton = target.closest('[data-open-benefit]');
@@ -322,6 +451,8 @@
       if (previewMode === 'edit') document.querySelector('[data-edit-order]')?.click();
       if (previewMode === 'invoice') { document.querySelector('[data-edit-order]')?.click(); document.querySelector('[data-order-invoice]')?.click(); }
       if (previewMode === 'config') document.querySelector('[data-edit-config]')?.click();
+      if (previewMode === 'payment') document.querySelector('[data-pay-now]')?.click();
+      if (previewMode === 'success') { document.querySelector('[data-pay-now]')?.click(); document.querySelector('[data-confirm-payment]')?.click(); }
     };
     document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', showPreview, { once: true }) : showPreview();
   }
