@@ -35,7 +35,7 @@ function yt(t=d.currentProduct){if(!t)return E("请先选择商品");Bt(Ht(t))}f
     function onError(){finish(new Error(label+"组件加载失败"))}
     script.addEventListener("load",onLoad);
     script.addEventListener("error",onError);
-    timer=window.setTimeout(()=>finish(new Error(label+"组件加载超时")),8000);
+    timer=window.setTimeout(()=>finish(new Error(label+"组件加载超时")),30000);
     if(created){try{document.head.appendChild(script)}catch(error){finish(error)}}
     else if(script.dataset.loaded==="true"){onLoad()}
   })
@@ -60,7 +60,7 @@ function lxLoadMemberStyle(href){
     function onError(){finish(new Error("会员样式加载失败"))}
     link.addEventListener("load",onLoad);
     link.addEventListener("error",onError);
-    timer=window.setTimeout(()=>finish(new Error("会员样式加载超时")),8000);
+    timer=window.setTimeout(()=>finish(new Error("会员样式加载超时")),30000);
     if(!existing){
       link.id="lx-member-component-css";link.rel="stylesheet";link.href=href;
       try{document.head.appendChild(link)}catch(error){finish(error)}
