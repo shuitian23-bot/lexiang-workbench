@@ -41,19 +41,44 @@ test('government lead pool uses the package read-only table and shared actions',
   for (const field of ['REL-GAB IS', 'REL-KAB IS', 'REL-新兴市场 IS']) assert.match(table, new RegExp(field))
 })
 
-test('agreement orders follow the package hierarchy and masked export contract', async () => {
+test('lead dashboard follows the 0902 metrics, role filters and single product filter contract', async () => {
+  const [runtime, view] = await Promise.all([
+    source('../public/admin-runtime/workbench-lead.js'),
+    source('../src/views/lead/LeadDashboardView.vue')
+  ])
+  const metricsStart = runtime.indexOf('const KB_TEAM_METRICS =')
+  const metricsEnd = runtime.indexOf('const KB_TEAM_RAW', metricsStart)
+  const metrics = runtime.slice(metricsStart, metricsEnd)
+
+  assert.match(view, /document\.title = '线索看板 - 乐享 AI 工作台'/)
+  assert.match(metrics, /label: '激活CA'/)
+  assert.match(metrics, /label: '激活金额\(万\)'/)
+  assert.doesNotMatch(metrics, /订单CA|订单金额|B4激活/)
+  assert.match(runtime, /productType: ''/)
+  assert.match(runtime, /function leaderTeam\(\)/)
+  assert.match(runtime, /msHtml\('team', TEAM_OPTS, LEAD\.kbFilters\.team, '销售团队'\)/)
+  assert.match(runtime, /leadSetKbProductType/)
+  assert.match(runtime, /<select class="ops-select"[^>]*title="产品类型"/)
+  assert.match(runtime, /KB_GRADE_OPTS = \[\.\.\.GRADE_OPTS,[\s\S]*?value: '__none__', label: '无'/)
+  assert.match(runtime, /POOL_MS_OPTS = \{[^\n]*fdGrade: GRADE_OPTS/)
+  assert.match(runtime, /name: '激活客户数'[\s\S]*?激活金额/)
+})
+
+test('agreement orders follow the 0902 hierarchy and list-action contract', async () => {
   const runtime = await source('../public/admin-runtime/workbench-agreement-orders.js')
   const renderer = functionBlock(runtime, 'renderProductOrders', 'detailField')
+  const rows = functionBlock(runtime, 'tableRows', 'pager')
 
   assert.match(runtime, /var purchaseStates =/)
+  assert.match(runtime, /var purchaseMainOrders =/)
   assert.match(runtime, /var purchaseOrders =/)
   assert.match(runtime, /function purchaseStatus\(o\)/)
   assert.match(runtime, /function poShippingStatus\(o\)/)
-  assert.match(renderer, /onclick="agreementProductOrderExport\(\)">导出（脱敏）<\/button>/)
-  assert.match(renderer, /onclick="agreementProductOrderExport\(true\)">导出（明文）<\/button>/)
+  assert.doesNotMatch(renderer, /导出（脱敏）|导出（明文）|apo-head-actions/)
+  assert.match(rows, /agreementProductOrderViewPlain[\s\S]*?purchase/)
   assert.doesNotMatch(renderer, />重置<|agreementProductOrderReset/)
   assert.doesNotMatch(runtime, /window\.agreementProductOrderReset/)
-  assert.match(runtime, /link\.download='协议采购订单_'/)
+  assert.match(runtime, /link\.download='协议产品订单_'/)
   assert.match(runtime, /URL\.createObjectURL|text\/csv/)
 })
 
@@ -65,6 +90,10 @@ test('agreement order detail follows the package purchase and PO grouping contra
   assert.match(runtime, /function renderPoDetail\(po,members\)/)
   assert.match(runtime, /查看明文信息/)
   assert.match(runtime, /function maskAddress\(value\)/)
+  assert.match(runtime, /detailField\('主订单',purchaseMainOrders\[state\.detailPurchase\]/)
+  assert.match(runtime, /detailField\('订单号',joinedValues\(members,'no'\)\)/)
+  assert.match(runtime, /detailField\('主订单号',purchaseMainOrders\[o\.purchase\]/)
+  assert.match(runtime, /<span>订单号：'\+esc\(o\.no\)/)
   assert.match(runtime, /\.apo-section h2:before/)
   assert.match(runtime, /@media\(max-width:900px\)/)
 })

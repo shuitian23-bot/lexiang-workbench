@@ -146,6 +146,15 @@ const pocReleaseLedger = ref({ records: {} })
 
 const basePocLogRecords = [
   {
+    time: '2026-09-02 17:57',
+    releaseKey: 'lead-dashboard-agreement-order-20260902',
+    title: '线索看板与协议采购订单更新',
+    changePoint: '线索看板调整激活指标、Leader 团队筛选和产品类型单选；协议采购订单补充主订单、订单号与采购单维度明文查看。',
+    detail: '本次仅合入 0902 POC 中线索看板和协议采购订单两处差异；不采用压缩包中的旧路由、公共菜单、整站源码及构建产物，不修改线索池、线索池-政企、打分模型、协议采购单管理、商品视频管理、权限管理、Skill Hub、右侧 AI 助手或其他受保护运行文件。',
+    deployTargets: ['new', 'formal'],
+    status: '已合并正式'
+  },
+  {
     time: '2026-09-01 17:27',
     releaseKey: 'enterprise-customer-agreement-order-20260901',
     title: '企业客户管理与协议采购订单更新',
