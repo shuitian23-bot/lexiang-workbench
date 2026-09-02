@@ -161,9 +161,7 @@
     { label: '退回', note: '= MQL − SQL − 跟进中（自动计算）', isCalc: true },
     { label: '商机客户数', note: '商机数据中客户去重数量' }, { label: '商机CA', note: 'PC+NUC+服务器+工作站数量' },
     { label: '商机金额(万)', note: '商机数据金额合计' }, { label: '激活客户数', note: '已购买商品用户数（去重）' },
-    { label: '订单CA', note: '特定产品组非赠品商品数量' }, { label: '订单金额(万)', note: '所有产品组非赠品收款金额合计' },
-    { label: 'B4激活数', note: '下单客户分级不为B123的激活数' }, { label: 'B4激活CA', note: 'B4激活客户中的CA数量' },
-    { label: 'B4激活金额(万)', note: 'B4激活客户金额合计' },
+    { label: '激活CA', note: '特定产品组非赠品商品数量' }, { label: '激活金额(万)', note: '所有产品组非赠品收款金额合计' },
   ];
   const KB_TEAM_RAW = {
     month: { chengdu: [5200, 3480, 2150, 380.50, 820, 0, 800, 680, 312.40, 205, 120, 480.50, 210, 180, 680.50], beijing: [7250, 4840, 2990, 512.00, 1140, 0, 1205, 950, 435.60, 307, 160, 680.00, 298, 252, 950.00] },
@@ -203,8 +201,7 @@
   const DE_METRICS = [
     { key: 'iql', label: 'IQL', idx: 0, unit: '' }, { key: 'mql', label: 'MQL', idx: 1, unit: '' }, { key: 'sql', label: 'SQL', idx: 2, unit: '' },
     { key: 'sqlAmt', label: 'SQL金额', idx: 3, unit: '万' }, { key: 'act', label: '激活客户数', idx: 9, unit: '' },
-    { key: 'oca', label: '订单CA', idx: 10, unit: '' }, { key: 'oAmt', label: '订单金额', idx: 11, unit: '万' },
-    { key: 'b4', label: 'B4激活数', idx: 12, unit: '' }, { key: 'b4ca', label: 'B4激活CA', idx: 13, unit: '' }, { key: 'b4amt', label: 'B4激活金额', idx: 14, unit: '万' },
+    { key: 'oca', label: '激活CA', idx: 10, unit: '' }, { key: 'oAmt', label: '激活金额', idx: 11, unit: '万' },
   ];
   const TEAM_OPTS = [{ label: '成都IS', value: 'chengdu' }, { label: '北京IS', value: 'beijing' }];
   const PERSON_OPTS = ['xuhq5', 'peicui2', 'wangw3', 'lihua5'];
@@ -232,7 +229,7 @@
     sk: 'createdAt', sd: 'desc', sel: new Set(),
     // 看板
     kbTab: 'funnel',
-    kbFilters: { period: 'month', yoy: false, mom: false, team: [], person: [], source: [], grade: [], productType: [], source2: '', source3: '' },
+    kbFilters: { period: 'month', yoy: false, mom: false, team: [], person: [], source: [], grade: [], productType: '', source2: '', source3: '' },
     kbTab2Period: 'month', kbTab2Yoy: false, kbTab2Mom: false,
     kbMainFrom: '', kbMainTo: '', kbTab2From: '', kbTab2To: '',
     dataEditLogs: JSON.parse(localStorage.getItem(DE_LOGS_KEY) || '[]'),
@@ -248,7 +245,7 @@
   }
   LEAD.poolAppliedFilters = capturePoolFilters();
   const KB_FILTER_KEYS = ['period', 'yoy', 'mom', 'team', 'person', 'source', 'grade', 'productType', 'source2', 'source3'];
-  function defaultKbFilters() { return { period: 'month', yoy: false, mom: false, team: [], person: [], source: [], grade: [], productType: [], source2: '', source3: '' }; }
+  function defaultKbFilters() { return { period: 'month', yoy: false, mom: false, team: [], person: [], source: [], grade: [], productType: '', source2: '', source3: '' }; }
   function captureKbFilters() {
     const snapshot = {};
     KB_FILTER_KEYS.forEach(key => { snapshot[key] = Array.isArray(LEAD.kbFilters[key]) ? [...LEAD.kbFilters[key]] : LEAD.kbFilters[key]; });
@@ -334,12 +331,20 @@
   // 角色限定团队：sales/leader 仅看本人/本团队数据（看板数据随角色切换）
   function roleTeam() {
     if (LEAD.role === 'sales') return [(SPS.find(s => s.itcode === SALES_ITCODE) || {}).team].filter(Boolean);
-    if (LEAD.role === 'leader') return [(SPS.find(s => s.itcode === LEADER_ITCODE) || {}).team].filter(Boolean);
     return null;
   }
-  function kbTeamSel() { const rt = roleTeam(); if (rt && rt.length) return rt; const t = activeKbFilters().team; return (!t || !t.length) ? ['chengdu', 'beijing'] : t; }
+  function leaderTeam() { return [(SPS.find(s => s.itcode === LEADER_ITCODE) || {}).team].filter(Boolean); }
+  function kbTeamSel() {
+    const rt = roleTeam(); if (rt && rt.length) return rt;
+    const t = activeKbFilters().team;
+    if (t && t.length) return t;
+    return LEAD.role === 'leader' ? leaderTeam() : ['chengdu', 'beijing'];
+  }
   // 团队漏斗：销售个人(itcode) / 线索来源 筛选 → 数据按比例缩放（demo）
-  function productTypeRatio(filters) { const selected = filters.productType || []; return selected.length ? selected.reduce((sum, type) => sum + (PRODUCT_TYPE_WEIGHTS[type] || 0), 0) : 1; }
+  function productTypeRatio(filters) {
+    const selected = filters.productType;
+    return selected ? (PRODUCT_TYPE_WEIGHTS[selected] || 1) : 1;
+  }
   function teamRatio() {
     const filters = activeKbFilters();
     let r = productTypeRatio(filters); const person = filters.person, source = filters.source, grade = filters.grade;
@@ -350,7 +355,7 @@
     if (filters.source3 && filters.source3.trim()) r *= 0.8;
     return r;
   }
-  const _isAmtIdx = i => [3, 8, 11, 14].includes(i);
+  const _isAmtIdx = i => [3, 8, 11].includes(i);
   function kbFunnelCur() {
     const filters = activeKbFilters();
     const p = filters.period, selSrc = filters.source;
@@ -454,19 +459,20 @@
         html += msHtml('source', KB_SOURCE_FILTER_OPTIONS, LEAD.kbFilters.source, '线索来源');
       }
     } else if (LEAD.role === 'leader') {
-      // Leader：销售itcode + 线索来源 筛选（数据锁定本团队）
+      // Leader：可按销售团队、销售itcode和线索来源筛选，默认所属团队。
+      html += msHtml('team', TEAM_OPTS, LEAD.kbFilters.team, '销售团队');
       html += msHtml('person', PERSON_OPTS.map(p => ({ label: p, value: p })), LEAD.kbFilters.person, '销售itcode');
       html += msHtml('source', KB_SOURCE_FILTER_OPTIONS, LEAD.kbFilters.source, '线索来源');
-      html += `<span class="lead-fl" style="color:var(--text-tertiary)">数据范围：Leader 团队（北京IS）</span>`;
+      html += `<span class="lead-fl" style="color:var(--text-tertiary)">默认销售团队：北京IS</span>`;
     } else {
       // Sales：销售itcode 默认本人（只读）+ 线索来源 筛选
       html += `<span class="lead-ro-box">销售itcode：${SALES_ITCODE}（本人）</span>`;
       html += msHtml('source', KB_SOURCE_FILTER_OPTIONS, LEAD.kbFilters.source, '线索来源');
       html += `<span class="lead-fl" style="color:var(--text-tertiary)">数据范围：本人（北京IS）</span>`;
     }
-    html += msHtml('productType', PRODUCT_TYPE_OPTIONS, LEAD.kbFilters.productType, '产品类型');
+    html += `<select class="ops-select" style="width:120px" title="产品类型" onchange="leadSetKbProductType(this.value)"><option value="">产品类型</option>${PRODUCT_TYPE_OPTIONS.map(o => `<option value="${esc(o.value)}" ${LEAD.kbFilters.productType === o.value ? 'selected' : ''}>${esc(o.label)}</option>`).join('')}</select>`;
     if (LEAD.kbTab === 'team') {
-      html += msHtml('grade', GRADE_OPTS, LEAD.kbFilters.grade, '客户分级');
+      html += msHtml('grade', KB_GRADE_OPTS, LEAD.kbFilters.grade, '客户分级');
       // 销售团队漏斗：线索二级来源 / 三级来源 检索
       html += `<input class="ops-select" style="width:150px" placeholder="线索二级来源" value="${esc(LEAD.kbFilters.source2 || '')}" onchange="leadSetKbInput('source2',this.value)">`;
       html += `<input class="ops-select" style="width:150px" placeholder="线索三级来源" value="${esc(LEAD.kbFilters.source3 || '')}" onchange="leadSetKbInput('source3',this.value)">`;
@@ -632,7 +638,7 @@
           { name: 'MQL 已分配', sn: 'MQL', l1: f2(mql), tip: `MQL：${f2(mql)}`, value: Math.round(mql / tot * 100), itemStyle: { color: LCHART.seq[3] } },
           { name: 'SQL 已接收', sn: 'SQL', l1: f2(sql), l2: fA(sqlAmt), tip: `SQL：${f2(sql)}<br/>SQL金额：${fA(sqlAmt)}`, value: Math.round(sql / tot * 100), itemStyle: { color: LCHART.seq[2] } },
           { name: '商机', sn: '商机', l1: f2(oppCnt), l2: fA(oppAmt), tip: `商机客户数：${f2(oppCnt)}<br/>商机金额：${fA(oppAmt)}`, value: Math.round(oppCnt / tot * 100), itemStyle: { color: LCHART.seq[1] } },
-          { name: '激活', sn: '激活', l1: f2(actCnt), l2: fA(actAmt), tip: `激活客户数：${f2(actCnt)}<br/>订单金额：${fA(actAmt)}`, value: Math.round(actCnt / tot * 100), itemStyle: { color: LCHART.seq[0] } },
+          { name: '激活客户数', sn: '激活客户数', l1: f2(actCnt), l2: fA(actAmt), tip: `激活客户数：${f2(actCnt)}<br/>激活金额：${fA(actAmt)}`, value: Math.round(actCnt / tot * 100), itemStyle: { color: LCHART.seq[0] } },
         ] }],
     });
   }
@@ -765,6 +771,7 @@
   const fmtDate = d => `${d.getFullYear()}-${z(d.getMonth() + 1)}-${z(d.getDate())}`;
   const STATUS_FILTER_OPTS = [{ value: '已接收', label: '已接收' }, { value: '跟进中', label: '跟进中' }, { value: '已退回', label: '已退回' }, { value: '__none__', label: '无' }];
   const GRADE_OPTS = GRADES.map(g => ({ value: g, label: g }));
+  const KB_GRADE_OPTS = [...GRADE_OPTS, { value: '__none__', label: '无' }];
   const SOURCE_OPTS = LEAD_SOURCES.map(s => ({ value: s, label: s }));
   const MQL_OPTS = [{ value: '是', label: '是' }, { value: '否', label: '否' }];
   const ASSIGN_OPTS = [{ value: '已分配', label: '已分配' }, { value: '待分配', label: '待分配' }];
@@ -932,6 +939,7 @@
   window.leadSet = function (k, v) { LEAD[k] = v; };
   window.leadSetKbf = function (k, v) { LEAD.kbFilters[k] = v; };
   window.leadSetKbInput = function (k, v) { LEAD.kbFilters[k] = v; };
+  window.leadSetKbProductType = function (v) { LEAD.kbFilters.productType = v; };
   window.leadSetKbPeriod = function (v) { LEAD.kbFilters.period = v; };
   window.leadSetPeriod = function (scope, v) {
     if (scope === 'quality') { LEAD.kbTab2Period = v; LEAD.kbTab2From = ''; LEAD.kbTab2To = ''; }
@@ -956,8 +964,8 @@
     LEAD.kbAppliedFilters = captureKbFilters();
     renderKbBody();
   };
-  const KB_MS_OPTS = { team: TEAM_OPTS, person: PERSON_OPTS.map(p => ({ label: p, value: p })), source: KB_SOURCE_FILTER_OPTIONS, grade: GRADE_OPTS, productType: PRODUCT_TYPE_OPTIONS };
-  const KB_MS_PH = { team: '销售团队', person: '销售个人', source: '线索来源', grade: '客户分级', productType: '产品类型' };
+  const KB_MS_OPTS = { team: TEAM_OPTS, person: PERSON_OPTS.map(p => ({ label: p, value: p })), source: KB_SOURCE_FILTER_OPTIONS, grade: KB_GRADE_OPTS };
+  const KB_MS_PH = { team: '销售团队', person: '销售个人', source: '线索来源', grade: '客户分级' };
   window.leadMsToggle = function (key, val) {
     const arr = LEAD.kbFilters[key]; const i = arr.indexOf(val);
     if (i >= 0) arr.splice(i, 1); else arr.push(val);

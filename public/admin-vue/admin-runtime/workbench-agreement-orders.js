@@ -4,6 +4,10 @@
     B2026081701625:'已支付', B2026081701626:'待签署合同', B2026081701627:'已支付',
     B2026081701628:'已支付', B2026081701629:'待支付', B2026081701630:'已支付'
   };
+  var purchaseMainOrders = {
+    B2026081701625:'260625101', B2026081701626:'260625102', B2026081701627:'260624107',
+    B2026081701628:'260623103', B2026081701629:'260622105', B2026081701630:'260621102'
+  };
   var purchaseOrders = {
     PO202608170001:{purchase:'B2026081701625', shippingStatus:'待发货'},
     PO202608170002:{purchase:'B2026081701626', shippingStatus:'待发货'},
@@ -50,7 +54,7 @@
   }
   function addressRows(o, plain) {
     return orderAddresses(o).map(function(a) {
-      return '<div class="apo-address-item"><b>PO号：'+esc(o.po)+'</b><span>SO号：'+esc(o.so)+'</span><span>收货人：'+esc(plain ? a.recipient : maskName(a.recipient))+'</span><span>手机号：'+esc(plain ? a.phone : maskPhone(a.phone))+'</span><strong>'+esc(plain ? a.address : maskAddress(a.address))+'</strong></div>';
+      return '<div class="apo-address-item"><b>PO号：'+esc(o.po)+'</b><span>SO号：'+esc(o.so)+'</span><span>订单号：'+esc(o.no)+'</span><span>收货人：'+esc(plain ? a.recipient : maskName(a.recipient))+'</span><span>手机号：'+esc(plain ? a.phone : maskPhone(a.phone))+'</span><strong>'+esc(plain ? a.address : maskAddress(a.address))+'</strong></div>';
     }).join('');
   }
   function poMembers(po) { return orders.filter(function(o){return o.po===po;}); }
@@ -58,13 +62,13 @@
   function tableRows() {
     var all=data(), start=(state.page-1)*10;
     return all.slice(start,start+10).map(function(o) {
-      return '<tr><td>'+o.purchase+'</td><td>'+o.no+'</td><td>'+esc(maskName(o.customer))+'</td><td>'+esc(o.goods)+'</td><td>'+o.qty+'</td><td>'+money(o.amount)+'</td><td>'+esc(o.paymentMethod)+'</td><td>'+esc(maskAddress(o.address))+'</td><td>'+esc(o.invoice)+'</td><td>'+badge(purchaseStatus(o))+'</td><td><div class="apo-row-actions"><button class="apo-link" onclick="agreementProductOrderDetail(\''+o.purchase+'\')">详情</button><button class="apo-link" onclick="agreementProductOrderViewPlain(\''+o.no+'\')">查看明文信息</button></div></td></tr>';
+      return '<tr><td>'+o.purchase+'</td><td>'+o.no+'</td><td>'+esc(maskName(o.customer))+'</td><td>'+esc(o.goods)+'</td><td>'+o.qty+'</td><td>'+money(o.amount)+'</td><td>'+esc(o.paymentMethod)+'</td><td>'+esc(maskAddress(o.address))+'</td><td>'+esc(o.invoice)+'</td><td>'+badge(purchaseStatus(o))+'</td><td><div class="apo-row-actions"><button class="apo-link" onclick="agreementProductOrderDetail(\''+o.purchase+'\')">详情</button><button class="apo-link" onclick="agreementProductOrderViewPlain(\''+o.purchase+'\',\'purchase\')">查看明文信息</button></div></td></tr>';
     }).join('') || '<tr><td class="apo-empty" colspan="11">暂无符合条件的数据</td></tr>';
   }
   function pager() { var max=Math.max(1,Math.ceil(data().length/10)); return '<div class="apo-pager"><span>共 '+data().length+' 条</span><button '+(state.page===1?'disabled':'')+' onclick="agreementProductOrderPage(-1)">上一页</button><span>'+state.page+' / '+max+'</span><button '+(state.page===max?'disabled':'')+' onclick="agreementProductOrderPage(1)">下一页</button></div>'; }
   function renderProductOrders() {
     var opts=statuses.map(function(s,index){return '<option value="'+(index===0 ? '' : s)+'"'+((index===0 ? !state.status : state.status===s)?' selected':'')+'>'+s+'</option>';}).join('');
-    return '<div class="page-content apo-page"><div class="apo-head"><div><h1>协议采购订单</h1><p>查看与处理用户在协议采购单中下单生成的协议采购订单，支持按地址拆单后的多订单跟踪</p></div><div class="apo-head-actions"><button class="btn btn-secondary" onclick="agreementProductOrderExport()">导出（脱敏）</button><button class="btn btn-primary" onclick="agreementProductOrderExport(true)">导出（明文）</button></div></div><section class="apo-filter"><input id="apo-purchase" value="'+esc(state.purchase)+'" placeholder="请输入采购单号"><input id="apo-no" value="'+esc(state.no)+'" placeholder="请输入订单编号"><select id="apo-status" aria-label="采购单状态">'+opts+'</select><button class="btn btn-primary" onclick="agreementProductOrderQuery()">查询</button></section><section class="card apo-card"><div class="apo-table-wrap"><table class="apo-table"><thead><tr><th>采购单编号</th><th>订单编号</th><th>客户</th><th>商品信息</th><th>数量</th><th>金额</th><th>支付方式</th><th>收货地址</th><th>发票</th><th>采购单状态</th><th>操作</th></tr></thead><tbody id="apo-body">'+tableRows()+'</tbody></table></div><div id="apo-pager">'+pager()+'</div></section></div>';
+    return '<div class="page-content apo-page"><div class="apo-head"><div><h1>协议采购订单</h1><p>查看与处理用户在协议采购单中下单生成的协议产品订单，支持按地址拆单后的多订单跟踪</p></div></div><section class="apo-filter"><input id="apo-purchase" value="'+esc(state.purchase)+'" placeholder="请输入采购单号"><input id="apo-no" value="'+esc(state.no)+'" placeholder="请输入订单编号"><select id="apo-status" aria-label="采购单状态">'+opts+'</select><button class="btn btn-primary" onclick="agreementProductOrderQuery()">查询</button></section><section class="card apo-card"><div class="apo-table-wrap"><table class="apo-table"><thead><tr><th>采购单编号</th><th>订单编号</th><th>客户</th><th>商品信息</th><th>数量</th><th>金额</th><th>支付方式</th><th>收货地址</th><th>发票</th><th>采购单状态</th><th>操作</th></tr></thead><tbody id="apo-body">'+tableRows()+'</tbody></table></div><div id="apo-pager">'+pager()+'</div></section></div>';
   }
   function detailField(label,value) { return '<div class="apo-detail-field"><span>'+label+'</span><b>'+esc(value)+'</b></div>'; }
   function statusField(label,value) { return '<div class="apo-detail-field"><span>'+label+'</span><div>'+badge(value)+'</div></div>'; }
@@ -88,7 +92,7 @@
     }).join('');
     var products=poProducts(members).map(function(p){return '<tr><td>'+esc(p.name)+'</td><td>'+esc(p.materialCode)+'</td><td>'+p.qty+'</td><td>'+money(p.unitCents/100)+'</td><td>'+money(p.totalCents/100)+'</td></tr>';}).join('');
     return '<section class="card apo-section apo-po-section" data-po="'+esc(po)+'"><h2>PO明细 <small>'+esc(po)+'</small></h2>'
-      +'<h3>PO信息</h3><div class="apo-detail-grid apo-po-grid">'+detailField('PO单号',po)+detailField('SO',joinedValues(members,'so'))+statusField('PO发货状态',poShippingStatus(members[0]))+'</div>'
+      +'<h3>PO信息</h3><div class="apo-detail-grid apo-po-grid">'+detailField('PO单号',po)+detailField('SO',joinedValues(members,'so'))+detailField('订单号',joinedValues(members,'no'))+statusField('PO发货状态',poShippingStatus(members[0]))+'</div>'
       +'<h3>客户信息</h3><div class="apo-table-wrap"><table class="apo-table apo-detail-table"><thead><tr><th>客户名称</th><th>收货人</th><th>收货地址</th><th>收货电话</th></tr></thead><tbody id="apo-customers-'+esc(po)+'">'+customers+'</tbody></table></div>'
       +'<h3>商品信息</h3><div class="apo-table-wrap"><table class="apo-table apo-detail-table"><thead><tr><th>商品名称</th><th>物料编号</th><th>商品数量</th><th>单价</th><th>总价</th></tr></thead><tbody id="apo-products-'+esc(po)+'">'+products+'</tbody></table></div></section>';
   }
@@ -102,7 +106,7 @@
     var grouped=new Map();
     members.forEach(function(o){if(!grouped.has(o.po)) grouped.set(o.po,[]);grouped.get(o.po).push(o);});
     return '<div class="page-content apo-page apo-detail">'+back+'<header class="apo-head"><h1>采购单详情</h1></header><main class="apo-detail-main">'
-      +'<section class="card apo-section"><h2>采购单基本信息</h2><div class="apo-detail-grid">'+detailField('采购单编号',state.detailPurchase)+detailField('订单号',joinedValues(members,'no'))+detailField('商品总数量',qty)+detailField('支付总金额',money(paidAmount))+detailField('发票信息',joinedValues(members,'invoice'))+detailField('支付方式',joinedValues(members,'paymentMethod'))+statusField('采购单状态',purchaseStatus(members[0]))+'</div></section>'
+      +'<section class="card apo-section"><h2>采购单基本信息</h2><div class="apo-detail-grid">'+detailField('采购单编号',state.detailPurchase)+detailField('主订单',purchaseMainOrders[state.detailPurchase] || members[0].no)+detailField('商品总数量',qty)+detailField('支付总金额',money(paidAmount))+detailField('发票信息',joinedValues(members,'invoice'))+detailField('支付方式',joinedValues(members,'paymentMethod'))+statusField('采购单状态',purchaseStatus(members[0]))+'</div></section>'
       +Array.from(grouped,function(entry){return renderPoDetail(entry[0],entry[1]);}).join('')+'</main></div>';
   }
   function closeCustomerModal(restoreFocus) {
@@ -120,7 +124,7 @@
     customerModalTrigger=document.activeElement;
     var root=document.createElement('div');
     root.id='agreement-order-modal-root';
-    root.innerHTML='<div class="modal-mask show" onclick="if(event.target===this)agreementProductOrderClosePlain()"><div class="modal apo-customer-modal" role="dialog" aria-modal="true" aria-labelledby="apo-customer-title"><div class="modal-header"><h3 id="apo-customer-title">客户明文信息</h3><button class="modal-close apo-close-plain" type="button" aria-label="关闭客户明文信息" title="关闭" onclick="agreementProductOrderClosePlain()">&times;</button></div><div class="modal-body"><div class="apo-detail-grid">'+detailField('采购单编号',o.purchase)+detailField('订单编号',members.map(function(item){return item.no;}).join('、'))+'</div><h4 class="apo-modal-subtitle">收货地址</h4><div class="apo-address-list">'+members.map(function(item){return addressRows(item,true);}).join('')+'</div></div><div class="modal-footer"><button class="btn btn-secondary" onclick="agreementProductOrderClosePlain()">关闭</button></div></div></div>';
+    root.innerHTML='<div class="modal-mask show" onclick="if(event.target===this)agreementProductOrderClosePlain()"><div class="modal apo-customer-modal" role="dialog" aria-modal="true" aria-labelledby="apo-customer-title"><div class="modal-header"><h3 id="apo-customer-title">客户明文信息</h3><button class="modal-close apo-close-plain" type="button" aria-label="关闭客户明文信息" title="关闭" onclick="agreementProductOrderClosePlain()">&times;</button></div><div class="modal-body"><div class="apo-detail-grid">'+detailField('采购单编号',o.purchase)+detailField('主订单号',purchaseMainOrders[o.purchase] || o.no)+'</div><h4 class="apo-modal-subtitle">收货地址</h4><div class="apo-address-list">'+members.map(function(item){return addressRows(item,true);}).join('')+'</div></div><div class="modal-footer"><button class="btn btn-secondary" onclick="agreementProductOrderClosePlain()">关闭</button></div></div></div>';
     document.body.appendChild(root);
     root.addEventListener('keydown', function(event) {
       if(event.key==='Escape') { event.preventDefault(); window.agreementProductOrderClosePlain(); return; }
@@ -158,7 +162,7 @@
     var content=rows.map(function(row){return row.map(csvCell).join(',');}).join('\r\n');
     var blob=new Blob(['\ufeff',content],{type:'text/csv;charset=utf-8;'}), url=URL.createObjectURL(blob), link=document.createElement('a');
     link.href=url;
-    link.download='协议采购订单_'+(plain ? '明文' : '脱敏')+'_'+new Date().toISOString().slice(0,10)+'.csv';
+    link.download='协议产品订单_'+(plain ? '明文' : '脱敏')+'_'+new Date().toISOString().slice(0,10)+'.csv';
     document.body.appendChild(link);
     link.click();
     link.remove();
