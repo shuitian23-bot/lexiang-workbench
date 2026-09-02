@@ -3,7 +3,14 @@ if(function(){const t="lexiang.history.cleanup.20260824.v1";try{if(localStorage.
  d._buyEntryLoading=true;
  try{
   let product=typeof productOrSku==='object'?productOrSku:null;
-  const sku=String(product?.sku||productOrSku||'');
+  let sku=String(product?.sku||productOrSku||'');
+  if(!product&&!sku){
+   const root=document.querySelector('.product-detail, .detail-page, .detail-main, .lx-product-detail')||document;
+   const name=String(root.querySelector('.detail-title, .product-title, h1, h2')?.textContent||'').trim();
+   const priceText=String(root.querySelector('.detail-price, .product-price, .price-main, .original-price, del')?.textContent||root.textContent||'');
+   const priceMatch=priceText.match(/(?:¥|￥)\s*([\d,]+(?:\.\d+)?)/);
+   if(name){sku='poc-'+name.replace(/\s+/g,'-').toLowerCase();product={sku,name,price:Number(String(priceMatch?.[1]||'0').replace(/,/g,''))||7299,image_url:root.querySelector('img')?.getAttribute('src')||''};}
+  }
   if(!product){
    const response=await fetch('/api/products/'+encodeURIComponent(sku),{cache:'no-store'});
    if(!response.ok)throw new Error('product unavailable');
@@ -12,7 +19,8 @@ if(function(){const t="lexiang.history.cleanup.20260824.v1";try{if(localStorage.
   if(!product||String(product.sku)!==sku||!product.name||!(Number(product.price)>0))throw new Error('invalid product');
   if(d.sending||d._buyFlowRunning)return;
   d._pendingDiscountOrderProduct=product;
-  await xn(`我要购买${product.name}，请帮我自动领取所有可用优惠并生成待支付订单`);
+  Mt(product);
+  It();
  }catch(error){E('暂时无法获取商品购买信息，请稍后重试');}
  finally{d._buyEntryLoading=false;}
 }
