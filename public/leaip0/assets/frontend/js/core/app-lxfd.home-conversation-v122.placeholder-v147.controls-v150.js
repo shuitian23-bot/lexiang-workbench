@@ -2208,6 +2208,27 @@
             })
           });
       if (!response.ok || !response.body) throw new Error(`HTTP ${response.status}`);
+      // 首页全屏对话兜底：官方流偶发只回文字、缺少 products/display 事件。
+      // 仅商品推荐意图补齐 6 款，避免普通问答误开商品页；服务商品仍走专用事件与数据源。
+      const lxfdEnsureProductFallback = async () => {
+        if ((turnProducts && turnProducts.length) || _lxfdServiceProductFollowup) return;
+        const isProductRecommendation = /(?:推荐|想买|购买|选购|挑选|换一台|换个).*(?:商品|电脑|笔记本|台式机|工作站|一体机|主机|游戏本)|(?:商品|电脑|笔记本|台式机|工作站|一体机|主机|游戏本).*(?:推荐|怎么选|选哪|买哪|哪个好)/i.test(value);
+        if (!isProductRecommendation) return;
+        try {
+          const res = await fetch(`/api/products?site=${encodeURIComponent(document.body.dataset.page || 'personal')}`, { cache: 'no-store' });
+          const payload = res.ok ? await res.json() : [];
+          const products = Array.isArray(payload) ? payload.slice(0, 6) : [];
+          if (!products.length) return;
+          turnProducts = products;
+          turnTitle = 'AI 推荐';
+          turnGrouped = false;
+          chatState.lastProducts = products;
+          chatState.lastProductsMeta = { title: turnTitle, grouped: turnGrouped };
+          pendingExtras += renderLxfdProducts(products);
+        } catch (error) {
+          console.error('[lxfd] 商品推荐兜底失败:', error);
+        }
+      };
       const lxfdHandlers = {
         chunk: (data) => {
           if (nonce !== chatState.conversationNonce) return;
@@ -2322,6 +2343,7 @@
           finalized = true;
           finalizePromise = (async () => {
             window.clearTimeout(_lxfdSendTimeout);
+            await lxfdEnsureProductFallback();
             const payload = parseJson(data);
             if (payload.conv_id || payload.convId) chatState.convId = payload.conv_id || payload.convId;
             await lxfdAnimateFinal(ai, ai._raw);
@@ -2395,6 +2417,7 @@
         await finalizePromise;
       } else if (!finalized) {
         finalized = true;
+        await lxfdEnsureProductFallback();
         if (!hasContent && !ai._raw && !pendingExtras) {
           ai._raw = "我已经收到请求，可以继续补充预算、用途或偏好的机型。";
         }
