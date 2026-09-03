@@ -80,7 +80,7 @@
   <link rel="stylesheet" href="/assets/frontend/css/components/member-demo-off-v35.css?v=20260828-member-demo-off-v35&amp;p0v=a28ef7ac4d81c295">
   <link rel="stylesheet" href="/assets/frontend/css/components/member-device-bind-fix-v39.css?v=20260828-member-device-bind-v40&amp;p0v=78e8459fcc19e7a7">
   <link rel="stylesheet" href="/assets/frontend/css/components/member-device-actions-v38.css?v=20260828-member-device-actions-v38&amp;p0v=3697b0e924d30937">
-  <link rel="preload" href="/assets/pages/store-v5-detail-surface-v27.js?v=20260903-store-benefits-static-v45" as="script">
+  <link rel="preload" href="/assets/pages/store-v5-detail-surface-v27.js?v=20260903-store-query-actions-v48" as="script">
 <link rel="stylesheet" href="/assets/frontend/css/core/composer-reference-font-v130.css?v=20260831-composer-font-v130&amp;p0v=4620706fd4e76660">
 <link rel="stylesheet" href="/assets/frontend/css/core/enterprise-lead-card-v133.css?v=20260831-lead-v133&amp;p0v=6983ccbaeb4725dd">
 <link rel="stylesheet" href="/assets/frontend/css/core/enterprise-auth-footer-v134.css?v=20260831-auth-footer-v134&amp;p0v=6931e759d5e842d9">
@@ -1555,9 +1555,13 @@
 <script src="/assets/frontend/js/core/address-regions-v142.js?v=20260831-address-v142&amp;p0v=3cee9c8f14299a30"></script><script src="/assets/frontend/js/core/address-dialog-v142.js?v=20260831-address-v142&amp;p0v=f6e1801495ea2ec0"></script>
 <script src="/assets/frontend/js/core/hide-legacy-demo-orders-v146.js?v=20260831-v146&amp;p0v=496f54a3def87082"></script>
   <script src="/assets/frontend/js/core/buy-modal-direct-v1.js?v=20260902-v39-live-order-center-detail-entry"></script>
-  <script data-store-card-context-query-v42>
+  <script data-store-query-actions-v48>
     (() => {
-      const relativeStoreIntent = /^(?:请|帮我|我要|我想)?(?:(?:预约|预订)(?:一下)?(?:这个|当前|这家|该)?门店(?:到店)?|(?:导航|带我去|怎么去|规划路线)(?:到|去|前往)?(?:这个|当前|这家|该)?门店)$/;
+      const isStoreActionQuery = query => {
+        const hasAction = /预约|预订|导航|路线|怎么去|带我去|规划路线/.test(query);
+        const hasStoreTarget = /门店|联想|第[1-9一二两三四五六七八九十]+(?:个|家)/.test(query);
+        return hasAction && hasStoreTarget;
+      };
       const activeStoreApi = () => {
         const hosts = Array.from(document.querySelectorAll('.lx-store-component-host'));
         const host = hosts.find(item => item.__lxStoreApi && item.getClientRects().length) || hosts.find(item => item.__lxStoreApi);
@@ -1568,7 +1572,7 @@
         if (!form?.matches?.('form.composer, form.lxfd-composer')) return;
         const textarea = form.querySelector('textarea');
         const query = String(textarea?.value || '').trim().replace(/[。！!？?]+$/, '');
-        if (!relativeStoreIntent.test(query)) return;
+        if (!isStoreActionQuery(query)) return;
         const api = activeStoreApi();
         if (!api?.getCurrentStore?.()) return;
         event.preventDefault();

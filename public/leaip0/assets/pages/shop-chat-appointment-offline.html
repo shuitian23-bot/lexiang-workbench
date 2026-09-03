@@ -1,4 +1,4 @@
-<!-- Release marker: store-product-region-v10-20260827 -->
+<!-- Release marker: store-query-actions-v48-20260903 -->
 <!--
   Lenovo Lexiang shop chat page template snapshot
   Source: https://leaibot.cn/shop-chat/
@@ -17894,7 +17894,7 @@ async function openEduZone() {
         .lx-map-controls { right: 374px; }
         .lx-map-card { left: calc((100% - 322px) / 2); width: min(500px, calc(100% - 356px)); }
       }
-      /* store-benefits-static-v45-20260903 */
+      /* store-benefits-label-fix-v47-20260903 */
       .lx-store-workspace { padding: 10px 14px 12px; }
       .lx-store-workspace { grid-template-rows: auto minmax(0, 1fr); }
       .lx-store-toolbar { display: none; }
@@ -17908,8 +17908,10 @@ async function openEduZone() {
       .lx-map-card-address { overflow-wrap: anywhere; }
       .lx-map-card-tools { margin-left: auto; }
       .lx-map-card-actions { justify-content: flex-start; }
-      .lx-store-benefits-preview { min-width: 0; overflow: hidden; cursor: default; }
-      .lx-store-benefits-preview:hover { background: transparent; }
+      .lx-store-benefits-preview { min-width: 0; overflow: visible; cursor: default; background: #fcfaff; }
+      .lx-store-benefits-preview:hover,
+      .lx-store-benefits-preview:focus-visible { background: #fcfaff; outline: none; }
+      .lx-store-benefits-label { z-index: 1; white-space: nowrap; }
       .lx-store-benefit-row { min-width: 0; }
       .lx-store-benefit-copy { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
       .lx-store-product-thumbs { min-width: 0; flex: none; }
@@ -18109,6 +18111,7 @@ async function openEduZone() {
           var appointment = { storeId: "1", date: "2026-08-12", dateLabel: "周三 8.12", time: "18:00", purposeType: "产品体验", purpose: "用户想要去门店咨询商品信息" };
           var appointmentEditMode = false;
           var filterState = { query: "", category: "", type: "", province: "北京市", city: "北京市", district: "" };
+          var visibleStores = [];
           var storeNoticeTimer = 0;
 
           function showStoreNotice(message) {
@@ -18208,6 +18211,7 @@ async function openEduZone() {
 
           function renderStoreResults() {
             var results = getFilteredStores();
+            visibleStores = results.slice();
             var list = page.querySelector("[data-store-list]");
             page.querySelector("[data-store-list-count]").textContent = results.length;
             list.innerHTML = results.length ? results.map(function (store, index) { return storeListItem(store, activeStore.id, index + 1); }).join("") : '<div class="lx-store-empty">暂未找到符合条件的门店<br>请调整业务、门店类型、地区或门店名称</div>';
@@ -18481,8 +18485,35 @@ async function openEduZone() {
           }
 
           function findStoreInQuery(value) {
-            var normalized = value.replace(/\s+/g, "").replace(/[()]/g, function (char) { return char === "(" ? "（" : "）"; });
-            return stores.find(function (store) { return normalized.includes(store.name.replace(/\s+/g, "")); });
+            var normalized = String(value || "").replace(/[\s()（）]/g, "");
+            return stores.find(function (store) { return normalized.includes(store.name.replace(/[\s()（）]/g, "")); });
+          }
+
+          function chineseStoreNumber(value) {
+            var digits = { "一": 1, "二": 2, "两": 2, "三": 3, "四": 4, "五": 5, "六": 6, "七": 7, "八": 8, "九": 9 };
+            if (/^\d+$/.test(value)) return Number(value);
+            if (value === "十") return 10;
+            if (value.includes("十")) {
+              var parts = value.split("十");
+              return (parts[0] ? digits[parts[0]] : 1) * 10 + (parts[1] ? digits[parts[1]] : 0);
+            }
+            return digits[value] || 0;
+          }
+
+          function findStoreOrdinalInQuery(value) {
+            var match = String(value || "").match(/第?([1-9]\d?|[一二两三四五六七八九十]+)(?:个|家)?门店/);
+            if (!match) return null;
+            var index = chineseStoreNumber(match[1]) - 1;
+            var listedStores = Array.from(page.querySelectorAll("[data-store-list] [data-store-id]")).map(function (item) {
+              var id = item.getAttribute("data-store-id");
+              return stores.find(function (store) { return store.id === id; });
+            }).filter(Boolean);
+            var orderedStores = listedStores.length ? listedStores : visibleStores;
+            return index >= 0 ? (orderedStores[index] || null) : null;
+          }
+
+          function currentBrowsingStore(value) {
+            return findStoreInQuery(String(value || "")) || findStoreOrdinalInQuery(value) || activeStore || visibleStores[0] || stores[0];
           }
 
           function applyAddressQuery(address, fromComposer) {
@@ -19055,14 +19086,14 @@ async function openEduZone() {
             var value = textarea.value.trim();
             if (!value) return;
             textarea.value = "";
-            if (/^预约/.test(value)) {
-              var appointmentStore = findStoreInQuery(value) || activeStore;
+            if (/预约|预订/.test(value)) {
+              var appointmentStore = currentBrowsingStore(value);
               showSingleStoreScenario(appointmentStore);
               beginAppointment(appointmentStore);
               return;
             }
             if (/导航|路线|怎么去/.test(value)) {
-              var navigationStore = findStoreInQuery(value) || activeStore;
+              var navigationStore = currentBrowsingStore(value);
               openNavigation(navigationStore);
               return;
             }
