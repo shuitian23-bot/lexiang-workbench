@@ -56,8 +56,45 @@
     priceNode.innerHTML = '<small>国补后</small><span>¥' + format(finalPrice) + "</span>";
   }
 
+  function placeServiceAboveActions(detail) {
+    var service = detail.querySelector(".detail-service");
+    var actions = detail.querySelector(".detail-actions");
+    if (!service || !actions || service.parentNode !== actions.parentNode) return;
+    if (service.nextElementSibling !== actions) actions.parentNode.insertBefore(service, actions);
+  }
+
+  function productSku(detail) {
+    var stateProduct = window.__lxState && window.__lxState.currentProduct;
+    var node = detail.querySelector("[data-product-sku], [data-sku], [data-product-id]");
+    return String(
+      (stateProduct && (stateProduct.sku || stateProduct.id || stateProduct.product_id)) ||
+      (node && (node.dataset.productSku || node.dataset.sku || node.dataset.productId)) ||
+      ""
+    ).replace(/[^0-9A-Za-z_-]/g, "");
+  }
+
+  function renderProductCode(detail) {
+    var actions = detail.querySelector(".detail-actions");
+    if (!actions || !actions.parentNode) return;
+    var sku = productSku(detail);
+    if (!sku) return;
+    var displaySku = /^\d+$/.test(sku) ? sku.padStart(8, "0") : sku;
+    var code = detail.querySelector(".lx-detail-product-code-v188");
+    if (!code) {
+      code = document.createElement("p");
+      code.className = "lx-detail-product-code-v188";
+    }
+    if (code.dataset.sku !== sku) {
+      code.dataset.sku = sku;
+      code.innerHTML = '<span>商品编号：</span><strong>LX-' + displaySku + "</strong>";
+    }
+    if (actions.nextElementSibling !== code) actions.insertAdjacentElement("afterend", code);
+  }
+
   function render(detail) {
     if (!detail || !detail.isConnected) return;
+    placeServiceAboveActions(detail);
+    renderProductCode(detail);
     var price = currentPrice(detail);
     if (!price) return;
     var node = ensureNode(detail);

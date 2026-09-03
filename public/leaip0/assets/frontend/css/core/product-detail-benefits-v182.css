@@ -11,6 +11,9 @@
 .product-detail .detail-price[hidden] {
   display: none !important;
 }
+.product-detail .detail-tags {
+  display: none !important;
+}
 .lx-detail-benefits-v182 .lx-detail-benefits-price {
   display: flex;
   align-items: center;
@@ -86,6 +89,24 @@
   color: #c5232d;
   font: inherit;
   white-space: nowrap;
+}
+.product-detail .lx-detail-product-code-v188 {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  margin: 10px 0 0;
+  color: #99949d;
+  font-size: 13px;
+  line-height: 1.5;
+  letter-spacing: .1px;
+}
+.product-detail .lx-detail-product-code-v188 span { font-weight: 400; }
+.product-detail .lx-detail-product-code-v188 strong {
+  color: #68636d;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: .35px;
+  font-variant-numeric: tabular-nums;
 }
 @media (max-width: 1280px) {
   .lx-detail-benefits-v182 .lx-detail-benefits-price { min-height: 68px; gap: 14px; }
