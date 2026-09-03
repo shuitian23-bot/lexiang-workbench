@@ -51,6 +51,65 @@ test('merges pageless menu labels after page menus without duplicates', () => {
   assert.deepEqual(mergeSkillMenuLabels(['乐享运营', '私人订制']), ['乐享运营', '私人订制'])
 })
 
+test('deduplicates page and pageless contexts by stable code without an update', () => {
+  const pageContext = {
+    code: 'customization.top-ranking',
+    name: '私定 TOP 榜单页面',
+    subtitle: '页面能力描述',
+    source: '私人订制',
+    menuPath: '私人订制 / 私定 TOP 榜单页面',
+    selected: false,
+    recommended: false
+  }
+
+  const items = mergeSkillContextItems([pageContext], '私人订制')
+
+  assert.equal(items.filter(item => item.code === pageContext.code).length, 1)
+  assert.deepEqual(items[0], pageContext)
+  assert.notEqual(items[0], pageContext)
+})
+
+test('applies an update once when page and pageless contexts share a stable code', () => {
+  const items = mergeSkillContextItems([
+    {
+      code: 'customization.top-ranking',
+      name: '私定 TOP 榜单页面',
+      subtitle: '页面能力描述',
+      source: '私人订制',
+      menuPath: '私人订制 / 私定 TOP 榜单页面',
+      selected: false,
+      recommended: false
+    }
+  ], '私人订制', {
+    baseMenu: '私人订制',
+    summary: '能力发生变化',
+    affectedContexts: [
+      {
+        contextId: 'customization.top-ranking',
+        name: '私定 TOP 榜单（更新）',
+        menuPath: '私人订制 / 私定 TOP 榜单',
+        currentVersion: 'v1',
+        targetVersion: 'v2'
+      }
+    ],
+    optionalContexts: []
+  })
+
+  assert.equal(items.filter(item => item.code === 'customization.top-ranking').length, 1)
+  assert.deepEqual(items[0], {
+    code: 'customization.top-ranking',
+    name: '私定 TOP 榜单（更新）',
+    subtitle: '页面能力描述',
+    source: '私人订制',
+    menuPath: '私人订制 / 私定 TOP 榜单',
+    currentVersion: 'v1',
+    targetVersion: 'v2',
+    changeRole: 'affected',
+    selected: false,
+    recommended: true
+  })
+})
+
 test('merges page and API contexts while preserving update overlays and stable codes', () => {
   const pageItems = [
     {

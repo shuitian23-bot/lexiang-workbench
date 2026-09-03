@@ -112,7 +112,12 @@ export function mergeSkillMenuLabels(pageMenuLabels) {
  * @returns {SkillContextItem[]}
  */
 export function mergeSkillContextItems(pageItems, activeMenu = '', update = null) {
-  const baseItems = [...pageItems, ...createPagelessContextItems(activeMenu)]
+  const knownBaseCodes = new Set()
+  const baseItems = [...pageItems, ...createPagelessContextItems(activeMenu)].filter(item => {
+    if (knownBaseCodes.has(item.code)) return false
+    knownBaseCodes.add(item.code)
+    return true
+  })
   if (!update) return baseItems.map(item => ({ ...item }))
 
   const affected = new Map(update.affectedContexts.map(context => [context.contextId, context]))
