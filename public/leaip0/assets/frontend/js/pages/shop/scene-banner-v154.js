@@ -13,11 +13,11 @@
   host.setAttribute('aria-label', '个人及家庭场景推荐');
   const frame = document.createElement('iframe');
   frame.title = '个人及家庭场景 Banner';
-  frame.src = '/assets/components/scene-banner-v154/scene-banner.html?v=20260831-transparent-banner-complete';
+  frame.src = '/assets/components/scene-banner-v154/scene-banner.html?v=20260903-responsive-tray-v181';
   frame.setAttribute('scrolling', 'no');
   frame.setAttribute('loading', 'eager');
   frame.style.cssText = 'display:block;border:0;position:absolute;left:0;top:0;transform-origin:0 0;width:1280px;height:650px;max-width:none;';
-  host.style.cssText = 'position:relative;width:100%;min-width:0;height:auto;aspect-ratio:1280/674;overflow:hidden;margin:0;';
+  host.style.cssText = 'position:relative;width:100%;min-width:0;height:auto;aspect-ratio:1280/624;overflow:hidden;margin:0;';
   const style = document.createElement('style');
   style.textContent = `
     #p0OriginalSceneBanner { display:none; }
@@ -32,15 +32,26 @@
   let resizePending = false;
   function resize() {
     resizePending = false;
-    const width = content.clientWidth - parseFloat(getComputedStyle(content).paddingLeft || 0) - parseFloat(getComputedStyle(content).paddingRight || 0);
+    const contentStyle = getComputedStyle(content);
+    const sideInset = parseFloat(contentStyle.paddingLeft || 0);
+    const width = content.clientWidth - sideInset - parseFloat(contentStyle.paddingRight || 0);
     if (!width || !frameDocument) return;
-    // Preserve the supplied desktop composition even beside the assistant.
-    // Only the entire original document scales; its component CSS stays intact.
-    const naturalWidth = window.innerWidth <= 760 ? width : Math.max(1280, width);
+    // Keep the desktop composition on wide screens. In a narrow laptop panel,
+    // render from a compact 980px canvas instead of shrinking a 1280px canvas;
+    // this keeps the three product cards comfortably readable.
+    const compactHost = window.innerWidth > 760 && width < 1100;
+    const naturalWidth = window.innerWidth <= 760
+      ? width
+      : compactHost
+        ? Math.max(980, width)
+        : Math.max(1280, width);
     const scale = width / naturalWidth;
+    frameDocument.documentElement.classList.toggle('is-compact-host', compactHost);
     frame.style.width = naturalWidth + 'px';
     const page = frameDocument.querySelector('.page');
     if (!page) return;
+    // Match the visible top inset to the parent card's side inset at every scale.
+    page.style.paddingTop = (sideInset / scale) + 'px';
     const padding = parseFloat(frame.contentWindow.getComputedStyle(frameDocument.body).paddingBottom) || 0;
     const height = Math.ceil(page.getBoundingClientRect().bottom + padding);
     frame.style.height = height + 'px';
@@ -62,33 +73,21 @@
     observer.observe(frameDocument.querySelector('.page'));
     window.addEventListener('resize', scheduleResize);
     frameDocument.fonts.ready.then(scheduleResize);
-    // Keep the current production product routes, aligned to the source order:
-    // gaming notebook -> office tablet -> creation notebook.
-    const productSkus = ['1054054', '1038490', '1055124'];
-    const cta = frameDocument.querySelector('.cta');
-    cta.addEventListener('click', async function () {
-      const api = window.__lxAgentAPI;
-      if (!api || typeof api.openProduct !== 'function' || cta.disabled) return;
-      const index = Number(frameDocument.getElementById('pageNum').textContent) - 1;
-      if (!productSkus[index]) return;
-      cta.disabled = true;
-      cta.setAttribute('aria-busy', 'true');
-      try { await api.openProduct(productSkus[index]); }
-      catch (error) { console.error('[scene-banner] Product details could not open', error); }
-      finally { cta.disabled = false; cta.removeAttribute('aria-busy'); }
-    });
-    // Add keyboard semantics without changing the source click behavior or style.
-    frameDocument.querySelectorAll('.tab, .thumb-card').forEach(function (control) {
-      control.tabIndex = 0;
-      control.setAttribute('role', 'button');
-      control.addEventListener('keydown', function (event) {
-        if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); control.click(); }
-      });
-    });
+    scheduleResize();
   }
   frame.addEventListener('load', initialize);
-  window.addEventListener('message', function(event) {
-    if(event.origin === location.origin && event.source === frame.contentWindow && event.data?.type === 'p0-scene-dom-ready-v154') initialize();
+  window.addEventListener('message', async function(event) {
+    if (event.origin !== location.origin || event.source !== frame.contentWindow) return;
+    if (event.data?.type === 'p0-scene-dom-ready-v158') {
+      initialize();
+      return;
+    }
+    if (event.data?.type === 'p0-scene-open-product' && event.data.sku) {
+      const api = window.__lxAgentAPI;
+      if (!api || typeof api.openProduct !== 'function') return;
+      try { await api.openProduct(String(event.data.sku)); }
+      catch (error) { console.error('[scene-banner] Product details could not open', error); }
+    }
   });
   }
   mount();
