@@ -1,3 +1,4 @@
+/* order-card-entry-v32-20260903 */
 (function () {
         var body;
         var content;
@@ -155,7 +156,8 @@
         }
 
         function orderBadges(order) {
-          return [(order.typeLabel || "普通订单") + " 上线后去掉"];
+          // 订单类型仍保留在数据层和详情页，列表卡片暂不展示类型标签。
+          return [];
         }
 
         function statusExtra(order) {
@@ -178,19 +180,17 @@
 
         function orderCard(order) {
           var paidClass = ["待付款", "待付定金", "待付尾款"].includes(order.status) ? " is-paid" : "";
-          var badges = orderBadges(order).map(function (badge) { return '<span class="lx-order-badge">' + escapeHtml(badge) + '</span>'; }).join("");
           var productRows = (order.items || []).map(function (item) {
             var role = item.role && item.role !== "主品" ? '<span class="lx-order-item-role">' + escapeHtml(item.role) + '</span>' : "";
             return '<div class="lx-order-card-product-row"><span class="lx-order-thumb"><img src="' + escapeHtml(item.image) + '" alt="' + escapeHtml(item.name) + '"></span><div class="lx-order-product">' + role + '<h2>' + escapeHtml(item.name) + '</h2><p>' + escapeHtml(item.description) + '</p><span>数量 × ' + escapeHtml(item.quantity) + '</span></div></div>';
           }).join("");
           var extra = statusExtra(order);
           var mixedClass = Number(order.payment && order.payment.beans || 0) > 0 ? " lx-order-mixed-amount" : "";
-          return '<article class="lx-order-card" data-order-id="' + escapeHtml(order.id) + '">' +
-            '<header class="lx-order-card-head"><div><span>订单号 ' + escapeHtml(order.id) + '</span><span>' + escapeHtml(order.createdAt) + '</span></div><div class="lx-order-card-head-right">' + badges + '<strong class="lx-order-card-status' + paidClass + '">' + escapeHtml(order.status) + '</strong></div></header>' +
+          return '<article class="lx-order-card" role="button" tabindex="0" aria-label="查看订单 ' + escapeHtml(order.id) + ' 详情" data-order-id="' + escapeHtml(order.id) + '" data-order-card="' + escapeHtml(order.id) + '" data-order-detail-id="' + escapeHtml(order.id) + '">' +
+            '<header class="lx-order-card-head"><div><span>订单号 ' + escapeHtml(order.id) + '</span><span>' + escapeHtml(order.createdAt) + '</span></div><div class="lx-order-card-head-right"><strong class="lx-order-card-status' + paidClass + '">' + escapeHtml(order.status) + '</strong></div></header>' +
             '<div class="lx-order-card-body"><div class="lx-order-card-products">' + productRows + '</div>' +
             '<div class="lx-order-card-money"><span>应付金额</span><strong class="' + mixedClass.trim() + '">' + escapeHtml(orderAmount(order)) + '</strong></div>' +
-            '<div class="lx-order-card-state"><strong>' + escapeHtml(order.status) + '</strong>' + (extra ? '<small>' + escapeHtml(extra) + '</small>' : '') + '</div>' +
-            '<div class="lx-order-card-actions"><button class="lx-order-detail-button" type="button" data-order-detail-id="' + escapeHtml(order.id) + '">查看详情</button></div></div>' +
+            '<div class="lx-order-card-state"><strong>' + escapeHtml(order.status) + '</strong>' + (extra ? '<small>' + escapeHtml(extra) + '</small>' : '') + '</div></div>' +
           '</article>';
         }
 
@@ -338,7 +338,7 @@
             '<p class="lx-order-user">我有哪些订单？</p>' +
             '<div class="lx-order-ai"><div class="lx-order-skill"><img src="../icons/mall-orders.svg" alt=""><span>已完成 1 个 Skill 调用 · 订单查询</span></div>' +
               '<p>我为你查到 <strong>22 笔订单</strong>，其中 17 笔正在进行中，最近一笔下单时间为 2026-08-18。</p>' +
-              '<p>订单列表已展示在右侧。可以按订单号、商品名称、订单类型和状态筛选；点击“查看详情”查看完整订单信息。</p>' +
+              '<p>订单列表已展示在右侧。点击任一订单卡片即可查看完整订单信息与物流轨迹。</p>' +
               '<button class="lx-order-result-card" type="button" data-open-orders><span class="lx-order-result-icon"><img src="../icons/global-next.svg" alt=""></span><span><strong>查看我的订单</strong><small>共 22 笔 · 17 笔进行中</small></span><img src="../icons/arrow-left.svg" alt=""></button>' +
             '</div>' +
           '</div>';
@@ -349,12 +349,9 @@
             '<nav class="lx-orders-tabs lx-tabbar" aria-label="已打开页面" hidden><button class="lx-orders-tab lx-tab is-active" type="button" data-workspace-view="orders" aria-current="page"><span class="lx-tab-label">我的订单</span><span class="lx-orders-tab-close lx-tab-close">×</span></button></nav>' +
             '<section class="lx-orders-list is-active" data-orders-list>' +
               '<header class="lx-orders-head"><div class="lx-orders-title-wrap"><h1>我的订单</h1><p>查看并管理你的联想乐享订单</p></div></header>' +
-              '<div class="lx-order-filterbar"><label class="lx-order-search"><img src="../icons/global-search.svg" alt=""><input type="search" value="' + escapeHtml(orderListState.query) + '" placeholder="搜索订单号或商品名称" aria-label="搜索订单" data-order-search></label>' +
-                '<div class="lx-order-type-label" data-order-type-picker><span>订单类型</span><button class="lx-order-type-trigger" type="button" data-order-type-trigger aria-haspopup="listbox" aria-expanded="false"><strong data-order-type-value>' + escapeHtml(orderTypeOptions.find(function (item) { return item[0] === orderListState.type; })[1]) + '</strong><span class="lx-order-type-chevron" aria-hidden="true"></span></button><div class="lx-order-type-menu" data-order-type-menu role="listbox" aria-label="筛选订单类型" hidden>' + orderTypeOptions.map(function (item) { var selected = item[0] === orderListState.type; return '<button type="button" role="option" aria-selected="' + selected + '" class="lx-order-type-option' + (selected ? ' is-selected' : '') + '" data-order-type-option="' + item[0] + '"><span>' + item[1] + '</span></button>'; }).join("") + '</div></div></div>' +
-              '<div class="lx-order-status-tabs" role="tablist" aria-label="按订单状态筛选">' + orderStatusOptions.map(function (status) { var active = status === orderListState.status; return '<button type="button" role="tab" aria-selected="' + active + '" class="' + (active ? 'is-active' : '') + '" data-order-status="' + status + '">' + status + '</button>'; }).join("") + '</div>' +
               '<div class="lx-order-result-meta"><strong data-order-count>' + orders.length + '</strong><span>笔订单</span></div>' +
               '<div class="lx-order-grid" data-order-grid>' + orders.map(orderCard).join("") + '</div>' +
-              '<div class="lx-order-empty" data-order-empty><strong>没有找到相关订单</strong><p>可以调整订单类型、状态或搜索关键词。</p><button type="button" data-order-clear>清除筛选</button></div>' +
+              '<div class="lx-order-empty" data-order-empty><strong>暂无订单</strong><p>完成下单后，可以在这里查看订单信息。</p></div>' +
             '</section>' +
             '<section class="lx-order-detail" data-order-detail></section>' +
           '</div>';
@@ -598,8 +595,8 @@
               window.__lxBridge.prepareRootSplitState();
             }
             showOrderGeneration();
-            await streamSkillAnswer(question || "我要查看订单", "订单查询", ["已为你查询到 22 笔订单，包含待付款、待发货和待收货状态。可在右侧筛选订单，并查看商品、金额与物流详情。"], {
-              finalHtml: '<p>已为你查询到 <strong>22 笔订单</strong>，包含待付款、待发货和待收货状态。可在右侧筛选订单，并查看商品、金额与<strong>物流详情</strong>。</p>',
+            await streamSkillAnswer(question || "我要查看订单", "订单查询", ["已为你查询到 22 笔订单，包含待付款、待发货和待收货状态。点击右侧订单卡片即可查看商品、金额与物流详情。"], {
+              finalHtml: '<p>已为你查询到 <strong>22 笔订单</strong>，包含待付款、待发货和待收货状态。点击右侧订单卡片即可查看商品、金额与<strong>物流详情</strong>。</p>',
               cardHtml: '<button class="answer-cta lx-answer-page" type="button" data-open-orders data-lx-result-id="info:orders" aria-pressed="false"><span class="answer-cta-copy"><span class="answer-cta-title">查看我的订单</span><span class="answer-cta-desc">共 22 笔 · 17 笔进行中</span></span><span class="answer-cta-icon" aria-hidden="true"><img class="lx-approved-icon-img" src="../icons/global-next.svg" alt=""></span></button>'
             });
             openOrdersFromChat("");
@@ -833,8 +830,9 @@
               else if (targetView === "orders") openOrdersFromChat("");
               return;
             }
-            if (detailButton) {
-              var order = orders.find(function (item) { return item.id === detailButton.dataset.orderDetailId; });
+            if (detailButton || card) {
+              var orderId = detailButton ? detailButton.dataset.orderDetailId : card.dataset.orderCard;
+              var order = orders.find(function (item) { return item.id === orderId; });
               if (!order) return;
               var mainItem = primaryItem(order);
               streamSkillAnswer("查看这笔订单的详细信息", "订单详情查询", ["已查询到“" + mainItem.name + "”的订单详情。", "这是一笔“" + order.typeLabel + "”，当前状态为“" + order.status + "”，下单时间是 " + order.createdAt + "，应付金额 " + orderAmount(order) + "。右侧可查看商品清单、付款信息、交付信息和订单状态轨迹。"]);
@@ -844,12 +842,6 @@
               detail.classList.add("is-active");
               content.scrollTop = 0;
               requestAnimationFrame(function () { content.scrollTop = 0; });
-              return;
-            }
-            if (card) {
-              var qaOrder = orders.find(function (item) { return item.id === card.dataset.orderId; });
-              if (!qaOrder) return;
-              streamSkillAnswer("这笔订单现在是什么状态？", "订单详情查询", ["这笔订单当前状态为“" + qaOrder.status + "”，下单时间是 " + qaOrder.createdAt + "，应付金额 " + orderAmount(qaOrder) + "。", "如需查看商品明细、付款组成或交付轨迹，请点击右侧订单上的“查看详情”按钮。"]);
               return;
             }
             if (back) {
@@ -894,6 +886,12 @@
           });
 
           content.addEventListener("keydown", function (event) {
+            var orderCard = event.target.closest(".lx-order-card[data-order-detail-id]");
+            if (orderCard && (event.key === "Enter" || event.key === " ")) {
+              event.preventDefault();
+              orderCard.click();
+              return;
+            }
             var trigger = event.target.closest("[data-order-type-trigger]");
             var option = event.target.closest("[data-order-type-option]");
             if (trigger && ["ArrowDown", "ArrowUp", "Enter", " "].includes(event.key)) {

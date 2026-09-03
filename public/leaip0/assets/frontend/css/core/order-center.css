@@ -1861,3 +1861,36 @@ body.lx-orders-poc {
           padding-inline: 16px !important;
         }
       }
+
+      /* orders-card-entry-v32-20260903: the order list is browse-only.
+         Filters and per-card detail buttons are removed; the complete card is
+         the single accessible entry into the existing detail workspace. */
+      .lx-orders-list .lx-order-card {
+        cursor: pointer;
+      }
+      .lx-orders-list .lx-order-card:focus-visible {
+        border-color: #4d144a;
+        outline: 2px solid rgba(77, 20, 74, 0.16);
+        outline-offset: 2px;
+        box-shadow: 0 10px 26px rgba(50, 29, 57, 0.08);
+      }
+      .lx-orders-list .lx-order-card-body {
+        grid-template-columns: minmax(320px, 1fr) minmax(100px, .35fr) minmax(120px, .4fr);
+      }
+      .lx-orders-list .lx-order-badge,
+      .lx-orders-list .lx-order-filterbar,
+      .lx-orders-list .lx-order-status-tabs,
+      .lx-orders-list .lx-order-card-actions {
+        display: none !important;
+      }
+      .lx-orders-list .lx-order-result-meta {
+        margin-top: 4px;
+      }
+      @media (max-width: 820px) {
+        .lx-orders-list .lx-order-card-body {
+          grid-template-columns: minmax(0, 1fr) minmax(88px, .32fr);
+        }
+        .lx-orders-list .lx-order-card-state {
+          grid-column: 2;
+        }
+      }

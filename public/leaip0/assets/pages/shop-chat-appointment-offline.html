@@ -1546,6 +1546,12 @@ body.lx-template-file .lxfd-nav-cluster:not(.open) {
         font-weight: 600;
       }
     </style>
+    <style data-order-card-entry-offline-v40>
+      .lx-order-skin .ord[data-order-card-detail]{cursor:pointer}
+      .lx-order-skin .ord[data-order-card-detail]:hover,
+      .lx-order-skin .ord[data-order-card-detail]:focus-visible{border-color:#4d144a;box-shadow:0 8px 22px rgba(50,29,57,.09);outline:none}
+      .lx-order-skin .ord[data-order-card-detail] .acts .solid{display:none!important}
+    </style>
   </head>
   <body data-page="personal" data-state="default">
     <script>
@@ -4778,7 +4784,7 @@ if (!window.__lxCreateTypewriter) {
                   ? `${item.address.name || ""} ${item.address.phone || ""} ${item.address.region || ""}${item.address.detail || ""}`.trim()
                   : "演示用户 138****0000 演示地址可在订单中修改收货信息";
                 return `
-                  <div class="ord">
+                  <div class="ord" role="button" tabindex="0" data-order-card-detail="${esc(item.orderId)}" aria-label="查看订单 ${esc(item.orderId)} 详情">
                     <div class="shot"><img src="${esc(orderImg(item.image_url))}" alt="${esc(item.name)}" loading="lazy"></div>
                     <div class="mid">
                       <div class="pn">
@@ -4794,7 +4800,7 @@ if (!window.__lxCreateTypewriter) {
                     </div>
                     <div class="acts">
                       <button class="obtn order-ghost" type="button" data-ask-order="${esc(`订单 ${item.orderId || ""}（${item.name}，${st.label}，¥${item.price}，下单时间 ${item.createdAt || "未知"}）`)}">问订单</button>
-                      <button class="obtn solid" type="button" data-order-detail="${esc(item.orderId)}">订单详情</button>
+                      <button class="obtn solid" type="button" data-order-detail="${esc(item.orderId)}" hidden>订单详情</button>
                     </div>
                   </div>`;
               }).join("")}
@@ -11234,6 +11240,13 @@ async function openEduZone() {
             else state.hoverPromptSku = "";
           });
 
+          document.addEventListener("keydown", (event) => {
+            const orderCard = event.target.closest?.("[data-order-card-detail]");
+            if (!orderCard || (event.key !== "Enter" && event.key !== " ")) return;
+            event.preventDefault();
+            orderCard.querySelector("[data-order-detail]")?.click();
+          });
+
           document.addEventListener("click", (event) => {
             const readerButton = event.target.closest?.("[data-reader-action]");
             if (readerButton && !readerButton.disabled) {
@@ -11870,6 +11883,11 @@ async function openEduZone() {
             if (event.target.closest("[data-ask-compare]")) {
               closeModal();
               sendChat(`请帮我对比这几款商品：${state.compare.map((item) => item.name).join("、")}`);
+            }
+            const orderCardDetail = event.target.closest("[data-order-card-detail]");
+            if (orderCardDetail && !event.target.closest("button, a, input, select, textarea")) {
+              orderCardDetail.querySelector("[data-order-detail]")?.click();
+              return;
             }
             const orderDetailBtn = event.target.closest("[data-order-detail]");
             if (orderDetailBtn) { openOrderDetail(orderDetailBtn.dataset.orderDetail); return; }
