@@ -32,18 +32,28 @@
     var info = detail.querySelector(".detail-info");
     if (!info) return null;
     var node = info.querySelector(".lx-detail-benefits-v182");
-    if (node) return node;
-    node = document.createElement("section");
-    node.className = "lx-detail-benefits-v182";
-    node.setAttribute("aria-label", "商品价格与优惠");
+    if (!node) {
+      node = document.createElement("section");
+      node.className = "lx-detail-benefits-v182";
+      node.setAttribute("aria-label", "商品价格与优惠");
+    }
     var priceNode = info.querySelector("[data-detail-price], .detail-price");
     var reason = info.querySelector(".detail-fit-reason");
-    if (priceNode) {
-      priceNode.hidden = true;
-      priceNode.insertAdjacentElement("afterend", node);
-    } else if (reason) info.insertBefore(node, reason);
-    else info.appendChild(node);
+    var summary = info.querySelector(".detail-summary");
+    if (priceNode) priceNode.hidden = true;
+    if (summary && summary.nextElementSibling !== node) summary.insertAdjacentElement("afterend", node);
+    else if (!summary && reason && reason.previousElementSibling !== node) info.insertBefore(node, reason);
+    else if (!summary && !reason && !node.isConnected) info.appendChild(node);
     return node;
+  }
+
+  function renderBuybar(detail, finalPrice, sourcePrice) {
+    var bar = detail.querySelector(".lx-buybar") || document.querySelector(".lx-buybar");
+    var priceNode = bar && bar.querySelector(".lx-buybar-info b");
+    if (!priceNode) return;
+    if (priceNode.dataset.sourcePrice === String(sourcePrice)) return;
+    priceNode.dataset.sourcePrice = String(sourcePrice);
+    priceNode.innerHTML = '<small>国补后</small><span>¥' + format(finalPrice) + "</span>";
   }
 
   function render(detail) {
@@ -52,9 +62,10 @@
     if (!price) return;
     var node = ensureNode(detail);
     if (!node) return;
-    if (node.dataset.sourcePrice === String(price) && node.childElementCount) return;
     var subsidy = Math.min(2000, Math.round(price * 0.15));
     var finalPrice = Math.max(0, price - subsidy);
+    renderBuybar(detail, finalPrice, price);
+    if (node.dataset.sourcePrice === String(price) && node.childElementCount) return;
     var points = Math.max(1, Math.round(price * 0.10));
     var coupon = couponFor(price);
     node.dataset.sourcePrice = String(price);
