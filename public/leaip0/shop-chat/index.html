@@ -366,7 +366,7 @@
           </div>
         </section>
 
-        <section class="p-shop-floor-embed" id="pShopFloorEmbed" aria-label="联想商城热销榜与商品楼层"></section>
+        <section class="p-shop-floor-embed" id="pShopFloorEmbed" aria-label="联想商城商品楼层"></section>
 <template id="pShopFloorTemplate">
   <style>
     :host{display:block;width:100%;min-width:0}
@@ -911,6 +911,8 @@
   if (!host || !template || host.shadowRoot) return;
   const root = host.attachShadow({ mode: 'open' });
   root.append(template.content.cloneNode(true));
+  root.querySelector('.hero')?.remove();
+  root.querySelector('#cardsGrid')?.remove();
   const document = {
     baseURI: nativeDocument.baseURI,
     documentElement: host,
