@@ -1,7 +1,7 @@
 # 无页面 Skill 能力上下文设计
 
 日期：2026-09-03  
-状态：用户已确认方案，待书面规格复核  
+状态：用户已确认，书面规格复核通过
 目标页面：`agent.skillCreate` / `/agent/skill-create`  
 页面合同：T4 业务表单 + V2 多步流程 + E3/E4 专项边界
 
@@ -153,10 +153,10 @@ node --test scripts/*.test.mjs
 pnpm guard:design-skill
 pnpm lint
 pnpm typecheck
-pnpm build
-pnpm smoke:shell
 git diff --check
 ```
+
+`vite.config.js` 的默认输出目录是受 Git 管理的 `public/admin-vue`，且启用 `emptyOutDir`。因此默认 `pnpm build` 与 `pnpm smoke:shell` 只在从待发布提交创建的临时验证 worktree 中执行；实现 worktree 和服务器共享 checkout 均不直接运行默认构建。
 
 运行时验收：
 
@@ -170,11 +170,12 @@ git diff --check
 
 ## 11. 发布与保护
 
-- 从最新 GitLab `main` 的隔离分支构建。
+- 从最新 GitLab `main` 的隔离分支构建；服务器构建必须显式输出到仓库外的新临时目录，不得让默认 `emptyOutDir` 清空共享工作区的 `public/admin-vue`。
 - 构建产物只发布到 `new`。
 - 发布前备份 `new` 的 `public/admin-vue`。
 - 使用非删除式同步，保护整个 `admin-runtime`；至少核对 `workbench-geo.js` 和 `workbench-pages.js` 发布前后指纹。
 - 使用 release key `pageless-skill-context-20260903` 记录 `new` 的发布账号、北京时间和 Git 版本。
+- 写发布台账时两个输出参数必须同时指向 `new` 的同一台账文件，禁止脚本默认写入正式环境的台账副本。
 - 不记录 formal 发布证据，不改正式环境。
 - 预览服务器若需要接收本次提交，只能使用 Git 分支和个人工作区完成，并单独报告分支、提交与合并状态；不得触发正式仓库的自动合并。
 - GitLab/GitHub 是否同步必须单独报告；本次不因更新 `new` 而宣称 GitLab 或 GitHub 已更新。
