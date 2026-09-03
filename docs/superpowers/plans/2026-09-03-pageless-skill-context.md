@@ -459,7 +459,7 @@ git commit -m "docs: record pageless Skill context preview [tokens:4000]"
 
 `vite.config.js` writes to `../public/admin-vue` with `emptyOutDir: true`. Never run the default `pnpm build` in the implementation worktree or a shared server checkout because it clears that tracked output directory before rebuilding, including its protected runtime copy.
 
-- [ ] **Step 1: Run the incremental 0818 design guard**
+- [ ] **Step 1: Run the raw incremental 0818 design guard and, only if needed, its baseline-delta comparison**
 
 From repository root:
 
@@ -470,7 +470,7 @@ node skill/portal-workbench-ui-0818/scripts/check-consistency.mjs \
   --changed-file src/components/shell/sidebar/WorkbenchSidebar.vue
 ```
 
-Expected: `[OK] portal-workbench-ui-0818 ... internally consistent.` No changed-file design failure is allowed.
+Expected: the raw changed-file Guard must always run. `[OK] portal-workbench-ui-0818 ... internally consistent.` is a raw pass. If the raw command fails, do not call it PASS: create a detached `origin/main` baseline worktree, run exactly the same command, remove only its absolute worktree prefix before comparing violation signatures, and confirm both the count and every signature match. Also confirm `git diff origin/main...HEAD -- vue-app/src/views/agent/AgentSkillCreateView.vue` has no diff in the `<style>` block. Only when baseline and raw output are identical with no style diff may the gate continue as `raw guard FAIL, delta 0 inherited debt`; any count/signature difference or style diff is BLOCKED.
 
 - [ ] **Step 2: Run non-destructive checks in the implementation worktree**
 

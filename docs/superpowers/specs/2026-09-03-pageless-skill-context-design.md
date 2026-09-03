@@ -1,8 +1,8 @@
 # 无页面 Skill 能力上下文设计
 
-日期：2026-09-03  
+日期：2026-09-03
 状态：用户已确认，书面规格复核通过
-目标页面：`agent.skillCreate` / `/agent/skill-create`  
+目标页面：`agent.skillCreate` / `/agent/skill-create`
 页面合同：T4 业务表单 + V2 多步流程 + E3/E4 专项边界
 
 ## 1. 目标
@@ -148,6 +148,7 @@ MENU_TREE 子页面 ───┐
 工程验证：
 
 ```text
+node skill/portal-workbench-ui-0818/scripts/check-consistency.mjs --project vue-app --changed-file src/views/agent/AgentSkillCreateView.vue --changed-file src/components/shell/sidebar/WorkbenchSidebar.vue
 node --test scripts/skill-context-catalog.test.mjs
 node --test scripts/*.test.mjs
 pnpm guard:design-skill
@@ -155,6 +156,8 @@ pnpm lint
 pnpm typecheck
 git diff --check
 ```
+
+0818 changed-file Guard 的 raw 命令必须运行，不能因既有债务跳过或宣称 raw Guard 通过。若 raw Guard 失败，只有在 `origin/main` 的 detached 基线 worktree 运行完全相同命令后得到逐条相同的违规签名和数量，并且本次 `AgentSkillCreateView.vue` 差异未触及 `<style>` 区时，才可记录为“raw guard FAIL, delta 0 inherited debt”并继续其余工程验证；任何新增违规、签名差异或样式区差异均阻断验证。
 
 `vite.config.js` 的默认输出目录是受 Git 管理的 `public/admin-vue`，且启用 `emptyOutDir`。因此默认 `pnpm build` 与 `pnpm smoke:shell` 只在从待发布提交创建的临时验证 worktree 中执行；实现 worktree 和服务器共享 checkout 均不直接运行默认构建。
 
