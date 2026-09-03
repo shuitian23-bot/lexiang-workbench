@@ -2264,6 +2264,7 @@
         },
         products: (data) => {
           if (nonce !== chatState.conversationNonce) return;
+          if (!/(?:商品|产品|电脑|笔记本|轻薄本|游戏本|台式机|一体机|平板|主机|工作站|服务器|显示器|打印机|手机|耳机|鼠标|键盘|YOGA|ThinkPad|ThinkBook|拯救者|小新|昭阳|开天|问天|机型|型号|配置|显卡|处理器|内存|硬盘|购机|选购|购买|下单|买一|买台|买个|价格|价位|以旧换新|国补|对比.*(?:商品|产品|电脑|笔记本|机型|型号)|比较.*(?:商品|产品|电脑|笔记本|机型|型号)|推荐.*(?:商品|产品|电脑|笔记本|机型|型号)|(?:商品|产品|电脑|笔记本|机型|型号).*推荐|哪[个款台部].*(?:好|值得|适合)|(?:电脑|笔记本|商品|产品).*(?:怎么选|如何选))/i.test(String(value || ""))) return;
           const payload = parseJson(data);
           let products = payload.products || [];
           // 用户点名要N款(2-6)而官方固定回5-6款 → 按要求截断
@@ -2279,6 +2280,7 @@
         },
         display: (data) => {
           if (nonce !== chatState.conversationNonce) return;
+          if (!/(?:商品|产品|电脑|笔记本|轻薄本|游戏本|台式机|一体机|平板|主机|工作站|服务器|显示器|打印机|手机|耳机|鼠标|键盘|YOGA|ThinkPad|ThinkBook|拯救者|小新|昭阳|开天|问天|机型|型号|配置|显卡|处理器|内存|硬盘|购机|选购|购买|下单|买一|买台|买个|价格|价位|以旧换新|国补|对比.*(?:商品|产品|电脑|笔记本|机型|型号)|比较.*(?:商品|产品|电脑|笔记本|机型|型号)|推荐.*(?:商品|产品|电脑|笔记本|机型|型号)|(?:商品|产品|电脑|笔记本|机型|型号).*推荐|哪[个款台部].*(?:好|值得|适合)|(?:电脑|笔记本|商品|产品).*(?:怎么选|如何选))/i.test(String(value || ""))) return;
           const payload = parseJson(data);
           let products = payload.products || payload.items || [];
           const _wantN = window.__lxIntent && window.__lxIntent.parseWantedCount ? window.__lxIntent.parseWantedCount(value) : null;

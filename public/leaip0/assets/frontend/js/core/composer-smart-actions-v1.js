@@ -26,7 +26,7 @@
     var content = getRightContent();
     if (!content) return false;
     var selectedTab = content.querySelector(
-      '.lx-tab[data-shop-tab-id][aria-selected="true"], .lx-tab[data-shop-tab-id].is-active'
+      '.lx-tab[data-shop-tab-id][aria-selected="true"], .lx-tab[data-shop-tab-id].is-active, .lx-tab[data-tab-id][aria-selected="true"], .lx-tab[data-tab-id].is-active'
     );
     if (selectedTab) {
       return /推荐/.test(String(selectedTab.textContent || "").replace(/关闭标签|×/g, ""));
@@ -399,7 +399,7 @@
     }, true);
 
     document.addEventListener("click", function (event) {
-      if (event.target.closest("[data-shop-tab-id], [data-shop-tab-close], .lx-tab-close")) {
+      if (event.target.closest("[data-shop-tab-id], [data-shop-tab-close], [data-tab-id], [data-tab-close], .lx-tab-close")) {
         window.setTimeout(syncActionsToActiveTab, 0);
         window.setTimeout(syncActionsToActiveTab, 120);
       }
