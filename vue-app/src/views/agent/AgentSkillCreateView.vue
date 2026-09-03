@@ -1198,7 +1198,7 @@ async function submitClarifyMessage() {
   }
   const stateId = `s-${Date.now()}`
   clarifyMessages.value.push({ id: stateId, kind: 'state', states: [
-    { kind: 'thinking', status: 'running', title: '理解补充需求', detail: '正在结合基础配置、菜单子项上下文和当前澄清记录判断缺口。' },
+    { kind: 'thinking', status: 'running', title: '理解补充需求', detail: '正在结合基础配置、能力上下文和当前澄清记录判断缺口。' },
     { kind: 'tool_call', status: 'running', title: '调用大模型', detail: '正在把 Skill 创建上下文发送到服务端会话接口。' },
     { kind: 'streaming', status: 'pending', title: '组织澄清回复', detail: '模型返回后将提炼为下一轮澄清问题和配置建议。' }
   ] })
@@ -1209,7 +1209,7 @@ async function submitClarifyMessage() {
     clarifyMessages.value = clarifyMessages.value.filter(message => message.id !== stateId)
     clarifyMessages.value.push({ id: `sd-${Date.now()}`, kind: 'state', states: [
       { kind: 'thinking', status: 'done', title: '理解补充需求', detail: '已写入当前 Skill 创建上下文。' },
-      { kind: 'tool_call', status: 'done', title: '大模型已返回', detail: '已结合历史输入和当前菜单子项更新澄清建议。' },
+      { kind: 'tool_call', status: 'done', title: '大模型已返回', detail: '已结合历史输入和当前能力上下文更新澄清建议。' },
       { kind: 'streaming', status: 'done', title: '组织澄清回复', detail: '已生成本轮更新后的 Skill 创建确认项。' },
       { kind: 'follow_up', status: 'blocked', title: '等待用户确认', detail: '请继续确认未闭合的能力定义、输入输出、调用边界或验收用例。' }
     ] })
@@ -1219,11 +1219,11 @@ async function submitClarifyMessage() {
   } catch (error) {
     clarifyMessages.value = clarifyMessages.value.filter(message => message.id !== stateId)
     clarifyMessages.value.push({ id: `sf-${Date.now()}`, kind: 'state', states: [
-      { kind: 'thinking', status: 'done', title: '理解补充需求', detail: '已保留当前用户输入和菜单子项上下文。' },
+      { kind: 'thinking', status: 'done', title: '理解补充需求', detail: '已保留当前用户输入和能力上下文。' },
       { kind: 'tool_call', status: 'failed', title: '大模型调用失败', detail: error instanceof Error ? sanitizeModelVendorName(error.message) : '服务端会话接口暂不可用。' },
       { kind: 'error', status: 'blocked', title: '等待重试', detail: '未生成本地替代内容，避免把演示内容误当真实模型结果。' }
     ] })
-    clarifyMessages.value.push({ id: `a-${Date.now()}`, kind: 'assistant', text: '大模型暂时没有返回结果。我已经保留当前输入和菜单子项上下文，你可以稍后重试，或先继续补充应用场景、数据范围、输出形式和验收用例。' })
+    clarifyMessages.value.push({ id: `a-${Date.now()}`, kind: 'assistant', text: '大模型暂时没有返回结果。我已经保留当前输入和能力上下文，你可以稍后重试，或先继续补充应用场景、数据范围、输出形式和验收用例。' })
     scrollChat()
   }
 }
