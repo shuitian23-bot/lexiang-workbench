@@ -16,6 +16,14 @@ export interface PermissionScopeRole {
   functionPermissionIds: string[]
   dataIds: string[]
   dataPermissionIds: string[]
+  customDataRules: Array<{
+    id: string
+    tableId: string
+    tableName: string
+    logic: 'AND'
+    rowFieldIds: string[]
+    columnFieldIds: string[]
+  }>
 }
 
 export interface CopyablePermissionUser {
@@ -52,7 +60,15 @@ const dataPermissions: PermissionCatalogItem[] = [
   { id: 'data.lead.pool.assigned', name: '已分配线索', group: '企业客户管理', page: '线索池', description: '当前账号已分配的企业线索。' }
 ]
 
-function createRole(id: string, name: string, description: string, owner: string, functionIds: string[], dataIds: string[]): PermissionScopeRole {
+function createRole(
+  id: string,
+  name: string,
+  description: string,
+  owner: string,
+  functionIds: string[],
+  dataIds: string[],
+  customDataRules: PermissionScopeRole['customDataRules'] = []
+): PermissionScopeRole {
   return {
     id,
     name,
@@ -62,7 +78,12 @@ function createRole(id: string, name: string, description: string, owner: string
     functionIds: [...functionIds],
     functionPermissionIds: [...functionIds],
     dataIds: [...dataIds],
-    dataPermissionIds: [...dataIds]
+    dataPermissionIds: [...dataIds],
+    customDataRules: customDataRules.map((rule) => ({
+      ...rule,
+      rowFieldIds: [...rule.rowFieldIds],
+      columnFieldIds: [...rule.columnFieldIds]
+    }))
   }
 }
 
@@ -70,9 +91,15 @@ const roles = [
   createRole('ops-pm', '运营分析 PM', '可查看运营总览、生成报告，并使用常用运营数据。', 'zhangjq4', ['func.dashboard.view', 'func.report.generate', 'func.data.export'], []),
   createRole('product-op', '商品运营', '可配置商品、推荐位、价格和上下架策略。', 'huangjq5', ['func.dashboard.view', 'func.product.config', 'func.publish.confirm'], ['data.ops.region.north', 'data.ops.metric.gmv']),
   createRole('geo-analyst', 'GEO 分析师', '可查看信源、引用和搜索表现数据。', 'zhangxy43', ['func.geo.monitor', 'func.report.generate'], ['data.geo.source.official', 'data.geo.source.community']),
-  createRole('lead-operator', '线索运营', '可查看企业客户线索并进行分配跟进。', 'sunll1', ['func.lead.assign', 'func.data.export'], []),
-  createRole('admin', 'admin', '覆盖权限申请、审批、用户、组织、数据源、功能配置和审计类能力。', 'admin', functionPermissions.map((permission) => permission.id), dataPermissions.map((permission) => permission.id)),
-  createRole('bpo-collab', '外包协作', '受限菜单和脱敏数据，仅保留必要操作。', 'wangxt8', ['func.dashboard.view'], ['data.ops.region.south'])
+  createRole('lead-operator', '线索运营', '可查看企业客户线索并进行分配跟进。', 'sunll1', ['func.lead.assign', 'func.data.export'], [], [
+    { id: 'first-access-leads', tableId: 'enterprise-leads-table', tableName: '企业客户线索二维表', logic: 'AND', rowFieldIds: ['east', 'north'], columnFieldIds: ['customer-name', 'lead-status'] }
+  ]),
+  createRole('admin', 'admin', '覆盖权限申请、审批、用户、组织、数据源、功能配置和审计类能力。', 'admin', functionPermissions.map((permission) => permission.id), dataPermissions.map((permission) => permission.id), [
+    { id: 'first-access-admin', tableId: 'ops-metrics-table', tableName: '运营指标二维表', logic: 'AND', rowFieldIds: ['east', 'north', 'south', 'nationwide'], columnFieldIds: ['gmv', 'traffic', 'conversion'] }
+  ]),
+  createRole('bpo-collab', '外包协作', '受限菜单和脱敏数据，仅保留必要操作。', 'wangxt8', ['func.dashboard.view'], ['data.ops.region.south'], [
+    { id: 'first-access-bpo', tableId: 'ops-metrics-table', tableName: '运营指标二维表', logic: 'AND', rowFieldIds: ['south'], columnFieldIds: ['gmv'] }
+  ])
 ]
 
 const copyableUsers: CopyablePermissionUser[] = [
@@ -87,7 +114,12 @@ const cloneRole = (role: PermissionScopeRole) => ({
   functionIds: [...role.functionIds],
   functionPermissionIds: [...role.functionPermissionIds],
   dataIds: [...role.dataIds],
-  dataPermissionIds: [...role.dataPermissionIds]
+  dataPermissionIds: [...role.dataPermissionIds],
+  customDataRules: role.customDataRules.map((rule) => ({
+    ...rule,
+    rowFieldIds: [...rule.rowFieldIds],
+    columnFieldIds: [...rule.columnFieldIds]
+  }))
 })
 
 export function createPermissionScopeCatalog() {

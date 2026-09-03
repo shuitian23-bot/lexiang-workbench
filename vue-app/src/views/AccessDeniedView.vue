@@ -170,6 +170,7 @@
           :selected-function-ids="roleModal.selectedFunctionIds"
           :selected-data-ids="roleModal.selectedDataIds"
           :locked-role-ids="copiedRoleIds"
+          :conflicts="roleModalConflicts"
           @close="closeRoleModal"
           @confirm="confirmRoleSelection"
           @open-detail="openRoleDetail($event.id)"
@@ -216,6 +217,7 @@ import PermissionScopeEditor from '@/components/permissions/PermissionScopeEdito
 import { createPermissionScopeCatalog, groupDataPermissionsByDirectory, groupPermissionCatalog } from '@/components/permissions/permissionScopeCatalog'
 import { permissionScopeValidation } from '@/components/permissions/permissionScopeSnapshot.js'
 import PermissionRolePickerModal from '@/components/permissions/PermissionRolePickerModal.vue'
+import { detectCustomDataRoleConflicts } from '@/components/permissions/customDataRoleConflict.js'
 
 interface FirstAccessApplication {
   id: string
@@ -279,6 +281,8 @@ const errors = reactive({ tenant: '' })
 const selectedRoles = computed(() => roles.filter((role) => selectedRoleIds.value.includes(role.id)))
 const copiedRoles = computed(() => roles.filter((role) => copiedRoleIds.value.includes(role.id)))
 const allSelectedRoles = computed(() => [...selectedRoles.value, ...copiedRoles.value.filter((role) => !selectedRoleIds.value.includes(role.id))])
+const allSelectedRoleConflicts = computed(() => detectCustomDataRoleConflicts(allSelectedRoles.value))
+const roleModalConflicts = computed(() => detectCustomDataRoleConflicts(roles.filter((role) => [...roleModal.selectedIds, ...copiedRoleIds.value].includes(role.id))))
 const copiedFromUser = computed(() => copyableUsers.find((user) => user.itcode === copiedFromItcode.value) || null)
 const copiedDataIds = computed(() => Object.keys(copiedDataSourceMap))
 const copiedDataPermissions = computed(() => dataPermissions.filter((permission) => copiedDataIds.value.includes(permission.id)).map((permission) => ({ ...permission, source: copiedDataSourceMap[permission.id] })))
@@ -311,9 +315,18 @@ function validateBasic() {
   return true
 }
 
+function roleConflictMessage(conflicts: ReturnType<typeof detectCustomDataRoleConflicts>) {
+  const conflict = conflicts[0]
+  if (!conflict) return ''
+  const roleNames = conflict.roleNames.map((name: string) => '“' + name + '”').join('、')
+  return '角色 ' + roleNames + ' 在数据集“' + conflict.datasetName + '”上的自定义权限不一致，请移除其中一个角色或先统一角色权限。'
+}
+
 function validateScope() {
   errors.tenant = permissionScopeValidation({ tenant: form.tenant }).tenantError
-  return !errors.tenant
+  const conflictMessage = roleConflictMessage(allSelectedRoleConflicts.value)
+  submitError.value = conflictMessage
+  return !errors.tenant && !conflictMessage
 }
 
 function toggleTenant(tenant: string) {
@@ -400,6 +413,7 @@ function toggleRoleDataDraft(permissionId: string) {
 }
 
 function confirmRoleSelection() {
+  if (roleModalConflicts.value.length) return
   selectedRoleIds.value = [...roleModal.selectedIds]
   const allowedFunctionIds = new Set(roles
     .filter((role) => roleModal.selectedIds.includes(role.id))
@@ -438,6 +452,11 @@ function confirmCopyPermissions() {
   const user = copyableUsers.find((item) => item.itcode.toLowerCase() === itcode.toLowerCase())
   if (!user) {
     copyModal.error = '没有找到该 ITCode 的 mock 权限，请检查后再试。'
+    return
+  }
+  const conflicts = detectCustomDataRoleConflicts(roles.filter((role) => [...selectedRoleIds.value, ...user.roleIds].includes(role.id)))
+  if (conflicts.length) {
+    copyModal.error = roleConflictMessage(conflicts)
     return
   }
   copiedFromItcode.value = user.itcode

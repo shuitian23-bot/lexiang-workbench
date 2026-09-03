@@ -18,7 +18,7 @@
                 <button type="button" class="link-btn" @click.stop="$emit('open-detail', role)">查看详情</button>
               </div>
               <p>{{ roleDescription(role) }}</p>
-              <small>{{ roleFunctionIds(role).length }} 项功能权限 / {{ roleDataIds(role).length }} 项数据权限</small>
+              <small>{{ roleFunctionIds(role).length }} 项功能权限 / {{ roleDataCount(role) }} 项数据权限</small>
             </div>
           </article>
         </div>
@@ -30,7 +30,7 @@
           <p>{{ roleDescription(detailRole) }}</p>
           <div class="role-permission-tabs" role="tablist" aria-label="角色权限类型">
             <button type="button" :class="{ active: activePermissionTab === 'function' }" @click="$emit('update:active-permission-tab', 'function')">功能权限 <b>{{ roleFunctionIds(detailRole).length }}</b></button>
-            <button type="button" :class="{ active: activePermissionTab === 'data' }" @click="$emit('update:active-permission-tab', 'data')">数据权限 <b>{{ roleDataIds(detailRole).length }}</b></button>
+            <button type="button" :class="{ active: activePermissionTab === 'data' }" @click="$emit('update:active-permission-tab', 'data')">数据权限 <b>{{ roleDataCount(detailRole) }}</b></button>
           </div>
           <input v-if="activePermissionTab === 'function'" :value="detailKeyword" class="modal-search-input drawer-search" placeholder="搜索功能权限名称、说明或分类" @input="updateDetailKeyword">
           <div v-if="activePermissionTab === 'function'" class="role-permission-tree">
@@ -50,6 +50,13 @@
             </details>
             <div v-if="!functionPermissionGroups.length" class="scope-empty"><b>没有匹配的功能权限</b><p>请调整搜索关键词后再试。</p></div>
           </div>
+          <div v-else-if="roleCustomRules(detailRole).length" class="role-permission-tree custom-table-detail">
+            <CustomTableAuthorizationEditor
+              :model-value="roleCustomRules(detailRole)"
+              title="角色自定义授权"
+              readonly
+            />
+          </div>
           <div v-else class="role-permission-tree data-directory-tree">
             <PermissionDataDirectoryList
               :directories="dataPermissionDirectories"
@@ -61,9 +68,24 @@
         </aside>
       </div>
 
+      <section v-if="conflicts?.length" class="role-conflict-alert" role="alert" data-testid="role-custom-data-conflicts">
+        <b>存在角色自定义数据权限冲突，暂时无法确认</b>
+        <p>请取消勾选其中一个角色，或先统一这些角色在同一数据集上的行、列权限。</p>
+        <details v-for="conflict in conflicts" :key="conflict.datasetId">
+          <summary>{{ conflict.datasetName }}：{{ conflict.roleNames.join('、') }}</summary>
+          <div class="role-conflict-detail">
+            <article v-for="role in conflict.roleSummaries" :key="role.roleId">
+              <b>{{ role.roleName }}</b>
+              <span>行权限：{{ role.rowSummary }}</span>
+              <span>列权限：{{ role.columnSummary }}</span>
+            </article>
+          </div>
+        </details>
+      </section>
+
       <footer class="modal-actions">
         <button type="button" class="secondary-btn" @click="$emit('close')">取消</button>
-        <button type="button" class="primary-btn" @click="$emit('confirm')">确认</button>
+        <button type="button" class="primary-btn" :disabled="Boolean(conflicts?.length)" @click="$emit('confirm')">确认</button>
       </footer>
     </section>
   </div>
@@ -71,11 +93,24 @@
 
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from 'vue'
+import CustomTableAuthorizationEditor from './CustomTableAuthorizationEditor.vue'
 import PermissionDataDirectoryList, { type DataPermissionDirectory } from './PermissionDataDirectoryList.vue'
 
 interface PermissionItem { id: string; name: string; description?: string; scope?: string }
 interface PermissionBranch { id: string; name: string; children?: PermissionItem[]; functions?: PermissionItem[]; dataPermissions?: PermissionItem[] }
 interface PermissionGroup { id: string; name: string; children: PermissionBranch[] }
+interface RoleConflictRoleSummary {
+  roleId: string
+  roleName: string
+  rowSummary: string
+  columnSummary: string
+}
+interface RoleConflict {
+  datasetId: string
+  datasetName: string
+  roleNames: string[]
+  roleSummaries: RoleConflictRoleSummary[]
+}
 interface RoleOption {
   id: string
   name: string
@@ -85,6 +120,7 @@ interface RoleOption {
   dataIds?: string[]
   functionPermissionIds?: string[]
   dataPermissionIds?: string[]
+  customDataRules?: Array<Record<string, unknown>>
 }
 
 const props = defineProps<{
@@ -99,6 +135,7 @@ const props = defineProps<{
   selectedFunctionIds: string[]
   selectedDataIds: string[]
   lockedRoleIds: string[]
+  conflicts?: RoleConflict[]
 }>()
 
 const dialog = ref<HTMLElement | null>(null)
@@ -124,6 +161,8 @@ const dataPermissionDirectories = computed(() => props.permissionGroups.filter((
 const roleDescription = (role: RoleOption) => role.description || role.desc || ''
 const roleFunctionIds = (role: RoleOption) => role.functionPermissionIds || role.functionIds || []
 const roleDataIds = (role: RoleOption) => role.dataPermissionIds || role.dataIds || []
+const roleCustomRules = (role: RoleOption) => role.customDataRules || []
+const roleDataCount = (role: RoleOption) => roleDataIds(role).length + roleCustomRules(role).length
 const branchItems = (branch: PermissionBranch) => branch.children || (props.activePermissionTab === 'function' ? branch.functions : branch.dataPermissions) || []
 const groupItemCount = (group: PermissionGroup) => group.children.reduce((count, branch) => count + branchItems(branch).length, 0)
 const inputValue = (event: Event) => (event.target as HTMLInputElement).value
@@ -208,6 +247,16 @@ summary span { color: #7a8798; font-size: 12px; font-weight: 600; }
 .modal-actions { display: flex; justify-content: flex-start; gap: 10px; margin-top: 18px; border-top: 1px solid #e6edf5; padding-top: 14px; }
 .primary-btn, .secondary-btn { min-height: 38px; border-radius: 8px; padding: 0 18px; font-weight: 800; cursor: pointer; }
 .primary-btn { border: 1px solid #316dff; background: #316dff; color: #fff; }
+.primary-btn:disabled { border-color: #c9d1dc; background: #c9d1dc; cursor: not-allowed; }
 .secondary-btn { border: 1px solid #d8e1ee; background: #fff; color: #455468; }
+.role-conflict-alert { margin-top: 14px; border: 1px solid #f0b5ae; border-radius: 8px; padding: 12px 14px; background: #fff7f6; color: #7f2f28; }
+.role-conflict-alert > b { font-size: 13px; }
+.role-conflict-alert > p { margin: 5px 0 8px; color: #9b4942; font-size: 12px; line-height: 1.5; }
+.role-conflict-alert details { border-top: 1px solid #f3d0cc; }
+.role-conflict-alert summary { min-height: 34px; padding: 0; color: #7f2f28; font-size: 12px; }
+.role-conflict-detail { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; padding: 0 0 10px; }
+.role-conflict-detail article { display: grid; gap: 4px; border: 1px solid #f3d0cc; border-radius: 6px; padding: 8px 10px; background: #fff; }
+.role-conflict-detail article b { color: #7f2f28; font-size: 12px; }
+.role-conflict-detail article span { color: #80534f; font-size: 11px; line-height: 1.45; }
 @media (max-width: 980px) { .with-detail .role-picker-layout { grid-template-columns: 1fr; } .role-detail-drawer { max-height: 360px; } }
 </style>
