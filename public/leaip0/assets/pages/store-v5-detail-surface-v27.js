@@ -1,4 +1,4 @@
-/* store-detail-coupon-card-v41-20260903 */
+/* cancel-appointment-answer-only-v53-20260903 */
 /* Generated mechanically from the confirmed offline store POC. */
 (function (global) {
   "use strict";
@@ -841,7 +841,8 @@
             var store = stores.find(function (item) { return item.id === appointment.storeId; }) || activeStore;
             appointmentEditMode = false;
             appointmentMask.hidden = true;
-            appendAssistantTurn("取消" + store.name + "的预约", '<p>已取消前往 <b>' + store.name + '</b> 的到店预约，原预约编号为 <b>0001</b>。</p>', "预约已取消 · 编号 0001", null, "", "门店预约服务");
+            var cancelledTurn = appendAssistantTurn("取消" + store.name + "的预约", '<p>已取消前往 <b>' + store.name + '</b> 的到店预约，原预约编号为 <b>0001</b>。</p>', "", null, "", "门店预约服务");
+            cancelledTurn.querySelector(".lx-store-result-stage")?.remove();
             window.parent.postMessage({ type: "lx-store-appointment-cancelled", store: store, appointment: Object.assign({}, appointment, { number: "0001" }) }, window.location.origin);
           }
 
