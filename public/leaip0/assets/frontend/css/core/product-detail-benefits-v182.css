@@ -7,6 +7,10 @@
   background: #fff;
   color: #242126;
 }
+.product-detail [data-detail-price][hidden],
+.product-detail .detail-price[hidden] {
+  display: none !important;
+}
 .lx-detail-benefits-v182 .lx-detail-benefits-price {
   display: flex;
   align-items: center;
