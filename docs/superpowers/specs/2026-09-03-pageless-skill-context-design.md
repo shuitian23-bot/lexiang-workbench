@@ -173,7 +173,7 @@ git diff --check
 
 ## 11. 发布与保护
 
-- 从最新 GitLab `main` 的隔离分支构建；服务器构建必须显式输出到仓库外的新临时目录，不得让默认 `emptyOutDir` 清空共享工作区的 `public/admin-vue`。
+- 先核对最新 GitLab `main` 与当前已部署的服务器 Git 基线；若服务器基线是其后续提交，必须把本次窄改动重放到该已部署基线后再验证和构建，避免预览回退已上线功能。只读取得基线，不修改正式仓。服务器构建必须显式输出到仓库外的新临时目录，不得让默认 `emptyOutDir` 清空共享工作区的 `public/admin-vue`。
 - 构建产物只发布到 `new`。
 - 发布前备份 `new` 的 `public/admin-vue`。
 - 使用非删除式同步，保护整个 `admin-runtime`；至少核对 `workbench-geo.js` 和 `workbench-pages.js` 发布前后指纹。

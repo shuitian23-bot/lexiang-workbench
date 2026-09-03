@@ -524,7 +524,54 @@ First compare the implementation against every requirement in `docs/superpowers/
 
 ---
 
-## Task 5: Publish only to `new` and verify the live interaction
+## Task 5: Reconcile with the current deployed Git baseline
+
+**Files:**
+
+- Rebase: branch `feat/skill-context-no-page-20260903`
+- Read-only source baseline: `formal-server/main`
+- Preserve recovery ref: `backup/pageless-skill-context-before-formal-20260903`
+
+The release audit found that the current deployed server history is a descendant of the fetched GitLab `origin/main`. Building from the older base would regress unrelated live functionality even though this feature's own tests pass. Reconcile before any deployment; do not modify the formal repository or its worktree.
+
+- [ ] **Step 1: Freeze and verify the read-only deployed baseline**
+
+Confirm the locally fetched `formal-server/main` points to `046446b38f90dd3bdb691526d049b84e1dcbf3fd`, whose merge base with `origin/main` is `0b905f5ba9bf47e64428353b87c511eddcead282`, and confirm `origin/main...formal-server/main` is `0 334`. Confirm the recovery ref points to the pre-reconciliation task HEAD.
+
+If the server HEAD has advanced again, fetch it to a new immutable local ref, compare the `vue-app` tree and live `public/admin-vue` entry to the frozen baseline, and use the latest commit only when it changes the portal source or deployed output. Do not chase unrelated auto-checkpoints outside the portal tree.
+
+- [ ] **Step 2: Rebase the isolated feature commits onto the frozen deployed baseline**
+
+Run:
+
+```bash
+git rebase --onto formal-server/main origin/main feat/skill-context-no-page-20260903
+```
+
+Resolve conflicts only in files changed by this plan. Preserve the deployed baseline's unrelated changes and apply the pageless-context diff narrowly. Use `apply_patch` for conflict resolution, stage explicit files, and continue non-interactively. Never use `git reset --hard`, `git checkout --ours`, `git checkout --theirs`, or a broad restore.
+
+- [ ] **Step 3: Verify the rebased functional diff**
+
+Against `formal-server/main`, confirm the only intended functional changes remain:
+
+- the pageless catalog and behavior tests;
+- the Skill creation selector integration and copy;
+- the single new-only POC log record;
+- the approved specification and plan documents.
+
+Confirm `vue-app/src/stores/app.ts`, `vue-app/src/router/index.ts`, permission files, and all `admin-runtime` paths have empty diffs.
+
+- [ ] **Step 4: Rerun all code and build gates on the rebased HEAD**
+
+Repeat Task 4 using `formal-server/main` as the design-Guard and Git-diff baseline: focused tests, all Node tests, raw/delta 0818 Guard, `guard:design-skill`, lint, typecheck, disposable-worktree build, smoke, `git diff --check`, and protected-boundary checks. The raw Guard may continue only if its normalized signatures equal the frozen baseline and the `<style>` diff is empty.
+
+- [ ] **Step 5: Review the reconciliation**
+
+Review the complete `formal-server/main..HEAD` diff for preservation of newer deployed behavior, correct conflict resolution, exact requested strings, recommendation without auto-selection, stable-code restoration compatibility, and absence of unplanned source/build files. Record the rewritten commit mapping in the SDD ledger.
+
+---
+
+## Task 6: Publish only to `new` and verify the live interaction
 
 **Files:**
 
