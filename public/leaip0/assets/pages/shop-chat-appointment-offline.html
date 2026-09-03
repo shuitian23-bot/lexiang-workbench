@@ -1559,6 +1559,15 @@ body.lx-template-file .lxfd-nav-cluster:not(.open) {
       .lx-store-detail-page .lx-store-coupon-card[data-coupon-use]:focus-visible{border-color:#681057;box-shadow:0 0 0 3px rgba(104,16,87,.1);outline:none}
       .lx-store-detail-page .lx-store-coupon-copy{align-self:center}
     </style>
+    <style data-store-product-showcase-offline-v43>
+      .lx-store-detail-page .lx-store-product-grid{gap:0!important}
+      .lx-store-detail-page .lx-store-detail-product{position:relative;padding:16px 14px 14px!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;cursor:default!important;pointer-events:none;transform:none!important}
+      .lx-store-detail-page .lx-store-detail-product::after{content:"";position:absolute;top:15%;right:0;width:1px;height:70%;background:#eee8f0}
+      .lx-store-detail-page .lx-store-detail-product:nth-child(6n)::after{display:none}
+      .lx-store-detail-page .lx-store-detail-product img{border-radius:0!important;background:transparent!important;box-shadow:none!important}
+      .lx-store-detail-page .lx-store-detail-product b{margin-top:10px;font-weight:500}
+      .lx-store-detail-page .lx-store-detail-product:hover{border:0!important;background:transparent!important;box-shadow:none!important;transform:none!important}
+    </style>
   </head>
   <body data-page="personal" data-state="default">
     <script>
@@ -19030,35 +19039,6 @@ async function openEduZone() {
             composerForm.requestSubmit();
           });
           composerForm.addEventListener("submit", function (event) {
-            event.preventDefault();
-            var textarea = event.currentTarget.querySelector("textarea");
-            var value = textarea.value.trim();
-            if (!value) return;
-            textarea.value = "";
-            if (/^预约/.test(value)) {
-              var appointmentStore = findStoreInQuery(value) || activeStore;
-              showSingleStoreScenario(appointmentStore);
-              beginAppointment(appointmentStore);
-              return;
-            }
-            if (/导航|路线|怎么去/.test(value)) {
-              var navigationStore = findStoreInQuery(value) || activeStore;
-              openNavigation(navigationStore);
-              return;
-            }
-            applyAddressQuery(value, true);
-          });
-          renderStoreResults();
-          showStorePage("personal");
-        }
-
-        if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot, { once: true });
-        else boot();
-      })();
-    </script>
-  </body>
-</html>
-", function (event) {
             event.preventDefault();
             var textarea = event.currentTarget.querySelector("textarea");
             var value = textarea.value.trim();
