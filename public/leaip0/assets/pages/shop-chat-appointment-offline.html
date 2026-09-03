@@ -1552,6 +1552,13 @@ body.lx-template-file .lxfd-nav-cluster:not(.open) {
       .lx-order-skin .ord[data-order-card-detail]:focus-visible{border-color:#4d144a;box-shadow:0 8px 22px rgba(50,29,57,.09);outline:none}
       .lx-order-skin .ord[data-order-card-detail] .acts .solid{display:none!important}
     </style>
+    <style data-store-detail-coupon-card-offline-v41>
+      .lx-store-detail-page .lx-store-detail-actions{display:none!important}
+      .lx-store-detail-page .lx-store-coupon-card[data-coupon-use]{cursor:pointer;transition:border-color .16s ease,box-shadow .16s ease,transform .16s ease}
+      .lx-store-detail-page .lx-store-coupon-card[data-coupon-use]:hover{border-color:#cbaed2;box-shadow:0 6px 18px rgba(50,29,57,.08);transform:translateY(-1px)}
+      .lx-store-detail-page .lx-store-coupon-card[data-coupon-use]:focus-visible{border-color:#681057;box-shadow:0 0 0 3px rgba(104,16,87,.1);outline:none}
+      .lx-store-detail-page .lx-store-coupon-copy{align-self:center}
+    </style>
   </head>
   <body data-page="personal" data-state="default">
     <script>
@@ -17873,12 +17880,20 @@ async function openEduZone() {
       .lx-store-pin[hidden] { display: none !important; }
       @media (max-width: 1380px) {
         .lx-channel-card-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-        .lx-store-toolbar { grid-template-columns: 88px 104px 122px minmax(132px,1fr) 60px; gap: 6px; }
-        .lx-store-search-submit { width: 60px; min-width: 60px; }
+        .lx-store-toolbar { grid-template-columns: 88px 104px 122px minmax(132px,1fr); gap: 6px; }
         .lx-store-list-panel { width: 310px; }
         .lx-map-controls { right: 374px; }
         .lx-map-card { left: calc((100% - 322px) / 2); width: min(500px, calc(100% - 356px)); }
       }
+      /* store-card-context-query-v42-20260903 */
+      .lx-store-workspace { padding: 10px 14px 12px; }
+      .lx-store-toolbar { grid-template-columns: minmax(90px,.8fr) minmax(108px,1fr) minmax(126px,1.15fr) minmax(140px,1.45fr); margin-bottom: 8px; }
+      .lx-store-meta-row { min-height: 24px; margin-bottom: 5px; }
+      .lx-map-card[data-open-store-detail] { cursor: pointer; }
+      .lx-map-card[data-open-store-detail]:hover { border-color: #cbaed2; box-shadow: 0 12px 30px rgba(50,29,57,.16); }
+      .lx-map-card[data-open-store-detail]:focus-visible { outline: 2px solid #5b1452; outline-offset: 2px; }
+      .lx-map-card-tools { margin-left: auto; }
+      .lx-map-card-actions { justify-content: flex-start; }
       @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; transition: none !important; } }
     </style>
 
@@ -17945,13 +17960,13 @@ async function openEduZone() {
         }
 
         function cardMarkup(store) {
-          return '<div class="lx-map-card-top"><div><div class="lx-map-card-heading"><h2>' + store.name + '</h2><span class="lx-store-type-badge">' + store.type + '</span><span class="lx-store-badge">' + store.tag + '</span></div><p class="lx-map-card-address">' + store.address + '</p></div><div class="lx-map-card-tools"><button class="lx-map-card-enter" type="button" data-open-store-detail="' + store.id + '">进入门店</button><button class="lx-map-card-close" type="button" aria-label="关闭门店卡片" data-close-store-card>×</button></div></div>' +
+          return '<div class="lx-map-card-top"><div><div class="lx-map-card-heading"><h2>' + store.name + '</h2><span class="lx-store-type-badge">' + store.type + '</span><span class="lx-store-badge">' + store.tag + '</span></div><p class="lx-map-card-address">' + store.address + '</p></div><div class="lx-map-card-tools"><button class="lx-map-card-close" type="button" aria-label="关闭门店卡片" data-close-store-card>×</button></div></div>' +
             '<div class="lx-map-card-meta"><span><b>营业中</b> ' + store.hours + '</span><span>电话 <b>' + store.phone + '</b></span></div>' +
             '<div class="lx-map-card-business"><b>业务</b>' + businessTagsMarkup(store, "lx-business-tag") + '</div>' +
-            '<div class="lx-map-card-actions"><span class="lx-map-card-distance">距离 ' + store.distance + '</span>' + (store.sales ? '<button type="button" data-prototype-action="预约">预约到店</button>' : '') + '<button class="primary" type="button" data-prototype-action="导航">导航</button></div>' +
-            '<button class="lx-store-benefits-preview" type="button" data-open-store-detail="' + store.id + '"><span class="lx-store-benefits-label">查看更多门店权益及商品</span>' +
+            '<div class="lx-map-card-actions"><span class="lx-map-card-distance">距离 ' + store.distance + '</span></div>' +
+            '<div class="lx-store-benefits-preview"><span class="lx-store-benefits-label">门店权益及商品</span>' +
               '<div class="lx-store-benefit-row"><span class="lx-store-benefit-badge"><b>券</b><span>' + store.coupon + '</span></span><span class="lx-store-benefit-copy">' + store.couponTitle + '</span></div>' +
-              '<div class="lx-store-benefit-row is-product"><span class="lx-store-benefit-badge"><b>商品</b><span>在售</span></span><span class="lx-store-benefit-copy">' + store.productName + '</span>' + productThumbs("lx-store-product-thumbs") + '</div></button>';
+              '<div class="lx-store-benefit-row is-product"><span class="lx-store-benefit-badge"><b>商品</b><span>在售</span></span><span class="lx-store-benefit-copy">' + store.productName + '</span>' + productThumbs("lx-store-product-thumbs") + '</div></div>';
         }
 
         function storeDetailMarkup(store) {
@@ -17991,9 +18006,9 @@ async function openEduZone() {
           );
           var photos = store.photos || storePhotos;
           return '<header class="lx-store-detail-bar"><button class="lx-store-detail-back" type="button" data-back-store-map>返回地图</button><b>门店详情</b></header>' +
-            '<div class="lx-store-detail-body"><section class="lx-store-detail-hero"><div class="lx-store-detail-info"><div class="lx-store-detail-title"><h1>' + store.name + '</h1><span class="lx-store-type-badge">' + store.type + '</span><span class="lx-store-badge">' + store.tag + '</span></div><p class="lx-store-detail-address">' + store.address + '</p><div class="lx-store-detail-meta"><div class="lx-store-detail-row"><b>营业时间</b><span>' + store.hours + '</span></div><div class="lx-store-detail-row"><b>联系电话</b><span>' + store.phone + '</span></div><div class="lx-store-detail-row lx-store-scope lx-store-detail-meta-full"><b>经营范围</b><div class="lx-store-scope-list">' + store.businessScope.map(function (item) { return '<span>' + item + '</span>'; }).join("") + '</div></div><div class="lx-store-detail-row lx-store-detail-business lx-store-detail-meta-full"><b>业务</b><div class="lx-store-detail-business-list">' + businessTagsMarkup(store, "") + '</div></div><div class="lx-store-detail-bottom"><div class="lx-store-detail-row lx-store-detail-distance"><b>距离</b><span>' + store.distance + '</span></div><div class="lx-store-detail-actions">' + (store.sales ? '<button type="button" data-detail-action="预约">预约到店</button>' : '') + '<button class="primary" type="button" data-detail-action="导航">导航</button></div></div></div></div><div class="lx-store-detail-gallery" data-store-carousel data-store-photos="' + photos.join("|") + '"><img class="lx-store-detail-main-photo" data-store-detail-image src="' + photos[0] + '" alt="' + store.name + '门店实景"><button class="lx-store-carousel-arrow prev" type="button" data-store-carousel-step="-1" aria-label="上一张">‹</button><button class="lx-store-carousel-arrow next" type="button" data-store-carousel-step="1" aria-label="下一张">›</button><div class="lx-store-carousel-dots">' + photos.map(function (_, index) { return '<button class="lx-store-carousel-dot' + (index === 0 ? ' is-active' : '') + '" type="button" data-store-carousel-dot="' + index + '" aria-label="查看第' + (index + 1) + '张门店图片"></button>'; }).join("") + '</div></div></section>' +
-            '<section class="lx-store-detail-section"><div class="lx-store-detail-section-head"><h2>门店优惠券</h2><span>共 ' + coupons.length + ' 项权益</span></div><div class="lx-store-coupon-grid">' + coupons.map(function (coupon, index) { return '<article class="lx-store-coupon-card"><div class="lx-store-coupon-value">' + coupon[0] + '</div><div class="lx-store-coupon-copy"><b>' + coupon[1] + '</b><p>' + coupon[2] + '</p><div class="lx-coupon-actions"><button class="lx-coupon-detail" type="button" data-coupon-detail="' + index + '">详情</button><button class="lx-coupon-use" type="button" data-coupon-use="' + index + '">去使用</button></div></div></article>'; }).join("") + '</div></section>' +
-            '<section class="lx-store-detail-section"><div class="lx-store-detail-section-head"><h2>门店在售商品</h2></div><div class="lx-store-product-tabs" role="tablist" aria-label="商品分类"><button class="lx-store-product-tab" type="button" role="tab" aria-selected="true" data-store-product-tab="全部">全部</button><button class="lx-store-product-tab" type="button" role="tab" aria-selected="false" data-store-product-tab="笔记本">笔记本</button><button class="lx-store-product-tab" type="button" role="tab" aria-selected="false" data-store-product-tab="手机">手机</button><button class="lx-store-product-tab" type="button" role="tab" aria-selected="false" data-store-product-tab="平板">平板</button></div><div class="lx-store-product-scroll"><div class="lx-store-product-grid">' + products.map(function (product) { return '<article class="lx-store-detail-product" data-product-category="' + product[2] + '"><img src="' + product[0] + '" alt="' + product[1] + '"><b>' + product[1] + '</b></article>'; }).join("") + '</div></div></section></div>';
+            '<div class="lx-store-detail-body"><section class="lx-store-detail-hero"><div class="lx-store-detail-info"><div class="lx-store-detail-title"><h1>' + store.name + '</h1><span class="lx-store-type-badge">' + store.type + '</span><span class="lx-store-badge">' + store.tag + '</span></div><p class="lx-store-detail-address">' + store.address + '</p><div class="lx-store-detail-meta"><div class="lx-store-detail-row"><b>营业时间</b><span>' + store.hours + '</span></div><div class="lx-store-detail-row"><b>联系电话</b><span>' + store.phone + '</span></div><div class="lx-store-detail-row lx-store-scope lx-store-detail-meta-full"><b>经营范围</b><div class="lx-store-scope-list">' + store.businessScope.map(function (item) { return '<span>' + item + '</span>'; }).join("") + '</div></div><div class="lx-store-detail-row lx-store-detail-business lx-store-detail-meta-full"><b>业务</b><div class="lx-store-detail-business-list">' + businessTagsMarkup(store, "") + '</div></div><div class="lx-store-detail-bottom"><div class="lx-store-detail-row lx-store-detail-distance"><b>距离</b><span>' + store.distance + '</span></div></div></div></div><div class="lx-store-detail-gallery" data-store-carousel data-store-photos="' + photos.join("|") + '"><img class="lx-store-detail-main-photo" data-store-detail-image src="' + photos[0] + '" alt="' + store.name + '门店实景"><button class="lx-store-carousel-arrow prev" type="button" data-store-carousel-step="-1" aria-label="上一张">‹</button><button class="lx-store-carousel-arrow next" type="button" data-store-carousel-step="1" aria-label="下一张">›</button><div class="lx-store-carousel-dots">' + photos.map(function (_, index) { return '<button class="lx-store-carousel-dot' + (index === 0 ? ' is-active' : '') + '" type="button" data-store-carousel-dot="' + index + '" aria-label="查看第' + (index + 1) + '张门店图片"></button>'; }).join("") + '</div></div></section>' +
+            '<section class="lx-store-detail-section"><div class="lx-store-detail-section-head"><h2>门店在售商品</h2></div><div class="lx-store-product-tabs" role="tablist" aria-label="商品分类"><button class="lx-store-product-tab" type="button" role="tab" aria-selected="true" data-store-product-tab="全部">全部</button><button class="lx-store-product-tab" type="button" role="tab" aria-selected="false" data-store-product-tab="笔记本">笔记本</button><button class="lx-store-product-tab" type="button" role="tab" aria-selected="false" data-store-product-tab="手机">手机</button><button class="lx-store-product-tab" type="button" role="tab" aria-selected="false" data-store-product-tab="平板">平板</button></div><div class="lx-store-product-scroll"><div class="lx-store-product-grid">' + products.map(function (product) { return '<article class="lx-store-detail-product" data-product-category="' + product[2] + '"><img src="' + product[0] + '" alt="' + product[1] + '"><b>' + product[1] + '</b></article>'; }).join("") + '</div></div></section>' +
+            '<section class="lx-store-detail-section"><div class="lx-store-detail-section-head"><h2>门店优惠券</h2><span>共 ' + coupons.length + ' 项权益</span></div><div class="lx-store-coupon-grid">' + coupons.map(function (coupon, index) { return '<article class="lx-store-coupon-card" role="button" tabindex="0" data-coupon-use="' + index + '" aria-label="使用优惠券：' + coupon[1] + '"><div class="lx-store-coupon-value">' + coupon[0] + '</div><div class="lx-store-coupon-copy"><b>' + coupon[1] + '</b><p>' + coupon[2] + '</p></div></article>'; }).join("") + '</div></section></div>';
         }
 
         function channelRecommendationMarkup(channel) {
@@ -18044,12 +18059,12 @@ async function openEduZone() {
           var page = document.createElement("section");
           page.className = "lx-store-page";
           page.innerHTML = '<nav class="lx-store-tabs" aria-label="频道页面"><button class="lx-store-tab" type="button" data-channel-tab="recommend">推荐</button><button class="lx-store-tab is-active" type="button" data-channel-tab="store">门店</button></nav>' +
-            '<div class="lx-store-workspace"><div class="lx-store-toolbar"><div class="lx-location-filter"><button class="lx-location-trigger" type="button" data-location-trigger>北京/北京</button><div class="lx-location-panel" data-location-panel hidden><div class="lx-location-panel-head"><b>选择地区</b><button class="lx-location-panel-close" type="button" data-location-close aria-label="关闭">×</button></div><p class="lx-location-current">当前地区：<b data-current-city>北京/北京</b></p><div class="lx-quick-cities">' + ["全国", "北京", "天津", "沈阳", "大连", "上海", "南京", "苏州", "杭州", "青岛", "郑州", "武汉", "长沙", "广州", "深圳", "重庆", "成都", "西安"].map(function (city) { return '<button type="button" data-quick-city="' + city + '">' + city + '</button>'; }).join("") + '</div><div class="lx-region-cascade" aria-label="行政区划选择"><select data-region-province aria-label="省份"></select><select data-region-city aria-label="城市"></select><select data-region-district aria-label="区县"></select></div><div class="lx-location-actions"><button type="button" data-location-close>取消</button><button class="lx-region-query" type="button" data-region-query>确定</button></div></div></div><select data-product-category aria-label="业务"><option value="">选择业务</option><option>个人&amp;家庭产品</option><option>商用产品及方案</option><option>Think产品</option></select><select data-store-type-filter aria-label="门店类型"><option value="">选择门店类型</option><option>联想直营店</option><option>联想授权店</option><option>联想Think体验店</option><option>联想Think专卖店</option><option>联想扬天专卖店</option><option>联想官方直营客服中心</option><option>智商务融合店</option><option>其他</option></select><input class="lx-store-name-search" type="search" data-store-search placeholder="请输入门店名称" aria-label="搜索门店名称"><button class="lx-store-search-submit" type="button" data-store-search-submit>查询</button></div>' +
+            '<div class="lx-store-workspace"><div class="lx-store-toolbar"><div class="lx-location-filter"><button class="lx-location-trigger" type="button" data-location-trigger>北京/北京</button><div class="lx-location-panel" data-location-panel hidden><div class="lx-location-panel-head"><b>选择地区</b><button class="lx-location-panel-close" type="button" data-location-close aria-label="关闭">×</button></div><p class="lx-location-current">当前地区：<b data-current-city>北京/北京</b></p><div class="lx-quick-cities">' + ["全国", "北京", "天津", "沈阳", "大连", "上海", "南京", "苏州", "杭州", "青岛", "郑州", "武汉", "长沙", "广州", "深圳", "重庆", "成都", "西安"].map(function (city) { return '<button type="button" data-quick-city="' + city + '">' + city + '</button>'; }).join("") + '</div><div class="lx-region-cascade" aria-label="行政区划选择"><select data-region-province aria-label="省份"></select><select data-region-city aria-label="城市"></select><select data-region-district aria-label="区县"></select></div><div class="lx-location-actions"><button type="button" data-location-close>取消</button><button class="lx-region-query" type="button" data-region-query>确定</button></div></div></div><select data-product-category aria-label="业务"><option value="">选择业务</option><option>个人&amp;家庭产品</option><option>商用产品及方案</option><option>Think产品</option></select><select data-store-type-filter aria-label="门店类型"><option value="">选择门店类型</option><option>联想直营店</option><option>联想授权店</option><option>联想Think体验店</option><option>联想Think专卖店</option><option>联想扬天专卖店</option><option>联想官方直营客服中心</option><option>智商务融合店</option><option>其他</option></select><input class="lx-store-name-search" type="search" data-store-search placeholder="请输入门店名称" aria-label="搜索门店名称"></div>' +
             '<div class="lx-store-meta-row"><p data-current-address>当前位置：北京市西城区复兴门内大街49号</p></div>' +
             '<div class="lx-store-main"><section class="lx-store-map" aria-label="门店地图"><div class="lx-baidu-map-canvas" data-baidu-map-canvas aria-label="百度地图"></div><div class="lx-store-map-layer" data-map-layer><span class="lx-user-pin" aria-label="我的位置"></span>' +
             stores.map(function (store) { return '<button class="lx-store-pin' + (store.id === "1" ? ' is-active' : '') + '" type="button" data-id="' + store.id + '" aria-label="' + store.name + '"><span>' + store.id + '</span></button>'; }).join("") +
             '</div><div class="lx-map-controls"><button type="button" aria-label="放大" data-map-zoom="in">+</button><button type="button" aria-label="缩小" data-map-zoom="out">−</button></div>' +
-            '<article class="lx-map-card" aria-live="polite">' + cardMarkup(stores[0]) + '</article></section>' +
+            '<article class="lx-map-card" data-open-store-detail="' + stores[0].id + '" role="button" tabindex="0" aria-label="查看' + stores[0].name + '详情" aria-live="polite">' + cardMarkup(stores[0]) + '</article></section>' +
             '<aside class="lx-store-list-panel"><div class="lx-store-list-head"><b>门店列表</b><span>共 <b data-store-list-count>8</b> 家</span></div><div class="lx-store-list" data-store-list>' + stores.map(function (store, index) { return storeListItem(store, "1", index + 1); }).join("") + '</div></aside></div></div>';
           content.appendChild(page);
           var activeChannel = "personal";
@@ -18595,6 +18610,7 @@ async function openEduZone() {
             gallery.style.height = Math.ceil(info.getBoundingClientRect().height) + "px";
           }
           content.addEventListener("click", function (event) {
+            if (event.target.closest && event.target.closest("[data-close-store-card]")) return;
             var detailTrigger = event.target.closest && event.target.closest("[data-open-store-detail]");
             if (!detailTrigger) return;
             event.preventDefault();
@@ -18607,6 +18623,13 @@ async function openEduZone() {
             startDetailCarousel(true);
             detailPage.querySelector("[data-back-store-map]").focus();
           }, true);
+          content.addEventListener("keydown", function (event) {
+            if (event.key !== "Enter" && event.key !== " ") return;
+            var card = event.target.closest && event.target.closest(".lx-map-card[data-open-store-detail]");
+            if (!card || event.target !== card) return;
+            event.preventDefault();
+            card.click();
+          });
           window.addEventListener("resize", function () {
             if (detailPage.classList.contains("is-active")) syncStoreDetailHeroHeight();
           });
@@ -18618,6 +18641,8 @@ async function openEduZone() {
             document.querySelectorAll(".lx-store-list-item").forEach(function (item) { var on = item.dataset.storeId === id; item.classList.toggle("is-active", on); item.setAttribute("aria-pressed", String(on)); });
             var card = document.querySelector(".lx-map-card");
             card.innerHTML = cardMarkup(store);
+            card.dataset.openStoreDetail = store.id;
+            card.setAttribute("aria-label", "查看" + store.name + "详情");
             card.hidden = false;
             syncBaiduMarkerSelection(id);
             if (baiduMap && map.classList.contains("is-baidu-ready")) baiduMap.panTo(new BMapGL.Point(store.lng, store.lat));
@@ -18843,6 +18868,12 @@ async function openEduZone() {
             if (!back) return;
             event.preventDefault(); event.stopPropagation(); window.clearInterval(detailCarouselTimer); detailPage.classList.remove("is-active"); page.querySelector("[data-open-store-detail]")?.focus();
           }, true);
+          detailPage.addEventListener("keydown", function (event) {
+            var couponCard = event.target.closest('.lx-store-coupon-card[data-coupon-use]');
+            if (!couponCard || (event.key !== "Enter" && event.key !== " ")) return;
+            event.preventDefault();
+            couponCard.click();
+          });
           couponMask.addEventListener("click", function (event) { if (event.target.closest("[data-coupon-close]")) couponMask.hidden = true; });
           chat.addEventListener("click", function (event) {
             var action = event.target.closest("[data-card-action]"); if (!action) return;
@@ -18915,7 +18946,6 @@ async function openEduZone() {
             filterState.type = page.querySelector("[data-store-type-filter]").value;
             renderStoreResults();
           }
-          page.querySelector("[data-store-search-submit]").addEventListener("click", applyToolbarFilters);
           page.querySelector("[data-store-search]").addEventListener("keydown", function (event) { if (event.key === "Enter") { event.preventDefault(); applyToolbarFilters(); } });
           page.querySelector("[data-product-category]").addEventListener("change", applyToolbarFilters);
           page.querySelector("[data-store-type-filter]").addEventListener("change", applyToolbarFilters);
@@ -19000,6 +19030,35 @@ async function openEduZone() {
             composerForm.requestSubmit();
           });
           composerForm.addEventListener("submit", function (event) {
+            event.preventDefault();
+            var textarea = event.currentTarget.querySelector("textarea");
+            var value = textarea.value.trim();
+            if (!value) return;
+            textarea.value = "";
+            if (/^预约/.test(value)) {
+              var appointmentStore = findStoreInQuery(value) || activeStore;
+              showSingleStoreScenario(appointmentStore);
+              beginAppointment(appointmentStore);
+              return;
+            }
+            if (/导航|路线|怎么去/.test(value)) {
+              var navigationStore = findStoreInQuery(value) || activeStore;
+              openNavigation(navigationStore);
+              return;
+            }
+            applyAddressQuery(value, true);
+          });
+          renderStoreResults();
+          showStorePage("personal");
+        }
+
+        if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot, { once: true });
+        else boot();
+      })();
+    </script>
+  </body>
+</html>
+", function (event) {
             event.preventDefault();
             var textarea = event.currentTarget.querySelector("textarea");
             var value = textarea.value.trim();
