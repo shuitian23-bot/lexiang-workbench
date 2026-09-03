@@ -17894,7 +17894,7 @@ async function openEduZone() {
         .lx-map-controls { right: 374px; }
         .lx-map-card { left: calc((100% - 322px) / 2); width: min(500px, calc(100% - 356px)); }
       }
-      /* store-map-card-entry-v44-20260903 */
+      /* store-benefits-static-v45-20260903 */
       .lx-store-workspace { padding: 10px 14px 12px; }
       .lx-store-workspace { grid-template-rows: auto minmax(0, 1fr); }
       .lx-store-toolbar { display: none; }
@@ -17908,6 +17908,11 @@ async function openEduZone() {
       .lx-map-card-address { overflow-wrap: anywhere; }
       .lx-map-card-tools { margin-left: auto; }
       .lx-map-card-actions { justify-content: flex-start; }
+      .lx-store-benefits-preview { min-width: 0; overflow: hidden; cursor: default; }
+      .lx-store-benefits-preview:hover { background: transparent; }
+      .lx-store-benefit-row { min-width: 0; }
+      .lx-store-benefit-copy { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .lx-store-product-thumbs { min-width: 0; flex: none; }
       @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; transition: none !important; } }
     </style>
 
@@ -17977,7 +17982,10 @@ async function openEduZone() {
           return '<div class="lx-map-card-top"><div><div class="lx-map-card-heading"><h2>' + store.name + '</h2><span class="lx-store-type-badge">' + store.type + '</span><span class="lx-store-badge">' + store.tag + '</span></div><p class="lx-map-card-address">' + store.address + '</p></div><div class="lx-map-card-tools"><button class="lx-map-card-close" type="button" aria-label="关闭门店卡片" data-close-store-card>×</button></div></div>' +
             '<div class="lx-map-card-meta"><span><b>营业中</b> ' + store.hours + '</span><span>电话 <b>' + store.phone + '</b></span></div>' +
             '<div class="lx-map-card-business"><b>业务</b>' + businessTagsMarkup(store, "lx-business-tag") + '</div>' +
-            '<div class="lx-map-card-actions"><span class="lx-map-card-distance">距离 ' + store.distance + '</span></div>';
+            '<div class="lx-map-card-actions"><span class="lx-map-card-distance">距离 ' + store.distance + '</span></div>' +
+            '<div class="lx-store-benefits-preview" aria-label="门店权益及商品，仅展示"><span class="lx-store-benefits-label">门店权益及商品</span>' +
+              '<div class="lx-store-benefit-row"><span class="lx-store-benefit-badge"><b>券</b><span>' + store.coupon + '</span></span><span class="lx-store-benefit-copy">' + store.couponTitle + '</span></div>' +
+              '<div class="lx-store-benefit-row is-product"><span class="lx-store-benefit-badge"><b>商品</b><span>在售</span></span><span class="lx-store-benefit-copy">' + store.productName + '</span>' + productThumbs("lx-store-product-thumbs") + '</div></div>';
         }
 
         function storeDetailMarkup(store) {
@@ -18622,6 +18630,7 @@ async function openEduZone() {
           }
           content.addEventListener("click", function (event) {
             if (event.target.closest && event.target.closest("[data-close-store-card]")) return;
+            if (event.target.closest && event.target.closest(".lx-store-benefits-preview")) return;
             var detailTrigger = event.target.closest && event.target.closest("[data-open-store-detail]");
             if (!detailTrigger) return;
             event.preventDefault();
