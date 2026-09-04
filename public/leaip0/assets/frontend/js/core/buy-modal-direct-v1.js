@@ -870,7 +870,7 @@
   };
 
   window.__lxOpenUnifiedDiscountOrder = product => {
-    try { return openOrderModal(window.__lxPurchaseContext.normalize(product)); } catch (error) { showToast(error.message); }
+    try { return openOrderModal({...window.__lxPurchaseContext.normalize(product), originalPrice: Number(product.originalPrice || product.original_price || product.price), discount: Math.max(0, Number(product.discount) || 0)}); } catch (error) { showToast(error.message); }
   };
 
   const removeRepeatedOfflineErrors = () => {
@@ -889,7 +889,14 @@
     event.stopImmediatePropagation();
     const request = ++purchaseRequest; purchaseButtons.set(button, request);
     button.setAttribute("aria-busy", "true");
-    try { const product = await visibleDetailProduct(button); if (request === purchaseRequest && button.isConnected && window.__lxPurchaseContext.targetSku(button, window.__lxState) === product.sku) openOrderModal(product); }
+    try { const product = await visibleDetailProduct(button); if (request === purchaseRequest && button.isConnected && window.__lxPurchaseContext.targetSku(button, window.__lxState) === product.sku) {
+      const state=window.__lxState;
+      if (!state || !window.__lxBridge?.sendChat) throw new Error('下单服务尚未就绪，请重试');
+      if (state.sending || state._buyFlowRunning) return;
+      state._pendingDiscountOrderProduct=product;
+      state._unifiedOrderSourceProduct=product;
+      await window.__lxBridge.sendChat(`我要购买${product.name}，请帮我自动领取所有可用优惠并生成待支付订单`);
+    } }
     catch (error) { if (request === purchaseRequest) showToast(error.message || "商品读取失败，请重试"); }
     finally { if (purchaseButtons.get(button) === request) { button.removeAttribute("aria-busy"); purchaseButtons.delete(button); } }
   }, true);
