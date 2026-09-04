@@ -82,7 +82,7 @@
 })();
 
 /* p0-purchase-context:end */
-/* v57-checkout-payment-parallel-simple-card-20260904 */
+/* v58-checkout-payment-history-card-size-20260904 */
 (() => {
   const AIR_13_IMAGE = '/leai%20product%20data/shop-chat%20product%20data/%E7%AC%94%E8%AE%B0%E6%9C%AC/08_SPU_%E8%81%94%E6%83%B3%E5%B0%8F%E6%96%B0_Air_13/%E7%99%BD%E5%BA%95%E5%9B%BE.jpg';
   const FALLBACK_IMAGE = '/assets/product-placeholder.svg';
@@ -377,7 +377,7 @@
       [data-buy-modal-direct] .lx-order-edit-dialog:not(.lx-config-dialog) .lx-order-edit-footer > button[data-invoice-save]{position:static!important;top:auto!important;bottom:auto!important;transform:none!important;margin:0!important;align-self:center!important;width:164px!important;height:44px!important;min-height:44px!important}
     `;
     style.textContent += `html body [data-buy-modal-direct] .lx-buy-direct-dialog:has(>.lx-buy-payment-success){width:min(460px,calc(100vw - 32px))!important;height:auto!important;min-height:0!important;max-height:calc(100vh - 32px)!important;padding:32px 24px 24px!important;overflow:auto!important}html body [data-buy-modal-direct] .lx-buy-payment-success{height:auto!important;min-height:0!important;padding:12px 0 0!important}html body [data-buy-modal-direct] .lx-buy-payment-success-card{margin:18px 0!important}`;
-    style.textContent += `/* LX_INVOICE_AND_PAYMENT_FLOW_V57 */
+    style.textContent += `/* LX_INVOICE_AND_PAYMENT_FLOW_V58 */
       [data-buy-modal-direct] .lx-invoice-form textarea{width:100%;min-height:72px;box-sizing:border-box;padding:10px 12px;border:1px solid #d9cfdd;border-radius:6px;background:#fff;color:#2b272d;font:12px/18px "Source Han Sans CN","PingFang SC",sans-serif;outline:none;resize:vertical}
       [data-buy-modal-direct] .lx-invoice-form textarea:focus{border-color:#681057}
       [data-buy-modal-direct] .lx-invoice-delay-field{margin-top:14px}
@@ -396,13 +396,34 @@
       [data-buy-modal-direct] .lx-invoice-notice-body{min-height:0;padding:28px 30px 20px;overflow:auto;color:#5f5a62;font-size:13px;line-height:1.75}
       [data-buy-modal-direct] .lx-invoice-notice-body h3{margin:0 0 8px;color:#29262b;font-size:15px}.lx-invoice-notice-body h3:not(:first-child){margin-top:20px}.lx-invoice-notice-body ol{margin:0;padding-left:24px}
       [data-buy-modal-direct] .lx-invoice-notice-footer{display:flex;justify-content:flex-end;padding:16px 30px;border-top:1px solid #e8e2eb}.lx-invoice-notice-footer button{width:132px;height:38px;border:0;border-radius:100px;background:linear-gradient(90deg,#4d144a,#b8252e);color:#fff;font-weight:600;cursor:pointer}
-      .lx-payment-chat-card{width:min(368px,100%);min-height:70px;display:flex;align-items:center;justify-content:space-between;gap:16px;box-sizing:border-box;margin-top:12px;padding:14px 20px;border:1px solid #e2ddeb;border-radius:12px;background:#fcfaff;color:#4d144a;text-align:left;box-shadow:none;cursor:pointer}
-      .lx-payment-chat-card-title{min-width:0;overflow:hidden;color:#4d144a;font-size:16px;font-weight:700;line-height:22px;text-overflow:ellipsis;white-space:nowrap}.lx-payment-chat-card-icon{position:relative;width:36px;height:36px;display:grid;place-items:center;flex:0 0 36px;border:1px solid #c4b6d3;border-radius:50%;background:#fff}.lx-payment-chat-card-icon:before{content:"";width:11px;height:11px;border-top:2px solid #afa2c1;border-right:2px solid #afa2c1;transform:translateX(-2px) rotate(45deg)}
+      .lx-payment-chat-card{width:min(340px,100%);min-height:60px;display:flex;align-items:center;justify-content:space-between;gap:12px;box-sizing:border-box;margin-top:12px;padding:14px 16px;border:1px solid #e2ddeb;border-radius:10px;background:#fcfaff;color:#4d144a;text-align:left;box-shadow:none;cursor:pointer}
+      .lx-payment-chat-card-title{min-width:0;overflow:hidden;color:#4d144a;font-size:14px;font-weight:700;line-height:20px;text-overflow:ellipsis;white-space:nowrap}.lx-payment-chat-card-icon{position:relative;width:30px;height:30px;display:grid;place-items:center;flex:0 0 30px;border:1px solid #c4b6d3;border-radius:50%;background:#fff}.lx-payment-chat-card-icon:before{content:"";width:9px;height:9px;border-top:1.5px solid #afa2c1;border-right:1.5px solid #afa2c1;transform:translateX(-2px) rotate(45deg)}.lx-payment-chat-card-state,.lx-payment-chat-card-desc{display:none!important}
       @media(max-width:620px){[data-buy-modal-direct] .lx-invoice-delay-help{margin-left:0}[data-buy-modal-direct] .lx-invoice-delay-trigger{grid-template-columns:92px minmax(0,1fr) 16px}[data-buy-modal-direct] .lx-invoice-notice-body{padding:22px 20px 16px}}
     `;
     style.textContent += '[data-purchase-options] .lx-config-option{overflow:hidden;text-overflow:ellipsis}[data-buy-modal-direct] [hidden]{display:none!important}';
     document.head.appendChild(style);
   }
+
+  const normalizeHistoricPaymentCards = (root = document) => {
+    const cards = [...(root.matches?.('.lx-payment-chat-card') ? [root] : []), ...(root.querySelectorAll?.('.lx-payment-chat-card') || [])];
+    cards.forEach((card) => {
+      card.classList.remove('is-paid');
+      card.querySelectorAll('.lx-payment-chat-card-state,.lx-payment-chat-card-desc').forEach((node) => node.remove());
+      const title = card.querySelector('.lx-payment-chat-card-title');
+      if (title && title.textContent.trim() !== '支付信息待确认') title.textContent = '支付信息待确认';
+      if (!card.querySelector('.lx-payment-chat-card-icon')) {
+        const icon = document.createElement('span');
+        icon.className = 'lx-payment-chat-card-icon';
+        icon.setAttribute('aria-hidden', 'true');
+        card.appendChild(icon);
+      }
+    });
+  };
+  normalizeHistoricPaymentCards();
+  const historicPaymentCardObserver = new MutationObserver((records) => records.forEach((record) => record.addedNodes.forEach((node) => {
+    if (node.nodeType === Node.ELEMENT_NODE) normalizeHistoricPaymentCards(node);
+  })));
+  if (document.documentElement) historicPaymentCardObserver.observe(document.documentElement, { childList: true, subtree: true });
 
   const visibleDetailProduct = button => window.__lxPurchaseContext.fromButton(button);
 

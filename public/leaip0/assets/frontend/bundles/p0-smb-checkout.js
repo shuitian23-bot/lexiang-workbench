@@ -578,6 +578,7 @@ window.__lxAddressRegionsV142=[{"code":"11","name":"北京市","children":[{"cod
 
 /* p0-purchase-context:end */
 /* v57-checkout-payment-parallel-simple-card-20260904 */
+/* checkout-address-invoice-v57-20260904 */
 (() => {
   const AIR_13_IMAGE = '/leai%20product%20data/shop-chat%20product%20data/%E7%AC%94%E8%AE%B0%E6%9C%AC/08_SPU_%E8%81%94%E6%83%B3%E5%B0%8F%E6%96%B0_Air_13/%E7%99%BD%E5%BA%95%E5%9B%BE.jpg';
   const FALLBACK_IMAGE = '/assets/product-placeholder.svg';
@@ -895,6 +896,52 @@ window.__lxAddressRegionsV142=[{"code":"11","name":"北京市","children":[{"cod
       .lx-payment-chat-card-title{min-width:0;overflow:hidden;color:#4d144a;font-size:16px;font-weight:700;line-height:22px;text-overflow:ellipsis;white-space:nowrap}.lx-payment-chat-card-icon{position:relative;width:36px;height:36px;display:grid;place-items:center;flex:0 0 36px;border:1px solid #c4b6d3;border-radius:50%;background:#fff}.lx-payment-chat-card-icon:before{content:"";width:11px;height:11px;border-top:2px solid #afa2c1;border-right:2px solid #afa2c1;transform:translateX(-2px) rotate(45deg)}
       @media(max-width:620px){[data-buy-modal-direct] .lx-invoice-delay-help{margin-left:0}[data-buy-modal-direct] .lx-invoice-delay-trigger{grid-template-columns:92px minmax(0,1fr) 16px}[data-buy-modal-direct] .lx-invoice-notice-body{padding:22px 20px 16px}}
     `;
+    style.textContent += `/* LX_CHECKOUT_ADDRESS_INVOICE_V57 */
+      [data-buy-modal-direct] .lx-order-address-copy{min-width:0;display:grid;gap:4px}
+      [data-buy-modal-direct] .lx-order-address-copy strong{overflow:hidden;color:#252126;font-size:13px;line-height:19px;text-overflow:ellipsis;white-space:nowrap}
+      [data-buy-modal-direct] .lx-order-address-copy span{overflow:hidden;color:#6f6872;font-size:12px;line-height:18px;text-overflow:ellipsis;white-space:nowrap}
+      [data-buy-modal-direct] .lx-address-dialog,[data-buy-modal-direct] .lx-invoice-dialog{width:min(620px,calc(100vw - 32px))!important;height:min(560px,calc(100vh - 32px))!important;min-height:min(560px,calc(100vh - 32px))!important}
+      [data-buy-modal-direct] .lx-address-head{padding:0 32px}
+      [data-buy-modal-direct] .lx-address-tabs{height:100%;display:flex;align-items:center;gap:32px}
+      [data-buy-modal-direct] .lx-address-tabs button{position:relative;height:100%;padding:0;border:0;background:transparent;color:#1d191f;font:600 18px/26px "Source Han Sans CN","PingFang SC",sans-serif;cursor:pointer}
+      [data-buy-modal-direct] .lx-address-tabs button.is-active{color:#681057}
+      [data-buy-modal-direct] .lx-address-tabs button.is-active::after{content:"";position:absolute;right:0;bottom:10px;left:0;height:3px;border-radius:3px;background:linear-gradient(90deg,#4d144a,#b8252e)}
+      [data-buy-modal-direct] .lx-address-select-body{padding:24px 32px!important}
+      [data-buy-modal-direct] .lx-address-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 18px}
+      [data-buy-modal-direct] .lx-address-card{position:relative;min-height:112px;box-sizing:border-box;border:1px solid #eee8f0;border-radius:10px;background:#fbf9fc;overflow:hidden}
+      [data-buy-modal-direct] .lx-address-card.is-selected{border-color:#681057;background:linear-gradient(135deg,#fff8fc,#f0f2ff);box-shadow:0 0 0 1px rgba(184,37,46,.35)}
+      [data-buy-modal-direct] .lx-address-card-main{width:100%;height:100%;min-height:112px;display:grid;align-content:start;gap:12px;padding:18px 42px 18px 20px;border:0;background:transparent;color:#242025;text-align:left;cursor:pointer}
+      [data-buy-modal-direct] .lx-address-card-main strong{display:flex;align-items:center;gap:10px;font-size:14px;line-height:20px}
+      [data-buy-modal-direct] .lx-address-card-main strong span:last-child{font-weight:500}
+      [data-buy-modal-direct] .lx-address-card-main em{padding:3px 7px;border-radius:3px;background:#681057;color:#fff;font-size:10px;font-style:normal;font-weight:500}
+      [data-buy-modal-direct] .lx-address-card-main small{display:-webkit-box;overflow:hidden;color:#655f67;font-size:12px;line-height:19px;-webkit-box-orient:vertical;-webkit-line-clamp:2}
+      [data-buy-modal-direct] .lx-address-card-edit{position:absolute;top:12px;right:12px;width:26px;height:26px;padding:0;border:0;background:transparent;color:#9c6e98;font-size:18px;line-height:26px;cursor:pointer}
+      [data-buy-modal-direct] .lx-address-create-body{padding:28px 40px!important}
+      [data-buy-modal-direct] .lx-address-form{display:grid;grid-template-columns:82px minmax(0,1fr);gap:18px 16px;align-items:center}
+      [data-buy-modal-direct] .lx-address-form>label{color:#242025;font-size:14px;font-weight:600}
+      [data-buy-modal-direct] .lx-address-form>input,[data-buy-modal-direct] .lx-address-form>select,[data-buy-modal-direct] .lx-address-form>textarea{width:100%;box-sizing:border-box;border:1px solid #e6dfeb;border-radius:5px;background:#fcfaff;color:#2b272d;font:13px/20px "Source Han Sans CN","PingFang SC",sans-serif;outline:none}
+      [data-buy-modal-direct] .lx-address-form>input,[data-buy-modal-direct] .lx-address-form>select{height:44px;padding:0 14px}
+      [data-buy-modal-direct] .lx-address-form>textarea{height:98px;padding:12px 14px;resize:none}
+      [data-buy-modal-direct] .lx-address-form>input:focus,[data-buy-modal-direct] .lx-address-form>select:focus,[data-buy-modal-direct] .lx-address-form>textarea:focus{border-color:#681057;box-shadow:0 0 0 2px rgba(104,16,87,.08)}
+      [data-buy-modal-direct] .lx-address-default{grid-column:1/-1;display:flex;align-items:center;gap:8px!important;margin-top:12px;color:#69636c!important;font-weight:400!important;cursor:pointer}
+      [data-buy-modal-direct] .lx-address-default input{width:18px;height:18px;margin:0;accent-color:#681057}
+      [data-buy-modal-direct] .lx-address-footer button,[data-buy-modal-direct] .lx-invoice-notice-footer button{width:164px!important;height:44px!important}
+      [data-buy-modal-direct] .lx-invoice-type-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:18px;align-items:center}
+      [data-buy-modal-direct] .lx-invoice-type-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+      [data-buy-modal-direct] .lx-invoice-type-grid .lx-order-channel{min-height:42px;place-items:center;padding:8px 6px;text-align:center}
+      [data-buy-modal-direct] .lx-invoice-notice-entry{margin:0!important;padding:0;border:0;background:transparent;color:#681057;font:12px/20px "Source Han Sans CN","PingFang SC",sans-serif;white-space:nowrap;cursor:pointer}
+      [data-buy-modal-direct] .lx-invoice-delay-field{display:grid;grid-template-columns:112px minmax(0,1fr);gap:8px 14px;align-items:center;margin-top:14px}
+      [data-buy-modal-direct] .lx-invoice-delay-field>label{color:#454047;font-size:12px;line-height:18px}
+      [data-buy-modal-direct] .lx-invoice-delay-trigger{grid-template-columns:minmax(0,1fr) 16px;gap:12px}
+      [data-buy-modal-direct] .lx-invoice-delay-help{grid-column:2;margin:0;color:#8b858e;font-size:11px;line-height:18px}
+      [data-buy-modal-direct] .lx-invoice-notice-view .lx-invoice-notice-body{padding:20px 32px!important;overflow:auto;color:#5f5a62;font-size:12px;line-height:1.7}
+      [data-buy-modal-direct] .lx-invoice-notice-view .lx-invoice-notice-body section{padding:18px 22px;border-radius:10px;background:#fbf9fc}
+      [data-buy-modal-direct] .lx-invoice-notice-view .lx-invoice-notice-body h3{margin:0 0 8px;color:#29262b;font-size:14px}
+      [data-buy-modal-direct] .lx-invoice-notice-view .lx-invoice-notice-body h3:not(:first-child){margin-top:16px}
+      [data-buy-modal-direct] .lx-invoice-notice-view .lx-invoice-notice-body ol{margin:0;padding-left:22px}
+      [data-buy-modal-direct] .lx-invoice-notice-view .lx-invoice-notice-footer{display:flex;justify-content:flex-end;padding:16px 32px!important}
+      @media(max-width:620px){[data-buy-modal-direct] .lx-address-grid{grid-template-columns:1fr}[data-buy-modal-direct] .lx-address-create-body{padding:20px 18px!important}[data-buy-modal-direct] .lx-address-form{grid-template-columns:64px minmax(0,1fr);gap:14px 10px}[data-buy-modal-direct] .lx-invoice-type-row{grid-template-columns:1fr}[data-buy-modal-direct] .lx-invoice-notice-entry{justify-self:end}[data-buy-modal-direct] .lx-invoice-delay-field{grid-template-columns:92px minmax(0,1fr)}}
+    `;
     style.textContent += '[data-purchase-options] .lx-config-option{overflow:hidden;text-overflow:ellipsis}[data-buy-modal-direct] [hidden]{display:none!important}';
     document.head.appendChild(style);
   }
@@ -937,14 +984,30 @@ window.__lxAddressRegionsV142=[{"code":"11","name":"北京市","children":[{"cod
     document.querySelectorAll('.lx-p0-toast').forEach((toast) => toast.classList.remove('show'));
     const modal = document.createElement('div');
     modal.dataset.buyModalDirect = 'true';
-    const orderState = { payment: '支付宝', expanded: '', note: '请工作日送达，送货前电话联系', customerCode: 'CUS-BJ-20260803', invoice: '普通发票-个人', invoiceDraft: '增值税专票', invoiceTitle: '个人', invoiceTaxNo: '123123123123123', invoicePhone: '13504289879', invoiceEmail: 'ziyu@lenovo.com', invoiceAddress: '北京市海淀区上地西路6号', invoiceRegisteredPhone: '01058868888', invoiceBank: '招商银行北京双榆树支行', invoiceBankAccount: '861580122210002', invoiceRemark: '', invoiceDelayDate: '', invoiceConsent: true };
+    const orderState = { payment: '支付宝', expanded: '', note: '请工作日送达，送货前电话联系', customerCode: 'CUS-BJ-20260803', addressId: 'address-1', recipientName: '联小想', recipientPhone: '13028280000', recipientRegion: '北京市海淀区中关村软件园2期', recipientDetail: '北京联想总部东区E1', invoice: '普通发票-个人', invoiceDraft: '增值税专票', invoiceTitle: '个人', invoiceTaxNo: '123123123123123', invoicePhone: '13504289879', invoiceEmail: 'ziyu@lenovo.com', invoiceAddress: '北京市海淀区上地西路6号', invoiceRegisteredPhone: '01058868888', invoiceBank: '招商银行北京双榆树支行', invoiceBankAccount: '861580122210002', invoiceRemark: '', invoiceDelayDate: '', invoiceConsent: true };
+    const addressBook = [
+      { id: 'address-1', name: '联小想', phone: '13028280000', region: '北京市海淀区中关村软件园2期', detail: '北京联想总部东区E1', isDefault: true },
+      { id: 'address-2', name: '李晓宁', phone: '13810001234', region: '北京市海淀区西北旺镇', detail: '中关村软件园一期8号楼' },
+      { id: 'address-3', name: '王晨', phone: '13610005678', region: '北京市朝阳区望京街道', detail: '阜通东大街6号院' },
+      { id: 'address-4', name: '陈思远', phone: '13910008765', region: '上海市浦东新区张江镇', detail: '祖冲之路2290号' },
+      { id: 'address-5', name: '赵敏', phone: '13710004321', region: '广东省深圳市南山区粤海街道', detail: '科技园南区高新南一道' }
+    ];
+    const selectedAddress = () => addressBook.find((address) => address.id === orderState.addressId) || addressBook[0];
+    const applyAddress = (address) => {
+      orderState.addressId = address.id;
+      orderState.recipientName = address.name;
+      orderState.recipientPhone = address.phone;
+      orderState.recipientRegion = address.region;
+      orderState.recipientDetail = address.detail;
+    };
+    const recipientAddress = () => `${orderState.recipientRegion}${orderState.recipientDetail}`;
     const configState = product.sku ? { color: product.color || '', size: product.size || '以商品详情为准', spec: product.configuration || '以所选商品详情为准', quantity: 1 } : { color: '凝雾灰', size: '13英寸', spec: '8GB+256GB WIFI', quantity: 1 };
     const initialCouponAmount = Number(product.discount) || 0;
     const benefitState = { couponId: initialCouponAmount ? 'coupon-best' : 'coupon-none', couponAmount: initialCouponAmount, beanPoints: 0, beanAmount: 0, redPacketAmount: 0 };
     const payableAmount = () => Math.max(0, (Number(product.originalPrice) || 0) * configState.quantity - benefitState.couponAmount - benefitState.beanAmount - benefitState.redPacketAmount);
     const totalDiscount = () => benefitState.couponAmount + benefitState.beanAmount + benefitState.redPacketAmount;
     const invoicePreview = () => orderState.invoice === '普通发票-个人' ? '电子普通发票（个人）' : orderState.invoice === '普通发票-单位' ? '电子普通发票（单位）' : '增值税专用发票';
-    const orderHtml = () => `<button class="lx-buy-direct-close" type="button" aria-label="关闭">×</button><h2 id="lxBuyDirectTitle">联想乐享为你生成订单</h2><div class="lx-buy-direct-card"><div class="lx-order-product-card"><div class="lx-buy-direct-product"><img src="${escapeHtml(product.image_url)}" alt="${escapeHtml(product.name)}" onerror="this.onerror=null;this.src='${FALLBACK_IMAGE}'"><div class="lx-buy-direct-product-copy"><strong>${escapeHtml(product.name)}</strong><span>X${configState.quantity}</span></div><button class="lx-buy-direct-config" type="button" data-edit-config>修改配置<i aria-hidden="true"></i></button></div><div class="lx-buy-direct-section lx-buy-direct-product-spec"><div class="lx-buy-direct-row"><strong>系列：</strong><span>Lenovo</span></div><div class="lx-buy-direct-row"><strong>型号：</strong><span title="${escapeHtml(product.name)}">${escapeHtml(product.series || product.name)}</span></div><div class="lx-buy-direct-row"><strong>尺寸：</strong><span>${escapeHtml(configState.size)}</span></div><div class="lx-buy-direct-row"><strong>配置：</strong><span title="${escapeHtml(configState.spec)}">${escapeHtml(product.configurationLabel || configState.spec)}${configState.color ? " · " + escapeHtml(configState.color) : ""}</span></div></div></div><div class="lx-buy-direct-section lx-order-shipping"><div class="lx-buy-direct-row"><strong>收货信息：</strong><span>演示用户　138****0000</span></div><div class="lx-buy-direct-row"><strong>收货地址：</strong><span>北京市海淀区西北旺地区联想总部东区</span></div></div><div class="lx-buy-direct-section lx-order-payment"><div class="lx-buy-direct-row"><strong>支付方式：</strong><span data-order-preview-payment>${escapeHtml(orderState.payment.includes('支付') || orderState.payment.includes('分期') ? orderState.payment : `${orderState.payment}支付`)}</span></div><div class="lx-buy-direct-row"><strong>发票信息：</strong><span data-order-preview-invoice>${escapeHtml(invoicePreview())}</span></div></div><div class="lx-order-summary"><div class="lx-buy-direct-price"><strong>等待支付：</strong><b>¥${payableAmount().toLocaleString('zh-CN')}</b><span>节省了：<em>¥${totalDiscount().toLocaleString('zh-CN')}</em></span></div><div class="lx-buy-direct-detail"><button class="lx-buy-direct-detail-button" type="button" data-price-detail>查看价格明细</button><span>可修改优惠券/乐豆等优惠</span></div></div><div class="lx-buy-direct-actions"><button type="button" data-edit-order>修改订单</button><button type="button" class="primary" data-pay-now>立即支付</button></div><p class="lx-buy-direct-footnote">*修改订单包括改商品配置、收货地址、支付方式</p></div>`;
+    const orderHtml = () => `<button class="lx-buy-direct-close" type="button" aria-label="关闭">×</button><h2 id="lxBuyDirectTitle">联想乐享为你生成订单</h2><div class="lx-buy-direct-card"><div class="lx-order-product-card"><div class="lx-buy-direct-product"><img src="${escapeHtml(product.image_url)}" alt="${escapeHtml(product.name)}" onerror="this.onerror=null;this.src='${FALLBACK_IMAGE}'"><div class="lx-buy-direct-product-copy"><strong>${escapeHtml(product.name)}</strong><span>X${configState.quantity}</span></div><button class="lx-buy-direct-config" type="button" data-edit-config>修改配置<i aria-hidden="true"></i></button></div><div class="lx-buy-direct-section lx-buy-direct-product-spec"><div class="lx-buy-direct-row"><strong>系列：</strong><span>Lenovo</span></div><div class="lx-buy-direct-row"><strong>型号：</strong><span title="${escapeHtml(product.name)}">${escapeHtml(product.series || product.name)}</span></div><div class="lx-buy-direct-row"><strong>尺寸：</strong><span>${escapeHtml(configState.size)}</span></div><div class="lx-buy-direct-row"><strong>配置：</strong><span title="${escapeHtml(configState.spec)}">${escapeHtml(product.configurationLabel || configState.spec)}${configState.color ? " · " + escapeHtml(configState.color) : ""}</span></div></div></div><div class="lx-buy-direct-section lx-order-shipping"><div class="lx-buy-direct-row"><strong>收货信息：</strong><span>${escapeHtml(orderState.recipientName)}　${escapeHtml(orderState.recipientPhone)}</span></div><div class="lx-buy-direct-row"><strong>收货地址：</strong><span>${escapeHtml(recipientAddress())}</span></div></div><div class="lx-buy-direct-section lx-order-payment"><div class="lx-buy-direct-row"><strong>支付方式：</strong><span data-order-preview-payment>${escapeHtml(orderState.payment.includes('支付') || orderState.payment.includes('分期') ? orderState.payment : `${orderState.payment}支付`)}</span></div><div class="lx-buy-direct-row"><strong>发票信息：</strong><span data-order-preview-invoice>${escapeHtml(invoicePreview())}</span></div></div><div class="lx-order-summary"><div class="lx-buy-direct-price"><strong>等待支付：</strong><b>¥${payableAmount().toLocaleString('zh-CN')}</b><span>节省了：<em>¥${totalDiscount().toLocaleString('zh-CN')}</em></span></div><div class="lx-buy-direct-detail"><button class="lx-buy-direct-detail-button" type="button" data-price-detail>查看价格明细</button><span>可修改优惠券/乐豆等优惠</span></div></div><div class="lx-buy-direct-actions"><button type="button" data-edit-order>修改订单</button><button type="button" class="primary" data-pay-now>立即支付</button></div><p class="lx-buy-direct-footnote">*修改订单包括改商品配置、收货地址、支付方式</p></div>`;
     modal.innerHTML = `<div class="lx-buy-direct-mask"></div><section class="lx-buy-direct-dialog" role="dialog" aria-modal="true" aria-labelledby="lxBuyDirectTitle">${orderHtml()}</section>`;
     document.body.appendChild(modal);
     modal.querySelector('img')?.addEventListener('error', (event) => { event.currentTarget.src = FALLBACK_IMAGE; }, { once: true });
@@ -1008,9 +1071,9 @@ window.__lxAddressRegionsV142=[{"code":"11","name":"北京市","children":[{"cod
         createdAt: new Date().toLocaleString('zh-CN'),
         paidAt: new Date().toLocaleString('zh-CN'),
         status: '待发货',
-        address: { name: '演示用户', phone: '138****0000', region: '北京市海淀区西北旺地区', detail: '联想总部东区' },
-        recipient: { name: '演示用户', phone: '138****0000', address: '北京市海淀区西北旺地区联想总部东区' },
-        shippingAddress: '北京市海淀区西北旺地区联想总部东区',
+        address: { name: orderState.recipientName, phone: orderState.recipientPhone, region: orderState.recipientRegion, detail: orderState.recipientDetail },
+        recipient: { name: orderState.recipientName, phone: orderState.recipientPhone, address: recipientAddress() },
+        shippingAddress: recipientAddress(),
         note: orderState.note,
         customerCode: orderState.customerCode,
         payMethod: orderState.payment,
@@ -1215,7 +1278,7 @@ window.__lxAddressRegionsV142=[{"code":"11","name":"北京市","children":[{"cod
       const codes = ['CUS-BJ-20260803','CUS-SH-20260718','CUS-GZ-20260626'];
       dialog.className = 'lx-buy-direct-dialog lx-order-edit-dialog';
       const isCorporate = orderState.payment === '对公支付';
-      dialog.innerHTML = `<header class="lx-order-edit-head"><button class="lx-order-edit-back" type="button" data-order-back aria-label="返回"><img src="/assets/icons/order-modal-back.svg" alt="" aria-hidden="true"></button><h2>修改订单</h2><button class="lx-buy-direct-close" type="button" aria-label="关闭">×</button></header><div class="lx-order-edit-body"><div class="lx-order-address"><img src="/assets/icons/order-address-location.svg" alt="" aria-hidden="true"><b>1　演示地址可在订单中修改收货信息</b><button type="button" data-address-edit>修改地址</button></div><section class="lx-order-edit-section"><h3>选择支付方式</h3><div class="lx-order-payment-tabs" role="tablist" aria-label="支付方式"><button class="lx-order-channel${isCorporate ? '' : ' is-active'}" type="button" role="tab" aria-selected="${!isCorporate}" data-order-channel="online">在线支付</button><button class="lx-order-channel${isCorporate ? ' is-active' : ''}" type="button" role="tab" aria-selected="${isCorporate}" data-order-channel="corporate">对公支付</button></div><div data-online-payment ${isCorporate ? 'hidden' : ''}><div class="lx-order-subtitle">快捷支付</div><div class="lx-order-quick-grid">${quickHtml}</div><div class="lx-order-subtitle"><span>分期支付</span><small>*手续费以支付平台实际收取为准</small></div>${providersHtml}</div><div class="lx-order-corporate-panel" data-corporate-payment ${isCorporate ? '' : 'hidden'}>提交订单后将由企业客户经理与您确认付款及增值税专用发票信息。</div></section><section class="lx-order-edit-section lx-order-supplement-section"><h3>订单补充信息</h3><div class="lx-order-supplement-grid"><label class="lx-order-supplement-note" for="lxOrderNote"><span>订单备注</span><input id="lxOrderNote" data-order-note value="${escapeHtml(orderState.note)}"></label><label for="lxOrderCustomer"><span>客户编码</span><div class="lx-order-combobox"><input id="lxOrderCustomer" data-order-customer value="${escapeHtml(orderState.customerCode)}" readonly aria-haspopup="listbox" aria-expanded="false"><div class="lx-order-code-menu" data-order-code-menu role="listbox" hidden>${codes.map((code) => `<button type="button" role="option" data-order-code="${code}">${code}</button>`).join('')}</div></div></label><label><span>发票信息</span><button class="lx-order-invoice" type="button" data-order-invoice><span>${escapeHtml(invoicePreview())}</span><i class="lx-order-chevron"></i></button></label></div></section></div><footer class="lx-order-edit-footer"><span class="lx-order-selected-payment" data-order-selected-payment>当前选择　${escapeHtml(orderState.payment)}</span><button type="button" data-order-save>确认</button></footer>`;
+      dialog.innerHTML = `<header class="lx-order-edit-head"><button class="lx-order-edit-back" type="button" data-order-back aria-label="返回"><img src="/assets/icons/order-modal-back.svg" alt="" aria-hidden="true"></button><h2>修改订单</h2><button class="lx-buy-direct-close" type="button" aria-label="关闭">×</button></header><div class="lx-order-edit-body"><div class="lx-order-address"><img src="/assets/icons/order-address-location.svg" alt="" aria-hidden="true"><div class="lx-order-address-copy"><strong>${escapeHtml(orderState.recipientName)}　${escapeHtml(orderState.recipientPhone)}</strong><span>${escapeHtml(recipientAddress())}</span></div><button type="button" data-address-edit>修改地址</button></div><section class="lx-order-edit-section"><h3>选择支付方式</h3><div class="lx-order-payment-tabs" role="tablist" aria-label="支付方式"><button class="lx-order-channel${isCorporate ? '' : ' is-active'}" type="button" role="tab" aria-selected="${!isCorporate}" data-order-channel="online">在线支付</button><button class="lx-order-channel${isCorporate ? ' is-active' : ''}" type="button" role="tab" aria-selected="${isCorporate}" data-order-channel="corporate">对公支付</button></div><div data-online-payment ${isCorporate ? 'hidden' : ''}><div class="lx-order-subtitle">快捷支付</div><div class="lx-order-quick-grid">${quickHtml}</div><div class="lx-order-subtitle"><span>分期支付</span><small>*手续费以支付平台实际收取为准</small></div>${providersHtml}</div><div class="lx-order-corporate-panel" data-corporate-payment ${isCorporate ? '' : 'hidden'}>提交订单后将由企业客户经理与您确认付款及增值税专用发票信息。</div></section><section class="lx-order-edit-section lx-order-supplement-section"><h3>订单补充信息</h3><div class="lx-order-supplement-grid"><label class="lx-order-supplement-note" for="lxOrderNote"><span>订单备注</span><input id="lxOrderNote" data-order-note value="${escapeHtml(orderState.note)}"></label><label for="lxOrderCustomer"><span>客户编码</span><div class="lx-order-combobox"><input id="lxOrderCustomer" data-order-customer value="${escapeHtml(orderState.customerCode)}" readonly aria-haspopup="listbox" aria-expanded="false"><div class="lx-order-code-menu" data-order-code-menu role="listbox" hidden>${codes.map((code) => `<button type="button" role="option" data-order-code="${code}">${code}</button>`).join('')}</div></div></label><label><span>发票信息</span><button class="lx-order-invoice" type="button" data-order-invoice><span>${escapeHtml(invoicePreview())}</span><i class="lx-order-chevron"></i></button></label></div></section></div><footer class="lx-order-edit-footer"><span class="lx-order-selected-payment" data-order-selected-payment>当前选择　${escapeHtml(orderState.payment)}</span><button type="button" data-order-save>确认</button></footer>`;
       dialog.classList.add('lx-order-reference');
       dialog.querySelector('.lx-order-edit-section h3').textContent = '支付方式';
       dialog.querySelector('.lx-order-supplement-section h3').textContent = '订单信息';
@@ -1244,6 +1307,19 @@ window.__lxAddressRegionsV142=[{"code":"11","name":"北京市","children":[{"cod
       };
       updateSelectedPayment();
       dialog.querySelector('[data-order-back]').addEventListener('click', (event) => { event.stopPropagation(); showOrder(); });
+    };
+    const showAddressManager = (tab = 'select', editId = '') => {
+      const isCreate = tab === 'create';
+      dialog.className = 'lx-buy-direct-dialog lx-order-edit-dialog lx-address-dialog';
+      const tabs = `<div class="lx-address-tabs" role="tablist" aria-label="地址管理"><button class="${isCreate ? '' : 'is-active'}" type="button" role="tab" aria-selected="${!isCreate}" data-address-tab="select">选择地址</button><button class="${isCreate ? 'is-active' : ''}" type="button" role="tab" aria-selected="${isCreate}" data-address-tab="create">新建地址</button></div>`;
+      if (isCreate) {
+        const editing = addressBook.find((address) => address.id === editId);
+        dialog.innerHTML = `<header class="lx-order-edit-head lx-address-head">${tabs}<button class="lx-buy-direct-close" type="button" aria-label="关闭">×</button></header><div class="lx-order-edit-body lx-address-create-body"><form class="lx-address-form" data-address-form data-address-editing="${escapeHtml(editing?.id || '')}"><label for="lxAddressName">姓名：</label><input id="lxAddressName" name="name" value="${escapeHtml(editing?.name || '')}" placeholder="请输入姓名" autocomplete="name"><label for="lxAddressPhone">手机：</label><input id="lxAddressPhone" name="phone" value="${escapeHtml(editing?.phone || '')}" placeholder="请输入手机号" inputmode="tel" autocomplete="tel"><label for="lxAddressRegion">省市：</label><select id="lxAddressRegion" name="region"><option value="">请选择省/市/区/街道</option><option value="北京市海淀区中关村街道"${editing?.region === '北京市海淀区中关村街道' ? ' selected' : ''}>北京市 / 海淀区 / 中关村街道</option><option value="北京市海淀区中关村软件园2期"${editing?.region === '北京市海淀区中关村软件园2期' ? ' selected' : ''}>北京市 / 海淀区 / 中关村软件园2期</option><option value="上海市浦东新区张江镇"${editing?.region === '上海市浦东新区张江镇' ? ' selected' : ''}>上海市 / 浦东新区 / 张江镇</option><option value="广东省深圳市南山区粤海街道"${editing?.region === '广东省深圳市南山区粤海街道' ? ' selected' : ''}>广东省 / 深圳市 / 南山区 / 粤海街道</option></select><label for="lxAddressDetail">地址：</label><textarea id="lxAddressDetail" name="detail" placeholder="请输入详细地址">${escapeHtml(editing?.detail || '')}</textarea><label class="lx-address-default"><input type="checkbox" name="isDefault" ${editing?.isDefault ? 'checked' : ''}><span>设为默认地址</span></label></form></div><footer class="lx-order-edit-footer lx-address-footer"><button type="button" data-address-save>保存</button></footer>`;
+        dialog.querySelector('#lxAddressName')?.focus();
+        return;
+      }
+      const cards = addressBook.map((address) => `<article class="lx-address-card${orderState.addressId === address.id ? ' is-selected' : ''}" data-address-card="${address.id}"><button class="lx-address-card-main" type="button" data-address-select="${address.id}"><strong>${address.isDefault ? '<em>默认</em>' : ''}<span>${escapeHtml(address.name)}</span><span>${escapeHtml(address.phone)}</span></strong><small>${escapeHtml(address.region + address.detail)}</small></button><button class="lx-address-card-edit" type="button" data-address-card-edit="${address.id}" aria-label="编辑${escapeHtml(address.name)}的地址">✎</button></article>`).join('');
+      dialog.innerHTML = `<header class="lx-order-edit-head lx-address-head">${tabs}<button class="lx-buy-direct-close" type="button" aria-label="关闭">×</button></header><div class="lx-order-edit-body lx-address-select-body"><div class="lx-address-grid">${cards}</div></div><footer class="lx-order-edit-footer lx-address-footer"><button type="button" data-address-confirm>确定</button></footer>`;
     };
     const invoiceDateValue = (date) => [date.getFullYear(), String(date.getMonth() + 1).padStart(2, '0'), String(date.getDate()).padStart(2, '0')].join('-');
     const invoiceDelayLimits = () => {
@@ -1274,21 +1350,21 @@ window.__lxAddressRegionsV142=[{"code":"11","name":"北京市","children":[{"cod
       input?.focus();
       try { input?.showPicker?.(); } catch (_) {}
     };
-    const closeInvoiceNotice = () => modal.querySelector('[data-invoice-notice-layer]')?.remove();
     const showInvoiceNotice = () => {
-      closeInvoiceNotice();
-      modal.insertAdjacentHTML('beforeend', `<div class="lx-invoice-notice-layer" data-invoice-notice-layer><section class="lx-invoice-notice-dialog" role="dialog" aria-modal="true" aria-labelledby="lxInvoiceNoticeTitle"><div class="lx-invoice-notice-body"><h3 id="lxInvoiceNoticeTitle">发票须知</h3><ol><li>联想在线商城所售商品，每张订单都会开具“商品专用发票”。</li><li>发票金额为订单金额，含配送费。</li><li>发票内容默认为订购的商品明细，不支持修改。</li><li>使用优惠券支付的金额不开具发票；积分商品不提供发票。</li><li>发票抬头不能为空，可选择个人或公司名称，请仔细核对发票类型和公司名称。</li><li>联想实行货票同行；不能同行时按收货地址另行寄送。</li><li>目前只有联想（上海）电子科技有限公司能开具电子票。</li><li>第三方卖家商品或服务的发票由卖家按实际情况开具。</li></ol><h3>电子发票常见问题</h3><ol><li>电子发票与纸质发票具有同等法律效力。</li><li>订单确认收货后开具电子发票。</li><li>电子发票与纸质普票法律效力相同，不建议更换。</li><li>增值税专用发票资质在“我的商城—设置—发票抬头管理”维护并审核通过。</li><li>全电发票是票面信息全面数字化、全国统一赋码的电子发票。</li><li>增值税专用发票（数电票）预计在确认收货后 5 个工作日内开具，可在订单详情下载。</li><li>联想自营商品已全面实现增值税专用发票（数电票）。</li></ol></div><footer class="lx-invoice-notice-footer"><button type="button" data-invoice-notice-close>我知道了</button></footer></section></div>`);
-      modal.querySelector('[data-invoice-notice-close]')?.focus();
+      syncInvoiceDraft();
+      dialog.className = 'lx-buy-direct-dialog lx-order-edit-dialog lx-invoice-dialog lx-invoice-notice-view';
+      dialog.innerHTML = `<header class="lx-order-edit-head"><button class="lx-order-edit-back" type="button" data-invoice-notice-back aria-label="返回发票信息"><img src="/assets/icons/order-modal-back.svg" alt="" aria-hidden="true"></button><h2>发票须知</h2><button class="lx-buy-direct-close" type="button" aria-label="关闭">×</button></header><div class="lx-order-edit-body lx-invoice-notice-body"><section><h3>开具发票说明</h3><ol><li>联想在线商城所售商品，每张订单都会开具“商品专用发票”。</li><li>发票金额为订单金额，含配送费。</li><li>发票内容默认为订购的商品明细，不支持修改。</li><li>使用优惠券支付的金额不开具发票；积分商品不提供发票。</li><li>发票抬头不能为空，可选择个人或公司名称，请仔细核对发票类型和公司名称。</li><li>联想实行货票同行；不能同行时按收货地址另行寄送。</li><li>目前只有联想（上海）电子科技有限公司能开具电子票。</li><li>第三方卖家商品或服务的发票由卖家按实际情况开具。</li></ol><h3>电子发票常见问题</h3><ol><li>电子发票与纸质发票具有同等法律效力。</li><li>订单确认收货后开具电子发票。</li><li>电子发票与纸质普票法律效力相同，不建议更换。</li><li>增值税专用发票资质在“我的商城—设置—发票抬头管理”维护并审核通过。</li><li>全电发票是票面信息全面数字化、全国统一赋码的电子发票。</li><li>增值税专用发票（数电票）预计在确认收货后 5 个工作日内开具，可在订单详情下载。</li><li>联想自营商品已全面实现增值税专用发票（数电票）。</li></ol></section></div><footer class="lx-order-edit-footer lx-invoice-notice-footer"><button type="button" data-invoice-notice-close>我知道了</button></footer>`;
+      dialog.querySelector('[data-invoice-notice-close]')?.focus();
     };
     const showInvoiceEdit = () => {
       const options = [{ label: '普通发票-个人', value: '普通发票-个人' },{ label: '普通发票-单位', value: '普通发票-单位' },{ label: '增值税专票', value: '增值税专票' }];
       const isVat = orderState.invoiceDraft === '增值税专票';
       const isPersonal = orderState.invoiceDraft === '普通发票-个人';
       const fields = isVat
-        ? `<div class="lx-invoice-form"><label for="lxInvoiceCompany">单位名称</label><input id="lxInvoiceCompany" value="联想（北京）有限公司" readonly><label for="lxInvoiceTaxId">纳税人识别号</label><input id="lxInvoiceTaxId" data-invoice-field="invoiceTaxNo" value="9111010870000458B" readonly><label for="lxInvoiceAddress">注册地址</label><input id="lxInvoiceAddress" data-invoice-field="invoiceAddress" value="${escapeHtml(orderState.invoiceAddress)}"><label for="lxInvoicePhone">注册电话</label><input id="lxInvoicePhone" data-invoice-field="invoiceRegisteredPhone" value="${escapeHtml(orderState.invoiceRegisteredPhone)}"><label for="lxInvoiceBank">开户银行</label><input id="lxInvoiceBank" data-invoice-field="invoiceBank" value="${escapeHtml(orderState.invoiceBank)}"><label for="lxInvoiceAccount">银行账号</label><input id="lxInvoiceAccount" data-invoice-field="invoiceBankAccount" value="${escapeHtml(orderState.invoiceBankAccount)}"><label for="lxInvoiceRemark">备注（选填）</label><textarea id="lxInvoiceRemark" data-invoice-field="invoiceRemark" placeholder="选填，请谨慎填写">${escapeHtml(orderState.invoiceRemark)}</textarea></div><div class="lx-invoice-delay-field"><button class="lx-invoice-delay-trigger" type="button" data-invoice-delay-open><span class="lx-invoice-delay-label">延时开票（选填）</span><span class="lx-invoice-delay-value${orderState.invoiceDelayDate ? ' has-value' : ''}">${escapeHtml(formatInvoiceDelayDate(orderState.invoiceDelayDate))}</span><i class="lx-invoice-delay-chevron" aria-hidden="true"></i></button><p class="lx-invoice-delay-help">选择后将在该日期起进入开票处理；请在此日期前确保增票资质已审核通过。未选择则按原开票时效处理。</p></div>`
-        : `<div class="lx-invoice-form"><label for="lxInvoiceTitle">发票抬头</label><input id="lxInvoiceTitle" data-invoice-field="invoiceTitle" value="${isPersonal ? '个人' : '联想（北京）有限公司'}">${isPersonal ? '' : '<label for="lxInvoiceTaxId">纳税人识别号</label><input id="lxInvoiceTaxId" data-invoice-field="invoiceTaxNo" value="123123123123123">'}<label for="lxInvoiceRecipientPhone">收票人手机</label><input id="lxInvoiceRecipientPhone" data-invoice-field="invoicePhone" value="${escapeHtml(orderState.invoicePhone)}"><label for="lxInvoiceEmail">收票人邮箱</label><input id="lxInvoiceEmail" data-invoice-field="invoiceEmail" value="${escapeHtml(orderState.invoiceEmail)}">${isPersonal ? '' : `<label for="lxInvoiceRemark">备注（选填）</label><textarea id="lxInvoiceRemark" data-invoice-field="invoiceRemark" placeholder="选填，请谨慎填写">${escapeHtml(orderState.invoiceRemark)}</textarea>`}</div>`;
+        ? `<div class="lx-invoice-form"><label for="lxInvoiceCompany">单位名称</label><input id="lxInvoiceCompany" value="联想（北京）有限公司" readonly><label for="lxInvoiceTaxId">纳税人识别号</label><input id="lxInvoiceTaxId" data-invoice-field="invoiceTaxNo" value="9111010870000458B" readonly><label for="lxInvoiceAddress">注册地址</label><input id="lxInvoiceAddress" data-invoice-field="invoiceAddress" value="${escapeHtml(orderState.invoiceAddress)}"><label for="lxInvoicePhone">注册电话</label><input id="lxInvoicePhone" data-invoice-field="invoiceRegisteredPhone" value="${escapeHtml(orderState.invoiceRegisteredPhone)}"><label for="lxInvoiceBank">开户银行</label><input id="lxInvoiceBank" data-invoice-field="invoiceBank" value="${escapeHtml(orderState.invoiceBank)}"><label for="lxInvoiceAccount">银行账号</label><input id="lxInvoiceAccount" data-invoice-field="invoiceBankAccount" value="${escapeHtml(orderState.invoiceBankAccount)}"><label for="lxInvoiceRemark">备注</label><textarea id="lxInvoiceRemark" data-invoice-field="invoiceRemark" placeholder="请填写备注">${escapeHtml(orderState.invoiceRemark)}</textarea></div><div class="lx-invoice-delay-field"><label>延时开票</label><button class="lx-invoice-delay-trigger" type="button" data-invoice-delay-open><span class="lx-invoice-delay-value${orderState.invoiceDelayDate ? ' has-value' : ''}">${escapeHtml(formatInvoiceDelayDate(orderState.invoiceDelayDate))}</span><i class="lx-invoice-delay-chevron" aria-hidden="true"></i></button><p class="lx-invoice-delay-help">选择后将在该日期起进入开票处理；请在此日期前确保增票资质已审核通过。未选择则按原开票时效处理。</p></div>`
+        : `<div class="lx-invoice-form"><label for="lxInvoiceTitle">发票抬头</label><input id="lxInvoiceTitle" data-invoice-field="invoiceTitle" value="${isPersonal ? '个人' : '联想（北京）有限公司'}">${isPersonal ? '' : '<label for="lxInvoiceTaxId">纳税人识别号</label><input id="lxInvoiceTaxId" data-invoice-field="invoiceTaxNo" value="123123123123123">'}<label for="lxInvoiceRecipientPhone">收票人手机</label><input id="lxInvoiceRecipientPhone" data-invoice-field="invoicePhone" value="${escapeHtml(orderState.invoicePhone)}"><label for="lxInvoiceEmail">收票人邮箱</label><input id="lxInvoiceEmail" data-invoice-field="invoiceEmail" value="${escapeHtml(orderState.invoiceEmail)}">${isPersonal ? '' : `<label for="lxInvoiceRemark">备注</label><textarea id="lxInvoiceRemark" data-invoice-field="invoiceRemark" placeholder="请填写备注">${escapeHtml(orderState.invoiceRemark)}</textarea>`}</div>`;
       dialog.className = 'lx-buy-direct-dialog lx-order-edit-dialog lx-invoice-dialog';
-      dialog.innerHTML = `<header class="lx-order-edit-head"><button class="lx-order-edit-back" type="button" data-invoice-back aria-label="返回"><img src="/assets/icons/order-modal-back.svg" alt="" aria-hidden="true"></button><h2>发票信息</h2><button class="lx-invoice-notice-entry" type="button" data-invoice-notice-open>发票须知</button><button class="lx-buy-direct-close" type="button" aria-label="关闭">×</button></header><div class="lx-order-edit-body"><section class="lx-order-edit-section"><div class="lx-order-channel-grid">${options.map((option) => `<button class="lx-order-channel${orderState.invoiceDraft === option.value ? ' is-active' : ''}" type="button" data-invoice-option="${option.value}"><strong>${option.label}</strong></button>`).join('')}</div></section><p class="lx-invoice-tip">*自营商品的增值税专用发票（数电票）会在确认收货后预计 5 个工作日内开具。</p>${fields}</div><footer class="lx-order-edit-footer"><button type="button" data-invoice-save>保存</button></footer>`;
+      dialog.innerHTML = `<header class="lx-order-edit-head"><button class="lx-order-edit-back" type="button" data-invoice-back aria-label="返回"><img src="/assets/icons/order-modal-back.svg" alt="" aria-hidden="true"></button><h2>发票信息</h2><button class="lx-buy-direct-close" type="button" aria-label="关闭">×</button></header><div class="lx-order-edit-body"><section class="lx-order-edit-section"><div class="lx-invoice-type-row"><div class="lx-order-channel-grid lx-invoice-type-grid">${options.map((option) => `<button class="lx-order-channel${orderState.invoiceDraft === option.value ? ' is-active' : ''}" type="button" data-invoice-option="${option.value}"><strong>${option.label}</strong></button>`).join('')}</div><button class="lx-invoice-notice-entry" type="button" data-invoice-notice-open>发票须知</button></div></section><p class="lx-invoice-tip">*自营商品的增值税专用发票（数电票）会在确认收货后预计 5 个工作日内开具。</p>${fields}</div><footer class="lx-order-edit-footer"><button type="button" data-invoice-save>保存</button></footer>`;
       if (!isVat) dialog.querySelector('.lx-invoice-tip').remove();
       dialog.querySelector('[data-invoice-back]').addEventListener('click', (event) => { event.stopPropagation(); showOrderEdit(); });
     };
@@ -1320,9 +1396,7 @@ window.__lxAddressRegionsV142=[{"code":"11","name":"北京市","children":[{"cod
       const target = event.target;
       const openCodeMenu = dialog.querySelector('[data-order-code-menu]:not([hidden])');
       if (openCodeMenu && !target.closest('.lx-order-combobox')) { openCodeMenu.hidden = true; dialog.querySelector('[data-order-customer]')?.setAttribute('aria-expanded','false'); }
-      if (target.closest('[data-invoice-notice-close]')) { closeInvoiceNotice(); return; }
-      const noticeLayer = target.closest('[data-invoice-notice-layer]');
-      if (noticeLayer && target === noticeLayer) { closeInvoiceNotice(); return; }
+      if (target.closest('[data-invoice-notice-close],[data-invoice-notice-back]')) return showInvoiceEdit();
       if (target.closest('.lx-buy-direct-close')) { stopPaymentTimer(); if (paymentState.chatCard) { modal.hidden = true; return; } return modal.remove(); }
       if (target.closest('.lx-buy-direct-mask')) return;
       if (target.closest('[data-pay-now]')) { openPaymentPage(); appendPaymentChatCard(); showPaymentProcessing(); return; }
@@ -1438,8 +1512,42 @@ window.__lxAddressRegionsV142=[{"code":"11","name":"北京市","children":[{"cod
       const customerInput = target.closest('[data-order-customer]');
       if (customerInput) { const menu = dialog.querySelector('[data-order-code-menu]'); menu.hidden = !menu.hidden; customerInput.setAttribute('aria-expanded', String(!menu.hidden)); return; }
       if (target.closest('[data-claim-national-subsidy]')) { showToast('国补资格将在结算时核验，价格以实际支付为准'); return; }
-      if (target.closest('[data-address-edit]')) {
-        showToast('请在地址管理中修改收货地址');
+      if (target.closest('[data-address-edit]')) return showAddressManager('select');
+      const addressTab = target.closest('[data-address-tab]');
+      if (addressTab) return showAddressManager(addressTab.dataset.addressTab);
+      const addressCardEdit = target.closest('[data-address-card-edit]');
+      if (addressCardEdit) return showAddressManager('create', addressCardEdit.dataset.addressCardEdit);
+      const addressChoice = target.closest('[data-address-select]');
+      if (addressChoice) {
+        orderState.addressId = addressChoice.dataset.addressSelect;
+        dialog.querySelectorAll('[data-address-card]').forEach((card) => card.classList.toggle('is-selected', card.dataset.addressCard === orderState.addressId));
+        return;
+      }
+      if (target.closest('[data-address-confirm]')) {
+        applyAddress(selectedAddress());
+        showOrderEdit();
+        showToast('收货地址已更新');
+        return;
+      }
+      if (target.closest('[data-address-save]')) {
+        const form = dialog.querySelector('[data-address-form]');
+        const name = form?.elements.name?.value.trim() || '';
+        const phone = form?.elements.phone?.value.trim() || '';
+        const region = form?.elements.region?.value.trim() || '';
+        const detail = form?.elements.detail?.value.trim() || '';
+        if (!name) return form?.elements.name?.focus();
+        if (!/^1\d{10}$/.test(phone)) { showToast('请输入正确的11位手机号'); return form?.elements.phone?.focus(); }
+        if (!region) return form?.elements.region?.focus();
+        if (!detail) return form?.elements.detail?.focus();
+        const editingId = form.dataset.addressEditing;
+        let saved = addressBook.find((address) => address.id === editingId);
+        if (!saved) { saved = { id: `address-${Date.now()}` }; addressBook.push(saved); }
+        if (form.elements.isDefault.checked) addressBook.forEach((address) => { address.isDefault = false; });
+        Object.assign(saved, { name, phone, region, detail, isDefault: form.elements.isDefault.checked });
+        orderState.addressId = saved.id;
+        applyAddress(saved);
+        showAddressManager('select');
+        showToast(editingId ? '地址已保存' : '新地址已保存');
         return;
       }
       const code = target.closest('[data-order-code]');
@@ -1519,10 +1627,13 @@ window.__lxAddressRegionsV142=[{"code":"11","name":"北京市","children":[{"cod
       if (previewMode === 'coupon') document.querySelector('[data-open-benefit="coupon"]')?.click();
       if (previewMode === 'beans') { document.querySelector('[data-price-detail]')?.click(); document.querySelector('[data-open-benefit="beans"]')?.click(); }
       if (previewMode === 'redpacket') { document.querySelector('[data-price-detail]')?.click(); document.querySelector('[data-open-benefit="redpacket"]')?.click(); }
-      if (previewMode === 'edit') document.querySelector('[data-edit-order]')?.click();
+      if (previewMode === 'edit' || previewMode === 'address' || previewMode === 'address-new') document.querySelector('[data-edit-order]')?.click();
+      if (previewMode === 'address' || previewMode === 'address-new') document.querySelector('[data-address-edit]')?.click();
+      if (previewMode === 'address-new') document.querySelector('[data-address-tab="create"]')?.click();
       if (previewMode === 'invoice') { document.querySelector('[data-edit-order]')?.click(); document.querySelector('[data-order-invoice]')?.click(); }
       if (previewMode === 'invoice-unit') { document.querySelector('[data-edit-order]')?.click(); document.querySelector('[data-order-invoice]')?.click(); document.querySelector('[data-invoice-option="普通发票-单位"]')?.click(); }
       if (previewMode === 'invoice-vat') { document.querySelector('[data-edit-order]')?.click(); document.querySelector('[data-order-invoice]')?.click(); document.querySelector('[data-invoice-option="增值税专票"]')?.click(); }
+      if (previewMode === 'invoice-notice') { document.querySelector('[data-edit-order]')?.click(); document.querySelector('[data-order-invoice]')?.click(); document.querySelector('[data-invoice-notice-open]')?.click(); }
       if (previewMode === 'config') document.querySelector('[data-edit-config]')?.click();
       if (previewMode === 'payment') document.querySelector('[data-pay-now]')?.click();
       if (previewMode === 'success') { document.querySelector('[data-pay-now]')?.click(); document.querySelector('[data-confirm-payment]')?.click(); }
