@@ -8436,7 +8436,7 @@ body.lx-auto-fs .lxfd-ai-body .followups button,
 body.lx-auto-fs .lxfd-ai-body .lx-p0-suggest[data-followups] button,
 body.lx-auto-fs .lxfd-ai-body .lx-p0-suggest-chip,
 body.lx-auto-fs .lxfd-ai-body .followups [data-quick-ask],
-body.lx-auto-fs .lxfd-ai-body .lx-p0-suggest[data-followups] [data-quick-ask]{display:inline-flex;min-height:0;padding:0;border:0;border-radius:0;background:transparent;color:#4d144a;font-size:13px;font-weight:400;line-height:1.55;text-align:left;cursor:pointer;transition:color .16s ease,transform .16s ease;box-shadow:none}
+body.lx-auto-fs .lxfd-ai-body .lx-p0-suggest[data-followups] [data-quick-ask]{display:inline-flex;min-height:0;padding:0;border:0;border-radius:0;background:transparent;color:#4d144a;font-size:13px;font-weight:400;line-height:1.55;text-align:left;cursor:pointer;transition:color .16s ease,transform .16s ease;box-shadow:none;display:inline-flex;align-items:center;justify-content:flex-start;}
 body.assistant-fullscreen .lxfd-followups button::after,
 body.assistant-fullscreen .lxfd-ai-body .followups button::after,
 body.assistant-fullscreen .lxfd-ai-body .lx-p0-suggest[data-followups] button::after,
