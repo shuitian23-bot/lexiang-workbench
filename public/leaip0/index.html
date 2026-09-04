@@ -379,95 +379,69 @@ html.lx-root-lxfd-prepaint body{overflow:hidden!important;background:#fcfaff}
   <link rel="stylesheet" data-lx-modal-overlay-unified href="/assets/frontend/css/core/modal-overlay-unified.css?v=20260824-address-modal-unified-v1&amp;p0v=aa0b145728f7ceb9">
   <link rel="stylesheet" data-lx-workplace-auth-modal href="/assets/frontend/css/core/workplace-auth-modal.css?v=20260823-global-standard&amp;p0v=67883b263a1cdfc2">
   <link rel="stylesheet" data-lx-enterprise-member-auth-modal href="/assets/frontend/css/core/enterprise-member-auth-modal.css?v=20260824-enterprise-modal-unified-v5&amp;p0v=663d6f86d0dd12a4">
-  <script id="p0-home-feature-config" type="application/json">{"memberStyle":"/assets/frontend/bundles/p0-home-member.css?p0v=58a8848e94a82583","commerceScript":"/assets/frontend/bundles/p0-home-commerce.js?p0v=440ff5dbd249c30d","commerceStyles":[{"anchor":"p0-commerce-style-0","url":"/assets/frontend/bundles/p0-home-commerce-style-0.css?p0v=4cd8a5a5d35aa42c"},{"anchor":"p0-commerce-style-1","url":"/assets/frontend/bundles/p0-home-commerce-style-1.css?p0v=e0e9c414dedb98a6"},{"anchor":"p0-commerce-style-2","url":"/assets/frontend/bundles/p0-home-commerce-style-2.css?p0v=1897ffc493bf0bb5"},{"anchor":"p0-commerce-style-3","url":"/assets/frontend/bundles/p0-home-commerce-style-3.css?p0v=cab5c39c44d7e50f"},{"anchor":"p0-commerce-style-4","url":"/assets/frontend/bundles/p0-home-commerce-style-4.css?p0v=12c7b4eac601e3b4"},{"anchor":"p0-commerce-style-5","url":"/assets/frontend/bundles/p0-home-commerce-style-5.css?p0v=f054b000c8c6f79f"},{"anchor":"p0-commerce-style-6","url":"/assets/frontend/bundles/p0-home-commerce-style-6.css?p0v=33f0b778a7f31409"},{"anchor":"p0-commerce-style-7","url":"/assets/frontend/bundles/p0-home-commerce-style-7.css?p0v=cb8e2ca3f9d57fe1"}]}</script>
-<script data-p0-inline-source="/assets/frontend/js/core/p0-home-features-v1.js">/* Homepage-only demand loader. Canonical feature scripts keep their original order. */
+  <script id="p0-home-feature-config" type="application/json">{"memberStyle":"/assets/frontend/bundles/p0-home-member.css?p0v=58a8848e94a82583","features":{"detail":{"styles":[{"anchor":"p0-commerce-style-2","url":"/assets/frontend/bundles/p0-home-commerce-style-2.css?p0v=1897ffc493bf0bb5"},{"anchor":"p0-commerce-style-3","url":"/assets/frontend/bundles/p0-home-commerce-style-3.css?p0v=cab5c39c44d7e50f"},{"anchor":"p0-commerce-style-4","url":"/assets/frontend/bundles/p0-home-commerce-style-4.css?p0v=12c7b4eac601e3b4"},{"anchor":"p0-commerce-style-5","url":"/assets/frontend/bundles/p0-home-commerce-style-5.css?p0v=f054b000c8c6f79f"},{"anchor":"p0-commerce-style-6","url":"/assets/frontend/bundles/p0-home-commerce-style-6.css?p0v=33f0b778a7f31409"},{"anchor":"p0-commerce-style-7","url":"/assets/frontend/bundles/p0-home-commerce-style-7.css?p0v=cb8e2ca3f9d57fe1"}],"script":"/assets/frontend/bundles/p0-home-detail.js?p0v=ff797cc8d0a93f1f"},"orders":{"styles":[{"anchor":"p0-commerce-style-1","url":"/assets/frontend/bundles/p0-home-commerce-style-1.css?p0v=e0e9c414dedb98a6"}],"script":"/assets/frontend/bundles/p0-home-orders.js?p0v=e61d9412bfea5fc0"},"checkout":{"depends":["detail","orders"],"styles":[{"anchor":"p0-commerce-style-0","url":"/assets/frontend/bundles/p0-home-commerce-style-0.css?p0v=4cd8a5a5d35aa42c"}],"script":"/assets/frontend/bundles/p0-home-checkout.js?p0v=c925389cfcfaf362"}}}</script>
+<script data-p0-inline-source="/assets/frontend/js/core/p0-home-features-v1.js">/* Explicit feature boundaries: detail / orders / checkout. No eager business downloads. */
 (() => {
   'use strict';
-  const config = JSON.parse(document.getElementById('p0-home-feature-config').textContent);
-  let commerceTask, ready = false, replaying = false;
-  const tasks = new Map();
-  function load(tag, url, anchor, id) {
-    const key = tag + url;
-    if (tasks.has(key)) return tasks.get(key);
-    const task = new Promise((resolve, reject) => {
-      const node = document.createElement(tag);
-      if (id) node.id = id;
-      if (tag === 'link') { node.rel = 'stylesheet'; node.href = url; }
-      else { node.src = url; node.async = false; }
-      let timer;
-      const finish = error => {
-        clearTimeout(timer); node.onload = node.onerror = null;
-        if (error) { node.remove(); reject(error); } else resolve(node);
-      };
-      node.onload = () => finish();
-      node.onerror = () => finish(new Error('功能资源未能加载，请重试'));
-      timer = setTimeout(() => finish(new Error('连接较慢，请重试')), 60000);
-      if (anchor) anchor.before(node); else document.head.appendChild(node);
-    });
-    tasks.set(key, task);
-    task.catch(() => tasks.delete(key));
-    return task;
+  if(window.__lxHomeFeatures?.version===2)return;
+  const config=JSON.parse(document.getElementById('p0-home-feature-config').textContent);
+  const resources=new Map(), features=new Map();let actionToken=0,replaying=false;
+  function load(tag,url,anchor,id){
+    const key=tag+':'+url;if(resources.has(key))return resources.get(key);
+    const task=new Promise((resolve,reject)=>{
+      const node=document.createElement(tag);let settled=false,timer;
+      if(id)node.id=id;
+      if(tag==='link'){node.rel='stylesheet';node.href=url;}else{node.src=url;node.async=false;}
+      function finish(error){if(settled)return;settled=true;clearTimeout(timer);node.onload=node.onerror=null;if(error){node.remove();reject(error);}else resolve(node);}
+      node.onload=()=>finish();node.onerror=()=>finish(new Error('功能资源加载失败，请重试'));
+      timer=setTimeout(()=>finish(new Error('网络连接超时，请重试')),60000);
+      try{if(anchor)anchor.before(node);else document.head.appendChild(node);}catch(error){finish(error);}
+    });resources.set(key,task);task.catch(()=>{if(resources.get(key)===task)resources.delete(key);});return task;
   }
-  function status(message, retry) {
-    document.getElementById('p0-feature-status')?.remove();
-    const box = document.createElement('div');
-    box.id = 'p0-feature-status'; box.className = 'lx-p0-toast show';
-    box.setAttribute('role', retry ? 'alert' : 'status'); box.textContent = message;
-    if (retry) { const button = document.createElement('button'); button.type = 'button'; button.textContent = '重试'; button.onclick = retry; box.append(' ', button); }
-    document.body.appendChild(box);
+  function ensure(name){
+    if(features.has(name))return features.get(name).task;
+    const spec=config.features[name];if(!spec)return Promise.reject(new Error('未知功能：'+name));
+    const entry={state:'loading'};features.set(name,entry);
+    entry.task=Promise.all((spec.depends||[]).map(ensure)).then(()=>{
+      // Start the script transfer together with CSS; execute only after CSS is ready.
+      const hint=document.createElement('link');hint.rel='preload';hint.as='script';hint.href=spec.script;document.head.appendChild(hint);
+      return Promise.all(spec.styles.map(s=>load('link',s.url,document.getElementById(s.anchor))))
+        .then(()=>load('script',spec.script)).finally(()=>hint.remove());
+    }).then(()=>{
+      if(name==='orders' && document.readyState==='loading')return new Promise((resolve,reject)=>{let timer;const done=()=>{clearTimeout(timer);document.removeEventListener('DOMContentLoaded',done);resolve();};document.addEventListener('DOMContentLoaded',done,{once:true});timer=setTimeout(()=>{document.removeEventListener('DOMContentLoaded',done);reject(new Error('页面初始化超时，请重试'));},60000);});
+    }).then(()=>{entry.state='ready';}).catch(error=>{entry.state='error';if(features.get(name)===entry)features.delete(name);throw error;});
+    return entry.task;
   }
-  function commerce() {
-    if (commerceTask) return commerceTask;
-    commerceTask = Promise.all(config.commerceStyles.map(item => load('link', item.url, document.getElementById(item.anchor))))
-      .then(() => load('script', config.commerceScript))
-      .then(() => {
-        if (document.readyState === 'loading') return new Promise(resolve => document.addEventListener('DOMContentLoaded', resolve, { once: true }));
-      }).then(() => {
-        if (!window.__lxAddressDialogV142 || typeof window.__lxOpenUnifiedDiscountOrder !== 'function') throw new Error('商品组件未准备好，请重试');
-        ready = true;
-      }).catch(error => { commerceTask = null; throw error; });
-    return commerceTask;
+  const ready=name=>features.get(name)?.state==='ready';
+  window.__lxHomeFeatures={version:2,detail:()=>ensure('detail'),orders:()=>ensure('orders'),commerce:()=>ensure('checkout'),get ready(){return ready('checkout');},states:()=>Object.fromEntries([...features].map(([k,v])=>[k,v.state]))};
+  window.__lxLoadMemberStyles=()=>load('link',config.memberStyle,document.getElementById('p0-member-style-anchor'),'lx-member-component-css');
+  function status(message,retry){
+    document.getElementById('p0-feature-status')?.remove();const box=document.createElement('div');box.id='p0-feature-status';box.className='lx-p0-toast show';box.setAttribute('role',retry?'alert':'status');box.textContent=message;
+    if(retry){const b=document.createElement('button');b.type='button';b.textContent='重试';b.onclick=retry;box.append(' ',b);}document.body.appendChild(box);
   }
-  window.__lxHomeFeatures = { commerce, get ready() { return ready; } };
-  window.__lxLoadMemberStyles = () => load('link', config.memberStyle, document.getElementById('p0-member-style-anchor'), 'lx-member-component-css');
-  function run(action) {
-    status('正在加载订单与商品功能…');
-    commerce().then(() => { document.getElementById('p0-feature-status')?.remove(); action(); })
-      .catch(() => status('连接较慢，功能暂未加载完成', () => run(action)));
+  function run(name,action){const token=++actionToken;status(name==='orders'?'正在加载订单…':'正在准备商品与下单信息…');return ensure(name).then(()=>{
+    if(token!==actionToken)return;document.getElementById('p0-feature-status')?.remove();return action();
+  }).catch(()=>{if(token===actionToken)status('连接较慢，功能暂未加载完成',()=>run(name,action));});}
+  for(const name of ['__lxOpenOrdersCenter','lxHandleCommerceQuery','lxHandleCommerceEntry']){
+    const stub=(...args)=>run('orders',()=>{const fn=window[name];if(fn===stub||typeof fn!=='function')throw new Error('订单入口未准备好');return fn(...args);});window[name]=stub;
   }
-  for (const name of ['__lxOpenOrdersCenter', 'lxHandleCommerceQuery', 'lxHandleCommerceEntry']) {
-    const stub = function (...args) { run(() => { const fn = window[name]; if (fn !== stub && typeof fn === 'function') fn(...args); }); };
-    window[name] = stub;
-  }
-  const orderSelector = '.utility-btn[aria-label="订单"],[data-commerce-entry="orders"],[data-lxfd-open="orders"],[data-open-orders],[data-lx-result-id="info:orders"],[data-tab-id="info:orders"]';
-  const sendSelector = '.assistant-panel .send-btn,.assistant-panel [data-send],.assistant-panel button[type="submit"],.lxfd-send';
-  const inputSelector = '.assistant-panel .composer textarea,.lxfd-composer textarea';
-  const isOrderQuery = input => /^(?:我要|我想|帮我)?(?:查看|查询|打开)?(?:我的)?订单(?:中心|列表|记录)?$/.test(String(input?.value || '').replace(/[\s，。！？、,.!?]/g, ''));
-  function intercept(event, action) {
-    event.preventDefault(); event.stopImmediatePropagation();
-    run(() => { replaying = true; try { action(); } finally { replaying = false; } });
-  }
-  window.addEventListener('click', event => {
-    if (ready || replaying || !(event.target instanceof Element)) return;
-    const button = event.target.closest('button,a,[role="button"]');
-    if (!button || button.closest('.lx-tab-close')) return;
-    const send = button.matches(sendSelector);
-    const input = button.closest('form')?.querySelector('textarea') || document.querySelector(inputSelector);
-    const buy = button.matches('[data-buy-sku],[data-buy-now],[data-action="buy"],[data-order-action="buy"],[data-cart-checkout]') || /^(?:一键领取?优惠下单|一键领优惠下单|立即购买|立即下单|去购买|去下单|去结算|结算|提交订单)$/.test(button.textContent.replace(/\s+/g, ''));
-    if (button.matches(orderSelector) || buy || (send && isOrderQuery(input))) intercept(event, () => { if (button.isConnected) button.click(); });
-  }, true);
-  window.addEventListener('keydown', event => {
-    if (ready || replaying || event.key !== 'Enter' || event.shiftKey || event.isComposing || !event.target.matches?.(inputSelector) || !isOrderQuery(event.target)) return;
-    const input = event.target;
-    intercept(event, () => input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', bubbles: true, cancelable: true })));
-  }, true);
-  window.addEventListener('submit', event => {
-    if (ready || replaying || !event.target.matches?.('.assistant-panel .composer,.lxfd-composer') || !isOrderQuery(event.target.querySelector('textarea'))) return;
-    const form = event.target;
-    intercept(event, () => form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true })));
-  }, true);
+  const orderSelector='.utility-btn[aria-label="订单"],[data-commerce-entry="orders"],[data-lxfd-open="orders"],[data-open-orders],[data-lx-result-id="info:orders"],[data-tab-id="info:orders"]';
+  const sendSelector='.assistant-panel .send-btn,.assistant-panel [data-send],.assistant-panel button[type="submit"],.lxfd-send';
+  const inputSelector='.assistant-panel .composer textarea,.lxfd-composer textarea';
+  const isOrder=input=>/^(?:我要|我想|帮我)?(?:查看|查询|打开)?(?:我的)?订单(?:中心|列表|记录)?$/.test(String(input?.value||'').replace(/[\s，。！？、,.!?]/g,''));
+  function intercept(event,name,action){event.preventDefault();event.stopImmediatePropagation();run(name,()=>{replaying=true;try{return action();}finally{replaying=false;}});}
+  window.addEventListener('click',event=>{
+    if(replaying||!(event.target instanceof Element))return;const button=event.target.closest('button,a,[role="button"]');if(!button||button.closest('.lx-tab-close'))return;
+    const input=button.closest('form')?.querySelector('textarea')||document.querySelector(inputSelector);
+    if(!ready('orders')&&(button.matches(orderSelector)||(button.matches(sendSelector)&&isOrder(input))))return intercept(event,'orders',()=>{if(button.isConnected)button.click();});
+    const buy=!button.closest('[data-buy-modal-direct]')&&!button.dataset.bizQuote&&(button.matches('[data-buy-sku],[data-buy-now],[data-action="buy"],[data-order-action="buy"],[data-cart-checkout]')||/^(?:一键领取?优惠下单|一键领优惠下单|立即购买|立即下单|去购买|去下单|去结算|结算|提交订单)$/.test(button.textContent.replace(/\s+/g,'')));
+    if(!ready('checkout')&&buy)intercept(event,'checkout',()=>{if(button.isConnected)button.click();});
+  },true);
+  window.addEventListener('keydown',event=>{if(replaying||ready('orders')||event.key!=='Enter'||event.shiftKey||event.isComposing||!event.target.matches?.(inputSelector)||!isOrder(event.target))return;const input=event.target;intercept(event,'orders',()=>input.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',code:'Enter',bubbles:true,cancelable:true})));},true);
+  window.addEventListener('submit',event=>{if(replaying||ready('orders')||!event.target.matches?.('.assistant-panel .composer,.lxfd-composer')||!isOrder(event.target.querySelector('textarea')))return;const form=event.target;intercept(event,'orders',()=>form.dispatchEvent(new Event('submit',{bubbles:true,cancelable:true})));},true);
 })();
 </script>
+<link rel="preload" as="script" href="/assets/frontend/bundles/p0-home-core-2.js?p0v=671ff9d7eaf15d84">
 <template id="p0-member-style-anchor"></template>
   <link rel="preload" as="script" media="not all" href="/assets/frontend/js/components/member-service-clean-v45.js?v=20260902-member-eager-v2&amp;p0v=22f3a4dfa7a04b4c">
   
@@ -479,8 +453,8 @@ html.lx-root-lxfd-prepaint body{overflow:hidden!important;background:#fcfaff}
 <style id="reco-buy-weight-v138">html body .reco-page .lx-reco-poc-row .lx-reco-poc-buy,html body .reco-page .lx-reco-poc-row .lx-reco-poc-buy *{font-weight:500!important;}</style>
 <template id="p0-commerce-style-0"></template>
   <link rel="stylesheet" href="/assets/frontend/css/core/composer-smart-actions-v1.css?v=20260904-loading-gate" />
-  <script defer src="/assets/frontend/js/core/composer-autogrow-v1.js?p0v=d1a6c0e55b76afc6"></script>
-<script defer src="/assets/frontend/js/core/composer-smart-actions-v1.js?v=20260904-single-sku"></script>
+  
+
 <link rel="stylesheet" href="/assets/frontend/css/core/assistant-scrollbar-hidden-v1.css?p0v=f523ecbede3f74a8" />
 <link rel="stylesheet" href="/assets/frontend/css/core/empty-hover-backplate-collapse-v1.css?v=20260903-v1&amp;p0v=ecb2fd0eb78d7559">
 <meta name="p0-performance-version" content="p0-perf-20260904-v1">
@@ -998,7 +972,7 @@ if (document.documentElement.classList.contains("lx-root-lxfd-prepaint")) {
     <link rel="stylesheet" href="/assets/frontend/css/core/product-specs-grouped-v1.css?v=20260904-grouped-specs&amp;p0v=1026a542c206036b">
 <script src="/assets/frontend/js/core/product-specs-grouped-v1.js?v=20260904-grouped-specs-final&amp;p0v=e4edbdcfb53c4d7c"></script>
 <link rel="stylesheet" href="/assets/frontend/css/core/arrival-notice-v1.css?v=20260904-arrival&amp;p0v=8fa47f34f5acd341">
-<script src="/assets/frontend/bundles/p0-home-core-2.js?p0v=0d1bdc0ad9c327b5"></script>
+<script src="/assets/frontend/bundles/p0-home-core-2.js?p0v=671ff9d7eaf15d84"></script>
 <link rel="stylesheet" id="lxfd-home-composer-control-sync" href="/assets/frontend/css/pages/home/inline-13.css?p0v=e27a2751c7fd0e54">
     <script src="/assets/frontend/js/core/app-lxfd.home-conversation-v122.placeholder-v147.controls-v150.js?v=20260903-product-intent-guard-v1&amp;p0v=7f29cf127ccd9df3"></script>
 <script src="/assets/frontend/js/core/app-voice.js?v=0.13.16-stage&amp;p0v=eee87cc45070eb90"></script>
@@ -1025,5 +999,696 @@ if (document.documentElement.classList.contains("lx-root-lxfd-prepaint")) {
 <template id="p0-commerce-style-6"></template>
 <template id="p0-commerce-style-7"></template>
 <script src="/assets/frontend/js/core/followup-chevron-v1.js?v=20260904-interpret-third"></script>
+
+<!-- Deferred composer code stays after parsing; no additional network dependency. -->
+<script data-p0-inline-source="/assets/frontend/js/core/composer-autogrow-v1.js">(function () {
+  "use strict";
+
+  var SELECTOR = ".assistant-panel .assistant-bottom .composer textarea";
+  var MIN_HEIGHT = 21;
+  var MAX_HEIGHT = 90;
+
+  function resize(textarea) {
+    if (!textarea || !textarea.matches(SELECTOR)) return;
+
+    textarea.style.setProperty("height", MIN_HEIGHT + "px", "important");
+    var nextHeight = Math.max(MIN_HEIGHT, Math.min(textarea.scrollHeight, MAX_HEIGHT));
+    textarea.style.setProperty("height", nextHeight + "px", "important");
+    textarea.style.setProperty(
+      "overflow-y",
+      textarea.scrollHeight > MAX_HEIGHT ? "auto" : "hidden",
+      "important"
+    );
+  }
+
+  function resizeCurrent() {
+    document.querySelectorAll(SELECTOR).forEach(resize);
+  }
+
+  document.addEventListener("input", function (event) {
+    resize(event.target);
+  });
+
+  document.addEventListener("focusin", function (event) {
+    resize(event.target);
+  });
+
+  document.addEventListener(
+    "submit",
+    function (event) {
+      if (!event.target.matches(".assistant-panel .assistant-bottom .composer")) return;
+      window.requestAnimationFrame(function () {
+        window.requestAnimationFrame(resizeCurrent);
+      });
+    },
+    true
+  );
+
+  window.addEventListener("resize", resizeCurrent, { passive: true });
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", resizeCurrent, { once: true });
+  } else {
+    resizeCurrent();
+  }
+})();
+</script>
+<script data-p0-inline-source="/assets/frontend/js/core/composer-smart-actions-v1.js">(function () {
+  "use strict";
+
+  var recommendationFlowArmed = false;
+  var wasSending = false;
+  function syncSendCollapse() {
+    var signature = userMessageSignature();
+    var sending = !!(window.__lxState && window.__lxState.sending);
+    if ((sending && !wasSending) || (lastUserMessageSignature && signature !== lastUserMessageSignature)) collapseCurrent();
+    wasSending = sending;
+    if (currentScene) lastUserMessageSignature = signature;
+  }
+  var baselineRecommendationSignature = "";
+  var readyCandidateSignature = "";
+  var readyCandidateSince = 0;
+  var lastComposerValue = "";
+  var observedRecommendationSignature = "";
+  var recommendationSettleTimer = 0;
+  var lastArmTime = 0;
+  var recommendationWatchToken = 0;
+  var suppressRevealUntil = 0;
+  var lastUserMessageSignature = "";
+  var lastRecommendationTabActive = null;
+  var actions = [
+    "推荐购买第2款商品",
+    "我要对比1、3、4"
+  ];
+
+
+  // 乐享输入框按钮展示全套：scene registration only; one DOM/CSS/motion engine.
+  var pageScenes = Object.create(null);
+  var currentScene = null;
+  var sceneCandidate = '';
+  var sceneSince = 0;
+  var shownScenes = new Set();
+  window.__lxComposerButtonSuite = {
+    name: '乐享输入框按钮展示全套',
+    register: function(name, scene) { pageScenes[name] = scene; }
+  };
+  window.__lxComposerButtonSuite.register('detail', {
+    labels: function(content) {
+      var enterprise = /^\/(b-chat|biz-chat)(?:\/|$)/.test(location.pathname);
+      var primary = content && content.querySelector('.product-detail .detail-actions .detail-primary');
+      var labels = enterprise && primary && primary.textContent.trim() === '一键领优惠下单' ? ['咨询客服'] : [];
+      var skus = content ? Array.prototype.map.call(content.querySelectorAll('.lx-spu-chip[data-variant-sku]'), function(chip) { return chip.getAttribute('data-variant-sku'); }).filter(Boolean) : [];
+      if (new Set(skus).size > 1) labels.push('对比所有系列');
+      return labels;
+    },
+    source: '.product-detail',
+    identity: function(content) {
+      var product = window.__lxState && window.__lxState.currentProduct;
+      var title = content.querySelector('[data-detail-title]');
+      // A configuration change is still the same detail scene.
+      var variants = Array.prototype.map.call(content.querySelectorAll('.lx-spu-chip[data-variant-sku]'), function(chip) { return chip.getAttribute('data-variant-sku'); }).filter(Boolean).sort();
+      if (variants.length) return 'series:' + Array.from(new Set(variants)).join('|');
+      return product && (product.spu_id || product.sku || product.id) || title && title.textContent || '';
+    },
+    ready: function(content) {
+      var title = content.querySelector('[data-detail-title]');
+      return title && title.textContent.trim() && content.querySelector('.lx-spu-chip');
+    },
+    invoke: function(content, label) {
+      if (label === '咨询客服') {
+        if (window.__lxBridge && window.__lxBridge.sendChat) window.__lxBridge.sendChat('咨询客服');
+        return;
+      }
+      var compare = content.querySelector('[data-spu-compare]');
+      if (compare) { compare.click(); return; }
+      if (window.__lxBridge && window.__lxBridge.sendChat) window.__lxBridge.sendChat('对比当前商品的所有系列配置');
+    }
+  });
+  function syncPageScene() {
+    var content = getRightContent();
+    var scene = content && pageScenes[content.getAttribute('data-view')];
+    if (!scene) {
+      if (currentScene) {
+        currentScene = null; sceneCandidate = ''; hideCurrent();
+        document.querySelectorAll('.lx-smart-actions').forEach(function(panel) { panel.remove(); });
+        lastRecommendationTabActive = null;
+      }
+      return false;
+    }
+    // Gate both first reveal and restoration of previously shown scenes.
+    if ((window.__lxState && window.__lxState.sending) || content.getAttribute('aria-busy') === 'true' || content.classList.contains('is-generating-tab') || content.querySelector('.lx-page-generating') || !scene.ready(content)) {
+      sceneCandidate = ''; sceneSince = 0;
+      return true;
+    }
+    var key = content.getAttribute('data-view') + ':' + scene.identity(content);
+    if (!currentScene || currentScene.key !== key) {
+      hideCurrent();
+      document.querySelectorAll('.lx-smart-actions').forEach(function(panel) { panel.remove(); });
+      currentScene = { key: key, definition: scene };
+      sceneCandidate = ''; sceneSince = 0;
+      if (shownScenes.has(key)) showCompactCurrent();
+      recommendationFlowArmed = false; recommendationWatchToken += 1;
+    }
+    var labelKey = JSON.stringify(typeof scene.labels === 'function' ? scene.labels(content) : scene.labels);
+    if (currentScene.labelKey !== labelKey) {
+      currentScene.labelKey = labelKey;
+      document.querySelectorAll('.assistant-panel .assistant-bottom').forEach(function(bottom) {
+        var panel = bottom.querySelector('.lx-smart-actions');
+        if (panel) { panel.remove(); createActions(bottom); }
+      });
+    }
+    if (labelKey === '[]') {
+      document.querySelectorAll('.assistant-panel .assistant-bottom .lx-smart-actions').forEach(function(panel) {
+        hideCurrent(); panel.remove();
+      });
+      return true;
+    }
+    if (shownScenes.has(key)) return true;
+    if ((window.__lxState && window.__lxState.sending) || content.getAttribute('aria-busy') === 'true' || content.classList.contains('is-generating-tab') || !scene.ready(content)) {
+      sceneCandidate = ''; return true;
+    }
+    if (sceneCandidate !== key) { sceneCandidate = key; sceneSince = Date.now(); return true; }
+    if (Date.now() - sceneSince < 450 || Date.now() < suppressRevealUntil) return true;
+    shownScenes.add(key);
+    revealCurrent();
+    return true;
+  }
+
+  function getRightContent() {
+    return document.querySelector("body > .shell > .content, main.shell > .content, .shell > section.content");
+  }
+
+  function recommendationTabIsActive() {
+    var content = getRightContent();
+    if (!content) return false;
+    var selectedTab = content.querySelector(
+      '.lx-tab[data-shop-tab-id][aria-selected="true"], .lx-tab[data-shop-tab-id].is-active, .lx-tab[data-tab-id][aria-selected="true"], .lx-tab[data-tab-id].is-active'
+    );
+    if (selectedTab) {
+      return /推荐/.test(String(selectedTab.textContent || "").replace(/关闭标签|×/g, ""));
+    }
+    return /^(reco|recommendation)$/.test(String(content.getAttribute("data-view") || ""));
+  }
+
+  function createActions(bottom) {
+    if (!bottom || bottom.querySelector(".lx-smart-actions")) return;
+
+    var panel = document.createElement("section");
+    panel.className = "lx-smart-actions";
+    panel.setAttribute("aria-label", "为你选择");
+    panel.innerHTML =
+      '<button class="lx-smart-actions-close" type="button" aria-label="关闭为你选择">' +
+        '<span aria-hidden="true"></span>' +
+      '</button>' +
+      '<div class="lx-smart-actions-title">' +
+        '<img src="/assets/icons/global-sparkle.svg" alt="" aria-hidden="true">' +
+        '<span>为你选择</span>' +
+      '</div>' +
+      '<div class="lx-smart-actions-list"></div>';
+
+    var list = panel.querySelector(".lx-smart-actions-list");
+    (currentScene ? (typeof currentScene.definition.labels === 'function' ? currentScene.definition.labels(getRightContent()) : currentScene.definition.labels) : actions).forEach(function (label) {
+      var button = document.createElement("button");
+      button.className = "lx-smart-action";
+      button.type = "button";
+      button.innerHTML =
+        '<span></span>' +
+        '<img src="/assets/icons/arrow-down.svg" alt="" aria-hidden="true">';
+      button.querySelector("span").textContent = label;
+      button.addEventListener("click", function () {
+        if (window.__lxState && window.__lxState.sending) return;
+        collapseCurrent();
+        if (currentScene) { currentScene.definition.invoke(getRightContent(), label); return; }
+        if (window.__lxBridge && typeof window.__lxBridge.sendChat === "function") {
+          window.__lxBridge.sendChat(label);
+          return;
+        }
+        var textarea = bottom.querySelector(".composer textarea");
+        if (!textarea) return;
+        textarea.value = label;
+        textarea.dispatchEvent(new Event("input", { bubbles: true }));
+        var sendButton = bottom.querySelector(".send-btn, .lxfd-send, #lxfdSend");
+        if (sendButton) sendButton.click();
+        else textarea.dispatchEvent(new KeyboardEvent("keydown", {
+          key: "Enter",
+          code: "Enter",
+          bubbles: true,
+          cancelable: true
+        }));
+      });
+      list.appendChild(button);
+    });
+
+    panel.querySelector(".lx-smart-actions-close").addEventListener("click", function () {
+      bottom.classList.remove("lx-smart-actions-active", "lx-smart-actions-arrived", "lx-smart-actions-motion", "lx-smart-actions-compact");
+      restoreCurrentShortcuts(bottom, true);
+    });
+
+    var composer = bottom.querySelector(".composer");
+    bottom.insertBefore(panel, composer || null);
+
+  }
+
+  function runSmartActionsMotion(bottom, panel) {
+    if (!panel) {
+      bottom.classList.add("lx-smart-actions-arrived");
+      return;
+    }
+    var source = getRightContent();
+    var target = panel.querySelector(".lx-smart-actions-list") || panel;
+    if (!source || !target || !Element.prototype.animate) {
+      bottom.classList.add("lx-smart-actions-arrived");
+      return;
+    }
+    var sourceView = source.querySelector(currentScene ? currentScene.definition.source : ".reco-page, .lx-reco-poc-page") || source;
+    var sourceRect = sourceView.getBoundingClientRect();
+    var targetRect = target.getBoundingClientRect();
+    if (!sourceRect.width || !sourceRect.height || !targetRect.width || !targetRect.height) {
+      bottom.classList.add("lx-smart-actions-arrived");
+      return;
+    }
+
+    bottom.classList.add("lx-smart-actions-motion");
+    var guide = document.createElement("div");
+    guide.className = "lx-smart-actions-guide lx-smart-actions-snapshot";
+    guide.setAttribute("aria-hidden", "true");
+    guide.style.left = sourceRect.left + "px";
+    guide.style.top = sourceRect.top + "px";
+    guide.style.width = sourceRect.width + "px";
+    guide.style.height = sourceRect.height + "px";
+
+    var snapshot = sourceView.cloneNode(true);
+    snapshot.classList.add("lx-smart-actions-snapshot-content");
+    snapshot.querySelectorAll("script, iframe, video, audio").forEach(function (node) {
+      node.remove();
+    });
+    snapshot.querySelectorAll("[id]").forEach(function (node) {
+      node.removeAttribute("id");
+    });
+    snapshot.querySelectorAll("button, input, textarea, select, a").forEach(function (node) {
+      node.setAttribute("tabindex", "-1");
+    });
+    snapshot.style.width = sourceRect.width + "px";
+    snapshot.style.height = sourceRect.height + "px";
+    guide.appendChild(snapshot);
+    document.body.appendChild(guide);
+
+    var endWidth = Math.min(targetRect.width, 270);
+    var endHeight = Math.min(targetRect.height, 82);
+    var endLeft = targetRect.left;
+    var endTop = targetRect.top;
+    var deltaX = endLeft - sourceRect.left;
+    var deltaY = endTop - sourceRect.top;
+    var scaleX = endWidth / sourceRect.width;
+    var scaleY = endHeight / sourceRect.height;
+    var motionDuration = 3050;
+    var controlsRevealLead = 2000;
+    var animation = guide.animate([
+      {
+        transform: "translate3d(0,0,0) scale(.992)",
+        borderRadius: "12px",
+        opacity: 1,
+        offset: 0
+      },
+      {
+        transform: "translate3d(0,0,0) scale(.985)",
+        borderRadius: "12px",
+        opacity: 1,
+        offset: .16
+      },
+      {
+        transform: "translate3d(" + (deltaX * .18) + "px," + (deltaY * .18) + "px,0) scale(.78)",
+        borderRadius: "12px",
+        opacity: .88,
+        offset: .38
+      },
+      {
+        transform: "translate3d(" + (deltaX * .72) + "px," + (deltaY * .72) + "px,0) scale(" + (scaleX * 1.45) + "," + (scaleY * 1.45) + ")",
+        borderRadius: "10px",
+        opacity: .68,
+        offset: .72
+      },
+      {
+        transform: "translate3d(" + deltaX + "px," + deltaY + "px,0) scale(" + scaleX + "," + scaleY + ")",
+        borderRadius: "10px",
+        opacity: .34,
+        offset: .9
+      },
+      {
+        transform: "translate3d(" + deltaX + "px," + deltaY + "px,0) scale(" + scaleX + "," + scaleY + ")",
+        borderRadius: "10px",
+        opacity: 0,
+        offset: 1
+      }
+    ], {
+      duration: motionDuration,
+      easing: "cubic-bezier(.22,.78,.22,1)",
+      fill: "forwards"
+    });
+
+    var controlsRevealTimer = window.setTimeout(function () {
+      if (!bottom.classList.contains("lx-smart-actions-collapsing") && !bottom.classList.contains("lx-smart-actions-compact") && bottom.classList.contains("lx-smart-actions-active")) bottom.classList.add("lx-smart-actions-arrived");
+    }, motionDuration - controlsRevealLead);
+
+    function finish() {
+      window.clearTimeout(controlsRevealTimer);
+      guide.remove();
+      bottom.classList.remove("lx-smart-actions-motion");
+      if (!bottom.classList.contains("lx-smart-actions-collapsing") && !bottom.classList.contains("lx-smart-actions-compact") && bottom.classList.contains("lx-smart-actions-active")) bottom.classList.add("lx-smart-actions-arrived");
+    }
+    animation.addEventListener("finish", finish, { once: true });
+    animation.addEventListener("cancel", finish, { once: true });
+  }
+
+  function revealCurrent() {
+    if (Date.now() < suppressRevealUntil) return;
+    if (!currentScene && !recommendationTabIsActive()) {
+      hideCurrent();
+      return;
+    }
+    document.querySelectorAll(".assistant-panel .assistant-bottom").forEach(function (bottom) {
+      createActions(bottom);
+      if (bottom.classList.contains("lx-smart-actions-active") && !bottom.classList.contains("lx-smart-actions-compact")) return;
+      bottom.classList.remove("lx-smart-actions-active", "lx-smart-actions-compact", "lx-smart-actions-collapsing");
+      bottom.classList.remove("lx-smart-actions-arrived", "lx-smart-actions-motion");
+      bottom.querySelectorAll(".shortcut-row, .lx-personal-quick-actions, [data-lx-personal-quick-count]").forEach(function (currentActions) {
+        currentActions.style.setProperty("display", "none", "important");
+        currentActions.setAttribute("aria-hidden", "true");
+      });
+      bottom.classList.add("lx-smart-actions-active");
+      runSmartActionsMotion(bottom, bottom.querySelector(".lx-smart-actions"));
+    });
+  }
+
+  function restoreCurrentShortcuts(bottom, animate) {
+    bottom.querySelectorAll(".shortcut-row, .lx-personal-quick-actions, [data-lx-personal-quick-count]").forEach(function (currentActions) {
+      currentActions.style.removeProperty("display");
+      currentActions.removeAttribute("aria-hidden");
+    });
+    if (!animate) return;
+    bottom.classList.remove("lx-shortcuts-arriving");
+    void bottom.offsetWidth;
+    bottom.classList.add("lx-shortcuts-arriving");
+    window.setTimeout(function () {
+      bottom.classList.remove("lx-shortcuts-arriving");
+    }, 2750);
+  }
+
+  function hideCurrent() {
+    document.querySelectorAll(".assistant-panel .assistant-bottom").forEach(function (bottom) {
+      var shouldAnimateShortcuts = bottom.classList.contains("lx-smart-actions-active");
+      bottom.classList.remove("lx-smart-actions-active", "lx-smart-actions-arrived", "lx-smart-actions-motion", "lx-smart-actions-compact", "lx-smart-actions-collapsing");
+      restoreCurrentShortcuts(bottom, shouldAnimateShortcuts);
+    });
+  }
+
+  function showCompactCurrent() {
+    document.querySelectorAll(".assistant-panel .assistant-bottom").forEach(function (bottom) {
+      createActions(bottom);
+      bottom.querySelectorAll(".shortcut-row, .lx-personal-quick-actions, [data-lx-personal-quick-count]").forEach(function (currentActions) {
+        currentActions.style.setProperty("display", "none", "important");
+        currentActions.setAttribute("aria-hidden", "true");
+      });
+      bottom.classList.remove("lx-smart-actions-motion", "lx-smart-actions-collapsing");
+      bottom.classList.add("lx-smart-actions-active", "lx-smart-actions-arrived", "lx-smart-actions-compact");
+    });
+  }
+
+  function syncActionsToActiveTab() {
+    syncSendCollapse();
+    if (syncPageScene()) return false;
+    var active = recommendationTabIsActive();
+    if (active === lastRecommendationTabActive) return active;
+    var wasActive = lastRecommendationTabActive;
+    lastRecommendationTabActive = active;
+    if (!active) {
+      recommendationFlowArmed = false;
+      recommendationWatchToken += 1;
+      observedRecommendationSignature = recommendationSignature(getRightContent());
+      hideCurrent();
+    } else if (wasActive === false && recommendationSignature(getRightContent())) {
+      showCompactCurrent();
+    }
+    return active;
+  }
+
+  function collapseCurrent() {
+    suppressRevealUntil = Date.now() + 1600;
+    document.querySelectorAll(".assistant-panel .assistant-bottom").forEach(function (bottom) {
+      if (!bottom.classList.contains("lx-smart-actions-active")) {
+        restoreCurrentShortcuts(bottom);
+        return;
+      }
+      if (bottom.classList.contains("lx-smart-actions-collapsing") || bottom.classList.contains("lx-smart-actions-compact")) return;
+      bottom.classList.remove("lx-smart-actions-motion");
+      bottom.classList.add("lx-smart-actions-collapsing");
+      window.setTimeout(function () {
+        bottom.classList.remove(
+          "lx-smart-actions-arrived",
+          "lx-smart-actions-collapsing"
+        );
+        bottom.classList.add("lx-smart-actions-compact");
+      }, 720);
+    });
+  }
+
+  function armRecommendationFlow(textarea) {
+    var query = String(textarea && textarea.value || lastComposerValue || "").trim();
+    if (!query) return;
+    var now = Date.now();
+    if (now - lastArmTime < 120) return;
+    lastArmTime = now;
+    recommendationFlowArmed = true;
+    var rightContent = getRightContent();
+    baselineRecommendationSignature = recommendationSignature(rightContent);
+    observedRecommendationSignature = baselineRecommendationSignature;
+    readyCandidateSignature = "";
+    readyCandidateSince = 0;
+    collapseCurrent();
+    watchRecommendationCompletion(++recommendationWatchToken);
+  }
+
+  function userMessageSignature() {
+    var messages = document.querySelectorAll(
+      ".lx-p0-message.user, .msg.user, .message.user, .lxfd-msg-user, .lxfd-msg.user, [data-role=\"user\"]"
+    );
+    if (!messages.length) return "0";
+    var last = messages[messages.length - 1];
+    return messages.length + ":" + String(last.textContent || "").trim();
+  }
+
+  function armFromRenderedUserMessage() {
+    recommendationFlowArmed = true;
+    var rightContent = getRightContent();
+    baselineRecommendationSignature = recommendationSignature(rightContent);
+    observedRecommendationSignature = baselineRecommendationSignature;
+    readyCandidateSignature = "";
+    readyCandidateSince = 0;
+    collapseCurrent();
+    watchRecommendationCompletion(++recommendationWatchToken);
+  }
+
+  function watchRecommendationCompletion(token) {
+    if (token !== recommendationWatchToken || !recommendationFlowArmed) return;
+    if (recommendationListReady()) {
+      revealAfterRecommendationList();
+      return;
+    }
+    window.requestAnimationFrame(function () {
+      watchRecommendationCompletion(token);
+    });
+  }
+
+  function recommendationRows(content) {
+    if (!content) return [];
+    return Array.prototype.filter.call(content.querySelectorAll("button"), function (button) {
+      return button.hasAttribute("data-reco-buy") ||
+        button.classList.contains("lx-reco-poc-buy") ||
+        (button.textContent || "").trim() === "立即购买";
+    });
+  }
+
+  function recommendationSignature(content) {
+    return recommendationRows(content).map(function (row) {
+      return [
+        row.getAttribute("data-reco-buy") || "",
+        row.textContent.trim()
+      ].join(":");
+    }).join("|");
+  }
+
+  function hasRecommendationHeading(content) {
+    return Array.prototype.some.call(content.querySelectorAll("h1, h2, h3, [class*=title]"), function (node) {
+      return /为你推荐|推荐商品|AI推荐/.test(node.textContent || "");
+    });
+  }
+
+  function recommendationListReady() {
+    if (!recommendationFlowArmed) return false;
+    var content = getRightContent();
+    if (!content) return false;
+    var signature = recommendationSignature(content);
+    if (!signature || signature === baselineRecommendationSignature || !hasRecommendationHeading(content)) {
+      readyCandidateSignature = "";
+      readyCandidateSince = 0;
+      return false;
+    }
+    if (signature !== readyCandidateSignature) {
+      readyCandidateSignature = signature;
+      readyCandidateSince = Date.now();
+      return false;
+    }
+    return Date.now() - readyCandidateSince >= 450;
+  }
+
+  function revealAfterRecommendationList() {
+    if (!recommendationListReady()) return;
+    recommendationFlowArmed = false;
+    recommendationWatchToken += 1;
+    baselineRecommendationSignature = "";
+    readyCandidateSignature = "";
+    readyCandidateSince = 0;
+    revealCurrent();
+  }
+
+  function bindRecommendationCompletion() {
+    window.addEventListener('click', function(event) {
+      if (event.target.closest && event.target.closest('.send-btn, .lxfd-send, #lxfdSend')) collapseCurrent();
+    }, true);
+    window.addEventListener('keydown', function(event) {
+      if (event.key === 'Enter' && !event.shiftKey && !event.isComposing && event.target.matches && event.target.matches('.composer textarea, .lxfd-composer textarea')) collapseCurrent();
+    }, true);
+    window.addEventListener('submit', function(event) {
+      if (event.target.matches && event.target.matches('.composer, .lxfd-composer')) collapseCurrent();
+    }, true);
+    document.addEventListener("input", function (event) {
+      if (!event.target.matches(".composer textarea, .lxfd-composer textarea")) return;
+      var value = String(event.target.value || "").trim();
+      if (value) lastComposerValue = value;
+    }, true);
+
+    document.addEventListener("click", function (event) {
+      if (event.target.closest("[data-shop-tab-id], [data-shop-tab-close], [data-tab-id], [data-tab-close], .lx-tab-close")) {
+        window.setTimeout(syncActionsToActiveTab, 0);
+        window.setTimeout(syncActionsToActiveTab, 120);
+      }
+      var resultCard = event.target.closest(".answer-cta.lx-answer-reco, .answer-cta, [data-open-recommendation], [data-open-reco]");
+      if (resultCard && /查看推荐商品/.test(resultCard.textContent || "")) {
+        observedRecommendationSignature = "";
+        recommendationFlowArmed = true;
+        baselineRecommendationSignature = "";
+        readyCandidateSignature = "";
+        readyCandidateSince = 0;
+        hideCurrent();
+        var openedCardToken = ++recommendationWatchToken;
+        window.setTimeout(function () {
+          if (openedCardToken !== recommendationWatchToken) return;
+          recommendationFlowArmed = false;
+          observedRecommendationSignature = recommendationSignature(getRightContent());
+          revealCurrent();
+        }, 900);
+      }
+
+      if (!event.target.closest(".send-btn, .lxfd-send, #lxfdSend")) return;
+      collapseCurrent();
+      var scope = event.target.closest("form, .assistant-bottom") || document;
+      armRecommendationFlow(scope.querySelector("textarea"));
+    }, true);
+
+    document.addEventListener("submit", function (event) {
+      collapseCurrent();
+      armRecommendationFlow(event.target.querySelector("textarea"));
+    }, true);
+
+    document.addEventListener("keydown", function (event) {
+      if (event.key !== "Enter" || event.shiftKey || event.isComposing) return;
+      if (!event.target.matches(".composer textarea, .lxfd-composer textarea")) return;
+      collapseCurrent();
+      armRecommendationFlow(event.target);
+    }, true);
+
+    document.addEventListener("load", function (event) {
+      if (event.target.matches && event.target.matches(".content[data-view=\"reco\"] :is(.reco-row, .lx-reco-poc-row) img")) {
+        revealAfterRecommendationList();
+      }
+    }, true);
+
+    new MutationObserver(function (mutations) {
+      if (!syncActionsToActiveTab()) return;
+      var nextUserMessageSignature = userMessageSignature();
+      if (nextUserMessageSignature !== lastUserMessageSignature) {
+        lastUserMessageSignature = nextUserMessageSignature;
+        armFromRenderedUserMessage();
+      }
+
+      window.clearTimeout(recommendationSettleTimer);
+      recommendationSettleTimer = window.setTimeout(function () {
+        var content = getRightContent();
+        var signature = recommendationSignature(content);
+        if (!signature || !hasRecommendationHeading(content)) return;
+        if (recommendationFlowArmed) {
+          revealAfterRecommendationList();
+          return;
+        }
+        if (signature === observedRecommendationSignature) return;
+        observedRecommendationSignature = signature;
+        recommendationWatchToken += 1;
+        revealCurrent();
+      }, 600);
+
+      if (!recommendationFlowArmed) return;
+      var rightContentChanged = mutations.some(function (mutation) {
+        var target = mutation.target.nodeType === 1 ? mutation.target : mutation.target.parentElement;
+        var content = target && target.closest ? target.closest(".content") : null;
+        if (!content || content !== getRightContent()) return false;
+        if (mutation.type === "childList") return true;
+        return mutation.type === "attributes" && (
+          target === content ||
+          mutation.attributeName === "aria-busy" ||
+          target.classList.contains("lx-page-generating")
+        );
+      });
+      if (!rightContentChanged) return;
+      window.requestAnimationFrame(function () {
+        window.requestAnimationFrame(revealAfterRecommendationList);
+      });
+    }).observe(document.documentElement, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ["class", "data-view", "aria-busy"]
+    });
+
+    window.setInterval(function () {
+      if (!syncActionsToActiveTab()) return;
+      var content = getRightContent();
+      var signature = recommendationSignature(content);
+      if (!signature || !hasRecommendationHeading(content)) return;
+      if (recommendationFlowArmed) {
+        revealAfterRecommendationList();
+        return;
+      }
+      if (signature === observedRecommendationSignature) return;
+      observedRecommendationSignature = signature;
+      recommendationWatchToken += 1;
+      revealCurrent();
+    }, 400);
+  }
+
+  function init() {
+    document.querySelectorAll(".assistant-panel .assistant-bottom").forEach(createActions);
+    observedRecommendationSignature = "";
+    lastUserMessageSignature = userMessageSignature();
+    lastRecommendationTabActive = recommendationTabIsActive();
+    bindRecommendationCompletion();
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init, { once: true });
+  } else {
+    init();
+  }
+})();
+</script>
 </body>
 </html>

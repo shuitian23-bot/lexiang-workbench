@@ -1,3 +1,72 @@
+/* p0-purchase-context:start */
+/* Product-to-order boundary. No title scraping, demo fallback, or payment writes. */
+(() => {
+  'use strict';
+  const clean = value => String(value ?? '').trim();
+  const esc = value => clean(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  function normalize(product) {
+    if (!product || typeof product !== 'object') throw new Error('请选择具体商品后再下单');
+    const sku=clean(product.sku), name=clean(product.name), price=Number(product.price);
+    if (!sku || !name || !Number.isFinite(price) || price <= 0) throw new Error('商品数据不完整，请重新打开商品详情');
+    let specs=product.specs || {};
+    if(typeof specs==='string'){try{specs=JSON.parse(specs);}catch{specs={};}}
+    if(!specs || typeof specs!=='object' || Array.isArray(specs))specs={};
+    const description=clean(specs.configuration_name || product.description);
+    const image=clean(product.image_url || product.image || specs.white_image_url);
+    if(image && !/^(?:https?:\/\/|\/|\.\.?\/)/i.test(image)) throw new Error('商品图片地址无效');
+    return Object.freeze({
+      sku,name,price,originalPrice:price,discount:0,image_url:image,
+      category:clean(product.category),series:clean(specs.spu_name || product.category || '联想'),
+      configuration:description || '以所选商品详情为准',
+      size:clean(specs.screen_size || specs.display_size || description.match(/\d+(?:\.\d+)?\s*英寸/)?.[0] || '以商品详情为准'),
+      color:clean(specs.color || product.color),specs:Object.freeze({...specs})
+    });
+  }
+  function targetSku(button, state) {
+    const card=button?.closest?.('[data-buy-sku],[data-open-product],[data-product-id],[data-sku]');
+    const explicit=clean(card?.dataset.buySku || card?.dataset.openProduct || card?.dataset.productId || card?.dataset.sku);
+    if(explicit)return explicit;
+    if(button?.closest?.('.product-detail,.detail-main,.detail-page,.lx-product-detail,.lx-buybar')) {
+      const active=state?.tabs?.find(t=>t.id===state.activeTabId && t.kind==='detail');
+      return clean(active?.sku || state?.currentProduct?.sku);
+    }
+    return '';
+  }
+  async function read(sku) {
+    if(!sku)throw new Error('未能确定所选商品，请从商品详情重新下单');
+    if(!window.__lxProductData?.product)throw new Error('商品数据服务未准备好，请稍后重试');
+    const product=normalize(await window.__lxProductData.product(sku));
+    if(product.sku!==String(sku))throw new Error('商品配置已变化，请重新选择');
+    return product;
+  }
+  function fromButton(button){return read(targetSku(button,window.__lxState));}
+  async function options(sku){
+    if(!window.__lxProductData?.variants)throw new Error('配置数据服务未准备好');
+    const result=await window.__lxProductData.variants(sku);
+    if(!Array.isArray(result?.variants)||!result.variants.length)throw new Error('暂时无法读取商品配置，请重试');
+    return result.variants;
+  }
+  function renderConfig({dialog,product,quantity,onSelect,onError}) {
+    dialog.className='lx-buy-direct-dialog lx-order-edit-dialog lx-config-dialog';
+    dialog.innerHTML='<header class="lx-order-edit-head"><button class="lx-order-edit-back" type="button" data-config-back aria-label="返回订单">‹</button><h2>修改商品</h2><button class="lx-buy-direct-close" type="button" aria-label="关闭">×</button></header><div class="lx-order-edit-body"><section class="lx-config-section"><h3>选择商品配置</h3><div data-purchase-options role="status">正在读取本系列配置…</div></section><section class="lx-config-section"><h3>数量</h3><button type="button" data-config-minus aria-label="减少数量">−</button> <span>'+quantity+'</span> <button type="button" data-config-plus aria-label="增加数量">+</button></section></div><footer class="lx-order-edit-foot"><button type="button" class="primary" data-config-save>确认配置</button></footer>';
+    const host=dialog.querySelector('[data-purchase-options]');
+    const current=()=>host.isConnected && dialog.contains(host);
+    function fail(error){if(!current())return;host.textContent=error.message;const retry=document.createElement('button');retry.type='button';retry.textContent='重试';retry.onclick=()=>renderConfig({dialog,product,quantity,onSelect,onError});host.append(' ',retry);onError?.(error);}
+    options(product.sku).then(rows=>{
+      if(!current())return;
+      host.removeAttribute('role');host.className='lx-config-options';
+      host.innerHTML=rows.map(row=>'<button type="button" class="lx-config-option'+(String(row.sku)===product.sku?' is-active':'')+'" data-purchase-sku="'+esc(row.sku)+'" aria-pressed="'+(String(row.sku)===product.sku)+'">'+esc(row.specs?.configuration_name || row.description || row.name || row.sku)+' · ¥'+esc(row.price)+'</button>').join('');
+      host.querySelectorAll('[data-purchase-sku]').forEach(button=>button.addEventListener('click',async()=>{
+        const sku=button.dataset.purchaseSku;
+        host.querySelectorAll('button').forEach(b=>b.disabled=true);host.setAttribute('aria-busy','true');
+        try{const selected=await read(sku);if(current())onSelect(selected);}catch(error){fail(error);}
+      }));
+    }).catch(fail);
+  }
+  window.__lxPurchaseContext=Object.freeze({normalize,targetSku,read,fromButton,options,renderConfig});
+})();
+
+/* p0-purchase-context:end */
 /* v40-invoice-remark-delay-20260903 */
 (() => {
   const AIR_13_IMAGE = '/leai%20product%20data/shop-chat%20product%20data/%E7%AC%94%E8%AE%B0%E6%9C%AC/08_SPU_%E8%81%94%E6%83%B3%E5%B0%8F%E6%96%B0_Air_13/%E7%99%BD%E5%BA%95%E5%9B%BE.jpg';
@@ -41,21 +110,14 @@
     document.head.appendChild(style);
   }
 
-  const visibleDetailProduct = (button) => {
-    const root = button.closest('.product-detail, .detail-page, .detail-main, .lx-product-detail, .product-card, .reco-card, .reco-row, .lx-floor-product-card, .lx-floor-product, .cart-item, .cart-row, .lx-cart-item, [data-floor-product], [data-product-card]') || document;
-    const stateProduct = root === document ? (window.__lxState?.currentProduct || window.__lxState?.cart?.[0] || null) : null;
-    const name = String(stateProduct?.name || root.querySelector('.detail-title, .product-title, .product-name, .name, [data-product-name], h1, h2, h3, strong')?.textContent || '联想小新 Air 13').replace(/\s+/g, ' ').trim();
-    const priceText = String(root.querySelector('.detail-price, .product-price, .price-main, .price, [data-price], .original-price, del')?.textContent || root.textContent || '');
-    const prices = [...priceText.matchAll(/(?:¥|￥)\s*([\d,]+(?:\.\d+)?)/g)].map((match) => Number(match[1].replace(/,/g, ''))).filter(Boolean);
-    const displayedPrice = Number(stateProduct?.price) || prices[0] || 7299;
-    const discount = /小新\s*Air\s*13/i.test(name) ? 400 : 0;
-    const originalPrice = displayedPrice + discount;
-    const image = root.querySelector('.detail-product-image, .detail-visual img, .product-image, img');
-    return { name, originalPrice, discount, price: displayedPrice, image_url: imageForProduct(name, stateProduct?.image_url || stateProduct?.image || image?.getAttribute('src') || '') };
-  };
+  const visibleDetailProduct = button => window.__lxPurchaseContext.fromButton(button);
 
+  const repairedImages = new WeakSet();
   const repairProductImages = (root = document) => {
-    root.querySelectorAll?.('img').forEach((image) => {
+    const images = [...(root.matches?.('img') ? [root] : []), ...(root.querySelectorAll?.('img') || [])];
+    images.forEach((image) => {
+      if (repairedImages.has(image)) return;
+      repairedImages.add(image);
       const label = `${image.alt || ''} ${image.closest('.detail-main, .product-detail')?.textContent || ''}`;
       if (/小新\s*Air\s*13/i.test(label)) image.src = AIR_13_IMAGE;
       image.addEventListener('error', () => {
@@ -79,6 +141,7 @@
   };
 
   const openOrderModal = (product) => {
+    if (!product || !product.name || !(Number(product.price) > 0)) { showToast("商品数据不完整，请重新选择商品"); return; }
     const previousModal = document.querySelector('[data-buy-modal-direct]');
     previousModal?._lxCleanup?.();
     previousModal?.remove();
@@ -86,13 +149,13 @@
     const modal = document.createElement('div');
     modal.dataset.buyModalDirect = 'true';
     const orderState = { payment: '支付宝', expanded: '', note: '请工作日送达，送货前电话联系', customerCode: 'CUS-BJ-20260803', invoice: '普通发票-个人', invoiceTitle: '个人', invoiceTaxNo: '123123123123123', invoicePhone: '13504289879', invoiceEmail: 'ziyu@lenovo.com', invoiceAddress: '北京市海淀区上地西路6号', invoiceRegisteredPhone: '01058868888', invoiceBank: '招商银行北京双榆树支行', invoiceBankAccount: '861580122210002', invoiceRemark: '', invoiceDelayDate: '', invoiceConsent: true };
-    const configState = { color: '凝雾灰', size: '13英寸', spec: '8GB+256GB WIFI', quantity: 1 };
+    const configState = product.sku ? { color: product.color || '', size: product.size || '以商品详情为准', spec: product.configuration || '以所选商品详情为准', quantity: 1 } : { color: '凝雾灰', size: '13英寸', spec: '8GB+256GB WIFI', quantity: 1 };
     const initialCouponAmount = Number(product.discount) || 0;
     const benefitState = { couponId: initialCouponAmount ? 'coupon-best' : 'coupon-none', couponAmount: initialCouponAmount, beanPoints: 0, beanAmount: 0, redPacketAmount: 0 };
     const payableAmount = () => Math.max(0, (Number(product.originalPrice) || 0) * configState.quantity - benefitState.couponAmount - benefitState.beanAmount - benefitState.redPacketAmount);
     const totalDiscount = () => benefitState.couponAmount + benefitState.beanAmount + benefitState.redPacketAmount;
     const invoicePreview = () => orderState.invoice === '普通发票-个人' ? '电子普通发票（个人）' : orderState.invoice === '普通发票-单位' ? '电子普通发票（单位）' : '增值税专用发票';
-    const orderHtml = () => `<button class="lx-buy-direct-close" type="button" aria-label="关闭">×</button><h2 id="lxBuyDirectTitle">联想乐享为你生成订单</h2><div class="lx-buy-direct-card"><div class="lx-buy-direct-product"><img src="${escapeHtml(product.image_url)}" alt="${escapeHtml(product.name)}"><div class="lx-buy-direct-product-copy"><strong>${escapeHtml(product.name)}</strong><span>X${configState.quantity}</span></div><button class="lx-buy-direct-config" type="button" data-edit-config>修改配置<i aria-hidden="true"></i></button></div><div class="lx-buy-direct-section"><div class="lx-buy-direct-row"><strong>系列：</strong><span>Lenovo</span></div><div class="lx-buy-direct-row"><strong>型号：</strong><span>${escapeHtml(product.name)}</span></div><div class="lx-buy-direct-row"><strong>尺寸：</strong><span>${configState.size}</span></div><div class="lx-buy-direct-row"><strong>配置：</strong><span>${configState.spec} · ${configState.color}</span></div></div><div class="lx-buy-direct-section"><div class="lx-buy-direct-row"><strong>收货信息：</strong><span>演示用户　138****0000</span></div><div class="lx-buy-direct-row"><strong>收货地址：</strong><span>北京市海淀区西北旺地区联想总部东区</span></div></div><div class="lx-buy-direct-section"><div class="lx-buy-direct-row"><strong>支付方式：</strong><span data-order-preview-payment>${escapeHtml(orderState.payment.includes('支付') || orderState.payment.includes('分期') ? orderState.payment : `${orderState.payment}支付`)}</span></div><div class="lx-buy-direct-row"><strong>发票信息：</strong><span data-order-preview-invoice>${escapeHtml(invoicePreview())}</span></div></div><div class="lx-buy-direct-price"><strong>等待支付：</strong><b>¥${payableAmount().toLocaleString('zh-CN')}</b><span>节省了：<em>¥${totalDiscount().toLocaleString('zh-CN')}</em></span></div><div class="lx-buy-direct-detail"><button class="lx-buy-direct-detail-button" type="button" data-price-detail>查看价格明细</button><span>可修改优惠券/乐豆等优惠</span></div><div class="lx-buy-direct-actions"><button type="button" data-edit-order>修改订单</button><button type="button" class="primary" data-pay-now>立即支付</button></div><p class="lx-buy-direct-footnote">*修改订单包括改商品配置、收货地址、支付方式</p></div>`;
+    const orderHtml = () => `<button class="lx-buy-direct-close" type="button" aria-label="关闭">×</button><h2 id="lxBuyDirectTitle">联想乐享为你生成订单</h2><div class="lx-buy-direct-card"><div class="lx-buy-direct-product"><img src="${escapeHtml(product.image_url)}" alt="${escapeHtml(product.name)}"><div class="lx-buy-direct-product-copy"><strong>${escapeHtml(product.name)}</strong><span>X${configState.quantity}</span></div><button class="lx-buy-direct-config" type="button" data-edit-config>修改配置<i aria-hidden="true"></i></button></div><div class="lx-buy-direct-section"><div class="lx-buy-direct-row"><strong>系列：</strong><span>${escapeHtml(product.series || "Lenovo")}</span></div><div class="lx-buy-direct-row"><strong>型号：</strong><span>${escapeHtml(product.name)}</span></div><div class="lx-buy-direct-row"><strong>尺寸：</strong><span>${escapeHtml(configState.size)}</span></div><div class="lx-buy-direct-row"><strong>配置：</strong><span>${escapeHtml(configState.spec)}${configState.color ? " · " + escapeHtml(configState.color) : ""}</span></div></div><div class="lx-buy-direct-section"><div class="lx-buy-direct-row"><strong>收货信息：</strong><span>演示用户　138****0000</span></div><div class="lx-buy-direct-row"><strong>收货地址：</strong><span>北京市海淀区西北旺地区联想总部东区</span></div></div><div class="lx-buy-direct-section"><div class="lx-buy-direct-row"><strong>支付方式：</strong><span data-order-preview-payment>${escapeHtml(orderState.payment.includes('支付') || orderState.payment.includes('分期') ? orderState.payment : `${orderState.payment}支付`)}</span></div><div class="lx-buy-direct-row"><strong>发票信息：</strong><span data-order-preview-invoice>${escapeHtml(invoicePreview())}</span></div></div><div class="lx-buy-direct-price"><strong>等待支付：</strong><b>¥${payableAmount().toLocaleString('zh-CN')}</b><span>节省了：<em>¥${totalDiscount().toLocaleString('zh-CN')}</em></span></div><div class="lx-buy-direct-detail"><button class="lx-buy-direct-detail-button" type="button" data-price-detail>查看价格明细</button><span>可修改优惠券/乐豆等优惠</span></div><div class="lx-buy-direct-actions"><button type="button" data-edit-order>修改订单</button><button type="button" class="primary" data-pay-now>立即支付</button></div><p class="lx-buy-direct-footnote">*修改订单包括改商品配置、收货地址、支付方式</p></div>`;
     modal.innerHTML = `<div class="lx-buy-direct-mask"></div><section class="lx-buy-direct-dialog" role="dialog" aria-modal="true" aria-labelledby="lxBuyDirectTitle">${orderHtml()}</section>`;
     document.body.appendChild(modal);
     modal.querySelector('img')?.addEventListener('error', (event) => { event.currentTarget.src = FALLBACK_IMAGE; }, { once: true });
@@ -221,6 +284,11 @@
     };
     const showOrder = () => { dialog.className = 'lx-buy-direct-dialog'; dialog.innerHTML = orderHtml(); };
     const showConfigEdit = () => {
+      if (product.sku) return window.__lxPurchaseContext.renderConfig({dialog, product, quantity: configState.quantity, onSelect: selected => {
+        product = selected; configState.color = selected.color; configState.size = selected.size; configState.spec = selected.configuration;
+        benefitState.couponId = "coupon-none"; benefitState.couponAmount = 0; benefitState.beanPoints = 0; benefitState.beanAmount = 0; benefitState.redPacketAmount = 0;
+        showConfigEdit();
+      }});
       const options = (name, values, disabled = []) => values.map((value) => `<button class="lx-config-option${configState[name] === value ? ' is-active' : ''}" type="button" data-config-key="${name}" data-config-value="${value}" ${disabled.includes(value) ? 'disabled' : ''}>${value}</button>`).join('');
       dialog.className = 'lx-buy-direct-dialog lx-order-edit-dialog lx-config-dialog';
       dialog.innerHTML = `<header class="lx-order-edit-head"><button class="lx-order-edit-back" type="button" data-config-back>‹</button><h2>修改商品</h2><button class="lx-buy-direct-close" type="button" aria-label="关闭">×</button></header><div class="lx-order-edit-body"><section class="lx-config-section"><h3>颜色</h3><div class="lx-config-options">${options('color',['凝雾灰','深空灰','星空银'])}</div></section><section class="lx-config-section"><h3>尺寸</h3><div class="lx-config-options">${options('size',['11英寸','13英寸','14英寸'],['11英寸'])}</div></section><section class="lx-config-section"><h3>配置</h3><div class="lx-config-options">${options('spec',['8GB+128GB WIFI','8GB+256GB WIFI','16GB+512GB WIFI'],['8GB+128GB WIFI'])}</div></section><div class="lx-config-quantity"><div class="lx-config-quantity-copy"><h3>商品数量</h3><small>最多购买5件</small></div><div class="lx-config-stepper"><button type="button" data-config-minus ${configState.quantity <= 1 ? 'disabled' : ''}>−</button><output data-config-count>${configState.quantity}</output><button type="button" data-config-plus ${configState.quantity >= 5 ? 'disabled' : ''}>＋</button></div></div></div><footer class="lx-order-edit-footer"><button type="button" data-config-save>保存修改</button></footer>`;
@@ -458,7 +526,9 @@
     modal.querySelector('.primary')?.focus();
   };
 
-  window.__lxOpenUnifiedDiscountOrder = openOrderModal;
+  window.__lxOpenUnifiedDiscountOrder = product => {
+    try { return openOrderModal(window.__lxPurchaseContext.normalize(product)); } catch (error) { showToast(error.message); }
+  };
 
   const removeRepeatedOfflineErrors = () => {
     document.querySelectorAll('.lx-p0-messages .lx-p0-message.ai, .lx-p0-messages .msg.ai').forEach((message) => {
@@ -466,23 +536,39 @@
     });
   };
 
-  window.addEventListener('click', (event) => {
+  let purchaseRequest = 0; const purchaseButtons = new WeakMap();
+  window.addEventListener('click', async (event) => {
     const button = event.target.closest?.('button, a[role="button"]');
     const label = String(button?.textContent || '').replace(/\s+/g, '').trim();
     const isUnifiedBuy = button && !button.closest('[data-buy-modal-direct]') && !button.dataset.bizQuote && (/^(?:一键领取?优惠下单|一键领优惠下单|立即购买|立即下单|去购买|去下单|去结算|结算|提交订单)$/.test(label) || button.matches('[data-buy-now],[data-action="buy"],[data-order-action="buy"]'));
     if (!isUnifiedBuy) return;
     event.preventDefault();
     event.stopImmediatePropagation();
-    openOrderModal(visibleDetailProduct(button));
+    const request = ++purchaseRequest; purchaseButtons.set(button, request);
+    button.setAttribute("aria-busy", "true");
+    try { const product = await visibleDetailProduct(button); if (request === purchaseRequest && button.isConnected && window.__lxPurchaseContext.targetSku(button, window.__lxState) === product.sku) openOrderModal(product); }
+    catch (error) { if (request === purchaseRequest) showToast(error.message || "商品读取失败，请重试"); }
+    finally { if (purchaseButtons.get(button) === request) { button.removeAttribute("aria-busy"); purchaseButtons.delete(button); } }
   }, true);
 
   repairProductImages();
   removeRepeatedOfflineErrors();
-  new MutationObserver((records) => records.forEach((record) => record.addedNodes.forEach((node) => {
-    if (node.nodeType !== Node.ELEMENT_NODE) return;
-    repairProductImages(node);
-    removeRepeatedOfflineErrors();
-  }))).observe(document.documentElement, { childList: true, subtree: true });
+  // Batch added subtrees once per frame. Never rescan the entire chat per node.
+  const pendingRoots = new Set(); let repairFrame = 0;
+  new MutationObserver(records => {
+    for (const record of records) for (const node of record.addedNodes) if (node.nodeType === 1) pendingRoots.add(node);
+    if (!pendingRoots.size || repairFrame) return;
+    repairFrame = requestAnimationFrame(() => {
+      repairFrame = 0; const roots = [...pendingRoots]; pendingRoots.clear();
+      for (const node of roots) {
+        if (!node.isConnected || roots.some(parent => parent !== node && parent.contains(node))) continue;
+        repairProductImages(node);
+        const selector = '.lx-p0-messages .lx-p0-message.ai, .lx-p0-messages .msg.ai';
+        const messages = [...(node.matches(selector) ? [node] : []), ...node.querySelectorAll(selector)];
+        for (const message of messages) if (/当前 AI 服务暂时不可用/.test(message.textContent || '')) message.remove();
+      }
+    });
+  }).observe(document.body, { childList: true, subtree: true });
 
   const previewMode = new URLSearchParams(location.search).get('showOrder');
   if (previewMode) {

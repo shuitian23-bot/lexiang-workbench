@@ -7,9 +7,15 @@ const root=process.cwd(),base='public/leaip0',manifestFile=base+'/assets/fronten
 const manifest=JSON.parse(fs.readFileSync(manifestFile,'utf8'));
 const hash=s=>crypto.createHash('sha256').update(s).digest('hex');
 const staged=new Map();let html=fs.readFileSync(base+'/index.html','utf8');
+for(const embedding of manifest.embedded || []) {
+  const source=fs.readFileSync(embedding.source,'utf8');new vm.Script(source);
+  const target=fs.readFileSync(embedding.target,'utf8'),a=target.indexOf(embedding.start),b=target.indexOf(embedding.end);
+  if(a<0||b<a)throw Error('Missing embedded module markers: '+embedding.target);
+  staged.set(embedding.target,target.slice(0,a)+embedding.start+'\n'+source+'\n'+target.slice(b));
+}
 for(const g of manifest.groups){
   const content=g.files.map(file=>{
-    let s=fs.readFileSync(file,'utf8');
+    let s=staged.get(file) || fs.readFileSync(file,'utf8');
     if(g.type==='js'){
       if(/document\.currentScript|document\.write\s*\(/.test(s))throw Error('Unsafe script: '+file);
       new vm.Script(s,{filename:file});return '\n;/* '+file+' */\n'+s+'\n;\n';
@@ -27,14 +33,22 @@ for(const g of manifest.groups){
   const digest=hash(content),url=g.url.split('?')[0]+'?p0v='+digest.slice(0,16);
   staged.set(base+url.split('?')[0],content);
   html=html.split(g.url).join(url).split(g.url.replaceAll('&','&amp;')).join(url.replaceAll('&','&amp;'));
-  g.url=url;g.hash=digest;g.sourceHashes=g.files.map(f=>hash(fs.readFileSync(f)));
+  g.url=url;g.hash=digest;g.sourceHashes=g.files.map(f=>hash(staged.get(f)||fs.readFileSync(f)));
 }
-const loader=fs.readFileSync(base+'/assets/frontend/js/core/p0-home-features-v1.js','utf8');
-new vm.Script(loader);
-const marker=/<script data-p0-inline-source="\/assets\/frontend\/js\/core\/p0-home-features-v1.js">[\s\S]*?<\/script>/g;
-if([...html.matchAll(marker)].length!==1)throw Error('Missing inline feature loader marker');
-html=html.replace(marker,()=>'<script data-p0-inline-source="/assets/frontend/js/core/p0-home-features-v1.js">'+loader+'</script>');
-staged.set(base+'/index.html',html);staged.set(manifestFile,JSON.stringify(manifest,null,2)+'\n');
+for(const file of manifest.inlineSources || [base+'/assets/frontend/js/core/p0-home-features-v1.js']) {
+ const source=fs.readFileSync(file,'utf8');new vm.Script(source);
+ const start='<script data-p0-inline-source="'+file.slice(base.length)+'">',i=html.indexOf(start),end=html.indexOf('</script>',i);
+ if(i<0||end<i)throw Error('Missing inline module: '+file);
+ html=html.slice(0,i)+start+source.replace(/<\/script/gi,'<\\/script')+'</script>'+html.slice(end+9);
+}
+staged.set(base+'/index.html',html);
+for(const entry of manifest.standaloneEntrypoints || []) {
+ const source=staged.get(entry.source)||fs.readFileSync(entry.source),page=fs.readFileSync(entry.file,'utf8');
+ const escaped=entry.url.replace(/[.*+?^$()|[\]\\]/g,'\\$&');
+ const regex=new RegExp(escaped+'(?:\\?[^"<>]*)?','g');
+ if(!regex.test(page))throw Error('Missing standalone entry: '+entry.file);
+ staged.set(entry.file,page.replace(regex,entry.url+'?p0v='+hash(source).slice(0,16)));
+}staged.set(manifestFile,JSON.stringify(manifest,null,2)+'\n');
 const changed=[...staged].filter(([f,s])=>!fs.existsSync(f)||hash(fs.readFileSync(f))!==hash(s));
 if(process.argv[2]==='--check'){
   console.log(JSON.stringify({consistent:!changed.length,changed:changed.map(([f])=>f)}));process.exitCode=changed.length?1:0;

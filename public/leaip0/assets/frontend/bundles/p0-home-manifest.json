@@ -44,8 +44,8 @@
         "public/leaip0/assets/frontend/js/core/product-detail-benefits-v198.js",
         "public/leaip0/assets/frontend/js/core/product-detail-review-tab-v203.js"
       ],
-      "url": "/assets/frontend/bundles/p0-home-commerce.js?p0v=440ff5dbd249c30d",
-      "hash": "440ff5dbd249c30dc3e3fbc0a686a5dc243da4a09c1c748e802cd87e4c515367",
+      "url": "/assets/frontend/bundles/p0-home-commerce.js?p0v=1ca28262c25d496d",
+      "hash": "1ca28262c25d496da7317dd6557ef63f86393571933b58a18790569bf77fbd75",
       "sourceHashes": [
         "de0376065653658c5a5be7f457324a84f417040b5a3f572381ada21e9c484691",
         "73a4a641432fdfe4688e43071a570e6b1caf8102c6fc7db68fc5a7477ba90573",
@@ -58,7 +58,7 @@
         "3cee9c8f14299a3025706279f72c0c0cfdeb404693aca84e54704c2b051a0ff1",
         "f6e1801495ea2ec0d8d5709923804da76ccb316ab998168025520ea37a522890",
         "496f54a3def870823daa8d5e294a41e97ad581a71ada6cb4d12150b6d1193405",
-        "a33810f8e060c60a2294ec27d8624a412d80d57f099af73c5dc0ed63ddb0ee48",
+        "c86d11b58a41da596b6192a827f557a31c114f6fd060cc0cd4305935c260bba1",
         "8e0a493b90c9abe6fc7fb2f36e7a98a71df68107ec973355ce2fdc92aa9634c5",
         "b3f327e987b5c42993fe1f07a226db8395eef63449b9735a63d84c90c720f803"
       ]
@@ -188,11 +188,11 @@
         "public/leaip0/assets/frontend/js/core/arrival-notice-flow-v1.js",
         "public/leaip0/assets/frontend/js/core/home.solution-original-v152.js"
       ],
-      "url": "/assets/frontend/bundles/p0-home-core-2.js?p0v=0d1bdc0ad9c327b5",
-      "hash": "0d1bdc0ad9c327b59b35ca653aa4b11880d6e2714ff522f11b1a06bbe0437d5b",
+      "url": "/assets/frontend/bundles/p0-home-core-2.js?p0v=671ff9d7eaf15d84",
+      "hash": "671ff9d7eaf15d84de488975ff6b9ccd813cd975c17cca72ee98e3c600d8c64e",
       "sourceHashes": [
         "174b29c6a044e0eeae43c3a3ba566ffbef7baed7281443439a31a192c39fad66",
-        "1b50fe29f929504d0fda0c3aaf29d9720c15a1bcc64566de490f66e6318119f3"
+        "b4639be58066558582f75ad5f212d7e9aa2f84546986f3178943c9e893c9c1a0"
       ]
     },
     {
@@ -230,6 +230,89 @@
         "ab5952ee16509eeec2dcda3682b9eb08a70fa9c2b339980a4c7d11ede4a2d520",
         "76ac0b7ce1e510c8811b43152fdef71ee6dcdbe890b6633dc6e86953dfa4f79d"
       ]
+    },
+    {
+      "type": "js",
+      "label": "detail",
+      "files": [
+        "public/leaip0/assets/frontend/js/core/order-modal-reference-exact-no-body-max-v58.js",
+        "public/leaip0/assets/frontend/js/core/order-modal-reference-config-sku-v100.js",
+        "public/leaip0/assets/frontend/js/core/product-detail-benefits-v198.js",
+        "public/leaip0/assets/frontend/js/core/product-detail-review-tab-v203.js"
+      ],
+      "url": "/assets/frontend/bundles/p0-home-detail.js?p0v=ff797cc8d0a93f1f",
+      "hash": "ff797cc8d0a93f1fb2ddd49c4cc83c8f5202b7df2f8c551a6752d6b1af863dc8",
+      "sourceHashes": [
+        "de0376065653658c5a5be7f457324a84f417040b5a3f572381ada21e9c484691",
+        "73a4a641432fdfe4688e43071a570e6b1caf8102c6fc7db68fc5a7477ba90573",
+        "8e0a493b90c9abe6fc7fb2f36e7a98a71df68107ec973355ce2fdc92aa9634c5",
+        "b3f327e987b5c42993fe1f07a226db8395eef63449b9735a63d84c90c720f803"
+      ]
+    },
+    {
+      "type": "js",
+      "label": "orders",
+      "files": [
+        "public/leaip0/assets/frontend/js/core/order-demo-data.js",
+        "public/leaip0/assets/frontend/js/core/order-center.js",
+        "public/leaip0/assets/frontend/js/core/hide-legacy-demo-orders-v146.js"
+      ],
+      "url": "/assets/frontend/bundles/p0-home-orders.js?p0v=e61d9412bfea5fc0",
+      "hash": "e61d9412bfea5fc0e893756cd9a02fee32c75d72d4c570aed92c03d419bf881c",
+      "sourceHashes": [
+        "964d5c5f0a92784e5f5c22eddb0c8660ad6364613de25bcd2ee9de43188d79af",
+        "6725929fe321924d3425ca885cb589238f9c38d671af240e4645ad706e443a76",
+        "496f54a3def870823daa8d5e294a41e97ad581a71ada6cb4d12150b6d1193405"
+      ]
+    },
+    {
+      "type": "js",
+      "label": "checkout",
+      "files": [
+        "public/leaip0/assets/frontend/js/core/scanpay-button-standard-v101.js",
+        "public/leaip0/assets/frontend/js/core/order-payment-orders-sync-v102.js",
+        "public/leaip0/assets/frontend/js/core/view-orders-recommendation-card-v103.js",
+        "public/leaip0/assets/frontend/js/core/paid-order-result-card-v104.js",
+        "public/leaip0/assets/frontend/js/core/address-regions-v142.js",
+        "public/leaip0/assets/frontend/js/core/address-dialog-v142.js",
+        "public/leaip0/assets/frontend/js/core/buy-modal-direct-v1.js"
+      ],
+      "url": "/assets/frontend/bundles/p0-home-checkout.js?p0v=c925389cfcfaf362",
+      "hash": "c925389cfcfaf362e41c25c1d57334f37bb13fd6701fe310267a72103e076d7b",
+      "sourceHashes": [
+        "b3d8e5924a68b3bda54a04c225eabfc62c44a60ef761164a347f385506fccb4f",
+        "f3827301243a183bf003e9bf6c8b1ed5a417b5ae21c8630585e9de7f2bf67096",
+        "0a201502b72b569f10b42f0c129bb520a54b96856f8201bfe40767fe55f197ee",
+        "be942d60c9fa347aedc411de4486cfa17df959b1d32ffdd70488fa20145c24d4",
+        "3cee9c8f14299a3025706279f72c0c0cfdeb404693aca84e54704c2b051a0ff1",
+        "f6e1801495ea2ec0d8d5709923804da76ccb316ab998168025520ea37a522890",
+        "c86d11b58a41da596b6192a827f557a31c114f6fd060cc0cd4305935c260bba1"
+      ]
     }
+  ],
+  "embedded": [
+    {
+      "source": "public/leaip0/assets/frontend/js/core/purchase-context-v1.js",
+      "target": "public/leaip0/assets/frontend/js/core/buy-modal-direct-v1.js",
+      "start": "/* p0-purchase-context:start */",
+      "end": "/* p0-purchase-context:end */"
+    }
+  ],
+  "standaloneEntrypoints": [
+    {
+      "file": "public/leaip0/shop-chat/index.html",
+      "source": "public/leaip0/assets/frontend/js/core/buy-modal-direct-v1.js",
+      "url": "/assets/frontend/js/core/buy-modal-direct-v1.js"
+    },
+    {
+      "file": "public/leaip0/b-chat/index.html",
+      "source": "public/leaip0/assets/frontend/js/core/buy-modal-direct-v1.js",
+      "url": "/assets/frontend/js/core/buy-modal-direct-v1.js"
+    }
+  ],
+  "inlineSources": [
+    "public/leaip0/assets/frontend/js/core/p0-home-features-v1.js",
+    "public/leaip0/assets/frontend/js/core/composer-autogrow-v1.js",
+    "public/leaip0/assets/frontend/js/core/composer-smart-actions-v1.js"
   ]
 }
