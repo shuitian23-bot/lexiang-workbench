@@ -581,6 +581,7 @@ window.__lxAddressRegionsV142=[{"code":"11","name":"北京市","children":[{"cod
 /* checkout-address-invoice-store-position-v61-20260905 */
 /* checkout-layout-v62-20260905 */
 /* checkout-flash-card-inner-layout-v63-20260905 */
+/* fulfillment-checkout-height-v64-20260905 */
 (() => {
   const AIR_13_IMAGE = '/leai%20product%20data/shop-chat%20product%20data/%E7%AC%94%E8%AE%B0%E6%9C%AC/08_SPU_%E8%81%94%E6%83%B3%E5%B0%8F%E6%96%B0_Air_13/%E7%99%BD%E5%BA%95%E5%9B%BE.jpg';
   const FALLBACK_IMAGE = '/assets/product-placeholder.svg';
@@ -1863,6 +1864,14 @@ window.__lxAddressRegionsV142=[{"code":"11","name":"北京市","children":[{"cod
     var session = { modal: modal, product: normalized, mode: mode, store: selectedStore, size: options.size || null, authenticated: false, draftStoreId: '' };
     sessions.set(modal, session);
     modal.dataset.fulfillmentMode = mode;
+    if (mode === 'pickup' || mode === 'flash') {
+      var fulfillmentDialog = modal.querySelector('.lx-buy-direct-dialog');
+      if (fulfillmentDialog) {
+        var fulfillmentHeight = Math.min(600, Math.max(0, window.innerHeight - 32));
+        fulfillmentDialog.style.setProperty('height', fulfillmentHeight + 'px', 'important');
+        fulfillmentDialog.style.setProperty('min-height', fulfillmentHeight + 'px', 'important');
+      }
+    }
     window.requestAnimationFrame(function () { rememberSize(session); decorateOrder(session); });
     observe(session);
     if (!options.skipSuggestion && mode === 'delivery') appendSuggestion(normalized);
