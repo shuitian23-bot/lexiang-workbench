@@ -47,10 +47,15 @@
     return node;
   }
 
-  function priceLabel() {
+  function priceLabel(detail) {
     var path = window.location.pathname;
     if (/^\/b-chat(?:\/|$)/.test(path)) return "企业价";
     if (/^\/biz-chat(?:\/|$)/.test(path)) return "惠采价";
+    if (/^\/shop-chat(?:\/|$)/.test(path) && detail) {
+      var title = detail.querySelector("[data-detail-title], .detail-title");
+      var name = String(title && title.textContent || "").replace(/\s+/g, "");
+      if (/天逸|GeekPro|刃7000|小新27.*一体机/i.test(name)) return "预估到手";
+    }
     return "国补后";
   }
 
@@ -58,9 +63,11 @@
     var bar = detail.querySelector(".lx-buybar") || document.querySelector(".lx-buybar");
     var priceNode = bar && bar.querySelector(".lx-buybar-info b");
     if (!priceNode) return;
-    if (priceNode.dataset.sourcePrice === String(sourcePrice)) return;
+    var label = priceLabel(detail);
+    if (priceNode.dataset.sourcePrice === String(sourcePrice) && priceNode.dataset.priceLabel === label) return;
+    priceNode.dataset.priceLabel = label;
     priceNode.dataset.sourcePrice = String(sourcePrice);
-    priceNode.innerHTML = '<small>' + priceLabel() + '</small><span>¥' + format(finalPrice) + '</span><del class="lx-buybar-original-price" aria-label="原价 ' + format(sourcePrice) + ' 元">¥' + format(sourcePrice) + "</del>";
+    priceNode.innerHTML = '<small>' + label + '</small><span>¥' + format(finalPrice) + '</span><del class="lx-buybar-original-price" aria-label="原价 ' + format(sourcePrice) + ' 元">¥' + format(sourcePrice) + "</del>";
   }
 
   function placeServiceAboveActions(detail) {
@@ -109,10 +116,12 @@
     var subsidy = Math.min(2000, Math.round(price * 0.15));
     var finalPrice = Math.max(0, price - subsidy);
     renderBuybar(detail, finalPrice, price);
-    if (node.dataset.sourcePrice === String(price) && node.childElementCount) return;
+    var label = priceLabel(detail);
+    if (node.dataset.sourcePrice === String(price) && node.dataset.priceLabel === label && node.childElementCount) return;
+    node.dataset.priceLabel = label;
     node.dataset.sourcePrice = String(price);
     node.innerHTML =
-      '<div class="lx-detail-benefits-price"><span class="lx-detail-benefits-label">' + priceLabel() + '</span>' +
+      '<div class="lx-detail-benefits-price"><span class="lx-detail-benefits-label">' + label + '</span>' +
       '<strong><span>¥</span>' + format(finalPrice) + '</strong>' +
       '<del class="lx-detail-benefits-original-price" aria-label="原价 ' + format(price) + ' 元">¥' + format(price) + '</del></div>';
   }
