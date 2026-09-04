@@ -43,6 +43,9 @@
     identity: function(content) {
       var product = window.__lxState && window.__lxState.currentProduct;
       var title = content.querySelector('[data-detail-title]');
+      // A configuration change is still the same detail scene.
+      var variants = Array.prototype.map.call(content.querySelectorAll('.lx-spu-chip[data-variant-sku]'), function(chip) { return chip.getAttribute('data-variant-sku'); }).filter(Boolean).sort();
+      if (variants.length) return 'series:' + Array.from(new Set(variants)).join('|');
       return product && (product.spu_id || product.sku || product.id) || title && title.textContent || '';
     },
     ready: function(content) {
