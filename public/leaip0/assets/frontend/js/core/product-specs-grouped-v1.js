@@ -113,7 +113,7 @@
     }
     requests.get(sku).then(data => {
       if (grid._lxSpecRequest !== token || !grid.isConnected) return;
-      grid.innerHTML = markup({...product, ...data, specs:{...object(product.specs), ...object(data.specs)}});
+      grid.innerHTML = markup({...product, ...data, specs:data.specs || product.specs});
     }).catch(() => {
       if (grid._lxSpecRequest === token && grid.isConnected) grid.innerHTML = markup(product, '完整参数暂时无法加载，当前展示已有商品信息，请稍后重新打开详情页。');
     });
