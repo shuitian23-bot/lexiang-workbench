@@ -144,7 +144,8 @@ async function oe(t){const e=function(){let t=document.querySelector(".compare-p
  try{window.__lxSaveConversationNow?.()}catch(error){}return true;
 }
 window.__lxPageCommandV150=lxPageCommandV150;
-async function xn(t){const e=(t||h(".composer textarea")?.value||"").trim();if(!e||d.sending)return;if(await lxPageCommandV150(e))return;if(!re())return;try{localStorage.removeItem("lexiang.newChatEmpty.v1")}catch(t){}"function"==typeof window.__lxSetConversationQuery&&window.__lxSetConversationQuery(e);const n=d.conversationNonce;let a=0,o=[];const s=h(".composer textarea");if(s&&(s.value=""),to(),d.lastUserText=e,Ee(),ye("user",e),/^一键绑定(?:小新\s*Pro\s*16)?[。！!]?$/.test(e))return void await un("bind",window.__lxPendingDeviceBindBridge?.device);if(e==="我要签到"&&typeof window.__lxCompleteMemberCheckin==="function"){
+window.__lxInstallArrivalNotice({d,j,I,N,O,z,ot,nt,Qe,xe,ye,ke,Ne,Uo,qe,xn,bindDialog:(focus,handler)=>{B=focus;if(D)document.removeEventListener("keydown",D,true);D=handler;document.addEventListener("keydown",D,true);}});
+async function xn(t){const e=(t||h(".composer textarea")?.value||"").trim();if(!e||d.sending)return;if(await lxPageCommandV150(e))return;if(!re())return;try{localStorage.removeItem("lexiang.newChatEmpty.v1")}catch(t){}"function"==typeof window.__lxSetConversationQuery&&window.__lxSetConversationQuery(e);const n=d.conversationNonce;let a=0,o=[];const s=h(".composer textarea");if(s&&(s.value=""),to(),d.lastUserText=e,Ee(),ye("user",e),window.__lxArrivalNotice.matches(e))return void await window.__lxArrivalNotice.run(e);if(/^一键绑定(?:小新\s*Pro\s*16)?[。！!]?$/.test(e))return void await un("bind",window.__lxPendingDeviceBindBridge?.device);if(e==="我要签到"&&typeof window.__lxCompleteMemberCheckin==="function"){
  d.sending=true;const reply=ye("ai loading","",we("正在完成签到…"));
  try{
   const result=window.__lxCompleteMemberCheckin();
