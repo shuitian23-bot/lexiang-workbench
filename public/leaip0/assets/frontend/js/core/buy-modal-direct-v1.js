@@ -82,7 +82,7 @@
 })();
 
 /* p0-purchase-context:end */
-/* v59-checkout-payment-standard-answer-card-20260904 */
+/* v60-fulfillment-subsidy-checkout-20260904 */
 (() => {
   const AIR_13_IMAGE = '/leai%20product%20data/shop-chat%20product%20data/%E7%AC%94%E8%AE%B0%E6%9C%AC/08_SPU_%E8%81%94%E6%83%B3%E5%B0%8F%E6%96%B0_Air_13/%E7%99%BD%E5%BA%95%E5%9B%BE.jpg';
   const FALLBACK_IMAGE = '/assets/product-placeholder.svg';
@@ -1071,3 +1071,10 @@
     document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', showPreview, { once: true }) : showPreview();
   }
 })();
+
+if (!document.querySelector('script[data-fulfillment-checkout-v60]')) {
+  const fulfillmentScript = document.createElement('script');
+  fulfillmentScript.dataset.fulfillmentCheckoutV60 = 'true';
+  fulfillmentScript.src = '/assets/frontend/js/core/fulfillment-checkout-v60.js?v=20260904-v60';
+  document.head.appendChild(fulfillmentScript);
+}
