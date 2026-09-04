@@ -6,6 +6,12 @@
   style.textContent+=selector+'{display:inline-flex!important;align-items:center!important;justify-content:flex-start!important;}';
   document.head.appendChild(style);
   function sync(){document.querySelectorAll(selector).forEach(function(button){
+    var text = (button.textContent || '').replace(/\s/g, '').replace(/[→➜➝➞>›]+$/, '');
+    if (/^对比第?1[、,，]2[、,，]3款$/.test(text)) {
+      button.textContent = '帮我解读第3款商品';
+      button.setAttribute('data-quick-ask', '帮我解读第3款商品');
+      if (button.hasAttribute('aria-label')) button.setAttribute('aria-label', '帮我解读第3款商品');
+    }
     var walker=document.createTreeWalker(button,NodeFilter.SHOW_TEXT),nodes=[],node;
     while(node=walker.nextNode())nodes.push(node);
     nodes.forEach(function(node){if(/\s*[→➜➝➞]\s*$/.test(node.nodeValue))node.nodeValue=node.nodeValue.replace(/\s*[→➜➝➞]\s*$/,'');});
