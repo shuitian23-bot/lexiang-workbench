@@ -127,9 +127,32 @@
     });
   }
 
+  function syncT14SupportCopy(detail) {
+    var path = String(window.__LX_TEMPLATE_PATH || location.pathname || "").replace(/\/+$/, "");
+    var title = detail.querySelector("[data-detail-title], .detail-title");
+    var name = String(title && title.textContent || "").replace(/\s+/g, "");
+    var isTarget = path === "/b-chat" && /^(?:联想)?ThinkPadT14$/i.test(name);
+    detail.querySelectorAll(".detail-actions .detail-primary").forEach(function(button) {
+      if (isTarget && button.textContent.trim() === "一键领优惠下单") {
+        button.dataset.t14OriginalCopy = button.textContent;
+        button.textContent = "咨询客服";
+        if (button.hasAttribute("aria-label")) {
+          button.dataset.t14OriginalAria = button.getAttribute("aria-label");
+          button.setAttribute("aria-label", "咨询客服");
+        }
+      } else if (!isTarget && button.dataset.t14OriginalCopy) {
+        if (button.textContent.trim() === "咨询客服") button.textContent = button.dataset.t14OriginalCopy;
+        if (button.dataset.t14OriginalAria) button.setAttribute("aria-label", button.dataset.t14OriginalAria);
+        delete button.dataset.t14OriginalCopy;
+        delete button.dataset.t14OriginalAria;
+      }
+    });
+  }
+
   function render(detail) {
     if (!detail || !detail.isConnected) return;
     syncArrivalButtonCopy(detail);
+    syncT14SupportCopy(detail);
     placeServiceAboveActions(detail);
     renderProductCode(detail);
     var price = currentPrice(detail);
