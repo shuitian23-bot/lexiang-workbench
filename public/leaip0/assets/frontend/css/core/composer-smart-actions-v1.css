@@ -370,6 +370,16 @@
   }
 }
 
+/* Loading never exposes the previous detail's actions or in-flight snapshot. */
+body:has(.content.is-generating-tab) .lx-smart-actions,
+body:has(.content[aria-busy="true"]) .lx-smart-actions,
+body:has(.content .lx-page-generating) .lx-smart-actions,
+body:has(.content.is-generating-tab) .lx-smart-actions-guide,
+body:has(.content[aria-busy="true"]) .lx-smart-actions-guide,
+body:has(.content .lx-page-generating) .lx-smart-actions-guide {
+  display: none !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .assistant-panel .assistant-bottom.lx-smart-actions-active > .lx-smart-actions {
     animation: none;

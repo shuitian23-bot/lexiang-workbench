@@ -77,6 +77,11 @@
       }
       return false;
     }
+    // Gate both first reveal and restoration of previously shown scenes.
+    if ((window.__lxState && window.__lxState.sending) || content.getAttribute('aria-busy') === 'true' || content.classList.contains('is-generating-tab') || content.querySelector('.lx-page-generating') || !scene.ready(content)) {
+      sceneCandidate = ''; sceneSince = 0;
+      return true;
+    }
     var key = content.getAttribute('data-view') + ':' + scene.identity(content);
     if (!currentScene || currentScene.key !== key) {
       hideCurrent();
