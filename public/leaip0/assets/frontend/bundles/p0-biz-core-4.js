@@ -413,6 +413,41 @@ async function xn(t){const e=(t||h(".composer textarea")?.value||"").trim();if(!
 
 
 ;/* public/leaip0/assets/frontend/js/core/app-lxfd.industry-v114.controls-v150.js */
+/* p0-stream-view:start */
+/* Incremental mirror for already-normalized assistant markup. No network or storage. */
+(() => {
+  'use strict';
+  if(window.__lxStreamView)return;
+  const active=new WeakMap();
+  function key(node){return node.nodeType===1?(node.id||node.getAttribute('data-id')||''):'';}
+  function patchNode(node,next){
+    if(node.isEqualNode(next))return;
+    if(node.nodeType!==next.nodeType||node.nodeName!==next.nodeName||key(node)!==key(next)){node.replaceWith(next.cloneNode(true));return;}
+    if(node.nodeType===3||node.nodeType===8){node.data=next.data;return;}
+    if(node.nodeType!==1)return;
+    for(const a of [...node.attributes])if(!next.hasAttribute(a.name))node.removeAttribute(a.name);
+    for(const a of [...next.attributes])if(node.getAttribute(a.name)!==a.value)node.setAttribute(a.name,a.value);
+    patchChildren(node,next);
+  }
+  function patchChildren(host,next){
+    const old=[...host.childNodes],fresh=[...next.childNodes];
+    for(let i=0;i<fresh.length;i++){if(old[i])patchNode(old[i],fresh[i]);else host.appendChild(fresh[i].cloneNode(true));}
+    for(let i=fresh.length;i<old.length;i++)old[i].remove();
+  }
+  function patch(host,html){const template=document.createElement('template');template.innerHTML=html;patchChildren(host,template.content);}
+  function mirror({source,target,scroll,normalize,isGenerating,onFinish,timeout=60000}){
+    active.get(target)?.();let stopped=false,raf=0,poll,timer,lastRaw=null;
+    function flush(){raf=0;if(stopped||!target.isConnected||!source.isConnected)return;const raw=source.innerHTML;if(raw===lastRaw)return;lastRaw=raw;const stick=!scroll||scroll.scrollHeight-scroll.scrollTop-scroll.clientHeight<80;patch(target,normalize(raw));if(scroll&&stick)scroll.scrollTop=scroll.scrollHeight;}
+    function stop(finish=false){if(stopped)return;if(finish)flush();stopped=true;observer.disconnect();cancelAnimationFrame(raf);clearInterval(poll);clearTimeout(timer);if(active.get(target)===stop)active.delete(target);if(finish&&target.isConnected)onFinish();}
+    const observer=new MutationObserver(()=>{if(!raf&&!stopped)raf=requestAnimationFrame(flush);});
+    observer.observe(source,{subtree:true,childList:true,characterData:true,attributes:true});
+    poll=setInterval(()=>{if(!source.isConnected||!target.isConnected)stop();else if(!isGenerating())stop(true);},750);
+    timer=setTimeout(()=>stop(true),timeout);active.set(target,stop);flush();return stop;
+  }
+  window.__lxStreamView=Object.freeze({patch,mirror});
+})();
+
+/* p0-stream-view:end */
 // ── 乐享全屏对话（lxfd）独立模块 ─────────────────────────────────────────────
 // 从 app.js 拆出（原 L7746-L9426，天然 IIFE 边界，行为零变化）。
 // 与主面板通过 window.__lxBridge / window.lxfdSubmit / window.__lxIntent 通信。
@@ -542,9 +577,12 @@ async function xn(t){const e=(t||h(".composer textarea")?.value||"").trim();if(!
     if (!chatState.localId) lxfdNewLocalConv();
     const firstUser = thread.querySelector(".lxfd-msg-user");
     const title = (firstUser ? firstUser.textContent : "新对话").trim().slice(0, 24) || "新对话";
-    const previous = lxfdLoadStore().find(c => c.id === chatState.localId);
-    const store = lxfdLoadStore().filter(c => c.id !== chatState.localId);
-    store.unshift({ id: chatState.localId, title, convId: chatState.convId || null, threadHtml: thread.innerHTML, ts: Date.now(), pinned: !!previous?.pinned });
+    const snapshot = lxfdLoadStore();
+    const previous = snapshot.find(c => c.id === chatState.localId);
+    const threadHtml = thread.innerHTML, convId = chatState.convId || null;
+    if (previous?.threadHtml === threadHtml && previous.title === title && previous.convId === convId) { lxfdSyncToMainConvKey(); return; }
+    const store = snapshot.filter(c => c.id !== chatState.localId);
+    store.unshift({ id: chatState.localId, title, convId, threadHtml, ts: Date.now(), pinned: !!previous?.pinned });
     lxfdSaveStore(store);
     // 同步一份到子站切换/刷新恢复用的 key（lexiang.conversation.v1）——否则首页对话切子站后丢失
     lxfdSyncToMainConvKey();
@@ -582,11 +620,10 @@ async function xn(t){const e=(t||h(".composer textarea")?.value||"").trim();if(!
       });
       while (messages.length && messages[messages.length - 1].role === "user") messages.pop();
       if (!messages.length) return;
-      localStorage.setItem("lexiang.conversation.v1", JSON.stringify({
-        convId: chatState.convId || null,
-        messages: messages.slice(-50),
-        ts: Date.now()
-      }));
+      const payload = {convId: chatState.convId || null, messages: messages.slice(-50)};
+      const saved = JSON.parse(localStorage.getItem("lexiang.conversation.v1") || "null");
+      if (saved && saved.convId === payload.convId && JSON.stringify(saved.messages) === JSON.stringify(payload.messages)) return;
+      localStorage.setItem("lexiang.conversation.v1", JSON.stringify({...payload, ts: Date.now()}));
     } catch (_e) {}
   }
   function lxfdRenderHist(query) {
@@ -719,18 +756,7 @@ async function xn(t){const e=(t||h(".composer textarea")?.value||"").trim();if(!
       const fsBodies = thread.querySelectorAll(".lxfd-msg-ai .lxfd-ai-body");
       const fsAiBody = fsBodies[fsBodies.length - 1];
       if (mainAi && fsAiBody) {
-        let tries = 0;
-        const iv = setInterval(function() {
-          tries++;
-          fsAiBody.innerHTML = lxfdNormalizeImportedAiHtml(mainAi.innerHTML);          // 镜像最新流式内容
-          thread.scrollTop = thread.scrollHeight;
-          if (!lxfdMainGenerating() || tries > 400) {     // 60s 上限兜底
-            clearInterval(iv);
-            fsAiBody.innerHTML = lxfdNormalizeImportedAiHtml(mainAi.innerHTML);          // 收尾再同步最终一帧
-            lxfdPersistCurrent();
-            lxfdRenderHist();
-          }
-        }, 150);
+        window.__lxStreamView.mirror({source:mainAi,target:fsAiBody,scroll:thread,normalize:lxfdNormalizeImportedAiHtml,isGenerating:lxfdMainGenerating,onFinish:()=>{lfxdPersistCurrent();lfxdRenderHist();}});
       }
     }
     return true;

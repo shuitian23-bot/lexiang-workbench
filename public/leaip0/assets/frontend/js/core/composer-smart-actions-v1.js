@@ -558,7 +558,8 @@
       }
     }, true);
 
-    new MutationObserver(function (mutations) {
+    var pendingMutations = [], mutationFrame = 0;
+    function handleMutations(mutations) {
       if (!syncActionsToActiveTab()) return;
       var nextUserMessageSignature = userMessageSignature();
       if (nextUserMessageSignature !== lastUserMessageSignature) {
@@ -597,27 +598,21 @@
       window.requestAnimationFrame(function () {
         window.requestAnimationFrame(revealAfterRecommendationList);
       });
-    }).observe(document.documentElement, {
-      childList: true,
-      subtree: true,
-      attributes: true,
-      attributeFilter: ["class", "data-view", "aria-busy"]
+    }
+    var observer = new MutationObserver(function (mutations) {
+      pendingMutations = pendingMutations.concat(mutations).slice(-200);
+      if (mutationFrame) return;
+      mutationFrame = window.requestAnimationFrame(function () {
+        mutationFrame = 0; var batch = pendingMutations; pendingMutations = []; handleMutations(batch);
+      });
     });
+    document.querySelectorAll(".content, .assistant-panel, #lxfdThread").forEach(function (root) {
+      observer.observe(root, {childList:true,subtree:true,attributes:true,attributeFilter:["class","data-view","aria-busy"]});
+    });
+    observer.observe(document.documentElement, {attributes:true,attributeFilter:["class"]});
+    observer.observe(document.body, {attributes:true,attributeFilter:["class"]});
 
-    window.setInterval(function () {
-      if (!syncActionsToActiveTab()) return;
-      var content = getRightContent();
-      var signature = recommendationSignature(content);
-      if (!signature || !hasRecommendationHeading(content)) return;
-      if (recommendationFlowArmed) {
-        revealAfterRecommendationList();
-        return;
-      }
-      if (signature === observedRecommendationSignature) return;
-      observedRecommendationSignature = signature;
-      recommendationWatchToken += 1;
-      revealCurrent();
-    }, 400);
+
   }
 
   function init() {
