@@ -17,7 +17,7 @@
     cache.delete(key);
     if (pending.has(key)) return pending.get(key);
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 10000);
+    const timeout = setTimeout(() => controller.abort(), 60000);
     const task = (async function () {
       const response = await fetch('/api/products/' + encodeURIComponent(sku) + (kind === 'variants' ? '/variants' : ''), {
         cache: 'no-store', signal: controller.signal
