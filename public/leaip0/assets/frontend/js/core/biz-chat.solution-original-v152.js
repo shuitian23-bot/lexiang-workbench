@@ -173,7 +173,7 @@ function yt(t=d.currentProduct){if(!t)return E("请先选择商品");Bt(Ht(t))}f
   })
 }
 let lxMemberStylePromise=null;
-function lxLoadMemberStyle(href){
+function lxLoadMemberStyle(href){if(window.__lxLoadMemberStyles)return window.__lxLoadMemberStyles();
   const existing=document.getElementById("lx-member-component-css");
   if(existing?.sheet)return Promise.resolve(existing);
   if(lxMemberStylePromise)return lxMemberStylePromise;

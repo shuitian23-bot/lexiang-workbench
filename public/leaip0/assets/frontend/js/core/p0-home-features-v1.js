@@ -32,7 +32,7 @@
   }
   const ready=name=>features.get(name)?.state==='ready';
   window.__lxHomeFeatures={version:2,detail:()=>ensure('detail'),orders:()=>ensure('orders'),commerce:()=>ensure('checkout'),get ready(){return ready('checkout');},states:()=>Object.fromEntries([...features].map(([k,v])=>[k,v.state]))};
-  window.__lxLoadMemberStyles=()=>load('link',config.memberStyle,document.getElementById('p0-member-style-anchor'),'lx-member-component-css');
+  if(config.memberStyle)window.__lxLoadMemberStyles=()=>Promise.all((config.memberStyles||[{url:config.memberStyle,anchor:'p0-member-style-anchor'}]).map((s,n)=>load('link',s.url,document.getElementById(s.anchor),n===0?'lx-member-component-css':undefined)));
   function status(message,retry){
     document.getElementById('p0-feature-status')?.remove();const box=document.createElement('div');box.id='p0-feature-status';box.className='lx-p0-toast show';box.setAttribute('role',retry?'alert':'status');box.textContent=message;
     if(retry){const b=document.createElement('button');b.type='button';b.textContent='重试';b.onclick=retry;box.append(' ',b);}document.body.appendChild(box);
@@ -53,7 +53,7 @@
     const input=button.closest('form')?.querySelector('textarea')||document.querySelector(inputSelector);
     if(!ready('orders')&&(button.matches(orderSelector)||(button.matches(sendSelector)&&isOrder(input))))return intercept(event,'orders',()=>{if(button.isConnected)button.click();});
     const buy=!button.closest('[data-buy-modal-direct]')&&!button.dataset.bizQuote&&(button.matches('[data-buy-sku],[data-buy-now],[data-action="buy"],[data-order-action="buy"],[data-cart-checkout]')||/^(?:一键领取?优惠下单|一键领优惠下单|立即购买|立即下单|去购买|去下单|去结算|结算|提交订单)$/.test(button.textContent.replace(/\s+/g,'')));
-    if(!ready('checkout')&&buy)intercept(event,'checkout',()=>{if(button.isConnected)button.click();});
+    if(config.features.checkout&&!ready('checkout')&&buy)intercept(event,'checkout',()=>{if(button.isConnected)button.click();});
   },true);
   window.addEventListener('keydown',event=>{if(replaying||ready('orders')||event.key!=='Enter'||event.shiftKey||event.isComposing||!event.target.matches?.(inputSelector)||!isOrder(event.target))return;const input=event.target;intercept(event,'orders',()=>input.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',code:'Enter',bubbles:true,cancelable:true})));},true);
   window.addEventListener('submit',event=>{if(replaying||ready('orders')||!event.target.matches?.('.assistant-panel .composer,.lxfd-composer')||!isOrder(event.target.querySelector('textarea')))return;const form=event.target;intercept(event,'orders',()=>form.dispatchEvent(new Event('submit',{bubbles:true,cancelable:true})));},true);
