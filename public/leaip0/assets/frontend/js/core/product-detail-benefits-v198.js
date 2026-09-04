@@ -105,8 +105,31 @@
     if (actions.nextElementSibling !== code) actions.insertAdjacentElement("afterend", code);
   }
 
+  function syncArrivalButtonCopy(detail) {
+    if (!/^\/shop-chat(?:\/|$)/.test(window.location.pathname)) return;
+    var title = detail.querySelector("[data-detail-title], .detail-title");
+    var name = String(title && title.textContent || "").replace(/\s+/g, "");
+    var isTarget = /^(?:联想)?天逸510Pro$/i.test(name);
+    detail.querySelectorAll(".detail-actions .detail-primary").forEach(function (button) {
+      if (isTarget && button.textContent.trim() === "一键领优惠下单") {
+        button.dataset.arrivalOriginalCopy = button.textContent;
+        button.textContent = "到货通知";
+        if (button.hasAttribute("aria-label")) {
+          button.dataset.arrivalOriginalAria = button.getAttribute("aria-label");
+          button.setAttribute("aria-label", "到货通知");
+        }
+      } else if (!isTarget && button.dataset.arrivalOriginalCopy) {
+        if (button.textContent.trim() === "到货通知") button.textContent = button.dataset.arrivalOriginalCopy;
+        if (button.dataset.arrivalOriginalAria) button.setAttribute("aria-label", button.dataset.arrivalOriginalAria);
+        delete button.dataset.arrivalOriginalCopy;
+        delete button.dataset.arrivalOriginalAria;
+      }
+    });
+  }
+
   function render(detail) {
     if (!detail || !detail.isConnected) return;
+    syncArrivalButtonCopy(detail);
     placeServiceAboveActions(detail);
     renderProductCode(detail);
     var price = currentPrice(detail);
