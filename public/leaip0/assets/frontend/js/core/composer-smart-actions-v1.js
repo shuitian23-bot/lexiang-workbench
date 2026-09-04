@@ -2,6 +2,14 @@
   "use strict";
 
   var recommendationFlowArmed = false;
+  var wasSending = false;
+  function syncSendCollapse() {
+    var signature = userMessageSignature();
+    var sending = !!(window.__lxState && window.__lxState.sending);
+    if ((sending && !wasSending) || (lastUserMessageSignature && signature !== lastUserMessageSignature)) collapseCurrent();
+    wasSending = sending;
+    if (currentScene) lastUserMessageSignature = signature;
+  }
   var baselineRecommendationSignature = "";
   var readyCandidateSignature = "";
   var readyCandidateSince = 0;
@@ -251,14 +259,14 @@
     });
 
     var controlsRevealTimer = window.setTimeout(function () {
-      bottom.classList.add("lx-smart-actions-arrived");
+      if (!bottom.classList.contains("lx-smart-actions-collapsing") && !bottom.classList.contains("lx-smart-actions-compact") && bottom.classList.contains("lx-smart-actions-active")) bottom.classList.add("lx-smart-actions-arrived");
     }, motionDuration - controlsRevealLead);
 
     function finish() {
       window.clearTimeout(controlsRevealTimer);
       guide.remove();
       bottom.classList.remove("lx-smart-actions-motion");
-      bottom.classList.add("lx-smart-actions-arrived");
+      if (!bottom.classList.contains("lx-smart-actions-collapsing") && !bottom.classList.contains("lx-smart-actions-compact") && bottom.classList.contains("lx-smart-actions-active")) bottom.classList.add("lx-smart-actions-arrived");
     }
     animation.addEventListener("finish", finish, { once: true });
     animation.addEventListener("cancel", finish, { once: true });
@@ -319,6 +327,7 @@
   }
 
   function syncActionsToActiveTab() {
+    syncSendCollapse();
     if (syncPageScene()) return false;
     var active = recommendationTabIsActive();
     if (active === lastRecommendationTabActive) return active;
@@ -342,6 +351,7 @@
         restoreCurrentShortcuts(bottom);
         return;
       }
+      if (bottom.classList.contains("lx-smart-actions-collapsing") || bottom.classList.contains("lx-smart-actions-compact")) return;
       bottom.classList.remove("lx-smart-actions-motion");
       bottom.classList.add("lx-smart-actions-collapsing");
       window.setTimeout(function () {
@@ -454,6 +464,15 @@
   }
 
   function bindRecommendationCompletion() {
+    window.addEventListener('click', function(event) {
+      if (event.target.closest && event.target.closest('.send-btn, .lxfd-send, #lxfdSend')) collapseCurrent();
+    }, true);
+    window.addEventListener('keydown', function(event) {
+      if (event.key === 'Enter' && !event.shiftKey && !event.isComposing && event.target.matches && event.target.matches('.composer textarea, .lxfd-composer textarea')) collapseCurrent();
+    }, true);
+    window.addEventListener('submit', function(event) {
+      if (event.target.matches && event.target.matches('.composer, .lxfd-composer')) collapseCurrent();
+    }, true);
     document.addEventListener("input", function (event) {
       if (!event.target.matches(".composer textarea, .lxfd-composer textarea")) return;
       var value = String(event.target.value || "").trim();
