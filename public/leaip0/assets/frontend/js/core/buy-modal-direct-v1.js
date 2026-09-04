@@ -82,7 +82,7 @@
 })();
 
 /* p0-purchase-context:end */
-/* v40-invoice-remark-delay-20260903 */
+/* v55-checkout-invoice-payment-chat-compat-20260904 */
 (() => {
   const AIR_13_IMAGE = '/leai%20product%20data/shop-chat%20product%20data/%E7%AC%94%E8%AE%B0%E6%9C%AC/08_SPU_%E8%81%94%E6%83%B3%E5%B0%8F%E6%96%B0_Air_13/%E7%99%BD%E5%BA%95%E5%9B%BE.jpg';
   const FALLBACK_IMAGE = '/assets/product-placeholder.svg';
@@ -377,6 +377,29 @@
       [data-buy-modal-direct] .lx-order-edit-dialog:not(.lx-config-dialog) .lx-order-edit-footer > button[data-invoice-save]{position:static!important;top:auto!important;bottom:auto!important;transform:none!important;margin:0!important;align-self:center!important;width:164px!important;height:44px!important;min-height:44px!important}
     `;
     style.textContent += `html body [data-buy-modal-direct] .lx-buy-direct-dialog:has(>.lx-buy-payment-success){width:min(460px,calc(100vw - 32px))!important;height:auto!important;min-height:0!important;max-height:calc(100vh - 32px)!important;padding:32px 24px 24px!important;overflow:auto!important}html body [data-buy-modal-direct] .lx-buy-payment-success{height:auto!important;min-height:0!important;padding:12px 0 0!important}html body [data-buy-modal-direct] .lx-buy-payment-success-card{margin:18px 0!important}`;
+    style.textContent += `/* LX_INVOICE_AND_PAYMENT_FLOW_V55 */
+      [data-buy-modal-direct] .lx-invoice-form textarea{width:100%;min-height:72px;box-sizing:border-box;padding:10px 12px;border:1px solid #d9cfdd;border-radius:6px;background:#fff;color:#2b272d;font:12px/18px "Source Han Sans CN","PingFang SC",sans-serif;outline:none;resize:vertical}
+      [data-buy-modal-direct] .lx-invoice-form textarea:focus{border-color:#681057}
+      [data-buy-modal-direct] .lx-invoice-delay-field{margin-top:14px}
+      [data-buy-modal-direct] .lx-invoice-delay-trigger{width:100%;display:grid;grid-template-columns:100px minmax(0,1fr) 16px;gap:12px;align-items:center;min-height:44px;padding:0 12px;border:1px solid #d9cfdd;border-radius:6px;background:#fff;color:#454047;text-align:left;cursor:pointer}
+      [data-buy-modal-direct] .lx-invoice-delay-value{color:#8d8790}.lx-invoice-delay-value.has-value{color:#2b272d}
+      [data-buy-modal-direct] .lx-invoice-delay-chevron{width:7px;height:7px;justify-self:end;border-right:1px solid #8c8790;border-bottom:1px solid #8c8790;transform:rotate(-45deg)}
+      [data-buy-modal-direct] .lx-invoice-delay-help{margin:8px 0 0 112px;color:#8b858e;font-size:11px;line-height:18px}
+      [data-buy-modal-direct] .lx-invoice-notice-entry{margin-left:auto;margin-right:30px;padding:0;border:0;background:transparent;color:#681057;font:12px "Source Han Sans CN","PingFang SC",sans-serif;cursor:pointer}
+      [data-buy-modal-direct] .lx-invoice-delay-layer,[data-buy-modal-direct] .lx-invoice-notice-layer{position:absolute;inset:0;z-index:8;display:grid;place-items:center;padding:16px;background:rgba(31,20,38,.55)}
+      [data-buy-modal-direct] .lx-invoice-delay-dialog{width:min(420px,calc(100vw - 32px));padding:0;border-radius:12px;background:#fff;box-shadow:0 18px 52px rgba(31,20,38,.2);overflow:hidden}
+      [data-buy-modal-direct] .lx-invoice-delay-head{height:58px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;border-bottom:1px solid #e8e2eb}
+      [data-buy-modal-direct] .lx-invoice-delay-head h3{margin:0;font-size:17px}.lx-invoice-delay-close{border:0;background:transparent;color:#77717d;font-size:22px;cursor:pointer}
+      [data-buy-modal-direct] .lx-invoice-delay-body{padding:22px}.lx-invoice-delay-note{margin:0 0 16px;color:#77717d;line-height:19px}.lx-invoice-delay-date-label{display:grid;gap:8px;color:#454047}.lx-invoice-delay-date{height:42px;padding:0 12px;border:1px solid #d9cfdd;border-radius:6px;font:inherit}
+      [data-buy-modal-direct] .lx-invoice-delay-footer{display:flex;justify-content:flex-end;gap:10px;padding:14px 22px 18px;border-top:1px solid #e8e2eb}.lx-invoice-delay-footer button{height:36px;padding:0 18px;border:1px solid #d3bfd2;border-radius:100px;background:#fff;color:#4d144a;cursor:pointer}.lx-invoice-delay-footer .primary{border:0;background:linear-gradient(90deg,#4d144a,#b8252e);color:#fff}
+      [data-buy-modal-direct] .lx-invoice-notice-dialog{width:min(760px,calc(100vw - 32px));max-height:calc(100vh - 32px);display:flex;flex-direction:column;border-radius:12px;background:#fff;box-shadow:0 18px 52px rgba(31,20,38,.2);overflow:hidden}
+      [data-buy-modal-direct] .lx-invoice-notice-body{min-height:0;padding:28px 30px 20px;overflow:auto;color:#5f5a62;font-size:13px;line-height:1.75}
+      [data-buy-modal-direct] .lx-invoice-notice-body h3{margin:0 0 8px;color:#29262b;font-size:15px}.lx-invoice-notice-body h3:not(:first-child){margin-top:20px}.lx-invoice-notice-body ol{margin:0;padding-left:24px}
+      [data-buy-modal-direct] .lx-invoice-notice-footer{display:flex;justify-content:flex-end;padding:16px 30px;border-top:1px solid #e8e2eb}.lx-invoice-notice-footer button{width:132px;height:38px;border:0;border-radius:100px;background:linear-gradient(90deg,#4d144a,#b8252e);color:#fff;font-weight:600;cursor:pointer}
+      .lx-payment-chat-card{width:min(340px,100%);display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;align-items:center;box-sizing:border-box;margin-top:12px;padding:14px 16px;border:1px solid #e4dce7;border-radius:10px;background:linear-gradient(135deg,#fff,#fbf6fc);color:#252126;text-align:left;box-shadow:0 5px 18px rgba(56,31,58,.06);cursor:pointer}
+      .lx-payment-chat-card-title{font-size:14px;font-weight:700;line-height:20px}.lx-payment-chat-card-state{grid-row:1/span 2;grid-column:2;padding:3px 9px;border-radius:100px;background:#f5e9f3;color:#681057;font-size:11px;white-space:nowrap}.lx-payment-chat-card-desc{min-width:0;overflow:hidden;color:#77717d;font-size:12px;line-height:18px;text-overflow:ellipsis;white-space:nowrap}.lx-payment-chat-card.is-paid{border-color:#cfe9db;background:linear-gradient(135deg,#fff,#f4fbf7)}.lx-payment-chat-card.is-paid .lx-payment-chat-card-state{background:#e2f6eb;color:#218153}
+      @media(max-width:620px){[data-buy-modal-direct] .lx-invoice-delay-help{margin-left:0}[data-buy-modal-direct] .lx-invoice-delay-trigger{grid-template-columns:92px minmax(0,1fr) 16px}[data-buy-modal-direct] .lx-invoice-notice-body{padding:22px 20px 16px}}
+    `;
     style.textContent += '[data-purchase-options] .lx-config-option{overflow:hidden;text-overflow:ellipsis}[data-buy-modal-direct] [hidden]{display:none!important}';
     document.head.appendChild(style);
   }
@@ -448,7 +471,7 @@
     };
     mountNationalSubsidy();
 
-    const paymentState = { orderId: `LX${Date.now()}`, remaining: 23 * 60 * 60 + 59 * 60 + 51, timer: 0, width: 0, height: 0, paidOrder: null };
+    const paymentState = { orderId: `LX${Date.now()}`, remaining: 23 * 60 * 60 + 59 * 60 + 51, timer: 0, width: 0, height: 0, paidOrder: null, paid: false, chatCard: null };
     const stopPaymentTimer = () => { if (paymentState.timer) window.clearInterval(paymentState.timer); paymentState.timer = 0; };
     modal._lxCleanup = stopPaymentTimer;
     const formatRemaining = () => {
@@ -511,6 +534,7 @@
       return paidOrder;
     };
     const showPaymentProcessing = () => {
+      modal.hidden = false;
       lockPaymentDialogSize();
       stopPaymentTimer();
       dialog.className = 'lx-buy-direct-dialog lx-payment-dialog';
@@ -525,9 +549,63 @@
     const showPaymentSuccess = () => {
       stopPaymentTimer();
       const paidOrder = persistPaidOrder();
+      paymentState.paid = true;
+      updatePaymentChatCard();
+      modal.hidden = false;
       lockPaymentDialogSize();
       dialog.className = 'lx-buy-direct-dialog lx-payment-dialog';
       dialog.innerHTML = `<button class="lx-buy-direct-close" type="button" aria-label="关闭">×</button><h2 id="lxBuyDirectTitle">支付成功</h2><div class="lx-payment-stage"><span class="lx-payment-success-icon" aria-hidden="true">✓</span><strong class="lx-payment-success-title">订单支付成功</strong><p class="lx-payment-success-meta">订单号：<b>${escapeHtml(paidOrder.orderId)}</b><br>实付：<b>¥${payableAmount().toLocaleString('zh-CN')}</b></p></div><div class="lx-payment-actions"><button type="button" class="primary" data-view-paid-order>查看订单</button></div>`;
+    };
+    const updatePaymentChatCard = () => {
+      const card = paymentState.chatCard;
+      if (!card?.isConnected) return;
+      const paidOrder = paymentState.paidOrder;
+      card.classList.toggle('is-paid', paymentState.paid);
+      const title = card.querySelector('[data-payment-chat-title]');
+      const state = card.querySelector('[data-payment-chat-state]');
+      const desc = card.querySelector('[data-payment-chat-desc]');
+      if (title) title.textContent = paymentState.paid ? '支付成功' : '待支付订单';
+      if (state) state.textContent = paymentState.paid ? '已支付' : '待付款';
+      if (desc) desc.textContent = paymentState.paid && paidOrder ? `订单号 ${paidOrder.orderId} · 实付 ¥${payableAmount().toLocaleString('zh-CN')}` : `${product.name} · ¥${payableAmount().toLocaleString('zh-CN')}`;
+      card.setAttribute('aria-label', paymentState.paid ? `查看${product.name}的支付结果` : `继续支付${product.name}`);
+    };
+    const openPaymentFromChatCard = () => {
+      if (!modal.isConnected) return;
+      if (paymentState.paid) showPaymentSuccess();
+      else showPaymentProcessing();
+      dialog.querySelector('.lx-buy-direct-close')?.focus();
+    };
+    const appendPaymentChatCard = () => {
+      if (paymentState.chatCard?.isConnected) return;
+      const query = `立即支付【${product.name}】`;
+      const splitHost = document.querySelector('.lx-p0-messages');
+      const host = splitHost || document.querySelector('.lxfd-thread');
+      if (!host) { showPaymentProcessing(); return; }
+      const fullscreen = host.classList.contains('lxfd-thread');
+      const userMessage = document.createElement('div');
+      userMessage.className = fullscreen ? 'lxfd-msg-user' : 'lx-p0-message msg user';
+      userMessage.dataset.lxPaymentQuery = paymentState.orderId;
+      if (fullscreen) userMessage.textContent = query;
+      else userMessage.innerHTML = `<div class="user-bubble">${escapeHtml(query)}</div>`;
+      host.appendChild(userMessage);
+      const answerMarkup = `<p>已为你准备好【${escapeHtml(product.name)}】的支付入口，请点击下方卡片继续支付。</p><button class="lx-payment-chat-card" type="button" data-payment-chat-card="${escapeHtml(paymentState.orderId)}"><span class="lx-payment-chat-card-title" data-payment-chat-title>待支付订单</span><span class="lx-payment-chat-card-state" data-payment-chat-state>待付款</span><span class="lx-payment-chat-card-desc" data-payment-chat-desc></span></button>`;
+      let assistantMessage = splitHost ? window.__lxAgentAPI?.addAiMessage?.(answerMarkup) : null;
+      if (!assistantMessage) {
+        assistantMessage = document.createElement('div');
+        assistantMessage.className = fullscreen ? 'lxfd-msg-ai lx-chat-skin' : 'lx-p0-message msg ai lx-chat-skin';
+        assistantMessage.innerHTML = fullscreen ? `<div class="lxfd-ai-body">${answerMarkup}</div>` : `<div class="ai-body">${answerMarkup}</div>`;
+        host.appendChild(assistantMessage);
+      }
+      paymentState.chatCard = assistantMessage.querySelector('[data-payment-chat-card]');
+      paymentState.chatCard?.addEventListener('click', openPaymentFromChatCard);
+      updatePaymentChatCard();
+      if (window.__lxState) {
+        window.__lxState.queryHistory = Array.isArray(window.__lxState.queryHistory) ? window.__lxState.queryHistory : [];
+        window.__lxState.queryHistory.push(query);
+      }
+      window.__lxSetConversationQuery?.(query);
+      host.scrollTop = host.scrollHeight;
+      try { window.__lxSaveConversationNow?.(); } catch (_) {}
     };
     const openPaymentPage = () => {
       const paymentUrl = /支付宝|花呗/.test(orderState.payment) ? 'https://www.alipay.com/' : /微信/.test(orderState.payment) ? 'https://pay.weixin.qq.com/' : /京东/.test(orderState.payment) ? 'https://www.jdpay.com/' : 'https://www.alipay.com/';
@@ -696,13 +774,21 @@
       input?.focus();
       try { input?.showPicker?.(); } catch (_) {}
     };
+    const closeInvoiceNotice = () => modal.querySelector('[data-invoice-notice-layer]')?.remove();
+    const showInvoiceNotice = () => {
+      closeInvoiceNotice();
+      modal.insertAdjacentHTML('beforeend', `<div class="lx-invoice-notice-layer" data-invoice-notice-layer><section class="lx-invoice-notice-dialog" role="dialog" aria-modal="true" aria-labelledby="lxInvoiceNoticeTitle"><div class="lx-invoice-notice-body"><h3 id="lxInvoiceNoticeTitle">发票须知</h3><ol><li>联想在线商城所售商品，每张订单都会开具“商品专用发票”。</li><li>发票金额为订单金额，含配送费。</li><li>发票内容默认为订购的商品明细，不支持修改。</li><li>使用优惠券支付的金额不开具发票；积分商品不提供发票。</li><li>发票抬头不能为空，可选择个人或公司名称，请仔细核对发票类型和公司名称。</li><li>联想实行货票同行；不能同行时按收货地址另行寄送。</li><li>目前只有联想（上海）电子科技有限公司能开具电子票。</li><li>第三方卖家商品或服务的发票由卖家按实际情况开具。</li></ol><h3>电子发票常见问题</h3><ol><li>电子发票与纸质发票具有同等法律效力。</li><li>订单确认收货后开具电子发票。</li><li>电子发票与纸质普票法律效力相同，不建议更换。</li><li>增值税专用发票资质在“我的商城—设置—发票抬头管理”维护并审核通过。</li><li>全电发票是票面信息全面数字化、全国统一赋码的电子发票。</li><li>增值税专用发票（数电票）预计在确认收货后 5 个工作日内开具，可在订单详情下载。</li><li>联想自营商品已全面实现增值税专用发票（数电票）。</li></ol></div><footer class="lx-invoice-notice-footer"><button type="button" data-invoice-notice-close>我知道了</button></footer></section></div>`);
+      modal.querySelector('[data-invoice-notice-close]')?.focus();
+    };
     const showInvoiceEdit = () => {
       const options = [{ label: '普通发票-个人', value: '普通发票-个人' },{ label: '普通发票-单位', value: '普通发票-单位' },{ label: '增值税专票', value: '增值税专票' }];
       const isVat = orderState.invoiceDraft === '增值税专票';
       const isPersonal = orderState.invoiceDraft === '普通发票-个人';
-      const fields = isVat ? `<div class="lx-invoice-form"><label for="lxInvoiceCompany">单位名称</label><input id="lxInvoiceCompany" value="联想（北京）有限公司" readonly><label for="lxInvoiceTaxId">纳税人识别号</label><input id="lxInvoiceTaxId" data-invoice-field="invoiceTaxNo" value="9111010870000458B" readonly><label for="lxInvoiceAddress">注册地址</label><input id="lxInvoiceAddress" data-invoice-field="invoiceAddress" value="${escapeHtml(orderState.invoiceAddress)}"><label for="lxInvoicePhone">注册电话</label><input id="lxInvoicePhone" data-invoice-field="invoiceRegisteredPhone" value="${escapeHtml(orderState.invoiceRegisteredPhone)}"><label for="lxInvoiceBank">开户银行</label><input id="lxInvoiceBank" data-invoice-field="invoiceBank" value="${escapeHtml(orderState.invoiceBank)}"><label for="lxInvoiceAccount">银行账号</label><input id="lxInvoiceAccount" data-invoice-field="invoiceBankAccount" value="${escapeHtml(orderState.invoiceBankAccount)}"></div>` : `<div class="lx-invoice-form"><label for="lxInvoiceTitle">发票抬头</label><input id="lxInvoiceTitle" data-invoice-field="invoiceTitle" value="${isPersonal ? '个人' : '联想（北京）有限公司'}">${isPersonal ? '' : '<label for="lxInvoiceTaxId">纳税人识别号</label><input id="lxInvoiceTaxId" data-invoice-field="invoiceTaxNo" value="123123123123123">'}<label for="lxInvoiceRecipientPhone">收票人手机</label><input id="lxInvoiceRecipientPhone" data-invoice-field="invoicePhone" value="${escapeHtml(orderState.invoicePhone)}"><label for="lxInvoiceEmail">收票人邮箱</label><input id="lxInvoiceEmail" data-invoice-field="invoiceEmail" value="${escapeHtml(orderState.invoiceEmail)}"></div>`;
+      const fields = isVat
+        ? `<div class="lx-invoice-form"><label for="lxInvoiceCompany">单位名称</label><input id="lxInvoiceCompany" value="联想（北京）有限公司" readonly><label for="lxInvoiceTaxId">纳税人识别号</label><input id="lxInvoiceTaxId" data-invoice-field="invoiceTaxNo" value="9111010870000458B" readonly><label for="lxInvoiceAddress">注册地址</label><input id="lxInvoiceAddress" data-invoice-field="invoiceAddress" value="${escapeHtml(orderState.invoiceAddress)}"><label for="lxInvoicePhone">注册电话</label><input id="lxInvoicePhone" data-invoice-field="invoiceRegisteredPhone" value="${escapeHtml(orderState.invoiceRegisteredPhone)}"><label for="lxInvoiceBank">开户银行</label><input id="lxInvoiceBank" data-invoice-field="invoiceBank" value="${escapeHtml(orderState.invoiceBank)}"><label for="lxInvoiceAccount">银行账号</label><input id="lxInvoiceAccount" data-invoice-field="invoiceBankAccount" value="${escapeHtml(orderState.invoiceBankAccount)}"><label for="lxInvoiceRemark">备注（选填）</label><textarea id="lxInvoiceRemark" data-invoice-field="invoiceRemark" placeholder="选填，请谨慎填写">${escapeHtml(orderState.invoiceRemark)}</textarea></div><div class="lx-invoice-delay-field"><button class="lx-invoice-delay-trigger" type="button" data-invoice-delay-open><span class="lx-invoice-delay-label">延时开票（选填）</span><span class="lx-invoice-delay-value${orderState.invoiceDelayDate ? ' has-value' : ''}">${escapeHtml(formatInvoiceDelayDate(orderState.invoiceDelayDate))}</span><i class="lx-invoice-delay-chevron" aria-hidden="true"></i></button><p class="lx-invoice-delay-help">选择后将在该日期起进入开票处理；请在此日期前确保增票资质已审核通过。未选择则按原开票时效处理。</p></div>`
+        : `<div class="lx-invoice-form"><label for="lxInvoiceTitle">发票抬头</label><input id="lxInvoiceTitle" data-invoice-field="invoiceTitle" value="${isPersonal ? '个人' : '联想（北京）有限公司'}">${isPersonal ? '' : '<label for="lxInvoiceTaxId">纳税人识别号</label><input id="lxInvoiceTaxId" data-invoice-field="invoiceTaxNo" value="123123123123123">'}<label for="lxInvoiceRecipientPhone">收票人手机</label><input id="lxInvoiceRecipientPhone" data-invoice-field="invoicePhone" value="${escapeHtml(orderState.invoicePhone)}"><label for="lxInvoiceEmail">收票人邮箱</label><input id="lxInvoiceEmail" data-invoice-field="invoiceEmail" value="${escapeHtml(orderState.invoiceEmail)}">${isPersonal ? '' : `<label for="lxInvoiceRemark">备注（选填）</label><textarea id="lxInvoiceRemark" data-invoice-field="invoiceRemark" placeholder="选填，请谨慎填写">${escapeHtml(orderState.invoiceRemark)}</textarea>`}</div>`;
       dialog.className = 'lx-buy-direct-dialog lx-order-edit-dialog lx-invoice-dialog';
-      dialog.innerHTML = `<header class="lx-order-edit-head"><button class="lx-order-edit-back" type="button" data-invoice-back aria-label="返回"><img src="/assets/icons/order-modal-back.svg" alt="" aria-hidden="true"></button><h2>发票信息</h2><button class="lx-buy-direct-close" type="button" aria-label="关闭">×</button></header><div class="lx-order-edit-body"><section class="lx-order-edit-section"><div class="lx-order-channel-grid">${options.map((option) => `<button class="lx-order-channel${orderState.invoiceDraft === option.value ? ' is-active' : ''}" type="button" data-invoice-option="${option.value}"><strong>${option.label}</strong></button>`).join('')}</div></section><p class="lx-invoice-tip">*自营商品的增值税专用发票（数电票）会在确认收货后预计 5 个工作日内开具。</p>${fields}</div><footer class="lx-order-edit-footer"><button type="button" data-invoice-save>保存</button></footer>`;
+      dialog.innerHTML = `<header class="lx-order-edit-head"><button class="lx-order-edit-back" type="button" data-invoice-back aria-label="返回"><img src="/assets/icons/order-modal-back.svg" alt="" aria-hidden="true"></button><h2>发票信息</h2><button class="lx-invoice-notice-entry" type="button" data-invoice-notice-open>发票须知</button><button class="lx-buy-direct-close" type="button" aria-label="关闭">×</button></header><div class="lx-order-edit-body"><section class="lx-order-edit-section"><div class="lx-order-channel-grid">${options.map((option) => `<button class="lx-order-channel${orderState.invoiceDraft === option.value ? ' is-active' : ''}" type="button" data-invoice-option="${option.value}"><strong>${option.label}</strong></button>`).join('')}</div></section><p class="lx-invoice-tip">*自营商品的增值税专用发票（数电票）会在确认收货后预计 5 个工作日内开具。</p>${fields}</div><footer class="lx-order-edit-footer"><button type="button" data-invoice-save>保存</button></footer>`;
       if (!isVat) dialog.querySelector('.lx-invoice-tip').remove();
       dialog.querySelector('[data-invoice-back]').addEventListener('click', (event) => { event.stopPropagation(); showOrderEdit(); });
     };
@@ -734,8 +820,12 @@
       const target = event.target;
       const openCodeMenu = dialog.querySelector('[data-order-code-menu]:not([hidden])');
       if (openCodeMenu && !target.closest('.lx-order-combobox')) { openCodeMenu.hidden = true; dialog.querySelector('[data-order-customer]')?.setAttribute('aria-expanded','false'); }
-      if (target.closest('.lx-buy-direct-close,.lx-buy-direct-mask')) { stopPaymentTimer(); return modal.remove(); }
-      if (target.closest('[data-pay-now]')) { openPaymentPage(); return showPaymentProcessing(); }
+      if (target.closest('[data-invoice-notice-close]')) { closeInvoiceNotice(); return; }
+      const noticeLayer = target.closest('[data-invoice-notice-layer]');
+      if (noticeLayer && target === noticeLayer) { closeInvoiceNotice(); return; }
+      if (target.closest('.lx-buy-direct-close')) { stopPaymentTimer(); if (paymentState.chatCard) { modal.hidden = true; return; } return modal.remove(); }
+      if (target.closest('.lx-buy-direct-mask')) return;
+      if (target.closest('[data-pay-now]')) { modal.hidden = true; appendPaymentChatCard(); return; }
       if (target.closest('[data-go-pay]')) return openPaymentPage();
       if (target.closest('[data-confirm-payment]')) return showPaymentSuccess();
       if (target.closest('[data-view-paid-order]')) return openPaidOrderDetail();
@@ -756,6 +846,7 @@
       if (target.closest('[data-edit-order]')) { orderState.expanded = ''; return showOrderEdit(); }
       if (target.closest('[data-order-back]')) return showOrder();
       if (target.closest('[data-order-invoice]')) return showInvoiceEdit();
+      if (target.closest('[data-invoice-notice-open]')) return showInvoiceNotice();
       if (target.closest('[data-invoice-back]')) return showOrderEdit();
       const invoiceOption = target.closest('[data-invoice-option]');
       if (invoiceOption) { syncInvoiceDraft(); orderState.invoiceDraft = invoiceOption.dataset.invoiceOption; return showInvoiceEdit(); }
