@@ -38,7 +38,11 @@
     register: function(name, scene) { pageScenes[name] = scene; }
   };
   window.__lxComposerButtonSuite.register('detail', {
-    labels: ['对比所有系列'],
+    labels: function(content) {
+      var enterprise = /^\/(b-chat|biz-chat)(?:\/|$)/.test(location.pathname);
+      var primary = content && content.querySelector('.product-detail .detail-actions .detail-primary');
+      return enterprise && primary && primary.textContent.trim() === '一键领优惠下单' ? ['咨询客服', '对比所有系列'] : ['对比所有系列'];
+    },
     source: '.product-detail',
     identity: function(content) {
       var product = window.__lxState && window.__lxState.currentProduct;
@@ -52,7 +56,11 @@
       var title = content.querySelector('[data-detail-title]');
       return title && title.textContent.trim() && content.querySelector('.lx-spu-chip');
     },
-    invoke: function(content) {
+    invoke: function(content, label) {
+      if (label === '咨询客服') {
+        if (window.__lxBridge && window.__lxBridge.sendChat) window.__lxBridge.sendChat('咨询客服');
+        return;
+      }
       var compare = content.querySelector('[data-spu-compare]');
       if (compare) { compare.click(); return; }
       if (window.__lxBridge && window.__lxBridge.sendChat) window.__lxBridge.sendChat('对比当前商品的所有系列配置');
@@ -77,6 +85,14 @@
       sceneCandidate = ''; sceneSince = 0;
       if (shownScenes.has(key)) showCompactCurrent();
       recommendationFlowArmed = false; recommendationWatchToken += 1;
+    }
+    var labelKey = JSON.stringify(typeof scene.labels === 'function' ? scene.labels(content) : scene.labels);
+    if (currentScene.labelKey !== labelKey) {
+      currentScene.labelKey = labelKey;
+      document.querySelectorAll('.assistant-panel .assistant-bottom').forEach(function(bottom) {
+        var panel = bottom.querySelector('.lx-smart-actions');
+        if (panel) { panel.remove(); createActions(bottom); }
+      });
     }
     if (shownScenes.has(key)) return true;
     if ((window.__lxState && window.__lxState.sending) || content.getAttribute('aria-busy') === 'true' || content.classList.contains('is-generating-tab') || !scene.ready(content)) {
@@ -122,7 +138,7 @@
       '<div class="lx-smart-actions-list"></div>';
 
     var list = panel.querySelector(".lx-smart-actions-list");
-    (currentScene ? currentScene.definition.labels : actions).forEach(function (label) {
+    (currentScene ? (typeof currentScene.definition.labels === 'function' ? currentScene.definition.labels(getRightContent()) : currentScene.definition.labels) : actions).forEach(function (label) {
       var button = document.createElement("button");
       button.className = "lx-smart-action";
       button.type = "button";
@@ -133,7 +149,7 @@
       button.addEventListener("click", function () {
         if (window.__lxState && window.__lxState.sending) return;
         collapseCurrent();
-        if (currentScene) { currentScene.definition.invoke(getRightContent()); return; }
+        if (currentScene) { currentScene.definition.invoke(getRightContent(), label); return; }
         if (window.__lxBridge && typeof window.__lxBridge.sendChat === "function") {
           window.__lxBridge.sendChat(label);
           return;
