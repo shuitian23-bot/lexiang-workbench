@@ -188,11 +188,11 @@
         "public/leaip0/assets/frontend/js/core/arrival-notice-flow-v1.js",
         "public/leaip0/assets/frontend/js/core/home.solution-original-v152.js"
       ],
-      "url": "/assets/frontend/bundles/p0-home-core-2.js?p0v=671ff9d7eaf15d84",
-      "hash": "671ff9d7eaf15d84de488975ff6b9ccd813cd975c17cca72ee98e3c600d8c64e",
+      "url": "/assets/frontend/bundles/p0-home-core-2.js?p0v=377b7d38627d4831",
+      "hash": "377b7d38627d48316e43ac69e94cda78c60d1bb60b287ec37e7abe25aa620215",
       "sourceHashes": [
         "174b29c6a044e0eeae43c3a3ba566ffbef7baed7281443439a31a192c39fad66",
-        "b4639be58066558582f75ad5f212d7e9aa2f84546986f3178943c9e893c9c1a0"
+        "9f92f49628caa92295d4ea3501f29a07ee6e769a02229ee9fd10ed7b190af115"
       ]
     },
     {
@@ -296,6 +296,36 @@
       "target": "public/leaip0/assets/frontend/js/core/buy-modal-direct-v1.js",
       "start": "/* p0-purchase-context:start */",
       "end": "/* p0-purchase-context:end */"
+    },
+    {
+      "source": "public/leaip0/assets/frontend/js/core/page-lifecycle-v1.js",
+      "target": "public/leaip0/assets/frontend/js/core/home.solution-original-v152.js",
+      "start": "/* p0-page-lifecycle:start */",
+      "end": "/* p0-page-lifecycle:end */"
+    },
+    {
+      "source": "public/leaip0/assets/frontend/js/core/page-lifecycle-v1.js",
+      "target": "public/leaip0/assets/frontend/js/core/shop-chat.solution-original-v152.js",
+      "start": "/* p0-page-lifecycle:start */",
+      "end": "/* p0-page-lifecycle:end */"
+    },
+    {
+      "source": "public/leaip0/assets/frontend/js/core/page-lifecycle-v1.js",
+      "target": "public/leaip0/assets/frontend/js/core/b-chat.solution-original-v152.js",
+      "start": "/* p0-page-lifecycle:start */",
+      "end": "/* p0-page-lifecycle:end */"
+    },
+    {
+      "source": "public/leaip0/assets/frontend/js/core/page-lifecycle-v1.js",
+      "target": "public/leaip0/assets/frontend/js/core/biz-chat.solution-original-v152.js",
+      "start": "/* p0-page-lifecycle:start */",
+      "end": "/* p0-page-lifecycle:end */"
+    },
+    {
+      "source": "public/leaip0/assets/frontend/js/core/page-lifecycle-v1.js",
+      "target": "public/leaip0/assets/frontend/js/core/app-brand.industry-v114.trace-first-v117.tabs-v120.min.js",
+      "start": "/* p0-page-lifecycle:start */",
+      "end": "/* p0-page-lifecycle:end */"
     }
   ],
   "standaloneEntrypoints": [
@@ -308,6 +338,26 @@
       "file": "public/leaip0/b-chat/index.html",
       "source": "public/leaip0/assets/frontend/js/core/buy-modal-direct-v1.js",
       "url": "/assets/frontend/js/core/buy-modal-direct-v1.js"
+    },
+    {
+      "file": "public/leaip0/shop-chat/index.html",
+      "source": "public/leaip0/assets/frontend/js/core/shop-chat.solution-original-v152.js",
+      "url": "/assets/frontend/js/core/shop-chat.solution-original-v152.js"
+    },
+    {
+      "file": "public/leaip0/b-chat/index.html",
+      "source": "public/leaip0/assets/frontend/js/core/b-chat.solution-original-v152.js",
+      "url": "/assets/frontend/js/core/b-chat.solution-original-v152.js"
+    },
+    {
+      "file": "public/leaip0/biz-chat/index.html",
+      "source": "public/leaip0/assets/frontend/js/core/biz-chat.solution-original-v152.js",
+      "url": "/assets/frontend/js/core/biz-chat.solution-original-v152.js"
+    },
+    {
+      "file": "public/leaip0/brand/index.html",
+      "source": "public/leaip0/assets/frontend/js/core/app-brand.industry-v114.trace-first-v117.tabs-v120.min.js",
+      "url": "/assets/frontend/js/core/app-brand.industry-v114.trace-first-v117.tabs-v120.min.js"
     }
   ],
   "inlineSources": [
