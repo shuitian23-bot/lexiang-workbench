@@ -82,7 +82,7 @@
 })();
 
 /* p0-purchase-context:end */
-/* v58-checkout-payment-history-card-size-20260904 */
+/* v59-checkout-payment-standard-answer-card-20260904 */
 (() => {
   const AIR_13_IMAGE = '/leai%20product%20data/shop-chat%20product%20data/%E7%AC%94%E8%AE%B0%E6%9C%AC/08_SPU_%E8%81%94%E6%83%B3%E5%B0%8F%E6%96%B0_Air_13/%E7%99%BD%E5%BA%95%E5%9B%BE.jpg';
   const FALLBACK_IMAGE = '/assets/product-placeholder.svg';
@@ -377,7 +377,7 @@
       [data-buy-modal-direct] .lx-order-edit-dialog:not(.lx-config-dialog) .lx-order-edit-footer > button[data-invoice-save]{position:static!important;top:auto!important;bottom:auto!important;transform:none!important;margin:0!important;align-self:center!important;width:164px!important;height:44px!important;min-height:44px!important}
     `;
     style.textContent += `html body [data-buy-modal-direct] .lx-buy-direct-dialog:has(>.lx-buy-payment-success){width:min(460px,calc(100vw - 32px))!important;height:auto!important;min-height:0!important;max-height:calc(100vh - 32px)!important;padding:32px 24px 24px!important;overflow:auto!important}html body [data-buy-modal-direct] .lx-buy-payment-success{height:auto!important;min-height:0!important;padding:12px 0 0!important}html body [data-buy-modal-direct] .lx-buy-payment-success-card{margin:18px 0!important}`;
-    style.textContent += `/* LX_INVOICE_AND_PAYMENT_FLOW_V58 */
+    style.textContent += `/* LX_INVOICE_AND_PAYMENT_FLOW_V59 */
       [data-buy-modal-direct] .lx-invoice-form textarea{width:100%;min-height:72px;box-sizing:border-box;padding:10px 12px;border:1px solid #d9cfdd;border-radius:6px;background:#fff;color:#2b272d;font:12px/18px "Source Han Sans CN","PingFang SC",sans-serif;outline:none;resize:vertical}
       [data-buy-modal-direct] .lx-invoice-form textarea:focus{border-color:#681057}
       [data-buy-modal-direct] .lx-invoice-delay-field{margin-top:14px}
@@ -396,8 +396,8 @@
       [data-buy-modal-direct] .lx-invoice-notice-body{min-height:0;padding:28px 30px 20px;overflow:auto;color:#5f5a62;font-size:13px;line-height:1.75}
       [data-buy-modal-direct] .lx-invoice-notice-body h3{margin:0 0 8px;color:#29262b;font-size:15px}.lx-invoice-notice-body h3:not(:first-child){margin-top:20px}.lx-invoice-notice-body ol{margin:0;padding-left:24px}
       [data-buy-modal-direct] .lx-invoice-notice-footer{display:flex;justify-content:flex-end;padding:16px 30px;border-top:1px solid #e8e2eb}.lx-invoice-notice-footer button{width:132px;height:38px;border:0;border-radius:100px;background:linear-gradient(90deg,#4d144a,#b8252e);color:#fff;font-weight:600;cursor:pointer}
-      .lx-payment-chat-card{width:min(340px,100%);min-height:60px;display:flex;align-items:center;justify-content:space-between;gap:12px;box-sizing:border-box;margin-top:12px;padding:14px 16px;border:1px solid #e2ddeb;border-radius:10px;background:#fcfaff;color:#4d144a;text-align:left;box-shadow:none;cursor:pointer}
-      .lx-payment-chat-card-title{min-width:0;overflow:hidden;color:#4d144a;font-size:14px;font-weight:700;line-height:20px;text-overflow:ellipsis;white-space:nowrap}.lx-payment-chat-card-icon{position:relative;width:30px;height:30px;display:grid;place-items:center;flex:0 0 30px;border:1px solid #c4b6d3;border-radius:50%;background:#fff}.lx-payment-chat-card-icon:before{content:"";width:9px;height:9px;border-top:1.5px solid #afa2c1;border-right:1.5px solid #afa2c1;transform:translateX(-2px) rotate(45deg)}.lx-payment-chat-card-state,.lx-payment-chat-card-desc{display:none!important}
+      .lx-payment-chat-card.answer-cta{position:relative;display:flex;align-items:center;justify-content:space-between;gap:12px;width:min(100%,300px);min-height:70px;margin:11px 0 6px;padding:13px 14px;border:1px solid var(--answer-card-border,#e2ddeb);border-radius:14px;background:var(--answer-card-bg,#fcfaff);color:#252525;cursor:pointer;overflow:hidden;box-shadow:var(--answer-card-shadow,0 3px 10px rgba(77,20,74,.035));text-align:left;font-family:inherit}
+      .lx-payment-chat-card .answer-cta-copy{position:relative;z-index:1;display:grid;gap:3px;flex:1;min-width:0;text-align:left}.lx-payment-chat-card .answer-cta-title{display:block;max-width:100%;overflow:hidden;color:var(--answer-card-title,#4d144a);font-size:13.5px;font-weight:600;line-height:1.2;text-overflow:ellipsis;white-space:nowrap}.lx-payment-chat-card .answer-cta-icon{position:relative;z-index:1;width:30px;height:30px;display:inline-flex;align-items:center;justify-content:center;flex:none;border:1px solid var(--answer-card-icon-border,rgba(155,142,182,.62));border-radius:50%;background:var(--answer-card-icon-bg,rgba(255,255,255,.72))}.lx-payment-chat-card .answer-cta-icon:before{content:"";width:9px;height:9px;border-top:1.5px solid var(--answer-card-arrow,rgba(155,142,182,.62));border-right:1.5px solid var(--answer-card-arrow,rgba(155,142,182,.62));transform:translateX(-2px) rotate(45deg)}.lx-payment-chat-card-state,.lx-payment-chat-card-desc{display:none!important}
       @media(max-width:620px){[data-buy-modal-direct] .lx-invoice-delay-help{margin-left:0}[data-buy-modal-direct] .lx-invoice-delay-trigger{grid-template-columns:92px minmax(0,1fr) 16px}[data-buy-modal-direct] .lx-invoice-notice-body{padding:22px 20px 16px}}
     `;
     style.textContent += '[data-purchase-options] .lx-config-option{overflow:hidden;text-overflow:ellipsis}[data-buy-modal-direct] [hidden]{display:none!important}';
@@ -407,16 +407,31 @@
   const normalizeHistoricPaymentCards = (root = document) => {
     const cards = [...(root.matches?.('.lx-payment-chat-card') ? [root] : []), ...(root.querySelectorAll?.('.lx-payment-chat-card') || [])];
     cards.forEach((card) => {
+      card.classList.add('answer-cta');
       card.classList.remove('is-paid');
       card.querySelectorAll('.lx-payment-chat-card-state,.lx-payment-chat-card-desc').forEach((node) => node.remove());
-      const title = card.querySelector('.lx-payment-chat-card-title');
-      if (title && title.textContent.trim() !== '支付信息待确认') title.textContent = '支付信息待确认';
-      if (!card.querySelector('.lx-payment-chat-card-icon')) {
-        const icon = document.createElement('span');
+      let title = card.querySelector('.lx-payment-chat-card-title');
+      if (!title) {
+        title = document.createElement('span');
+        title.className = 'lx-payment-chat-card-title';
+        card.prepend(title);
+      }
+      title.classList.add('answer-cta-title');
+      if (title.textContent.trim() !== '支付信息待确认') title.textContent = '支付信息待确认';
+      if (!title.closest('.answer-cta-copy')) {
+        const copy = document.createElement('span');
+        copy.className = 'answer-cta-copy';
+        title.before(copy);
+        copy.appendChild(title);
+      }
+      let icon = card.querySelector('.lx-payment-chat-card-icon');
+      if (!icon) {
+        icon = document.createElement('span');
         icon.className = 'lx-payment-chat-card-icon';
         icon.setAttribute('aria-hidden', 'true');
         card.appendChild(icon);
       }
+      icon.classList.add('answer-cta-icon');
     });
   };
   normalizeHistoricPaymentCards();
@@ -614,7 +629,7 @@
       if (fullscreen) userMessage.textContent = query;
       else userMessage.innerHTML = `<div class="user-bubble">${escapeHtml(query)}</div>`;
       host.appendChild(userMessage);
-      const answerMarkup = `<p>已为你打开【${escapeHtml(product.name)}】的支付页面，请完成支付。</p><button class="lx-payment-chat-card" type="button" data-payment-chat-card="${escapeHtml(paymentState.orderId)}"><span class="lx-payment-chat-card-title">支付信息待确认</span><span class="lx-payment-chat-card-icon" aria-hidden="true"></span></button>`;
+      const answerMarkup = `<p>已为你打开【${escapeHtml(product.name)}】的支付页面，请完成支付。</p><button class="answer-cta lx-payment-chat-card" type="button" data-payment-chat-card="${escapeHtml(paymentState.orderId)}"><span class="answer-cta-copy"><span class="answer-cta-title lx-payment-chat-card-title">支付信息待确认</span></span><span class="answer-cta-icon lx-payment-chat-card-icon" aria-hidden="true"></span></button>`;
       let assistantMessage = splitHost ? window.__lxAgentAPI?.addAiMessage?.(answerMarkup) : null;
       if (!assistantMessage) {
         assistantMessage = document.createElement('div');
