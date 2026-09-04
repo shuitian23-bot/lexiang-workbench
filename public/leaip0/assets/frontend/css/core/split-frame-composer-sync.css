@@ -166,3 +166,11 @@ body.lx-template-file.lx-home-split:is([data-page="business"], [data-page="enter
   opacity: 1 !important;
   pointer-events: auto !important;
 }
+
+/* Product code: retain a 12px gap within the existing 22px flex rhythm.
+   Shared by home, personal/family, SMB and government/enterprise details.
+   No image, button, typography or other detail spacing is changed. */
+.content[data-view="detail"] .product-detail .detail-info > .lx-detail-product-code-v188,
+.content[data-view="detail"] .product-detail .detail-info > .detail-itemcode {
+  margin-top: -10px !important;
+}
