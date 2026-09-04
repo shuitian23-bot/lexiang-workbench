@@ -95,10 +95,12 @@
     return sections.map(([title, rows]) => '<section class="lx-spec-section"><h3>' + escape(title) + '</h3><dl>' + rows.map(([key,value]) => '<div class="lx-spec-item"><dt>' + escape(key) + '</dt><dd>' + escape(value) + '</dd></div>').join('') + '</dl></section>').join('') + '<p class="lx-spec-note" role="status">' + escape(note || '参数对应当前所选配置；未提供的参数不展示，购买前请以商品官方信息为准。') + '</p>';
   }
   const requests = new Map();
+  const rendered = new WeakMap();
   function render(grid, product) {
     if (!grid || !product) return;
     const sku = String(product.sku || ''), token = {};
     grid._lxSpecRequest = token;
+    rendered.set(grid, sku);
     grid.classList.add('lx-specs-grouped');
     grid.innerHTML = markup(product);
     if (!sku) return;
@@ -117,5 +119,27 @@
     });
   }
   window.__lxRenderProductSpecs = render;
+  // Restored tabs can contain saved HTML without rerunning the detail renderer.
+  function restoreSpecs() {
+    const detail = document.querySelector('.content[data-view="detail"] .product-detail');
+    const grid = detail?.querySelector('[data-detail-spec-grid]');
+    if (!grid) return;
+    const state = window.__lxState || {};
+    const tab = (state.tabs || []).find(item => item.id === state.activeTabId && item.kind === 'detail');
+    const sku = String(tab?.sku || state.currentProduct?.sku || '');
+    if (!sku || rendered.get(grid) === sku) return;
+    const product = String(state.currentProduct?.sku || '') === sku ? state.currentProduct : tab?.product || {};
+    render(grid, {...product, sku, name:product.name || detail.querySelector('[data-detail-title], .detail-title')?.textContent || '联想商品'});
+  }
+  if (typeof document !== 'undefined') {
+    let scheduled = false;
+    new MutationObserver(() => {
+      if (scheduled) return;
+      scheduled = true;
+      requestAnimationFrame(() => { scheduled = false; restoreSpecs(); });
+    }).observe(document.documentElement, {childList:true, subtree:true, attributes:true, attributeFilter:['data-view']});
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', restoreSpecs, {once:true});
+    else restoreSpecs();
+  }
   if (typeof module !== 'undefined' && module.exports) module.exports = {build, markup, render};
 })();
