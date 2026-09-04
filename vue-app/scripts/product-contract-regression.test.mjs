@@ -216,17 +216,28 @@ test('adjustment log renders independent preview and formal release evidence', a
 })
 
 test('permission workspace follows the supplied 0825 rail and approval-route design', async () => {
-  const [view, demoRoute] = await Promise.all([
+  const [view, demoRoute, sectionHeader] = await Promise.all([
     source('../src/views/agent/AgentPermissionsView.vue'),
-    source('../src/utils/permissionDemoRoute.js')
+    source('../src/utils/permissionDemoRoute.js'),
+    source('../src/components/content/SectionHeader.vue')
   ])
 
   assert.match(view, /moduleSearchKeyword/)
   assert.match(view, /filteredModuleGroups/)
   assert.match(view, /aria-current=/)
+  assert.match(view, /group\.items\.length/)
+  assert.match(view, /<SectionHeader/)
+  assert.equal(view.match(/<SectionHeader/g)?.length, 8)
   assert.match(view, /createPermissionDemoRouteItems/)
   assert.match(view, /activeApprovalFullRouteSteps/)
   assert.match(view, /grid-template-columns:\s*clamp\(220px,\s*26%,\s*300px\)/)
   assert.match(view, /container-type:\s*inline-size/)
+  assert.match(view, /@container\s*\(max-width:\s*1039px\)/)
+  assert.doesNotMatch(view, /@container\s*\(max-width:\s*(?:920|600)px\)/)
+  assert.match(sectionHeader, /content-section-header__heading::before/)
+  assert.match(sectionHeader, /width:\s*4px/)
+  assert.match(sectionHeader, /height:\s*18px/)
+  assert.match(sectionHeader, /font-size:\s*16px/)
+  assert.match(sectionHeader, /@container\s*\(max-width:\s*719px\)/)
   assert.match(demoRoute, /export function createPermissionDemoRouteItems/)
 })
