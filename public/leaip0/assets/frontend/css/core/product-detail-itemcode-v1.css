@@ -4,3 +4,7 @@
 .content .product-detail .detail-itemcode,
 .content .product-detail .detail-itemcode span,
 .content .product-detail .detail-itemcode strong { font-size: 12px; }
+
+.content .product-detail .detail-trustline,
+.content .product-detail .detail-trustline strong,
+.content .product-detail .detail-trustline span { font-size: 12px; }
