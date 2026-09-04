@@ -47,13 +47,20 @@
     return node;
   }
 
+  function priceLabel() {
+    var path = window.location.pathname;
+    if (/^\/b-chat(?:\/|$)/.test(path)) return "企业价";
+    if (/^\/biz-chat(?:\/|$)/.test(path)) return "惠采价";
+    return "国补后";
+  }
+
   function renderBuybar(detail, finalPrice, sourcePrice) {
     var bar = detail.querySelector(".lx-buybar") || document.querySelector(".lx-buybar");
     var priceNode = bar && bar.querySelector(".lx-buybar-info b");
     if (!priceNode) return;
     if (priceNode.dataset.sourcePrice === String(sourcePrice)) return;
     priceNode.dataset.sourcePrice = String(sourcePrice);
-    priceNode.innerHTML = '<small>国补后</small><span>¥' + format(finalPrice) + '</span><del class="lx-buybar-original-price" aria-label="原价 ' + format(sourcePrice) + ' 元">¥' + format(sourcePrice) + "</del>";
+    priceNode.innerHTML = '<small>' + priceLabel() + '</small><span>¥' + format(finalPrice) + '</span><del class="lx-buybar-original-price" aria-label="原价 ' + format(sourcePrice) + ' 元">¥' + format(sourcePrice) + "</del>";
   }
 
   function placeServiceAboveActions(detail) {
@@ -105,7 +112,7 @@
     if (node.dataset.sourcePrice === String(price) && node.childElementCount) return;
     node.dataset.sourcePrice = String(price);
     node.innerHTML =
-      '<div class="lx-detail-benefits-price"><span class="lx-detail-benefits-label">国补后</span>' +
+      '<div class="lx-detail-benefits-price"><span class="lx-detail-benefits-label">' + priceLabel() + '</span>' +
       '<strong><span>¥</span>' + format(finalPrice) + '</strong>' +
       '<del class="lx-detail-benefits-original-price" aria-label="原价 ' + format(price) + ' 元">¥' + format(price) + '</del></div>';
   }
