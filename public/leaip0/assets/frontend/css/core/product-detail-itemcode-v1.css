@@ -11,6 +11,9 @@
 .content[data-view="detail"] .product-detail .detail-price,
 .content[data-view="detail"] .product-detail .detail-price-main { font-size: 36px; }
 
+/* Series comparison is exposed only in the assistant composer suite. */
+.content .product-detail [data-spu-compare] { display: none !important; }
+
 .content .product-detail .detail-trustline,
 .content .product-detail .detail-trustline strong,
 .content .product-detail .detail-trustline span { font-size: 12px; }
