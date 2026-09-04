@@ -186,3 +186,15 @@ body.lx-template-file.lx-home-split:is([data-page="business"], [data-page="enter
 .content[data-view="detail"] .product-detail .detail-tabbar {
   padding: 10px 4px 0px !important;
 }
+
+/* Use the approved AI sparkle asset for every product-detail renderer. */
+.content[data-view="detail"] .product-detail .detail-fit-reason .lx-fit-icon {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  font-size: 0 !important;
+  background: url("/assets/icons/global-sparkle.svg") center / contain no-repeat;
+}
+.content[data-view="detail"] .product-detail .detail-fit-reason .lx-fit-icon > * {
+  display: none !important;
+}
