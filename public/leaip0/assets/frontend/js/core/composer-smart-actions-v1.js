@@ -18,6 +18,66 @@
     "我要对比1、3、4"
   ];
 
+
+  // 乐享输入框按钮展示全套：scene registration only; one DOM/CSS/motion engine.
+  var pageScenes = Object.create(null);
+  var currentScene = null;
+  var sceneCandidate = '';
+  var sceneSince = 0;
+  var shownScenes = new Set();
+  window.__lxComposerButtonSuite = {
+    name: '乐享输入框按钮展示全套',
+    register: function(name, scene) { pageScenes[name] = scene; }
+  };
+  window.__lxComposerButtonSuite.register('detail', {
+    labels: ['对比所有系列'],
+    source: '.product-detail',
+    identity: function(content) {
+      var product = window.__lxState && window.__lxState.currentProduct;
+      var title = content.querySelector('[data-detail-title]');
+      return product && (product.spu_id || product.sku || product.id) || title && title.textContent || '';
+    },
+    ready: function(content) {
+      var title = content.querySelector('[data-detail-title]');
+      return title && title.textContent.trim() && content.querySelector('.lx-spu-chip');
+    },
+    invoke: function(content) {
+      var compare = content.querySelector('[data-spu-compare]');
+      if (compare) { compare.click(); return; }
+      if (window.__lxBridge && window.__lxBridge.sendChat) window.__lxBridge.sendChat('对比当前商品的所有系列配置');
+    }
+  });
+  function syncPageScene() {
+    var content = getRightContent();
+    var scene = content && pageScenes[content.getAttribute('data-view')];
+    if (!scene) {
+      if (currentScene) {
+        currentScene = null; sceneCandidate = ''; hideCurrent();
+        document.querySelectorAll('.lx-smart-actions').forEach(function(panel) { panel.remove(); });
+        lastRecommendationTabActive = null;
+      }
+      return false;
+    }
+    var key = content.getAttribute('data-view') + ':' + scene.identity(content);
+    if (!currentScene || currentScene.key !== key) {
+      hideCurrent();
+      document.querySelectorAll('.lx-smart-actions').forEach(function(panel) { panel.remove(); });
+      currentScene = { key: key, definition: scene };
+      sceneCandidate = ''; sceneSince = 0;
+      if (shownScenes.has(key)) showCompactCurrent();
+      recommendationFlowArmed = false; recommendationWatchToken += 1;
+    }
+    if (shownScenes.has(key)) return true;
+    if ((window.__lxState && window.__lxState.sending) || content.getAttribute('aria-busy') === 'true' || content.classList.contains('is-generating-tab') || !scene.ready(content)) {
+      sceneCandidate = ''; return true;
+    }
+    if (sceneCandidate !== key) { sceneCandidate = key; sceneSince = Date.now(); return true; }
+    if (Date.now() - sceneSince < 450 || Date.now() < suppressRevealUntil) return true;
+    shownScenes.add(key);
+    revealCurrent();
+    return true;
+  }
+
   function getRightContent() {
     return document.querySelector("body > .shell > .content, main.shell > .content, .shell > section.content");
   }
@@ -51,7 +111,7 @@
       '<div class="lx-smart-actions-list"></div>';
 
     var list = panel.querySelector(".lx-smart-actions-list");
-    actions.forEach(function (label) {
+    (currentScene ? currentScene.definition.labels : actions).forEach(function (label) {
       var button = document.createElement("button");
       button.className = "lx-smart-action";
       button.type = "button";
@@ -62,6 +122,7 @@
       button.addEventListener("click", function () {
         if (window.__lxState && window.__lxState.sending) return;
         collapseCurrent();
+        if (currentScene) { currentScene.definition.invoke(getRightContent()); return; }
         if (window.__lxBridge && typeof window.__lxBridge.sendChat === "function") {
           window.__lxBridge.sendChat(label);
           return;
@@ -103,7 +164,7 @@
       bottom.classList.add("lx-smart-actions-arrived");
       return;
     }
-    var sourceView = source.querySelector(".reco-page, .lx-reco-poc-page") || source;
+    var sourceView = source.querySelector(currentScene ? currentScene.definition.source : ".reco-page, .lx-reco-poc-page") || source;
     var sourceRect = sourceView.getBoundingClientRect();
     var targetRect = target.getBoundingClientRect();
     if (!sourceRect.width || !sourceRect.height || !targetRect.width || !targetRect.height) {
@@ -205,7 +266,7 @@
 
   function revealCurrent() {
     if (Date.now() < suppressRevealUntil) return;
-    if (!recommendationTabIsActive()) {
+    if (!currentScene && !recommendationTabIsActive()) {
       hideCurrent();
       return;
     }
@@ -258,6 +319,7 @@
   }
 
   function syncActionsToActiveTab() {
+    if (syncPageScene()) return false;
     var active = recommendationTabIsActive();
     if (active === lastRecommendationTabActive) return active;
     var wasActive = lastRecommendationTabActive;
