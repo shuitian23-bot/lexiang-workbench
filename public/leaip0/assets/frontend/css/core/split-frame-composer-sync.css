@@ -174,3 +174,10 @@ body.lx-template-file.lx-home-split:is([data-page="business"], [data-page="enter
 .content[data-view="detail"] .product-detail .detail-info > .detail-itemcode {
   margin-top: -10px !important;
 }
+
+/* Align the entire price group with the title and configuration column.
+   Keep vertical padding, typography and spacing within the group unchanged. */
+.content[data-view="detail"] .product-detail .lx-detail-benefits-v182 .lx-detail-benefits-price,
+.content[data-view="detail"] .product-detail .detail-price {
+  padding-left: 0;
+}
