@@ -82,7 +82,7 @@
 })();
 
 /* p0-purchase-context:end */
-/* v55-checkout-invoice-payment-chat-compat-20260904 */
+/* v56-checkout-invoice-payment-visible-chat-20260904 */
 (() => {
   const AIR_13_IMAGE = '/leai%20product%20data/shop-chat%20product%20data/%E7%AC%94%E8%AE%B0%E6%9C%AC/08_SPU_%E8%81%94%E6%83%B3%E5%B0%8F%E6%96%B0_Air_13/%E7%99%BD%E5%BA%95%E5%9B%BE.jpg';
   const FALLBACK_IMAGE = '/assets/product-placeholder.svg';
@@ -377,7 +377,7 @@
       [data-buy-modal-direct] .lx-order-edit-dialog:not(.lx-config-dialog) .lx-order-edit-footer > button[data-invoice-save]{position:static!important;top:auto!important;bottom:auto!important;transform:none!important;margin:0!important;align-self:center!important;width:164px!important;height:44px!important;min-height:44px!important}
     `;
     style.textContent += `html body [data-buy-modal-direct] .lx-buy-direct-dialog:has(>.lx-buy-payment-success){width:min(460px,calc(100vw - 32px))!important;height:auto!important;min-height:0!important;max-height:calc(100vh - 32px)!important;padding:32px 24px 24px!important;overflow:auto!important}html body [data-buy-modal-direct] .lx-buy-payment-success{height:auto!important;min-height:0!important;padding:12px 0 0!important}html body [data-buy-modal-direct] .lx-buy-payment-success-card{margin:18px 0!important}`;
-    style.textContent += `/* LX_INVOICE_AND_PAYMENT_FLOW_V55 */
+    style.textContent += `/* LX_INVOICE_AND_PAYMENT_FLOW_V56 */
       [data-buy-modal-direct] .lx-invoice-form textarea{width:100%;min-height:72px;box-sizing:border-box;padding:10px 12px;border:1px solid #d9cfdd;border-radius:6px;background:#fff;color:#2b272d;font:12px/18px "Source Han Sans CN","PingFang SC",sans-serif;outline:none;resize:vertical}
       [data-buy-modal-direct] .lx-invoice-form textarea:focus{border-color:#681057}
       [data-buy-modal-direct] .lx-invoice-delay-field{margin-top:14px}
@@ -582,6 +582,19 @@
       const host = splitHost || document.querySelector('.lxfd-thread');
       if (!host) { showPaymentProcessing(); return; }
       const fullscreen = host.classList.contains('lxfd-thread');
+      if (fullscreen) {
+        const shell = host.closest('.lxfd');
+        const stage = host.closest('.lxfd-stage');
+        const welcome = stage?.querySelector('.lxfd-welcome');
+        shell?.style.setProperty('display', 'block', 'important');
+        shell?.style.setProperty('visibility', 'visible', 'important');
+        welcome?.style.setProperty('display', 'none', 'important');
+        host.classList.add('show');
+        stage?.classList.add('is-chatting');
+        document.body.classList.remove('lxfd-exiting', 'lxfd-split-returning');
+        document.body.classList.add('assistant-fullscreen', 'lx-auto-fs');
+        document.body.dataset.state = 'chat';
+      }
       const userMessage = document.createElement('div');
       userMessage.className = fullscreen ? 'lxfd-msg-user' : 'lx-p0-message msg user';
       userMessage.dataset.lxPaymentQuery = paymentState.orderId;
