@@ -181,3 +181,8 @@ body.lx-template-file.lx-home-split:is([data-page="business"], [data-page="enter
 .content[data-view="detail"] .product-detail .detail-price {
   padding-left: 0;
 }
+
+/* Shared product detail tab bar: requested compact spacing. */
+.content[data-view="detail"] .product-detail .detail-tabbar {
+  padding: 10px 4px 0px !important;
+}
