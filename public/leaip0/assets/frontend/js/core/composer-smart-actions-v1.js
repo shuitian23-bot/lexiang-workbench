@@ -41,7 +41,10 @@
     labels: function(content) {
       var enterprise = /^\/(b-chat|biz-chat)(?:\/|$)/.test(location.pathname);
       var primary = content && content.querySelector('.product-detail .detail-actions .detail-primary');
-      return enterprise && primary && primary.textContent.trim() === '一键领优惠下单' ? ['咨询客服', '对比所有系列'] : ['对比所有系列'];
+      var labels = enterprise && primary && primary.textContent.trim() === '一键领优惠下单' ? ['咨询客服'] : [];
+      var skus = content ? Array.prototype.map.call(content.querySelectorAll('.lx-spu-chip[data-variant-sku]'), function(chip) { return chip.getAttribute('data-variant-sku'); }).filter(Boolean) : [];
+      if (new Set(skus).size > 1) labels.push('对比所有系列');
+      return labels;
     },
     source: '.product-detail',
     identity: function(content) {
@@ -98,6 +101,12 @@
         var panel = bottom.querySelector('.lx-smart-actions');
         if (panel) { panel.remove(); createActions(bottom); }
       });
+    }
+    if (labelKey === '[]') {
+      document.querySelectorAll('.assistant-panel .assistant-bottom .lx-smart-actions').forEach(function(panel) {
+        hideCurrent(); panel.remove();
+      });
+      return true;
     }
     if (shownScenes.has(key)) return true;
     if ((window.__lxState && window.__lxState.sending) || content.getAttribute('aria-busy') === 'true' || content.classList.contains('is-generating-tab') || !scene.ready(content)) {
