@@ -252,6 +252,71 @@ async function verifyApplicationInfoForms(browser) {
   }
 
   let form = await openInfoForm('权限变更')
+async function verifyPermissionWorkspace0825(browser) {
+  const { context, page } = await openAgentPage(browser, { width: 1280, height: 800 })
+  const root = page.locator('.permission-page-vue')
+  const rail = root.locator('.permission-module-rail')
+  const layout = root.locator('.permission-layout')
+
+  assert.equal(await page.locator('h1').count(), 1, '权限管理全页必须只有一个 h1')
+  assert.equal(await rail.getByText('7 个入口', { exact: true }).count(), 1, 'Rail 必须展示入口总数')
+  assert.deepEqual(
+    await rail.locator('.permission-module-group-title').evaluateAll((elements) => elements.map((element) => element.textContent?.replace(/\s+/g, ' ').trim())),
+    ['流程处理2', '权限配置5'],
+    'Rail 必须展示分组名称与分组数量'
+  )
+  assert.equal(await rail.locator('[aria-current="page"]').count(), 1, 'Rail 必须只有一个当前项')
+
+  async function assertDesktopSplit(label) {
+    const columns = (await layout.evaluate((element) => getComputedStyle(element).gridTemplateColumns)).split(' ')
+    assert.equal(columns.length >= 2, true, `${label}：权限页必须保持 Rail + 工作区两列`)
+    const railBox = await rail.boundingBox()
+    assert(railBox && railBox.width >= 219 && railBox.width <= 301, `${label}：Rail 宽度必须保持 220–300px`)
+    for (const selector of ['.permission-module-search', '.permission-module-group-title', '.permission-module-copy']) {
+      const item = rail.locator(selector).first()
+      assert.equal(await item.isVisible(), true, `${label}：${selector} 不得提前隐藏`)
+    }
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)
+    assert.equal(overflow <= 1, true, `${label}：页面根不得产生横向溢出，当前 ${overflow}px`)
+  }
+
+  await assertDesktopSplit('1280 Agent 收起')
+  const sectionHeader = root.locator('.content-section-header').first()
+  const markerGeometry = await sectionHeader.locator('.content-section-header__heading').evaluate((element) => {
+    const marker = getComputedStyle(element, '::before')
+    const title = getComputedStyle(element.querySelector('.content-section-header__title'))
+    return { width: marker.width, height: marker.height, fontSize: title.fontSize }
+  })
+  assert.deepEqual(markerGeometry, { width: '4px', height: '18px', fontSize: '16px' }, 'SectionHeader 几何必须符合 0825 Skill')
+
+  const activeStyle = await rail.locator('[aria-current="page"]').evaluate((element) => {
+    const style = getComputedStyle(element)
+    return { borderColor: style.borderColor, backgroundColor: style.backgroundColor }
+  })
+  assert.notEqual(activeStyle.borderColor, 'rgba(0, 0, 0, 0)', 'Rail 当前项必须有整行描边')
+  assert.notEqual(activeStyle.backgroundColor, 'rgba(0, 0, 0, 0)', 'Rail 当前项必须有浅主色背景')
+
+  const agentButton = page.getByRole('button', { name: '打开 AI 助手', exact: true })
+  if (await agentButton.count()) {
+  const moduleLabels = ['权限申请', '审批列表', '角色管理', '用户管理', '组织管理', '菜单管理', '数据源管理']
+  for (const label of moduleLabels) {
+    await rail.getByRole('button').filter({ hasText: label }).click()
+    await root.locator('.content-section-header__title').filter({ hasText: label }).waitFor()
+    assert.equal(await rail.locator('[aria-current="page"]').count(), 1, `${label}：切换后必须只有一个当前项`)
+  }
+  await rail.getByRole('button').filter({ hasText: '权限申请' }).click()
+  await root.locator('.content-section-header__title').filter({ hasText: '权限申请' }).waitFor()
+
+    await agentButton.click()
+    await page.locator('.ai-panel').waitFor().catch(() => {})
+    await page.waitForTimeout(250)
+    await assertDesktopSplit('1280 Agent 展开')
+  }
+
+  await screenshot(page, 'permission-workspace-0825-1280-agent')
+  await context.close()
+}
+
   await assertInfoForm(form, 'change-internal', ['applicantIdentity', 'targetItcode', 'mobile', 'email', 'applicantManager', 'targetManager', 'reason'], ['targetItcode', 'targetManager', 'reason'])
   assert.equal(await form.locator('[data-info-field="relatedAccount"]').count(), 0, '内部权限变更不得展示关联人')
   assert.equal(await form.locator('[data-info-field="targetManager"] input:not([readonly])').count(), 1, '被申请人直线经理必须可填写')
@@ -261,6 +326,7 @@ async function verifyApplicationInfoForms(browser) {
   assert.equal(await form.locator('[data-info-field="targetManager"]').count(), 0, '外部权限变更不得展示被申请人直线经理')
 
   form = await openInfoForm('创建账号')
+  await verifyPermissionWorkspace0825(browser)
   await assertInfoForm(form, 'create', ['applicantIdentity', 'targetUser', 'accountPassword', 'confirmAccountPassword', 'relatedAccount', 'mobile', 'email', 'applicantManager', 'reason'], ['targetUser', 'accountPassword', 'confirmAccountPassword', 'relatedAccount', 'reason'])
   assert.equal(await form.locator('[data-info-field="relatedAccount"] input:not([readonly])').count(), 1, '创建账号关联人 ITCode 必须可编辑')
   await form.locator('[data-info-field="reason"] textarea').fill('')

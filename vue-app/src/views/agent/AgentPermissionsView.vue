@@ -40,6 +40,7 @@
           <section v-for="group in filteredModuleGroups" :key="group.key" class="permission-module-group">
             <div class="permission-module-group-title">
               <span>{{ group.label }}</span>
+              <span>{{ group.items.length }}</span>
             </div>
             <div class="permission-module-list">
               <button
@@ -100,13 +101,9 @@
 
       <main class="permission-workspace">
         <section v-if="activeModule === 'apply'" class="permission-card flow-card">
-          <div class="section-title">
-            <div>
-              <h2>权限申请</h2>
-              <p>从申请类型开始，自动带出审批人和执行路径。</p>
-            </div>
-            <span class="status-pill">POC 链路</span>
-          </div>
+          <SectionHeader title="权限申请" description="从申请类型开始，自动带出审批人和执行路径。">
+            <template #meta><span class="status-pill">POC 链路</span></template>
+          </SectionHeader>
 
           <div class="permission-stage-tabs">
             <button
@@ -377,21 +374,19 @@
         </section>
 
         <section v-else-if="activeModule === 'approval'" class="permission-card">
-          <div class="section-title">
-            <div>
-              <h2>审批列表</h2>
-              <p>关联人和审批人的统一入口，先筛选待办，再进入详情完成确认或审批。</p>
-            </div>
-            <div class="segmented">
-              <button
-                v-for="filter in approvalVisibleFilters"
-                :key="filter"
-                type="button"
-                :class="{ active: approvalSearch.status === filter }"
-                @click="approvalSearch.status = filter"
-              >{{ filter }}</button>
-            </div>
-          </div>
+          <SectionHeader title="审批列表" description="关联人和审批人的统一入口，先筛选待办，再进入详情完成确认或审批。">
+            <template #actions>
+              <div class="segmented">
+                <button
+                  v-for="filter in approvalVisibleFilters"
+                  :key="filter"
+                  type="button"
+                  :class="{ active: approvalSearch.status === filter }"
+                  @click="approvalSearch.status = filter"
+                >{{ filter }}</button>
+              </div>
+            </template>
+          </SectionHeader>
           <div class="approval-filter-bar">
             <label>
               <span>审批人 ITCode</span>
@@ -472,13 +467,9 @@
           </div>
         </section>
         <section v-else-if="activeModule === 'roles'" class="permission-card">
-          <div class="section-title">
-            <div>
-              <h2>角色管理</h2>
-              <p>按角色组和角色名称快速定位，查看这个角色能做什么、能看什么、影响哪些人。</p>
-            </div>
-            <button type="button" class="primary-btn" @click="openRoleEditor('create')">新增角色</button>
-          </div>
+          <SectionHeader title="角色管理" description="按角色组和角色名称快速定位，查看这个角色能做什么、能看什么、影响哪些人。">
+            <template #actions><button type="button" class="primary-btn" @click="openRoleEditor('create')">新增角色</button></template>
+          </SectionHeader>
 
           <div class="role-filter-bar role-management-filter-bar">
             <label>
@@ -555,13 +546,9 @@
           </div>
         </section>
         <section v-else-if="activeModule === 'users'" class="permission-card">
-          <div class="section-title">
-            <div>
-              <h2>用户管理</h2>
-              <p>按账号、姓名和 ITCode 绑定状态查找用户，维护基础信息、角色和角色之外的额外权限。</p>
-            </div>
-            <button type="button" class="primary-btn" @click="openUserWorkspace('create')">新增用户</button>
-          </div>
+          <SectionHeader title="用户管理" description="按账号、姓名和 ITCode 绑定状态查找用户，维护基础信息、角色和角色之外的额外权限。">
+            <template #actions><button type="button" class="primary-btn" @click="openUserWorkspace('create')">新增用户</button></template>
+          </SectionHeader>
 
           <div class="admin-cleanup-panel">
             <div>
@@ -663,15 +650,13 @@
           </div>
         </section>
         <section v-else-if="activeModule === 'orgs'" class="permission-card org-workspace-card">
-          <div class="section-title org-section-title">
-            <div>
-              <h2>组织管理</h2>
-              <p>维护权限体系中的基础组织对象，用于角色归属、用户成员、数据范围和功能范围的统一引用。</p>
-            </div>
-            <div class="org-title-actions">
-              <button type="button" class="primary-btn" @click="openOrganizationEditor('create')">新增组织</button>
-            </div>
-          </div>
+          <SectionHeader title="组织管理" description="维护权限体系中的基础组织对象，用于角色归属、用户成员、数据范围和功能范围的统一引用。">
+            <template #actions>
+              <div class="org-title-actions">
+                <button type="button" class="primary-btn" @click="openOrganizationEditor('create')">新增组织</button>
+              </div>
+            </template>
+          </SectionHeader>
 
 
 
@@ -752,15 +737,13 @@
 
 
         <section v-else-if="activeModule === 'functions'" class="permission-card function-workspace-card">
-          <div class="section-title function-section-title">
-            <div>
-              <h2>菜单管理</h2>
-              <p>维护菜单下的功能、按钮和 Skill 能力，并明确每项能力关联的后台接口。</p>
-            </div>
-            <div class="section-actions function-section-actions">
-              <button type="button" class="primary-btn" @click="openFunctionCreateModal('function')">新增</button>
-            </div>
-          </div>
+          <SectionHeader title="菜单管理" description="维护菜单下的功能、按钮和 Skill 能力，并明确每项能力关联的后台接口。">
+            <template #actions>
+              <div class="section-actions function-section-actions">
+                <button type="button" class="primary-btn" @click="openFunctionCreateModal('function')">新增</button>
+              </div>
+            </template>
+          </SectionHeader>
           <div class="function-filter-bar">
             <label>
               <span>名称</span>
@@ -894,13 +877,9 @@
           </div>
         </section>
         <section v-else-if="activeModule === 'datasource'" class="permission-card datasource-workspace-card">
-          <div class="section-title datasource-section-title">
-            <div>
-              <h2>数据源管理</h2>
-              <p>维护数据权限的基础对象，按左侧导航目录、页面、接口地址和权限参数管理可授权范围。</p>
-            </div>
-            <button type="button" class="primary-btn" @click="openDataSourceEditor('create')">新增数据源</button>
-          </div>
+          <SectionHeader title="数据源管理" description="维护数据权限的基础对象，按左侧导航目录、页面、接口地址和权限参数管理可授权范围。">
+            <template #actions><button type="button" class="primary-btn" @click="openDataSourceEditor('create')">新增数据源</button></template>
+          </SectionHeader>
 
           <div class="datasource-filter-bar compact">
             <label>
@@ -1017,13 +996,9 @@
         </section>
 
         <section v-else class="permission-card">
-          <div class="section-title">
-            <div>
-              <h2>{{ currentModule.label }}</h2>
-              <p>{{ currentModule.fullDesc }}</p>
-            </div>
-            <button type="button" class="primary-btn" @click="openEntityModal(`新增${currentModule.label}`, genericTemplate)">新增</button>
-          </div>
+          <SectionHeader :title="currentModule.label" :description="currentModule.fullDesc">
+            <template #actions><button type="button" class="primary-btn" @click="openEntityModal(`新增${currentModule.label}`, genericTemplate)">新增</button></template>
+          </SectionHeader>
           <div class="permission-grid-list compact">
             <article v-for="item in currentModule.items" :key="item.name">
               <span>{{ item.code }}</span>
@@ -2217,6 +2192,7 @@ import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { MENU_TREE } from '@/stores/app'
 import ContentPageHeader from '@/components/content/ContentPageHeader.vue'
+import SectionHeader from '@/components/content/SectionHeader.vue'
 import PermissionCopyRoleModal from '@/components/permissions/PermissionCopyRoleModal.vue'
 import CustomTableAuthorizationEditor from '@/components/permissions/CustomTableAuthorizationEditor.vue'
 import PermissionDataDirectoryList from '@/components/permissions/PermissionDataDirectoryList.vue'
@@ -8588,7 +8564,7 @@ onUnmounted(() => {
   max-width: none;
   min-width: 0;
   padding: 0;
-  color: #111827;
+  color: var(--color-text);
   container-type: inline-size;
 }
 
@@ -8643,17 +8619,9 @@ onUnmounted(() => {
 }
 
 
-.section-title h2,
 .permission-step h3 {
   margin: 0;
   letter-spacing: 0;
-}
-
-.section-title h2 {
-  color: #172033;
-  font-size: 16px;
-  font-weight: 700;
-  line-height: 1.35;
 }
 
 .permission-step h3 {
@@ -8663,7 +8631,6 @@ onUnmounted(() => {
   line-height: 1.45;
 }
 
-.section-title p,
 .permission-step p,
 .modal-panel p {
   margin: 6px 0 0;
@@ -8673,17 +8640,10 @@ onUnmounted(() => {
 }
 
 .hero-actions,
-.flow-actions,
-.section-title {
+.flow-actions {
   display: flex;
   align-items: center;
   gap: 12px;
-}
-
-.section-title {
-  flex: 0 0 auto;
-  justify-content: space-between;
-  margin-bottom: 18px;
 }
 
 .permission-page-vue .permission-layout {
@@ -8768,12 +8728,12 @@ onUnmounted(() => {
 
 .permission-module-search input {
   width: 100%;
-  height: 40px;
+  height: var(--control-height-md);
   box-sizing: border-box;
-  border: 1px solid var(--color-border-subtle);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   padding: 0 12px;
-  background: var(--color-bg-subtle);
+  background: var(--color-surface);
   color: var(--color-text);
   font: inherit;
   font-size: 13px;
@@ -8811,16 +8771,26 @@ onUnmounted(() => {
 }
 
 .permission-module-group + .permission-module-group {
-  margin-top: 16px;
+  margin-top: 12px;
+  border-top: 1px solid var(--color-border-subtle);
+  padding-top: 12px;
 }
 
 .permission-module-group-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
   margin: 0;
   padding: 0 8px;
   color: var(--color-text-tertiary);
   font-size: 12px;
   font-weight: 600;
   line-height: 1.5;
+}
+
+.permission-module-group-title span:last-child {
+  font-variant-numeric: tabular-nums;
 }
 
 .permission-module-list button {
@@ -8893,7 +8863,7 @@ onUnmounted(() => {
 }
 
 .permission-module-list button.active {
-  border-color: transparent;
+  border-color: var(--color-primary-border);
   background: var(--color-primary-subtle);
   color: var(--color-primary);
   box-shadow: none;
@@ -9113,19 +9083,26 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  border: 1px solid #dfe7f3;
-  border-radius: 12px;
-  padding: 18px;
-  background: #fff;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  background: var(--color-surface);
+  box-shadow: var(--shadow);
+}
+
+.permission-card > :deep(.content-section-header) {
+  flex: 0 0 auto;
+}
+
+.permission-card > :deep(.content-section-header) + * {
+  margin-top: 16px;
 }
 
 .flow-card {
   overflow: hidden;
-  background: #fff;
+  background: var(--color-surface);
 }
 
-.flow-card .section-title,
 .flow-card .permission-stage-tabs {
   flex: 0 0 auto;
 }
@@ -9151,10 +9128,10 @@ onUnmounted(() => {
   flex: 0 0 auto;
   width: 100%;
   padding: 4px;
-  margin-bottom: 20px;
-  border: 1px solid #dfe7f3;
-  border-radius: 10px;
-  background: #fff;
+  margin-bottom: 16px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
   overflow-x: auto;
   scrollbar-width: none;
 }
@@ -9335,13 +9312,22 @@ onUnmounted(() => {
   width: 100%;
   box-sizing: border-box;
   min-width: 0;
-  border: 1px solid #d8e1ee;
-  border-radius: 8px;
-  padding: 11px 12px;
-  background: #fff;
-  color: #172033;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
   font: inherit;
   font-size: 13px;
+}
+
+.permission-form-grid input,
+.permission-form-grid select {
+  min-height: var(--control-height-md);
+  padding: 0 12px;
+}
+
+.permission-form-grid textarea {
+  padding: 10px 12px;
 }
 
 .permission-form-grid input[readonly] {
@@ -10416,23 +10402,41 @@ onUnmounted(() => {
 .primary-btn,
 .ghost-btn {
   min-height: 36px;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   padding: 0 16px;
   font-size: 13px;
   font-weight: 700;
   cursor: pointer;
+  transition: border-color 0.16s ease, background 0.16s ease, color 0.16s ease, box-shadow 0.16s ease;
 }
 
 .primary-btn {
-  border: 1px solid #316dff;
-  color: #fff;
-  background: #316dff;
+  border: 1px solid var(--color-primary);
+  color: var(--color-on-primary);
+  background: var(--color-primary);
 }
 
 .ghost-btn {
-  border: 1px solid #d8e1ee;
-  color: #455468;
-  background: #fff;
+  border: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
+  background: var(--color-surface);
+}
+
+.primary-btn:hover:not(:disabled) {
+  border-color: var(--color-primary-hover);
+  background: var(--color-primary-hover);
+}
+
+.ghost-btn:hover:not(:disabled) {
+  border-color: var(--color-primary-border);
+  color: var(--color-primary);
+  background: var(--color-primary-subtle);
+}
+
+.primary-btn:focus-visible,
+.ghost-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
 }
 
 .ghost-btn.small {
@@ -10510,17 +10514,23 @@ onUnmounted(() => {
 
 .permission-table th,
 .permission-table td {
-  border-bottom: 1px solid #e6edf5;
-  padding: 12px;
+  border-bottom: 1px solid var(--color-border-subtle);
+  padding: 0 12px;
   font-size: 13px;
   line-height: 1.45;
   text-align: left;
+  vertical-align: middle;
 }
 
 .permission-table th {
-  color: #8a96a8;
-  background: #f8fafc;
+  height: 40px;
+  color: var(--color-text-tertiary);
+  background: var(--color-surface-subtle);
   font-weight: 700;
+}
+
+.permission-table td {
+  height: 48px;
 }
 
 .table-status.done {
@@ -12334,10 +12344,6 @@ onUnmounted(() => {
   gap: 14px;
 }
 
-.org-section-title {
-  margin-bottom: 0;
-}
-
 .org-title-actions,
 .org-detail-actions,
 .org-member-head,
@@ -12879,11 +12885,6 @@ onUnmounted(() => {
   gap: 12px;
 }
 
-.function-section-title {
-  margin-bottom: 0;
-}
-
-
 .function-section-actions {
   display: inline-flex;
   align-items: center;
@@ -13409,10 +13410,6 @@ onUnmounted(() => {
   gap: 0;
 }
 
-.datasource-section-title {
-  margin-bottom: 14px;
-}
-
 .datasource-metric-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -13742,10 +13739,6 @@ onUnmounted(() => {
   gap: 0;
 }
 
-.datasource-section-title {
-  margin-bottom: 14px;
-}
-
 .datasource-filter-bar.compact {
   display: grid;
   grid-template-columns: minmax(180px, 260px) minmax(260px, 1fr) minmax(180px, 220px) 128px;
@@ -13949,7 +13942,7 @@ onUnmounted(() => {
   }
 }
 
-@media (max-width: 1500px) {
+@container (max-width: 1039px) {
   .permission-type-grid,
   .permission-scope-grid,
   .permission-grid-list,
@@ -13959,83 +13952,10 @@ onUnmounted(() => {
   }
 }
 
-@container (max-width: 920px) {
-  .permission-module-rail {
-    display: flex;
-    height: 100%;
-    padding: 8px;
-    overflow-x: hidden;
-    overflow-y: auto;
-  }
 
-  .permission-module-rail-head,
-  .permission-module-group-title {
-    display: none;
-  }
 
-  .permission-module-groups {
-    gap: 8px;
-  }
 
-  .permission-module-list {
-    gap: 4px;
-  }
-
-  .permission-module-list button {
-    grid-template-columns: 28px minmax(0, 1fr);
-    gap: 8px;
-    width: 100%;
-    min-height: 44px;
-    padding: 8px;
-  }
-
-  .permission-module-icon {
-    width: 28px;
-    height: 28px;
-  }
-
-  .permission-module-copy small {
-    display: none;
-  }
-
-  .permission-module-copy b {
-    font-size: 12px;
-  }
-}
-
-@container (max-width: 600px) {
-  .permission-page-vue .permission-layout {
-    gap: 12px;
-  }
-
-  .permission-module-copy {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    overflow: hidden;
-    clip: rect(0 0 0 0);
-    white-space: nowrap;
-    border: 0;
-  }
-
-  .permission-module-list button {
-    display: grid;
-    grid-template-columns: 1fr;
-    justify-items: center;
-    min-height: 44px;
-  }
-}
-
-@media (max-width: 1180px) {
-  .section-title {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
-}
-
-@media (max-width: 760px) {
+@container (max-width: 719px) {
   .permission-form-grid,
   .permission-type-grid,
   .permission-scope-grid,

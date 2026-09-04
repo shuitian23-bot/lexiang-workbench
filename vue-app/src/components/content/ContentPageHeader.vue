@@ -73,6 +73,17 @@ defineProps<{
   max-width: 100%;
 }
 
+@container (max-width: 719px) {
+  .content-page-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .content-page-header__actions {
+    justify-content: flex-start;
+  }
+}
+
 @media (max-width: 719px) {
   .content-page-header {
     flex-direction: column;
