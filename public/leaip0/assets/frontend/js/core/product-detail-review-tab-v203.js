@@ -29,6 +29,18 @@
   }
 
   function ensureReviewTab() {
+    // Repair old homepage detail snapshots without replacing product or conversation state.
+    if (/^\/$/.test(location.pathname)) document.querySelectorAll('.product-detail').forEach(function(detail) {
+      detail.querySelectorAll('.detail-badges, .detail-service, .detail-reviews-section').forEach(function(node) { node.remove(); });
+      var gallery = detail.querySelector('.detail-gallery');
+      var visual = gallery && gallery.querySelector('.detail-visual');
+      if (visual && !gallery.querySelector('.detail-trustline')) {
+        var trust = document.createElement('p');
+        trust.className = 'detail-trustline';
+        trust.innerHTML = '<strong>「放心购」</strong><span>官方正品 · 14天无忧退换 · 180天只换不修</span>';
+        visual.insertAdjacentElement('afterend', trust);
+      }
+    });
     document.querySelectorAll(".product-detail .detail-rich").forEach(function (rich) {
       var bar = rich.querySelector(".detail-tabbar");
       if (!bar) return;
@@ -79,6 +91,14 @@
     window.requestAnimationFrame(function () { activate(tab); });
   });
   document.addEventListener("lx:product-detail-rendered", ensureReviewTab);
+  if (location.pathname === '/') {
+    var pending = false;
+    new MutationObserver(function() {
+      if (pending) return;
+      pending = true;
+      requestAnimationFrame(function() { pending = false; ensureReviewTab(); });
+    }).observe(document.documentElement, {childList:true, subtree:true});
+  }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", ensureReviewTab, { once: true });
   else ensureReviewTab();
 })();
