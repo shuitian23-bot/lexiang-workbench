@@ -5446,7 +5446,7 @@
         transition: color .16s ease, transform .16s ease;
       }
 
-      .lx-p0-message.lx-chat-skin .followups button::after {content:"";display:inline-block;width:9px;height:5px;margin-left:7px;vertical-align:middle;background:currentColor;-webkit-mask:url(/assets/icons/arrow-down.svg) center/contain no-repeat;mask:url(/assets/icons/arrow-down.svg) center/contain no-repeat;transform:rotate(-90deg) scale(0.6666667);}
+      .lx-p0-message.lx-chat-skin .followups button::after {content:"";display:inline-block;width:9px;height:5px;margin-left:5px;vertical-align:middle;background:currentColor;-webkit-mask:url(/assets/icons/arrow-down.svg) center/contain no-repeat;mask:url(/assets/icons/arrow-down.svg) center/contain no-repeat;transform:rotate(-90deg) scale(0.6666667);}
 
       .lx-p0-message.lx-chat-skin .followups button:hover {
         color: #5b1452;
@@ -8448,7 +8448,7 @@ body.lx-auto-fs .lxfd-ai-body .followups button::after,
 body.lx-auto-fs .lxfd-ai-body .lx-p0-suggest[data-followups] button::after,
 body.lx-auto-fs .lxfd-ai-body .lx-p0-suggest-chip::after,
 body.lx-auto-fs .lxfd-ai-body .followups [data-quick-ask]::after,
-body.lx-auto-fs .lxfd-ai-body .lx-p0-suggest[data-followups] [data-quick-ask]::after{content:"";display:inline-block;width:9px;height:5px;margin-left:7px;vertical-align:middle;background:currentColor;-webkit-mask:url(/assets/icons/arrow-down.svg) center/contain no-repeat;mask:url(/assets/icons/arrow-down.svg) center/contain no-repeat;transform:rotate(-90deg) scale(0.6666667);}
+body.lx-auto-fs .lxfd-ai-body .lx-p0-suggest[data-followups] [data-quick-ask]::after{content:"";display:inline-block;width:9px;height:5px;margin-left:5px;vertical-align:middle;background:currentColor;-webkit-mask:url(/assets/icons/arrow-down.svg) center/contain no-repeat;mask:url(/assets/icons/arrow-down.svg) center/contain no-repeat;transform:rotate(-90deg) scale(0.6666667);}
 body.assistant-fullscreen .lxfd-followups button:hover,
 body.assistant-fullscreen .lxfd-ai-body .followups button:hover,
 body.assistant-fullscreen .lxfd-ai-body .lx-p0-suggest[data-followups] button:hover,
