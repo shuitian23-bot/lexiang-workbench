@@ -1074,9 +1074,22 @@ if (document.documentElement.classList.contains("lx-root-lxfd-prepaint")) {
     return tab && (tab.getAttribute('data-shop-tab-id') || tab.getAttribute('data-tab-id')) || '';
   }
   var serviceActions = ["推荐购买第1款商品", "我要对比1、2"];
+  function visibleRecommendation(content) {
+    var pages = content.querySelectorAll('.reco-page, .lx-reco-poc-page');
+    return Array.prototype.find.call(pages, function(page) { var rect = page.getBoundingClientRect(); return rect.width && rect.height; }) || null;
+  }
+  function isServiceRecommendation(content) {
+    var page = visibleRecommendation(content);
+    if (!page) return false;
+    if (page.matches('.lx-service-reco-page, [data-member-service-page]')) return true;
+    var rows = page.querySelectorAll('.reco-row, .lx-reco-poc-row');
+    if (rows.length && Array.prototype.every.call(rows, function(row) { return /^SERVICE-/i.test(row.getAttribute('data-sku') || '') || row.hasAttribute('data-service-id'); })) return true;
+    var heading = page.querySelector('h2, h1, .reco-head');
+    return !!heading && /服务推荐|推荐服务|延保|保修/.test(heading.textContent || '');
+  }
   var recommendationScene = {
     labels: function(content) {
-      return content.querySelector('.reco-page.lx-service-reco-page') ? serviceActions : actions;
+      return isServiceRecommendation(content) ? serviceActions : actions;
     },
     source: '.reco-page, .lx-reco-poc-page',
     identity: function(content) {
@@ -1142,7 +1155,14 @@ if (document.documentElement.classList.contains("lx-root-lxfd-prepaint")) {
   }
 
   function createActions(bottom) {
-    if (!bottom || bottom.querySelector(".lx-smart-actions")) return;
+    if (!bottom) return;
+    var labels = currentScene ? currentScene.labels : actions;
+    var existing = bottom.querySelector('.lx-smart-actions');
+    if (existing) {
+      var actual = Array.prototype.map.call(existing.querySelectorAll('.lx-smart-action span'), function(node) { return node.textContent; });
+      if (JSON.stringify(actual) === JSON.stringify(labels)) return;
+      existing.remove();
+    }
 
     var panel = document.createElement("section");
     panel.className = "lx-smart-actions";
@@ -1158,7 +1178,7 @@ if (document.documentElement.classList.contains("lx-root-lxfd-prepaint")) {
       '<div class="lx-smart-actions-list"></div>';
 
     var list = panel.querySelector(".lx-smart-actions-list");
-    (currentScene ? (typeof currentScene.definition.labels === 'function' ? currentScene.definition.labels(getRightContent()) : currentScene.definition.labels) : actions).forEach(function (label) {
+    labels.forEach(function (label) {
       var button = document.createElement("button");
       button.className = "lx-smart-action";
       button.type = "button";
@@ -1413,21 +1433,22 @@ if (document.documentElement.classList.contains("lx-root-lxfd-prepaint")) {
     if (wasSending || content.getAttribute('aria-busy') === 'true' || content.classList.contains('is-generating-tab') || content.querySelector('.lx-page-generating') || !scene.ready(content)) {
       sceneCandidate = ''; sceneSince = 0; scheduleSync(100); return;
     }
-    var key = (serviceVisible ? 'service' : content.getAttribute('data-view')) + ':' + scene.identity(content);
+    var key = (serviceVisible || scene === recommendationScene && isServiceRecommendation(content) ? 'service' : content.getAttribute('data-view')) + ':' + scene.identity(content);
     var labels = typeof scene.labels === 'function' ? scene.labels(content) : scene.labels;
     var labelKey = JSON.stringify(labels);
     if (!currentScene || currentScene.key !== key) {
       hideCurrent(); document.querySelectorAll('.lx-smart-actions').forEach(function(panel) { panel.remove(); });
-      currentScene = { key: key, definition: scene, labelKey: labelKey };
+      currentScene = { key: key, definition: scene, labels: labels.slice(), labelKey: labelKey };
       sceneCandidate = ''; sceneSince = 0;
       // Compact is only for a scene which really completed its first reveal.
       if (shownScenes.has(key) && labels.length) showCompactCurrent();
     } else if (currentScene.labelKey !== labelKey) {
-      currentScene.labelKey = labelKey;
+      currentScene.labelKey = labelKey; currentScene.labels = labels.slice(); currentScene.definition = scene;
       document.querySelectorAll('.assistant-panel .assistant-bottom .lx-smart-actions').forEach(function(panel) { var bottom = panel.parentElement; panel.remove(); createActions(bottom); });
     }
     if (!labels.length) { if (!currentScene.empty) { hideCurrent(); currentScene.empty = true; } return; }
     currentScene.empty = false;
+    document.querySelectorAll(".assistant-panel .assistant-bottom").forEach(createActions);
     if (shownScenes.has(key)) return;
     var source = content.querySelector(scene.source);
     if (!source || !source.getBoundingClientRect().width || !source.getBoundingClientRect().height) { scheduleSync(100); return; }

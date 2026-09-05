@@ -1542,10 +1542,10 @@
         "public/leaip0/assets/frontend/js/core/composer-smart-actions-v1.js",
         "public/leaip0/assets/frontend/js/core/followup-chevron-v1.js"
       ],
-      "url": "/assets/frontend/bundles/p0-brand-core-6.js?p0v=5bf290281c20e65b",
-      "hash": "5bf290281c20e65b508ca91380c9f970d1c614e41e1cad2e7c9dd507b44ca3db",
+      "url": "/assets/frontend/bundles/p0-brand-core-6.js?p0v=0de946b24fbc2cf7",
+      "hash": "0de946b24fbc2cf7b9713bffdcffbbeacda45e46a491c038c9ef57ef00d7cfca",
       "sourceHashes": [
-        "6c81a6280f0a4e713b65bafc79b04495607109217b2e3f64dcc3f173ba19427b",
+        "63e2f9c153aad9bd657f8eb8cecca617a2022ea5103ce84dd1c1481982858e5f",
         "845b3e54e80e4b4ad6fa011d40bd09134a80b8c78179df0198c133bcc0d0fca0"
       ]
     }
