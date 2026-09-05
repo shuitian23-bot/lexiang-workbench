@@ -1411,7 +1411,8 @@ if (document.documentElement.classList.contains("lx-root-lxfd-prepaint")) {
       currentScene.labelKey = labelKey;
       document.querySelectorAll('.assistant-panel .assistant-bottom .lx-smart-actions').forEach(function(panel) { var bottom = panel.parentElement; panel.remove(); createActions(bottom); });
     }
-    if (!labels.length) { hideCurrent(); return; }
+    if (!labels.length) { if (!currentScene.empty) { hideCurrent(); currentScene.empty = true; } return; }
+    currentScene.empty = false;
     if (shownScenes.has(key)) return;
     var source = content.querySelector(scene.source);
     if (!source || !source.getBoundingClientRect().width || !source.getBoundingClientRect().height) { scheduleSync(100); return; }
