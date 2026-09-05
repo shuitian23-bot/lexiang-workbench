@@ -748,3 +748,60 @@ html body .lx-p0-modal.lx-lead-shell:has(.lx-solution-whitepaper-modal) .lx-p0-m
 .lx-solution-whitepaper-viewer iframe{display:block;width:100%;height:100%;min-height:480px;border:0;background:#fff}
 .lx-solution-whitepaper-modal>.lx-p0-disclaimer{flex:0 0 auto;margin:0!important;color:#979797;font-size:12px;line-height:1.5}
 @media (max-width:720px){html body .lx-p0-modal-mask.lx-lead-modal-mask:has(.lx-solution-whitepaper-modal){padding:12px!important}html body .lx-p0-modal.lx-lead-shell:has(.lx-solution-whitepaper-modal){width:calc(100vw - 24px)!important;height:calc(100vh - 24px)!important}.lx-solution-whitepaper-toolbar{align-items:flex-start;flex-direction:column}.lx-solution-whitepaper-toolbar p{white-space:normal}.lx-solution-whitepaper-viewer iframe{min-height:360px}}
+
+/* P0 recommendation reference 8770 — 2026-09-05 */
+/*
+ * Personal channel shared card geometry.
+ * Shared airy geometry for recommendation, cleaning and device cards.
+ * Card height may follow content, while page edges, gaps and action anchors
+ * stay identical across the three experiences.
+ */
+
+/* AI recommendation: remove its extra inner offset and match device width. */
+html body:is([data-page="home"],[data-page="personal"],[data-page="business"],[data-page="enterprise"]).lx-home-split:not(.assistant-fullscreen)
+main.shell > section.content[data-view="reco"]
+> .reco-page.lx-reco-poc-page {
+  box-sizing: border-box !important;
+  width: calc(100% + 40px) !important;
+  margin-right: -22px !important;
+  margin-left: -18px !important;
+  padding: 32px 24px 48px !important;
+}
+
+html body:is([data-page="home"],[data-page="personal"],[data-page="business"],[data-page="enterprise"]).lx-home-split:not(.assistant-fullscreen)
+.content[data-view="reco"] .lx-reco-poc-list {
+  gap: 18px !important;
+  padding-top: 6px !important;
+}
+
+html body:is([data-page="home"],[data-page="personal"],[data-page="business"],[data-page="enterprise"]).lx-home-split:not(.assistant-fullscreen)
+.content[data-view="reco"] .lx-reco-poc-page
+.reco-row.lx-reco-poc-row {
+  box-sizing: border-box !important;
+  width: 100% !important;
+  grid-template-columns: 150px minmax(0, 1fr) 224px !important;
+  min-height: 136px !important;
+  padding: 16px 24px 16px 14px !important;
+  border-radius: 20px !important;
+  row-gap: 7px !important;
+}
+
+html body:is([data-page="home"],[data-page="personal"],[data-page="business"],[data-page="enterprise"]).lx-home-split:not(.assistant-fullscreen)
+.content[data-view="reco"] .lx-reco-poc-page
+.reco-row-side.lx-reco-poc-side {
+  justify-content: flex-end !important;
+  padding: 0 !important;
+}
+
+html body:is([data-page="home"],[data-page="personal"],[data-page="business"],[data-page="enterprise"]).lx-home-split:not(.assistant-fullscreen)
+.content[data-view="reco"] .lx-reco-poc-page
+.reco-row-actions.lx-reco-poc-actions {
+  gap: 14px !important;
+}
+
+
+/* Exact recommendation-only rules from the reference's shared price baseline. */
+html body.lx-home-split:not(.assistant-fullscreen) .content .lx-reco-poc-actions{align-items:center!important}
+html body.lx-home-split:not(.assistant-fullscreen) .content .lx-reco-poc-actions .reco-row-price{min-width:76px!important;margin:0!important;text-align:right!important;white-space:nowrap!important;font-variant-numeric:tabular-nums!important}
+/* Reference shop-chat/index.html, reco-buy-hidden-v162. */
+html body .reco-page .lx-reco-poc-row .lx-reco-poc-buy{display:none!important}
