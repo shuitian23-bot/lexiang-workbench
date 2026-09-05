@@ -582,6 +582,7 @@ window.__lxAddressRegionsV142=[{"code":"11","name":"北京市","children":[{"cod
 /* checkout-layout-v62-20260905 */
 /* checkout-flash-card-inner-layout-v63-20260905 */
 /* fulfillment-checkout-height-v64-20260905 */
+/* checkout-benefit-info-v65-20260905 */
 (() => {
   const AIR_13_IMAGE = '/leai%20product%20data/shop-chat%20product%20data/%E7%AC%94%E8%AE%B0%E6%9C%AC/08_SPU_%E8%81%94%E6%83%B3%E5%B0%8F%E6%96%B0_Air_13/%E7%99%BD%E5%BA%95%E5%9B%BE.jpg';
   const FALLBACK_IMAGE = '/assets/product-placeholder.svg';
@@ -946,6 +947,7 @@ window.__lxAddressRegionsV142=[{"code":"11","name":"北京市","children":[{"cod
       @media(max-width:620px){[data-buy-modal-direct] .lx-address-grid{grid-template-columns:1fr}[data-buy-modal-direct] .lx-address-create-body{padding:20px 18px!important}[data-buy-modal-direct] .lx-address-form{grid-template-columns:64px minmax(0,1fr);gap:14px 10px}[data-buy-modal-direct] .lx-invoice-type-row{grid-template-columns:1fr}[data-buy-modal-direct] .lx-invoice-notice-entry{justify-self:end}[data-buy-modal-direct] .lx-invoice-delay-field{grid-template-columns:80px minmax(0,1fr)}}
     `;
     style.textContent += '[data-purchase-options] .lx-config-option{overflow:hidden;text-overflow:ellipsis}[data-buy-modal-direct] [hidden]{display:none!important}';
+    style.textContent += `/* checkout-benefit-info-v65 */ [data-buy-modal-direct] .lx-benefit-info{display:inline-flex;align-items:center;justify-content:center;flex:0 0 20px;width:20px;height:20px;min-width:0;margin:0;padding:0;border:0;border-radius:50%;background:transparent;color:#918b99;cursor:pointer;vertical-align:middle;line-height:1}[data-buy-modal-direct] .lx-benefit-info:hover{color:#681057}[data-buy-modal-direct] .lx-benefit-info:focus-visible{outline:2px solid #681057;outline-offset:2px}[data-buy-modal-direct] .lx-benefit-info svg{display:block}`;
     document.head.appendChild(style);
   }
 
@@ -1002,17 +1004,18 @@ window.__lxAddressRegionsV142=[{"code":"11","name":"北京市","children":[{"cod
     });
   };
 
-  const showToast = (message) => {
+  const showToast = (message, duration = 2400) => {
     let toast = document.querySelector('.lx-p0-toast');
     if (!toast) {
       toast = document.createElement('div');
       toast.className = 'lx-p0-toast';
       document.body.appendChild(toast);
     }
+    toast.setAttribute('role', 'status');
     toast.textContent = message;
     toast.classList.add('show');
     clearTimeout(toast._timer);
-    toast._timer = setTimeout(() => toast.classList.remove('show'), 2400);
+    toast._timer = setTimeout(() => toast.classList.remove('show'), duration);
   };
 
   const openOrderModal = (product) => {
@@ -1046,7 +1049,7 @@ window.__lxAddressRegionsV142=[{"code":"11","name":"北京市","children":[{"cod
     const payableAmount = () => Math.max(0, (Number(product.originalPrice) || 0) * configState.quantity - benefitState.couponAmount - benefitState.beanAmount - benefitState.redPacketAmount);
     const totalDiscount = () => benefitState.couponAmount + benefitState.beanAmount + benefitState.redPacketAmount;
     const invoicePreview = () => orderState.invoice === '普通发票-个人' ? '电子普通发票（个人）' : orderState.invoice === '普通发票-单位' ? '电子普通发票（单位）' : '增值税专用发票';
-    const orderHtml = () => `<button class="lx-buy-direct-close" type="button" aria-label="关闭">×</button><h2 id="lxBuyDirectTitle">联想乐享为你生成订单</h2><div class="lx-buy-direct-card"><div class="lx-order-product-card"><div class="lx-buy-direct-product"><img src="${escapeHtml(product.image_url)}" alt="${escapeHtml(product.name)}" onerror="this.onerror=null;this.src='${FALLBACK_IMAGE}'"><div class="lx-buy-direct-product-copy"><strong>${escapeHtml(product.name)}</strong><span>X${configState.quantity}</span></div><button class="lx-buy-direct-config" type="button" data-edit-config>修改配置<i aria-hidden="true"></i></button></div><div class="lx-buy-direct-section lx-buy-direct-product-spec"><div class="lx-buy-direct-row"><strong>系列：</strong><span>Lenovo</span></div><div class="lx-buy-direct-row"><strong>型号：</strong><span title="${escapeHtml(product.name)}">${escapeHtml(product.series || product.name)}</span></div><div class="lx-buy-direct-row"><strong>尺寸：</strong><span>${escapeHtml(configState.size)}</span></div><div class="lx-buy-direct-row"><strong>配置：</strong><span title="${escapeHtml(configState.spec)}">${escapeHtml(product.configurationLabel || configState.spec)}${configState.color ? " · " + escapeHtml(configState.color) : ""}</span></div></div></div><div class="lx-buy-direct-section lx-order-shipping"><div class="lx-buy-direct-row"><strong>收货信息：</strong><span>${escapeHtml(orderState.recipientName)}　${escapeHtml(orderState.recipientPhone)}</span></div><div class="lx-buy-direct-row"><strong>收货地址：</strong><span>${escapeHtml(recipientAddress())}</span></div></div><div class="lx-buy-direct-section lx-order-payment"><div class="lx-buy-direct-row"><strong>支付方式：</strong><span data-order-preview-payment>${escapeHtml(orderState.payment.includes('支付') || orderState.payment.includes('分期') ? orderState.payment : `${orderState.payment}支付`)}</span></div><div class="lx-buy-direct-row"><strong>发票信息：</strong><span data-order-preview-invoice>${escapeHtml(invoicePreview())}</span></div></div><div class="lx-order-summary"><div class="lx-buy-direct-price"><strong>等待支付：</strong><b>¥${payableAmount().toLocaleString('zh-CN')}</b><span>节省了：<em>¥${totalDiscount().toLocaleString('zh-CN')}</em></span></div><div class="lx-buy-direct-detail"><button class="lx-buy-direct-detail-button" type="button" data-price-detail>查看价格明细</button><span>可修改优惠券/乐豆等优惠</span></div></div><div class="lx-buy-direct-actions"><button type="button" data-edit-order>修改订单</button><button type="button" class="primary" data-pay-now>立即支付</button></div><p class="lx-buy-direct-footnote">*修改订单包括改商品配置、收货地址、支付方式</p></div>`;
+    const orderHtml = () => `<button class="lx-buy-direct-close" type="button" aria-label="关闭">×</button><h2 id="lxBuyDirectTitle">联想乐享为你生成订单</h2><div class="lx-buy-direct-card"><div class="lx-order-product-card"><div class="lx-buy-direct-product"><img src="${escapeHtml(product.image_url)}" alt="${escapeHtml(product.name)}" onerror="this.onerror=null;this.src='${FALLBACK_IMAGE}'"><div class="lx-buy-direct-product-copy"><strong>${escapeHtml(product.name)}</strong><span>X${configState.quantity}</span></div><button class="lx-buy-direct-config" type="button" data-edit-config>修改配置<i aria-hidden="true"></i></button></div><div class="lx-buy-direct-section lx-buy-direct-product-spec"><div class="lx-buy-direct-row"><strong>系列：</strong><span>Lenovo</span></div><div class="lx-buy-direct-row"><strong>型号：</strong><span title="${escapeHtml(product.name)}">${escapeHtml(product.series || product.name)}</span></div><div class="lx-buy-direct-row"><strong>尺寸：</strong><span>${escapeHtml(configState.size)}</span></div><div class="lx-buy-direct-row"><strong>配置：</strong><span title="${escapeHtml(configState.spec)}">${escapeHtml(product.configurationLabel || configState.spec)}${configState.color ? " · " + escapeHtml(configState.color) : ""}</span></div></div></div><div class="lx-buy-direct-section lx-order-shipping"><div class="lx-buy-direct-row"><strong>收货信息：</strong><span>${escapeHtml(orderState.recipientName)}　${escapeHtml(orderState.recipientPhone)}</span></div><div class="lx-buy-direct-row"><strong>收货地址：</strong><span>${escapeHtml(recipientAddress())}</span></div></div><div class="lx-buy-direct-section lx-order-payment"><div class="lx-buy-direct-row"><strong>支付方式：</strong><span data-order-preview-payment>${escapeHtml(orderState.payment.includes('支付') || orderState.payment.includes('分期') ? orderState.payment : `${orderState.payment}支付`)}</span></div><div class="lx-buy-direct-row"><strong>发票信息：</strong><span data-order-preview-invoice>${escapeHtml(invoicePreview())}</span></div></div><div class="lx-order-summary"><div class="lx-buy-direct-price"><strong>等待支付：</strong><b>¥${payableAmount().toLocaleString('zh-CN')}</b><span>节省了：<em>¥${totalDiscount().toLocaleString('zh-CN')}</em></span></div><div class="lx-buy-direct-detail"><button class="lx-buy-direct-detail-button" type="button" data-price-detail>查看价格明细</button><span>可修改优惠券/乐豆等优惠</span><button type="button" class="lx-benefit-info" data-benefit-info aria-label="优惠使用说明"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 11v6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="12" cy="7.5" r="1" fill="currentColor"/></svg></button></div></div><div class="lx-buy-direct-actions"><button type="button" data-edit-order>修改订单</button><button type="button" class="primary" data-pay-now>立即支付</button></div><p class="lx-buy-direct-footnote">*修改配置包括商品配置及数量；修改订单包括收货地址、支付方式、发票等</p></div>`;
     modal.innerHTML = `<div class="lx-buy-direct-mask"></div><section class="lx-buy-direct-dialog" role="dialog" aria-modal="true" aria-labelledby="lxBuyDirectTitle">${orderHtml()}</section>`;
     document.body.appendChild(modal);
     modal.querySelector('img')?.addEventListener('error', (event) => { event.currentTarget.src = FALLBACK_IMAGE; }, { once: true });
@@ -1443,6 +1446,7 @@ window.__lxAddressRegionsV142=[{"code":"11","name":"北京市","children":[{"cod
       if (target.closest('[data-confirm-payment]')) return showPaymentSuccess();
       if (target.closest('[data-view-paid-order]')) return openPaidOrderDetail();
       if (target.closest('[data-price-detail]')) return showPriceDetail();
+      if (target.closest('[data-benefit-info]')) return showToast('预订单支付前，优惠仍可用于其他商品;支付发票成功将锁定至本单，取消订单后自动释放', 6000);
       if (target.closest('[data-open-coupon-code]')) return showCouponCode();
       const benefitButton = target.closest('[data-open-benefit]');
       if (benefitButton) return benefitButton.dataset.openBenefit === 'coupon' ? showCouponSelect() : showWalletBenefit(benefitButton.dataset.openBenefit);
@@ -1955,4 +1959,3 @@ window.__lxAddressRegionsV142=[{"code":"11","name":"北京市","children":[{"cod
     }, 50);
   }
 })();
-
