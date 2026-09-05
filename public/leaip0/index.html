@@ -1073,8 +1073,11 @@ if (document.documentElement.classList.contains("lx-root-lxfd-prepaint")) {
     var tab = content.querySelector('.lx-tab[aria-selected="true"], .lx-tab.is-active');
     return tab && (tab.getAttribute('data-shop-tab-id') || tab.getAttribute('data-tab-id')) || '';
   }
+  var serviceActions = ["推荐购买第1款商品", "我要对比1、2"];
   var recommendationScene = {
-    labels: actions,
+    labels: function(content) {
+      return content.querySelector('.reco-page.lx-service-reco-page') ? serviceActions : actions;
+    },
     source: '.reco-page, .lx-reco-poc-page',
     identity: function(content) {
       var rows = content.querySelectorAll('.reco-row, .lx-reco-poc-row');
@@ -1092,6 +1095,16 @@ if (document.documentElement.classList.contains("lx-root-lxfd-prepaint")) {
   };
   window.__lxComposerButtonSuite.register('reco', recommendationScene);
   window.__lxComposerButtonSuite.register('recommendation', recommendationScene);
+  window.__lxComposerButtonSuite.register('service', {
+    labels: serviceActions,
+    source: '[data-member-service-page]',
+    identity: function(content) {
+      var page = content.querySelector('[data-member-service-page]');
+      return activeTabId(content) + ':' + Array.prototype.map.call(page.querySelectorAll('[data-service-id]'), function(row) { return row.getAttribute('data-service-id'); }).join('|');
+    },
+    ready: function(content) { return !!content.querySelector('[data-member-service-page] .reco-row[data-service-id]'); },
+    invoke: recommendationScene.invoke
+  });
   window.__lxComposerButtonSuite.register('detail', {
     labels: function(content) {
       var enterprise = /^\/(b-chat|biz-chat)(?:\/|$)/.test(location.pathname);
@@ -1388,7 +1401,9 @@ if (document.documentElement.classList.contains("lx-root-lxfd-prepaint")) {
   function syncPageScene() {
     syncSendCollapse();
     var content = getRightContent();
-    var scene = content && pageScenes[content.getAttribute('data-view')];
+    var servicePage = content && content.querySelector('[data-member-service-page]');
+    var serviceVisible = servicePage && servicePage.getBoundingClientRect().width && servicePage.getBoundingClientRect().height;
+    var scene = content && pageScenes[serviceVisible ? 'service' : content.getAttribute('data-view')];
     if (!scene) {
       if (currentScene) { currentScene = null; sceneCandidate = ''; hideCurrent(); document.querySelectorAll('.lx-smart-actions').forEach(function(panel) { panel.remove(); }); }
       if (wasSending) scheduleSync(100);
@@ -1398,7 +1413,7 @@ if (document.documentElement.classList.contains("lx-root-lxfd-prepaint")) {
     if (wasSending || content.getAttribute('aria-busy') === 'true' || content.classList.contains('is-generating-tab') || content.querySelector('.lx-page-generating') || !scene.ready(content)) {
       sceneCandidate = ''; sceneSince = 0; scheduleSync(100); return;
     }
-    var key = content.getAttribute('data-view') + ':' + scene.identity(content);
+    var key = (serviceVisible ? 'service' : content.getAttribute('data-view')) + ':' + scene.identity(content);
     var labels = typeof scene.labels === 'function' ? scene.labels(content) : scene.labels;
     var labelKey = JSON.stringify(labels);
     if (!currentScene || currentScene.key !== key) {
