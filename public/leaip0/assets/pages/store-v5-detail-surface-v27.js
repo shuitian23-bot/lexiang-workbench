@@ -968,10 +968,14 @@
             else showBeijingNearbyScenario();
           }
 
-          function openNavigation(store) {
+          function openNavigation(store, waitingSince) {
+            if ((!baiduMap || !map.classList.contains('is-baidu-ready') || !window.BMapGL || !BMapGL.DrivingRoute) && Date.now()-(waitingSince||Date.now())<25000) {
+              var started=waitingSince||Date.now();window.setTimeout(function(){if(page.isConnected)openNavigation(store,started);},150);return;
+            }
+            var silentNavigation = !!(options && options.navigationStore && options.navigationSilent);
             showSingleStoreScenario(store);
-            page.querySelector("[data-route-back]").hidden = false;
-            window.parent.postMessage({ type: "lx-store-navigation-query", store: store }, window.location.origin);
+            page.querySelector("[data-route-back]").hidden = !!(options && options.navigationStore);
+            if (!silentNavigation) window.parent.postMessage({ type: "lx-store-navigation-query", store: store }, window.location.origin);
             window.clearInterval(detailCarouselTimer);
             detailPage.classList.remove("is-active");
             appointmentMask.hidden = true;
@@ -991,9 +995,9 @@
               var baiduNavigationUrl = buildBaiduNavigationUrl(store);
               var navigationCard = navigationTurn && navigationTurn.querySelector('[data-card-action="baidu-navigation"]');
               if (navigationCard) navigationCard.dataset.baiduNavigationUrl = baiduNavigationUrl;
-              window.parent.postMessage({ type: "lx-store-navigation-result", store: store, result: Object.assign({}, routeResult), url: baiduNavigationUrl }, window.location.origin);
+              if (!silentNavigation) window.parent.postMessage({ type: "lx-store-navigation-result", store: store, result: Object.assign({}, routeResult), url: baiduNavigationUrl }, window.location.origin);
             }
-            var navigationTurn = appendAssistantTurn("驾车导航去" + store.name, routeAnswerHtml, "查看百度地图导航路线", null, "baidu-navigation", "门店导航服务");
+            var navigationTurn = silentNavigation ? null : appendAssistantTurn("驾车导航去" + store.name, routeAnswerHtml, "查看百度地图导航路线", null, "baidu-navigation", "门店导航服务");
             var routeTimeout = window.setTimeout(function () {
               if (!routeResult) { routeResult = { ok: false }; publishNavigationResult(); }
             }, 8000);
