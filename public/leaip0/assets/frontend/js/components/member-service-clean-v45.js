@@ -1445,6 +1445,10 @@
 
   function openDeviceDetail(deviceId) {
     if (!deviceCatalog[deviceId]) return;
+    if (embeddedHost && typeof window.__lxOpenDeviceDetailTab === "function") {
+      window.__lxOpenDeviceDetailTab({id:deviceId,name:deviceCatalog[deviceId].name});
+      return;
+    }
     var host = el("#leaiAuiView");
     state.deviceListScrollTop = host ? host.scrollTop : 0;
     state.deviceDetailOrigin = state.rightView === "devices" ? "devices" : "member";
@@ -2904,9 +2908,20 @@
   function mountMemberComponent(host, view, options) {
     if (!host) return false;
     syncStudentAuthState();
+    if (view === "devices") {
+      state.deviceFocusId = options && options.deviceDetailId && deviceCatalog[options.deviceDetailId] ? options.deviceDetailId : "";
+      state.deviceDetailOrigin = "devices";
+    }
     embeddedHost = host;
     embeddedHost.id = "leaiAuiView";
     embeddedHost.classList.add("leai-aui-view", "leai-aui-embedded");
+    embeddedHost.classList.toggle("lx-device-detail-tab", !!(options && options.deviceDetailId));
+    if (!document.getElementById("lx-device-detail-tab-style")) {
+      var detailTabStyle = document.createElement("style");
+      detailTabStyle.id = "lx-device-detail-tab-style";
+      detailTabStyle.textContent = '.lx-device-detail-tab [data-member-device-detail-page] .leai-page-back {display:none!important}';
+      document.head.appendChild(detailTabStyle);
+    }
     embeddedHost.hidden = false;
     if (view === "service" && window.__lxPendingWarrantyDeviceId) {
       state.serviceMode = "warranty";
