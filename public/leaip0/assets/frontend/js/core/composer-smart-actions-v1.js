@@ -44,6 +44,21 @@
       return page && page.querySelector('.reco-row, .lx-reco-poc-row') && /为你推荐|推荐商品|AI\s*推荐|服务推荐/.test(page.textContent || '');
     },
     invoke: function(content, label) {
+      var state = window.__lxState;
+      if (!isServiceRecommendation(content) && state && (label === actions[0] || label === actions[1])) {
+        var tab = (state.tabs || []).find(function(tab) { return tab.id === state.activeTabId; });
+        var page = visibleRecommendation(content);
+        var rows = page ? Array.from(page.querySelectorAll('.reco-row[data-sku], .lx-reco-poc-row[data-sku]')) : [];
+        var pool = tab && Array.isArray(tab.products) ? tab.products : [];
+        var products = rows.length ? rows.map(function(row) { return pool.find(function(p) { return String(p.sku) === row.getAttribute('data-sku'); }); }) : pool;
+        var indices = label === actions[0] ? [1] : [0,2,3];
+        var selected = indices.map(function(index) { return products[index]; });
+        if (selected.every(function(p) { return p && p.sku; })) {
+          state.refProducts = label === actions[1] ? selected.map(function(p) { return Object.assign({}, p); }) : [];
+          state.refProduct = null;
+          state._composerRecoPurchase = label === actions[0] ? {query:label,product:Object.assign({},selected[0])} : null;
+        } else { return; }
+      }
       if (window.__lxBridge && window.__lxBridge.sendChat) window.__lxBridge.sendChat(label);
     }
   };
