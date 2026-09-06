@@ -59,6 +59,24 @@
     ready: function(content) { return !!content.querySelector('[data-member-service-page] .reco-row[data-service-id]'); },
     invoke: recommendationScene.invoke
   });
+  function storeDocument(content) {
+    var frame = content.querySelector('.lx-store-exact-frame iframe');
+    try { return frame && frame.contentDocument; } catch (e) { return null; }
+  }
+  window.__lxComposerButtonSuite.register('stores', {
+    labels: ['我要预约这个门店', '我要导航到这个门店'],
+    source: '.lx-store-exact-frame',
+    identity: function(content) { return activeTabId(content) || 'stores'; },
+    ready: function(content) { var doc = storeDocument(content); return !!(doc && doc.querySelector('[data-prototype-action="导航"]')); },
+    invoke: function(content, label) {
+      var doc = storeDocument(content); if (!doc) return;
+      var action = label === '我要预约这个门店' ? '预约' : '导航';
+      var detail = doc.querySelector('.lx-store-detail-page.is-active');
+      var target = detail && detail.querySelector('[data-detail-action="' + action + '"]') || doc.querySelector('[data-prototype-action="' + action + '"]');
+      if (target) target.click();
+      else if (window.__lxBridge && window.__lxBridge.sendChat) window.__lxBridge.sendChat(label);
+    }
+  });
   window.__lxComposerButtonSuite.register('devices', {
     labels: ['一键绑定', '绑定其他设备'],
     source: '.leai-device-center',
@@ -384,7 +402,9 @@
     var serviceVisible = servicePage && servicePage.getBoundingClientRect().width && servicePage.getBoundingClientRect().height;
     var devicePage = content && content.querySelector('.leai-device-center');
     var deviceVisible = devicePage && devicePage.getBoundingClientRect().width && devicePage.getBoundingClientRect().height;
-    var scene = content && pageScenes[deviceVisible ? 'devices' : serviceVisible ? 'service' : content.getAttribute('data-view')];
+    var storePage = content && content.querySelector('.lx-store-exact-frame');
+    var storeVisible = storePage && storePage.getBoundingClientRect().width && storePage.getBoundingClientRect().height;
+    var scene = content && pageScenes[storeVisible ? 'stores' : deviceVisible ? 'devices' : serviceVisible ? 'service' : content.getAttribute('data-view')];
     if (!scene) {
       if (currentScene) { currentScene = null; sceneCandidate = ''; hideCurrent(); document.querySelectorAll('.lx-smart-actions').forEach(function(panel) { panel.remove(); }); }
       if (wasSending) scheduleSync(100);
@@ -394,7 +414,7 @@
     if (wasSending || content.getAttribute('aria-busy') === 'true' || content.classList.contains('is-generating-tab') || content.querySelector('.lx-page-generating') || !scene.ready(content)) {
       sceneCandidate = ''; sceneSince = 0; scheduleSync(100); return;
     }
-    var key = (deviceVisible ? 'devices' : serviceVisible || scene === recommendationScene && isServiceRecommendation(content) ? 'service' : content.getAttribute('data-view')) + ':' + scene.identity(content);
+    var key = (storeVisible ? 'stores' : deviceVisible ? 'devices' : serviceVisible || scene === recommendationScene && isServiceRecommendation(content) ? 'service' : content.getAttribute('data-view')) + ':' + scene.identity(content);
     var labels = typeof scene.labels === 'function' ? scene.labels(content) : scene.labels;
     var labelKey = JSON.stringify(labels);
     if (!currentScene || currentScene.key !== key) {
