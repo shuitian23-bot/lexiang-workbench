@@ -87,6 +87,17 @@
       else if (window.__lxBridge && window.__lxBridge.sendChat) window.__lxBridge.sendChat(label);
     }
   });
+  window.__lxComposerButtonSuite.register('solutions', {
+    labels: function(content) {
+      var page = content.querySelector('.lx-solution-center-page');
+      var industry = page && page.getAttribute('data-solution-selected');
+      return ['请专家联系我', industry && industry !== 'all' ? '对比1、3、4方案' : '对比教育行业的2、3方案'];
+    },
+    source: '.lx-solution-center-page',
+    identity: function(content) { var page = content.querySelector('.lx-solution-center-page'); return (activeTabId(content) || 'solutions') + ':' + (page.getAttribute('data-solution-selected') || 'all'); },
+    ready: function(content) { return !!content.querySelector('.lx-solution-center-page .lx-solution-card'); },
+    invoke: recommendationScene.invoke
+  });
   window.__lxComposerButtonSuite.register('devices', {
     labels: ['一键绑定', '绑定其他设备'],
     source: '.leai-device-center',
@@ -420,7 +431,9 @@
     var deviceVisible = devicePage && devicePage.getBoundingClientRect().width && devicePage.getBoundingClientRect().height;
     var storePage = content && content.querySelector('.lx-store-component-host, .lx-store-exact-frame');
     var storeVisible = storePage && storePage.getBoundingClientRect().width && storePage.getBoundingClientRect().height;
-    var scene = content && pageScenes[storeVisible ? 'stores' : deviceVisible ? 'devices' : serviceVisible ? 'service' : content.getAttribute('data-view')];
+    var solutionPage = content && content.querySelector('.lx-solution-center-page');
+    var solutionVisible = solutionPage && solutionPage.getBoundingClientRect().width && solutionPage.getBoundingClientRect().height;
+    var scene = content && pageScenes[solutionVisible ? 'solutions' : storeVisible ? 'stores' : deviceVisible ? 'devices' : serviceVisible ? 'service' : content.getAttribute('data-view')];
     if (!scene) {
       if (currentScene) { currentScene = null; sceneCandidate = ''; hideCurrent(); document.querySelectorAll('.lx-smart-actions').forEach(function(panel) { panel.remove(); }); }
       if (wasSending) scheduleSync(100);
@@ -430,7 +443,7 @@
     if (wasSending || content.getAttribute('aria-busy') === 'true' || content.classList.contains('is-generating-tab') || content.querySelector('.lx-page-generating') || !scene.ready(content)) {
       sceneCandidate = ''; sceneSince = 0; scheduleSync(100); return;
     }
-    var key = (storeVisible ? 'stores' : deviceVisible ? 'devices' : serviceVisible || scene === recommendationScene && isServiceRecommendation(content) ? 'service' : content.getAttribute('data-view')) + ':' + scene.identity(content);
+    var key = (solutionVisible ? 'solutions' : storeVisible ? 'stores' : deviceVisible ? 'devices' : serviceVisible || scene === recommendationScene && isServiceRecommendation(content) ? 'service' : content.getAttribute('data-view')) + ':' + scene.identity(content);
     var labels = typeof scene.labels === 'function' ? scene.labels(content) : scene.labels;
     var labelKey = JSON.stringify(labels);
     if (!currentScene || currentScene.key !== key) {
@@ -483,7 +496,7 @@
     lastUserMessageSignature = userMessageSignature();
     var observer = new MutationObserver(function() { scheduleSync(); });
     document.querySelectorAll('.content, .assistant-panel, #lxfdThread').forEach(function(root) {
-      observer.observe(root, {childList:true,subtree:true,attributes:true,attributeFilter:['class','data-view','aria-busy','aria-selected','data-variant-sku']});
+      observer.observe(root, {childList:true,subtree:true,attributes:true,attributeFilter:['class','data-view','aria-busy','aria-selected','data-variant-sku','data-solution-selected']});
     });
     observer.observe(document.body, {attributes:true,attributeFilter:['class']});
     observer.observe(document.documentElement, {attributes:true,attributeFilter:['class']});
