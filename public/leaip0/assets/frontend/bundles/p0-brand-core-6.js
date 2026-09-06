@@ -158,7 +158,7 @@
       var primary = content && content.querySelector('.product-detail .detail-actions .detail-primary');
       var labels = enterprise && primary && primary.textContent.trim() === '一键领优惠下单' ? ['咨询客服'] : [];
       var skus = content ? Array.prototype.map.call(content.querySelectorAll('.lx-spu-chip[data-variant-sku]'), function(chip) { return chip.getAttribute('data-variant-sku'); }).filter(Boolean) : [];
-      if (new Set(skus).size > 1) labels.push('对比所有系列');
+      if (new Set(skus).size > 1) labels.unshift('对比所有系列');
       return labels;
     },
     source: '.product-detail',
@@ -176,12 +176,24 @@
     },
     invoke: function(content, label) {
       if (label === '咨询客服') {
-        if (window.__lxBridge && window.__lxBridge.sendChat) window.__lxBridge.sendChat('咨询客服');
+        window.open('https://b.lenovo.com.cn/activity/qygzxdhym.html', '_blank', 'noopener,noreferrer');
         return;
       }
-      var compare = content.querySelector('[data-spu-compare]');
-      if (compare) { compare.click(); return; }
-      if (window.__lxBridge && window.__lxBridge.sendChat) window.__lxBridge.sendChat('对比当前商品的所有系列配置');
+      var state = window.__lxState;
+      if (!state) return;
+      var seen = new Set();
+      var products = Array.from(content.querySelectorAll('.lx-spu-chip[data-variant-sku]')).map(function(chip) {
+        var sku = chip.getAttribute('data-variant-sku');
+        if (!sku || seen.has(sku)) return null;
+        seen.add(sku);
+        var cached = state.officialProducts && state.officialProducts[sku];
+        return Object.assign({}, cached || {}, {sku:sku,name:cached && cached.name || chip.getAttribute('title') || state.currentProduct && state.currentProduct.name || '当前系列商品'});
+      }).filter(Boolean);
+      if (products.length < 2) return;
+      state.refProducts = products;
+      state.refProduct = null;
+      state._composerRecoPurchase = null;
+      if (window.__lxBridge && window.__lxBridge.sendChat) window.__lxBridge.sendChat('对比所有系列');
     }
   });
   function getRightContent() {
