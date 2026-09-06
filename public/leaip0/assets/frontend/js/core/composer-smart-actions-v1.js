@@ -111,8 +111,7 @@
     ready: function(content) { return !!content.querySelector('.lx-solution-center-page .lx-solution-card'); },
     invoke: function(content, label) {
       if (label === '请专家联系我') {
-        var expert = document.querySelector('.lx-cmp-floating-cta');
-        if (expert) { expert.click(); return; }
+        if (window.__lxState) { window.__lxState.refProducts = []; window.__lxState.refProduct = null; }
         recommendationScene.invoke(content, label); return;
       }
       var page = content.querySelector('.lx-solution-center-page');
