@@ -512,6 +512,12 @@
     scheduleSync();
   }
   function init() {
+    if (!document.getElementById('lx-solution-list-header-hidden')) {
+      var solutionStyle = document.createElement('style');
+      solutionStyle.id = 'lx-solution-list-header-hidden';
+      solutionStyle.textContent = '.info-page:has(> .lx-solution-center-page) > .reco-head, .lx-solution-center-page > .lx-solution-tabs { display: none !important; }';
+      document.head.appendChild(solutionStyle);
+    }
     lastUserMessageSignature = userMessageSignature();
     var observer = new MutationObserver(function() { scheduleSync(); });
     document.querySelectorAll('.content, .assistant-panel, #lxfdThread').forEach(function(root) {
