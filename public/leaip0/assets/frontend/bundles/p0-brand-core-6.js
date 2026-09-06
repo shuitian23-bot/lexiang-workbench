@@ -67,10 +67,18 @@
   }
   window.__lxComposerButtonSuite.register('stores', {
     labels: ['我要预约这个门店', '我要导航到这个门店'],
-    source: '.lx-store-exact-frame',
+    source: '.lx-store-component-host, .lx-store-exact-frame',
     identity: function(content) { return activeTabId(content) || 'stores'; },
-    ready: function(content) { var doc = storeDocument(content); return !!(doc && doc.querySelector('[data-prototype-action="导航"]')); },
+    ready: function(content) { var host = content.querySelector('.lx-store-component-host'); if (host && host.__lxStoreApi) return !!host.__lxStoreApi.getCurrentStore(); var doc = storeDocument(content); return !!(doc && doc.querySelector('[data-prototype-action="导航"]')); },
     invoke: function(content, label) {
+      var host = content.querySelector('.lx-store-component-host');
+      var api = host && host.__lxStoreApi;
+      if (api) {
+        var store = api.getCurrentStore(); if (!store) return;
+        if (label === '我要预约这个门店') api.openAppointment(store.id);
+        else api.openNavigation(store.id);
+        return;
+      }
       var doc = storeDocument(content); if (!doc) return;
       var action = label === '我要预约这个门店' ? '预约' : '导航';
       var detail = doc.querySelector('.lx-store-detail-page.is-active');
@@ -231,6 +239,12 @@
     guide.style.height = sourceRect.height + "px";
 
     var snapshot = sourceView.cloneNode(true);
+    if (sourceView.shadowRoot) {
+      var visual = sourceView.shadowRoot.querySelector('.lx-store-page') || sourceView.shadowRoot.querySelector('main') || sourceView.shadowRoot;
+      snapshot = document.createElement('div');
+      var shadow = snapshot.attachShadow({mode:'open'});
+      Array.prototype.forEach.call(sourceView.shadowRoot.children, function(node) { if (node.tagName !== 'SCRIPT') shadow.appendChild(node.cloneNode(true)); });
+    }
     snapshot.removeAttribute("id");
     snapshot.classList.add("lx-smart-actions-snapshot-content");
     snapshot.querySelectorAll("script, iframe, video, audio").forEach(function (node) {
@@ -404,7 +418,7 @@
     var serviceVisible = servicePage && servicePage.getBoundingClientRect().width && servicePage.getBoundingClientRect().height;
     var devicePage = content && content.querySelector('.leai-device-center');
     var deviceVisible = devicePage && devicePage.getBoundingClientRect().width && devicePage.getBoundingClientRect().height;
-    var storePage = content && content.querySelector('.lx-store-exact-frame');
+    var storePage = content && content.querySelector('.lx-store-component-host, .lx-store-exact-frame');
     var storeVisible = storePage && storePage.getBoundingClientRect().width && storePage.getBoundingClientRect().height;
     var scene = content && pageScenes[storeVisible ? 'stores' : deviceVisible ? 'devices' : serviceVisible ? 'service' : content.getAttribute('data-view')];
     if (!scene) {
