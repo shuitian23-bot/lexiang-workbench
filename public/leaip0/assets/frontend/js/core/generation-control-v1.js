@@ -89,6 +89,7 @@
       node._pendingExtras=null;node._afterAnswer=[];node.classList.remove('loading');
       node.querySelectorAll('.loading-line,.lx-generating,.typing-cursor,.lxfd-typing').forEach(el=>el.remove());
       node.querySelectorAll('.streaming').forEach(el=>el.classList.remove('streaming'));
+      node.querySelectorAll('.lx-skill-trace-item.current').forEach(el=>el.classList.remove('current'));
       const body=node.querySelector('.ai-body,.lxfd-ai-body')||node;
       node._raw=(body.querySelector('.lxfd-ai-text,.lx-msg-text')||body).textContent.trim();
       if(!body.querySelector('[data-lx-generation-stopped]')){const status=document.createElement('p');status.dataset.lxGenerationStopped='true';status.className='lx-p0-disclaimer';status.setAttribute('role','status');status.textContent='已停止生成';body.append(status);}
@@ -104,6 +105,7 @@
   const style=document.createElement('style');style.id='lx-stop-generation-style';
   const stopSelector='html body #lxfdSend.lx-stop-generation,html body .assistant-panel button.send-btn.lx-stop-generation,html body .hero-send-btn.lx-stop-generation';
   style.textContent=`:is(${stopSelector}){position:relative!important;opacity:1!important;cursor:pointer!important;background:linear-gradient(90deg,#4d144a 11.9%,#b8252e 100%)!important;border-radius:50%!important}:is(${stopSelector})>*{visibility:hidden!important}:is(${stopSelector})::after{content:""!important;display:block!important;visibility:visible!important;opacity:1!important;position:absolute;left:50%;top:50%;width:12px;height:12px;transform:translate(-50%,-50%);border-radius:2px;background:#FFFFFF}:is(${stopSelector}):focus-visible{outline:2px solid #4d144a;outline-offset:3px}:is(${stopSelector}):active{transform:scale(.96)}[data-lx-generation-stopped]{color:#979797;font-size:12px;line-height:1.6}`;
+  style.textContent += ":is(.ai-body,.lxfd-ai-body):has([data-lx-generation-stopped]) .lx-skill-trace-item{animation:none!important;background:none!important;-webkit-text-fill-color:#979797!important;color:#979797!important;font-weight:400!important}:is(.ai-body,.lxfd-ai-body):has([data-lx-generation-stopped]) .lx-skill-trace-item::after{animation:none!important;content:none!important}";
   (document.head||document.documentElement).append(style);
   window.addEventListener('click',event=>{if(event.target.closest?.(buttons)&&busy()){event.preventDefault();event.stopImmediatePropagation();stop();}},true);
   window.addEventListener('submit',event=>{if(event.target.matches?.('.composer,.lxfd-composer,.hero-composer')&&busy()){event.preventDefault();event.stopImmediatePropagation();}},true);
