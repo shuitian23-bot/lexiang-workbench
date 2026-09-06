@@ -921,7 +921,6 @@
             window.__lxStoreCurrentStore = store;
             appointment.storeId = store.id;
             appointmentEditMode = false;
-            showSingleStoreScenario(store);
             openAppointmentSummary(false);
             var answer = '<p>已为你准备前往 <b>' + store.name + '</b> 的到店预约，请在右侧确认或修改门店、到店时间与预约目的。</p><ul><li><b>门店：</b>' + store.name + '</li><li><b>营业时间：</b>' + store.hours + '</li><li><b>联系电话：</b>' + store.phone + '</li></ul>';
             appendAssistantTurn("预约" + store.name, answer, "预约信息待确认", null, "appointment-pending", "门店预约服务");
