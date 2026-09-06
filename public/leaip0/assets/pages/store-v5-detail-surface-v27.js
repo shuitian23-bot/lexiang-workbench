@@ -1599,6 +1599,7 @@
     host.__lxStoreApi = api;
     mounted.set(host, api);
     if (options && options.detailStore) sendCommand("lx-store-open-detail-tab", {storeId: options.detailStore});
+    if (options && options.navigationStore) sendCommand("lx-store-open-navigation", {storeId: options.navigationStore});
     return api;
   }
 

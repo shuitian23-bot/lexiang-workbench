@@ -90,13 +90,16 @@
       var api = host && host.__lxStoreApi;
       if (api) {
         var store = api.getCurrentStore(); if (!store) return;
+        var isDetail = !!(window.__lxState && String(window.__lxState.activeTabId).startsWith('info:store-detail:'));
         if (label === '我要预约这个门店') {
           window.__lxPendingStoreAppointment = Object.assign({}, store, {tel:store.tel || store.phone});
           window.__lxStoreAppointmentById = window.__lxStoreAppointmentById || {};
           window.__lxStoreAppointmentById[String(store.id)] = window.__lxPendingStoreAppointment;
           if (window.__lxState) { window.__lxState.refProducts = []; window.__lxState.refProduct = null; }
+          if (isDetail && window.__lxOpenFeature) window.__lxOpenFeature('stores');
           if (window.__lxBridge && window.__lxBridge.sendChat) window.__lxBridge.sendChat(label);
         }
+        else if (isDetail && window.__lxOpenStoreNavigationTab) { window.__lxStoreNavigationQuery = label; window.__lxOpenStoreNavigationTab(store); }
         else api.openNavigation(store.id);
         return;
       }
