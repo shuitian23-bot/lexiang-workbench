@@ -1153,7 +1153,28 @@ if (document.documentElement.classList.contains("lx-root-lxfd-prepaint")) {
     source: '.lx-solution-center-page',
     identity: function(content) { var page = content.querySelector('.lx-solution-center-page'); return (activeTabId(content) || 'solutions') + ':' + (page.getAttribute('data-solution-selected') || 'all'); },
     ready: function(content) { return !!content.querySelector('.lx-solution-center-page .lx-solution-card'); },
-    invoke: recommendationScene.invoke
+    invoke: function(content, label) {
+      if (label === '请专家联系我') {
+        var expert = document.querySelector('.lx-cmp-floating-cta');
+        if (expert) { expert.click(); return; }
+        recommendationScene.invoke(content, label); return;
+      }
+      var page = content.querySelector('.lx-solution-center-page');
+      var industry = page.getAttribute('data-solution-selected');
+      var all = !industry || industry === 'all';
+      var floor = Array.prototype.find.call(page.querySelectorAll('.lx-solution-floor'), function(node) { return node.getAttribute('data-solution-industry') === (all ? '教育' : industry); });
+      if (!floor) return;
+      var cards = floor.querySelectorAll('.lx-solution-card');
+      var refs = (all ? [1,2] : [0,2,3]).map(function(index) {
+        var card = cards[index]; if (!card) return null;
+        var title = card.getAttribute('data-solution-title');
+        return {type:'solution',sku:'solution:' + title,name:title,sector:card.getAttribute('data-solution-sector'),scenario:card.getAttribute('data-solution-scenario'),description:card.getAttribute('data-solution-intro'),img:card.querySelector('img') && card.querySelector('img').getAttribute('src')};
+      }).filter(Boolean);
+      if (refs.length < 2 || !window.__lxState) return;
+      window.__lxState.refProducts = refs;
+      window.__lxState.refProduct = null;
+      recommendationScene.invoke(content, '对比这些解决方案：' + refs.map(function(ref) { return '「' + ref.name + '」'; }).join('、'));
+    }
   });
   window.__lxComposerButtonSuite.register('devices', {
     labels: ['一键绑定', '绑定其他设备'],
