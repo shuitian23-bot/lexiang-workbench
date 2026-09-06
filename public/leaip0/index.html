@@ -1570,7 +1570,28 @@ if (document.documentElement.classList.contains("lx-root-lxfd-prepaint")) {
     });
     scheduleSync();
   }
+  function activateDeviceRow(event) {
+    var row = event.target.closest && event.target.closest('[data-device-unified-list] [data-device-list-item]');
+    if (!row || event.target.closest('button, a, input, select, textarea')) return;
+    if (event.type === 'keydown' && event.key !== 'Enter' && event.key !== ' ') return;
+    var action = row.querySelector('[data-device-detail]');
+    if (!action) return;
+    event.preventDefault();
+    action.click();
+  }
+  function prepareDeviceRows() {
+    document.querySelectorAll('[data-device-unified-list] [data-device-list-item]').forEach(function(row) {
+      if (!row.querySelector('[data-device-detail]')) return;
+      if (!row.hasAttribute('tabindex')) row.setAttribute('tabindex', '0');
+      row.style.cursor = 'pointer';
+    });
+  }
   function init() {
+    document.addEventListener('click', activateDeviceRow);
+    document.addEventListener('keydown', activateDeviceRow);
+    var deviceRowObserver = new MutationObserver(prepareDeviceRows);
+    deviceRowObserver.observe(document.body, {childList:true, subtree:true});
+    prepareDeviceRows();
     if (!document.getElementById('lx-solution-list-header-hidden')) {
       var solutionStyle = document.createElement('style');
       solutionStyle.id = 'lx-solution-list-header-hidden';
