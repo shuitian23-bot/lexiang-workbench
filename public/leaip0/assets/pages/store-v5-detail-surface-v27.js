@@ -997,7 +997,7 @@
               if (navigationCard) navigationCard.dataset.baiduNavigationUrl = baiduNavigationUrl;
               if (!silentNavigation) window.parent.postMessage({ type: "lx-store-navigation-result", store: store, result: Object.assign({}, routeResult), url: baiduNavigationUrl }, window.location.origin);
             }
-            var navigationTurn = silentNavigation ? null : appendAssistantTurn("驾车导航去" + store.name, routeAnswerHtml, "查看百度地图导航路线", null, "baidu-navigation", "门店导航服务");
+            var navigationTurn = silentNavigation ? null : appendAssistantTurn("驾车导航去" + store.name, routeAnswerHtml, options && options.navigationStore ? null : "查看百度地图导航路线", null, "baidu-navigation", "门店导航服务");
             var routeTimeout = window.setTimeout(function () {
               if (!routeResult) { routeResult = { ok: false }; publishNavigationResult(); }
             }, 8000);
