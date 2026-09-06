@@ -1139,7 +1139,10 @@ if (document.documentElement.classList.contains("lx-root-lxfd-prepaint")) {
     try { return frame && frame.contentDocument; } catch (e) { return null; }
   }
   window.__lxComposerButtonSuite.register('stores', {
-    labels: ['我要预约这个门店', '我要导航到这个门店'],
+    labels: function() {
+      var id = window.__lxState && window.__lxState.activeTabId;
+      return String(id || '').startsWith('info:store-navigation:') ? ['我要预约这个门店'] : ['我要预约这个门店', '我要导航到这个门店'];
+    },
     source: '.lx-store-component-host, .lx-store-exact-frame',
     identity: function(content) { return activeTabId(content) || 'stores'; },
     ready: function(content) { var host = content.querySelector('.lx-store-component-host'); if (host && host.__lxStoreApi) return !!host.__lxStoreApi.getCurrentStore(); var doc = storeDocument(content); return !!(doc && doc.querySelector('[data-prototype-action="导航"]')); },
