@@ -100,6 +100,16 @@
       else if (window.__lxBridge && window.__lxBridge.sendChat) window.__lxBridge.sendChat(label);
     }
   });
+  window.__lxComposerButtonSuite.register('solution-detail', {
+    labels: ['请专家联系我'],
+    source: '.lx-specific-solution-detail',
+    identity: function(content) { var title = content.querySelector('.lx-specific-solution-detail h1'); return (activeTabId(content) || 'solution-detail') + ':' + (title ? title.textContent.trim() : ''); },
+    ready: function(content) { var title = content.querySelector('.lx-specific-solution-detail h1'); return !!title && !!title.textContent.trim(); },
+    invoke: function(content, label) {
+      if (window.__lxState) { window.__lxState.refProducts = []; window.__lxState.refProduct = null; }
+      if (window.__lxBridge && window.__lxBridge.sendChat) window.__lxBridge.sendChat(label);
+    }
+  });
   window.__lxComposerButtonSuite.register('solutions', {
     labels: function(content) {
       var page = content.querySelector('.lx-solution-center-page');
@@ -476,9 +486,11 @@
     var deviceVisible = devicePage && devicePage.getBoundingClientRect().width && devicePage.getBoundingClientRect().height;
     var storePage = content && content.querySelector('.lx-store-component-host, .lx-store-exact-frame');
     var storeVisible = storePage && storePage.getBoundingClientRect().width && storePage.getBoundingClientRect().height;
+    var solutionDetail = content && content.querySelector('.lx-specific-solution-detail');
+    var solutionDetailVisible = solutionDetail && solutionDetail.getBoundingClientRect().width && solutionDetail.getBoundingClientRect().height;
     var solutionPage = content && content.querySelector('.lx-solution-center-page');
     var solutionVisible = solutionPage && solutionPage.getBoundingClientRect().width && solutionPage.getBoundingClientRect().height;
-    var scene = content && pageScenes[solutionVisible ? 'solutions' : storeVisible ? 'stores' : deviceVisible ? 'devices' : serviceVisible ? 'service' : content.getAttribute('data-view')];
+    var scene = content && pageScenes[solutionDetailVisible ? 'solution-detail' : solutionVisible ? 'solutions' : storeVisible ? 'stores' : deviceVisible ? 'devices' : serviceVisible ? 'service' : content.getAttribute('data-view')];
     if (!scene) {
       if (currentScene) { currentScene = null; sceneCandidate = ''; hideCurrent(); document.querySelectorAll('.lx-smart-actions').forEach(function(panel) { panel.remove(); }); }
       if (wasSending) scheduleSync(100);
@@ -488,7 +500,7 @@
     if (wasSending || content.getAttribute('aria-busy') === 'true' || content.classList.contains('is-generating-tab') || content.querySelector('.lx-page-generating') || !scene.ready(content)) {
       sceneCandidate = ''; sceneSince = 0; scheduleSync(100); return;
     }
-    var key = (solutionVisible ? 'solutions' : storeVisible ? 'stores' : deviceVisible ? 'devices' : serviceVisible || scene === recommendationScene && isServiceRecommendation(content) ? 'service' : content.getAttribute('data-view')) + ':' + scene.identity(content);
+    var key = (solutionDetailVisible ? 'solution-detail' : solutionVisible ? 'solutions' : storeVisible ? 'stores' : deviceVisible ? 'devices' : serviceVisible || scene === recommendationScene && isServiceRecommendation(content) ? 'service' : content.getAttribute('data-view')) + ':' + scene.identity(content);
     var labels = typeof scene.labels === 'function' ? scene.labels(content) : scene.labels;
     var labelKey = JSON.stringify(labels);
     if (!currentScene || currentScene.key !== key) {
