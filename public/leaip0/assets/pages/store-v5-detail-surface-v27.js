@@ -1062,13 +1062,11 @@
             event.preventDefault();
             event.stopPropagation();
             var store = stores.find(function (item) { return item.id === detailTrigger.dataset.openStoreDetail; }) || stores[0];
-            activeStore = store;
-            detailPage.innerHTML = storeDetailMarkup(store);
-            detailPage.classList.add("is-active");
-            window.parent.postMessage({ type: "lx-store-detail-state", active: true }, window.location.origin);
-            window.requestAnimationFrame(syncStoreDetailHeroHeight);
-            startDetailCarousel(true);
-            detailPage.querySelector("[data-back-store-map]").focus();
+            if (typeof window.__lxOpenStoreDetailTab === "function") {
+              window.__lxOpenStoreDetailTab(store);
+              return;
+            }
+            showStoreDetail(store);
           }, true);
           content.addEventListener("keydown", function (event) {
             if (event.key !== "Enter" && event.key !== " ") return;
@@ -1081,6 +1079,18 @@
             if (detailPage.classList.contains("is-active")) syncStoreDetailHeroHeight();
           });
 
+          function showStoreDetail(store) {
+            activeStore = store;
+            window.__lxStoreCurrentStore = store;
+            detailPage.innerHTML = storeDetailMarkup(store);
+            detailPage.classList.add("is-active");
+            if (options && options.detailStore) detailPage.querySelector("[data-back-store-map]")?.remove();
+            window.parent.postMessage({ type: "lx-store-detail-state", active: true }, window.location.origin);
+            window.requestAnimationFrame(syncStoreDetailHeroHeight);
+            startDetailCarousel(true);
+            var title = detailPage.querySelector(".lx-store-detail-page-title");
+            if (title) { title.tabIndex = -1; title.focus(); }
+          }
           function selectStore(id) {
             var store = stores.find(function (item) { return item.id === id; }) || stores[0];
             activeStore = store;
@@ -1484,6 +1494,11 @@
           window.addEventListener("message", function (event) {
             if (event.source !== window.parent || event.origin !== window.location.origin) return;
             var data = event.data || {};
+            if (data.type === "lx-store-open-detail-tab") {
+              var detailStore = stores.find(function (store) { return String(store.id) === String(data.storeId); });
+              if (detailStore) showStoreDetail(detailStore);
+              return;
+            }
             if (data.type === "lx-store-run-query") {
               var query = String(data.query || "").trim();
               if (/预约|预订/.test(query)) {
@@ -1584,6 +1599,7 @@
     };
     host.__lxStoreApi = api;
     mounted.set(host, api);
+    if (options && options.detailStore) sendCommand("lx-store-open-detail-tab", {storeId: options.detailStore});
     return api;
   }
 
