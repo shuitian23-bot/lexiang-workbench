@@ -161,6 +161,16 @@
   window.addEventListener('submit',event=>{if(replaying||ready('orders')||!event.target.matches?.('.assistant-panel .composer,.lxfd-composer')||!isOrder(event.target.querySelector('textarea')))return;const form=event.target;intercept(event,'orders',()=>form.dispatchEvent(new Event('submit',{bubbles:true,cancelable:true})));},true);
 })();
 </script>
+<style id="lx-detail-list-background">
+/* Product detail canvas uses the same subtle gradient as product lists. */
+html body[data-page]:not(.assistant-fullscreen):not(.lx-auto-fs) main.shell > section.content[data-view="detail"]:has(.product-detail) {
+  background-color:#f5f5f7!important;
+  background-image:linear-gradient(180deg,#fff 0,#fff 74px,#fefefe 96px,#fafafa 122px,#f7f7f8 164px,#f5f5f7 214px,#f5f5f7 100%)!important;
+  background-repeat:no-repeat!important;
+  background-size:100% 100%!important;
+  background-position:left top!important;
+}
+</style>
 </head>
   <body data-page="business" data-state="default">
     <script src="/assets/frontend/bundles/p0-smb-core-2.js?p0v=4c83dffe83802597"></script>

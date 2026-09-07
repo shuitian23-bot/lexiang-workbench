@@ -463,6 +463,16 @@ html.lx-root-lxfd-prepaint body{overflow:hidden!important;background:#fcfaff}
 <link rel="stylesheet" href="/assets/frontend/css/core/assistant-scrollbar-hidden-v1.css?p0v=f523ecbede3f74a8" />
 <link rel="stylesheet" href="/assets/frontend/css/core/empty-hover-backplate-collapse-v1.css?p0v=ecb2fd0eb78d7559">
 <meta name="p0-performance-version" content="p0-perf-20260904-v1">
+<style id="lx-detail-list-background">
+/* Product detail canvas uses the same subtle gradient as product lists. */
+html body[data-page]:not(.assistant-fullscreen):not(.lx-auto-fs) main.shell > section.content[data-view="detail"]:has(.product-detail) {
+  background-color:#f5f5f7!important;
+  background-image:linear-gradient(180deg,#fff 0,#fff 74px,#fefefe 96px,#fafafa 122px,#f7f7f8 164px,#f5f5f7 214px,#f5f5f7 100%)!important;
+  background-repeat:no-repeat!important;
+  background-size:100% 100%!important;
+  background-position:left top!important;
+}
+</style>
 </head>
   <body data-state="default">
     <script  data-p0-inline-source="/assets/frontend/js/pages/home/inline-08.js">
