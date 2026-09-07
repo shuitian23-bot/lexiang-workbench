@@ -128,6 +128,17 @@
   window.addEventListener('submit',event=>{if(replaying||ready('orders')||!event.target.matches?.('.assistant-panel .composer,.lxfd-composer')||!isOrder(event.target.querySelector('textarea')))return;const form=event.target;intercept(event,'orders',()=>form.dispatchEvent(new Event('submit',{bubbles:true,cancelable:true})));},true);
 })();
 </script>
+<style id="lx-brand-fluid-width">
+/* Brand content follows its result pane, including resized split layouts. */
+body[data-page="brand"] .shell > .content > .brand-page.brand {
+  width:100%!important;inline-size:100%!important;max-width:none!important;max-inline-size:none!important;min-width:0!important;box-sizing:border-box;container-type:inline-size;
+}
+body[data-page="brand"] .brand-page.brand > * {min-width:0;max-width:100%;box-sizing:border-box}
+body[data-page="brand"] .brand-page.brand .bento {grid-template-columns:minmax(0,1.3fr) minmax(0,1fr)}
+body[data-page="brand"] .brand-page.brand .bento > * {min-width:0}
+@container(max-width:860px){body[data-page="brand"] .brand-page.brand .bento{grid-template-columns:minmax(0,1fr)}body[data-page="brand"] .brand-page.brand .tl3{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@container(max-width:540px){body[data-page="brand"] .brand-page.brand .tl3{grid-template-columns:minmax(0,1fr)}body[data-page="brand"] .brand-page.brand .hero .inner{padding:24px}body[data-page="brand"] .brand-page.brand .hero .chips{flex-wrap:wrap}}
+</style>
 </head>
   <body data-page="brand" data-state="default">
     <script src="/assets/frontend/bundles/p0-brand-core-2.js?p0v=4c83dffe83802597"></script>
