@@ -17742,6 +17742,7 @@ async function openEduZone() {
           }
 
           function showChannelRecommendation(channel, navKey) {
+            document.body.classList.remove("lx-appointment-map-only");
             activeChannel = channel === "business" ? "business" : "personal";
             clearDrivingRoute();
             window.clearInterval(detailCarouselTimer);
@@ -17939,13 +17940,13 @@ async function openEduZone() {
           }
 
           function openPhoneBindingAppointment(store) {
+            prepareAppointmentBackdrop();
             activeStore = store;
             window.__lxStoreCurrentStore = store;
             appointment.storeId = store.id;
             appointmentEditMode = false;
             phoneBindingStore = store;
             stopPhoneCodeTimer();
-            showSingleStoreScenario(store);
             appointmentMask.innerHTML = dialogShell("预约门店", "绑定手机号", '<div class="lx-phone-bind-form"><label class="lx-phone-bind-row"><span class="lx-phone-bind-label">手机</span><input class="lx-phone-bind-input" type="tel" inputmode="numeric" maxlength="11" autocomplete="tel" data-phone-bind-number placeholder="请输入手机号" aria-label="手机号"></label><label class="lx-phone-bind-row"><span class="lx-phone-bind-label">验证码</span><input class="lx-phone-bind-input" type="text" inputmode="numeric" maxlength="6" autocomplete="one-time-code" data-phone-bind-code placeholder="请输入短信验证码" aria-label="短信验证码"><button class="lx-phone-code-button" type="button" data-phone-code>获取验证码</button></label></div><p class="lx-phone-bind-error" data-phone-bind-message role="status" aria-live="polite"></p>', '<div class="lx-appointment-footer"><span class="lx-appointment-hint">绑定后继续填写到店预约信息</span><div class="lx-appointment-actions"><button class="lx-appointment-button primary" type="button" data-phone-bind-confirm>确认绑定</button></div></div>');
             appointmentMask.querySelector(".lx-appointment-dialog")?.classList.add("lx-phone-bind-dialog");
             appointmentMask.hidden = false;
@@ -18106,6 +18107,7 @@ async function openEduZone() {
           }
 
           function showBeijingNearbyScenario() {
+            document.body.classList.remove("lx-appointment-map-only");
             showStorePage(activeChannel);
             page.classList.remove("is-single-store", "is-shanghai");
             resetToolbarStoreFilters();
@@ -18117,6 +18119,7 @@ async function openEduZone() {
           }
 
           function showShanghaiNearbyScenario() {
+            document.body.classList.remove("lx-appointment-map-only");
             showStorePage(activeChannel);
             page.classList.remove("is-single-store");
             page.classList.add("is-shanghai");
@@ -18129,6 +18132,7 @@ async function openEduZone() {
           }
 
           function showSingleStoreScenario(store) {
+            document.body.classList.remove("lx-appointment-map-only");
             showStorePage(activeChannel);
             page.classList.add("is-single-store");
             page.classList.toggle("is-shanghai", store.city === "上海市");
@@ -18180,6 +18184,7 @@ async function openEduZone() {
           window.__lxStoreResolveStoreQuery = currentBrowsingStore;
 
           function applyAddressQuery(address, fromComposer) {
+            document.body.classList.remove("lx-appointment-map-only");
             var clean = address.trim();
             var namedStore = findStoreInQuery(clean);
             if (namedStore) {
@@ -18196,12 +18201,36 @@ async function openEduZone() {
             if (fromComposer) appendAssistantTurn(clean || "附近的门店", '<p>已根据当前位置 <b>北京市西城区复兴门内大街49号</b>，按距离由近到远找到 ' + beijingResults.length + ' 家联想门店。右侧已更新北京地图、门店位置和列表。</p>', "北京附近门店 · " + beijingResults.length + " 家", null, "nearby-store-map", "附近门店查询服务");
           }
 
+          // store-appointment-context-v66-20260909 (embedded offline runtime).
+          var appointmentBackdropStyle = document.createElement("style");
+          appointmentBackdropStyle.textContent = "\n.lx-appointment-map-only .lx-store-page-title,\n.lx-appointment-map-only .lx-store-toolbar,\n.lx-appointment-map-only .lx-store-meta-row,\n.lx-appointment-map-only .lx-store-list-panel,\n.lx-appointment-map-only .lx-map-card,\n.lx-appointment-map-only .lx-store-pin,\n.lx-appointment-map-only .lx-user-pin,\n.lx-appointment-map-only .lx-store-route-back,\n.lx-appointment-map-only .BMap_Marker,\n.lx-appointment-map-only .BMapLabel { display:none!important; }\n.lx-appointment-map-only .lx-store-workspace {grid-template-rows:minmax(0,1fr)!important;}\n.lx-appointment-map-only .lx-store-main {grid-template-columns:minmax(0,1fr)!important;}\n.lx-appointment-map-only .lx-map-controls {right:14px!important;}\n";
+          document.head.appendChild(appointmentBackdropStyle);
+          function prepareAppointmentBackdrop() {
+            if (!page.classList.contains("is-channel-hidden") || detailPage.classList.contains("is-active")) return;
+            showStorePage(activeChannel);
+            document.body.classList.add("lx-appointment-map-only");
+            window.dispatchEvent(new Event("resize"));
+          }
+          function routeOfflineAppointment(event) {
+            if (event.type === "keydown" && (event.key !== "Enter" || event.shiftKey || event.isComposing)) return;
+            var form = event.target.closest && event.target.closest("form.composer, form.lxfd-composer");
+            if (!form || chat.contains(form) || !page.classList.contains("is-channel-hidden")) return;
+            var input = form.querySelector("textarea");
+            var query = String(input && input.value || "").trim();
+            if (!/预约|预订/.test(query) || !/门店|联想|第[1-9一二两三四五六七八九十]+(?:个|家)/.test(query)) return;
+            event.preventDefault(); event.stopPropagation(); event.stopImmediatePropagation();
+            input.value = "";
+            var store = currentBrowsingStore(query);
+            if (isUnboundPhoneQuery(query)) openPhoneBindingAppointment(store); else beginAppointment(store);
+          }
+          window.addEventListener("keydown", routeOfflineAppointment, true);
+          window.addEventListener("submit", routeOfflineAppointment, true);
           function beginAppointment(store) {
+            prepareAppointmentBackdrop();
             activeStore = store;
             window.__lxStoreCurrentStore = store;
             appointment.storeId = store.id;
             appointmentEditMode = false;
-            showSingleStoreScenario(store);
             openAppointmentSummary(false);
             var answer = '<p>已为你准备前往 <b>' + store.name + '</b> 的到店预约，请在右侧确认或修改门店、到店时间与预约目的。</p><ul><li><b>门店：</b>' + store.name + '</li><li><b>营业时间：</b>' + store.hours + '</li><li><b>联系电话：</b>' + store.phone + '</li></ul>';
             appendAssistantTurn("预约" + store.name, answer, "预约信息待确认", null, "appointment-pending", "门店预约服务");
@@ -18240,6 +18269,7 @@ async function openEduZone() {
           }
 
           function openNavigation(store) {
+            document.body.classList.remove("lx-appointment-map-only");
             showSingleStoreScenario(store);
             window.clearInterval(detailCarouselTimer);
             detailPage.classList.remove("is-active");
@@ -18461,6 +18491,7 @@ async function openEduZone() {
               baiduMap.removeOverlay(baiduMarkers[storeId]);
             });
             baiduMarkers = {};
+            if (document.body.classList.contains("lx-appointment-map-only")) return;
             (results || []).forEach(function (store, index) {
               var marker = new BMapGL.Marker(new BMapGL.Point(store.lng, store.lat), { icon: baiduMarkerIcon(String(index + 1), store.id === activeStore.id) });
               marker.addEventListener("click", function () { selectStore(store.id); });
@@ -18468,6 +18499,15 @@ async function openEduZone() {
               baiduMarkers[store.id] = marker;
             });
           }
+          // store-appointment-context-v66-20260909: remove WebGL store overlays on a bare appointment map.
+          var appointmentMapOnly = false;
+          var appointmentMapObserver = new MutationObserver(function () {
+            var nextMapOnly = document.body.classList.contains("lx-appointment-map-only");
+            if (nextMapOnly === appointmentMapOnly) return;
+            appointmentMapOnly = nextMapOnly;
+            rebuildBaiduStoreMarkers(getFilteredStores());
+          });
+          appointmentMapObserver.observe(document.body, { attributes: true, attributeFilter: ["class"] });
           function syncBaiduUserLocation() {
             if (!baiduMap || !window.BMapGL) return;
             if (baiduUserMarker) baiduMap.removeOverlay(baiduUserMarker);
@@ -20259,3 +20299,4 @@ async function openEduZone() {
 </script>
 </body>
 </html>
+
