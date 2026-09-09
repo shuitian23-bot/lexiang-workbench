@@ -4613,6 +4613,8 @@ function openOrderDetail(orderId) {
           return pageBox;
         }
 
+        // checkout-payment-state-v67-20260909: offline detail-card tab adapter.
+        window.__lxCheckoutRestoreDetailTab = tab => { lxUpsertTab(tab); lxRunTab(tab); };
         function lxOpenInfoTab(key, label, html) {
           const tab = { id: `info:${key}`, kind: "info", label, html };
           lxUpsertTab(tab);
@@ -18829,7 +18831,7 @@ async function openEduZone() {
       })();
     </script>
   
-<script data-buy-modal-direct-offline-v65>
+<script data-buy-modal-direct-offline-v67>
 /* p0-purchase-context:start */
 /* Product-to-order boundary. No title scraping, demo fallback, or payment writes. */
 (() => {
@@ -19288,11 +19290,84 @@ async function openEduZone() {
     document.head.appendChild(style);
   }
 
+  // checkout-payment-state-v67-20260909
+  const checkoutSessions = new Map();
+  const checkoutStorageKey = 'lexiang.checkout-sessions.v67';
+  let checkoutRecords = {};
+  try { checkoutRecords = JSON.parse(localStorage.getItem(checkoutStorageKey) || '{}'); } catch (_) {}
+  const checkoutKey = product => String(product?._pendingOrderNo || product?._checkoutId || '');
+  const readonlyActions = '[data-edit-order],[data-pay-now],[data-edit-config],[data-open-benefit],[data-open-coupon-code],[data-select-fulfillment-store],[data-claim-national-subsidy]';
+  const rememberCheckout = (id, value) => {
+    checkoutRecords[id] = value;
+    try {
+      const keys = Object.keys(checkoutRecords);
+      for (const key of keys.slice(0, Math.max(0, keys.length - 60))) delete checkoutRecords[key];
+      localStorage.setItem(checkoutStorageKey, JSON.stringify(checkoutRecords));
+    } catch (_) {}
+  };
+  const restoreCheckout = (id, view) => {
+    let session = checkoutSessions.get(String(id));
+    if (!session) {
+      const record = checkoutRecords[id];
+      if (!record?.product) return false;
+      window.__lxOpenUnifiedDiscountOrder(record.product, {mode: record.mode, storeId: record.storeId, skipSuggestion: true});
+      session = checkoutSessions.get(String(id));
+    }
+    if (!session) return false;
+    if (view === 'payment') session.openPayment(); else session.openOrder();
+    return true;
+  };
+  const restoreCheckoutDetail = id => {
+    const tab = checkoutRecords[id]?.detailTab;
+    const state = window.__lxState;
+    if (!tab || !state) return false;
+    if (!window.__lxBridge?.activateTab) {
+      if (!window.__lxCheckoutRestoreDetailTab) return false;
+      window.__lxCheckoutRestoreDetailTab(tab); return true;
+    }
+    state.tabs ||= [];
+    if (!state.tabs.some(item => item.id === tab.id)) state.tabs.push({...tab, __fresh:true});
+    window.__lxBridge.prepareRootSplitState?.();
+    window.__lxBridge.exitFullscreen?.();
+    return window.__lxBridge.activateTab(tab.id);
+  };
+  window.__lxCheckoutStateV67 = { sessions: checkoutSessions, records: checkoutRecords, restore: restoreCheckout };
+  const readonlyStyle = document.createElement('style');
+  readonlyStyle.dataset.checkoutPaymentStateV67 = '';
+  readonlyStyle.textContent = '[data-buy-modal-direct] [data-checkout-disabled="true"]{color:#aaa4ad!important;background:#f1eef3!important;border-color:#e4dfe7!important;cursor:not-allowed!important;box-shadow:none!important;opacity:.68!important}[data-buy-modal-direct] .lx-buy-price-line[data-checkout-disabled="true"]{background:transparent!important}[data-buy-modal-direct] [data-checkout-disabled="true"] .arrow{visibility:hidden}.lx-checkout-detail-surface{min-height:100%;background:white}.lx-checkout-detail-surface [data-order-detail]{display:block!important}.lx-checkout-order-preview{margin-top:12px}';
+  document.head.appendChild(readonlyStyle);
+  readonlyStyle.textContent += '.lx-checkout-detail-surface [data-checkout-detail]{display:block!important}.info-page:has(.lx-checkout-detail-surface)>h2{display:none!important}[data-checkout-disabled="true"] *{color:inherit!important}';
+  window.addEventListener('click', event => {
+    const detail = event.target.closest?.('.lx-checkout-detail-surface');
+    const detailTab = detail && event.target.closest('[data-detail-tab]');
+    if (detailTab) {
+      detail.querySelectorAll('[data-detail-tab]').forEach(tab=>{const active=tab===detailTab;tab.classList.toggle('is-active',active);tab.setAttribute('aria-selected',String(active));});
+      detail.querySelectorAll('[data-detail-pane]').forEach(pane=>pane.classList.toggle('is-active',pane.dataset.detailPane===detailTab.dataset.detailTab));
+      event.preventDefault();event.stopImmediatePropagation();return;
+    }
+    const target = event.target.closest?.('[data-checkout-order-id],[data-payment-chat-card],[data-checkout-view-order],[data-checkout-detail-back]');
+    if (target) {
+      const id = target.dataset.checkoutOrderId || target.dataset.paymentChatCard || target.dataset.checkoutViewOrder;
+      let restored = false;
+      if (target.hasAttribute('data-checkout-detail-back')) {
+        window.__lxOpenOrdersCenter?.({question:''}); restored = true;
+      } else if (target.hasAttribute('data-checkout-view-order')) restored = restoreCheckoutDetail(id);
+      else restored = restoreCheckout(id, target.hasAttribute('data-payment-chat-card') ? 'payment' : 'order');
+      if (restored) {event.preventDefault();event.stopImmediatePropagation();return;}
+    }
+    const modal = event.target.closest?.('[data-buy-modal-direct][data-checkout-locked="true"]');
+    if (modal && event.target.closest?.(readonlyActions)) {
+      event.preventDefault(); event.stopImmediatePropagation();
+    }
+  }, true);
+
   const normalizeHistoricPaymentCards = (root = document) => {
     const cards = [...(root.matches?.('.lx-payment-chat-card') ? [root] : []), ...(root.querySelectorAll?.('.lx-payment-chat-card') || [])];
     cards.forEach((card) => {
+      if (!card.hasAttribute('data-payment-chat-card')) return;
       card.classList.add('answer-cta');
-      card.classList.remove('is-paid');
+      const paid = checkoutRecords[card.dataset.paymentChatCard]?.payment?.paid || card.dataset.paymentStatus === 'paid';
+      card.classList.toggle('is-paid', !!paid);
       card.querySelectorAll('.lx-payment-chat-card-state,.lx-payment-chat-card-desc').forEach((node) => node.remove());
       let title = card.querySelector('.lx-payment-chat-card-title');
       if (!title) {
@@ -19301,7 +19376,8 @@ async function openEduZone() {
         card.prepend(title);
       }
       title.classList.add('answer-cta-title');
-      if (title.textContent.trim() !== '支付信息待确认') title.textContent = '支付信息待确认';
+      const paymentTitle = paid ? '支付成功' : '支付信息待确认';
+      if (title.textContent.trim() !== paymentTitle) title.textContent = paymentTitle;
       if (!title.closest('.answer-cta-copy')) {
         const copy = document.createElement('span');
         copy.className = 'answer-cta-copy';
@@ -19357,6 +19433,11 @@ async function openEduZone() {
 
   const openOrderModal = (product) => {
     if (!product || !product.name || !(Number(product.price) > 0)) { showToast("商品数据不完整，请重新选择商品"); return; }
+    const id = checkoutKey(product) || ('LX' + Date.now() + Math.random().toString(36).slice(2,6));
+    product = {...product, _pendingOrderNo:id};
+    const existing = checkoutSessions.get(id);
+    if (existing) { existing.openOrder(); return existing.modal; }
+    const saved = checkoutRecords[id];
     const previousModal = document.querySelector('[data-buy-modal-direct]');
     previousModal?._lxCleanup?.();
     previousModal?.remove();
@@ -19381,8 +19462,11 @@ async function openEduZone() {
     };
     const recipientAddress = () => `${orderState.recipientRegion}${orderState.recipientDetail}`;
     const configState = product.sku ? { color: product.color || '', size: product.size || '以商品详情为准', spec: product.configuration || '以所选商品详情为准', quantity: 1 } : { color: '凝雾灰', size: '13英寸', spec: '8GB+256GB WIFI', quantity: 1 };
+    if (saved?.orderState) Object.assign(orderState, saved.orderState);
+    if (saved?.configState) Object.assign(configState, saved.configState);
     const initialCouponAmount = Number(product.discount) || 0;
     const benefitState = { couponId: initialCouponAmount ? 'coupon-best' : 'coupon-none', couponAmount: initialCouponAmount, beanPoints: 0, beanAmount: 0, redPacketAmount: 0 };
+    if (saved?.benefitState) Object.assign(benefitState, saved.benefitState);
     const payableAmount = () => Math.max(0, (Number(product.originalPrice) || 0) * configState.quantity - benefitState.couponAmount - benefitState.beanAmount - benefitState.redPacketAmount);
     const totalDiscount = () => benefitState.couponAmount + benefitState.beanAmount + benefitState.redPacketAmount;
     const invoicePreview = () => orderState.invoice === '普通发票-个人' ? '电子普通发票（个人）' : orderState.invoice === '普通发票-单位' ? '电子普通发票（单位）' : '增值税专用发票';
@@ -19408,7 +19492,40 @@ async function openEduZone() {
     };
     mountNationalSubsidy();
 
-    const paymentState = { orderId: `LX${Date.now()}`, remaining: 23 * 60 * 60 + 59 * 60 + 51, timer: 0, width: 0, height: 0, paidOrder: null, paid: false, chatCard: null };
+    const paymentState = { orderId: id, started:false, remaining: 23 * 60 * 60 + 59 * 60 + 51, timer: 0, width: 0, height: 0, paidOrder: null, paid: false, chatCard: null };
+    if (saved?.payment) Object.assign(paymentState, saved.payment, {timer:0,chatCard:null});
+    modal.dataset.checkoutOrder = id;
+    const applyReadonly = () => {
+      modal.dataset.checkoutLocked = String(!!paymentState.started);
+      if (!paymentState.started) return;
+      dialog.querySelectorAll(readonlyActions).forEach(control => {
+        control.dataset.checkoutDisabled = 'true';
+        control.style.setProperty('color','#a8a2ab','important');
+        control.style.setProperty('border-color','#e4dfe7','important');
+        if (control.tagName === 'BUTTON') control.style.setProperty('background','#f1eef3','important');
+        control.setAttribute('aria-disabled','true');
+        if ('disabled' in control) control.disabled = true;
+        else control.setAttribute('tabindex','-1');
+      });
+      const hint = dialog.querySelector('.lx-buy-direct-detail > span');
+      if (hint && hint.textContent !== '优惠信息仅可查看') hint.textContent = '优惠信息仅可查看';
+    };
+    const snapshot = () => {
+      const fulfillment = modal._lxFulfillmentSession;
+      const payment = {...paymentState, timer:0, chatCard:null};
+      rememberCheckout(id, { ...checkoutRecords[id], product:{...product,_pendingOrderNo:id}, orderState:{...orderState},
+        configState:{...configState}, benefitState:{...benefitState}, payment,
+        mode:fulfillment?.mode || saved?.mode || 'delivery', storeId:fulfillment?.store?.id || saved?.storeId });
+    };
+    const ensureMounted = () => {
+      const previous = document.querySelector('[data-buy-modal-direct]');
+      if (previous && previous !== modal) {previous._lxCleanup?.();previous.remove();}
+      if (!modal.isConnected) document.body.appendChild(modal);
+      modal.hidden = false;
+    };
+    const readonlyObserver = new MutationObserver(applyReadonly);
+    readonlyObserver.observe(dialog,{childList:true,subtree:true});
+    applyReadonly();
     const stopPaymentTimer = () => { if (paymentState.timer) window.clearInterval(paymentState.timer); paymentState.timer = 0; };
     modal._lxCleanup = stopPaymentTimer;
     const formatRemaining = () => {
@@ -19437,8 +19554,10 @@ async function openEduZone() {
         name: product.name,
         image_url: product.image_url,
         category: product.category || '联想商品',
-        type: 'normal',
-        typeLabel: '普通订单',
+        type: modal.dataset.fulfillmentMode === 'pickup' || modal.dataset.fulfillmentMode === 'flash' ? modal.dataset.fulfillmentMode : 'normal',
+        typeLabel: modal.dataset.fulfillmentMode === 'pickup' ? '到店自提' : modal.dataset.fulfillmentMode === 'flash' ? '门店闪送' : '普通订单',
+        fulfillmentMode:modal.dataset.fulfillmentMode || 'delivery',
+        fulfillmentStore:modal._lxFulfillmentSession?.store,
         price: payableAmount(),
         paidAmount: payableAmount(),
         payable: payableAmount(),
@@ -19449,7 +19568,7 @@ async function openEduZone() {
         orderId: paymentState.orderId,
         createdAt: new Date().toLocaleString('zh-CN'),
         paidAt: new Date().toLocaleString('zh-CN'),
-        status: '待发货',
+        status: modal.dataset.fulfillmentMode === 'pickup' ? '待取货' : '待发货',
         address: { name: orderState.recipientName, phone: orderState.recipientPhone, region: orderState.recipientRegion, detail: orderState.recipientDetail },
         recipient: { name: orderState.recipientName, phone: orderState.recipientPhone, address: recipientAddress() },
         shippingAddress: recipientAddress(),
@@ -19471,7 +19590,7 @@ async function openEduZone() {
       return paidOrder;
     };
     const showPaymentProcessing = () => {
-      modal.hidden = false;
+      ensureMounted();
       lockPaymentDialogSize();
       stopPaymentTimer();
       dialog.className = 'lx-buy-direct-dialog lx-payment-dialog';
@@ -19487,19 +19606,25 @@ async function openEduZone() {
       stopPaymentTimer();
       const paidOrder = persistPaidOrder();
       paymentState.paid = true;
+      snapshot();
       updatePaymentChatCard();
-      modal.hidden = false;
+      ensureMounted();
       lockPaymentDialogSize();
       dialog.className = 'lx-buy-direct-dialog lx-payment-dialog';
       dialog.innerHTML = `<button class="lx-buy-direct-close" type="button" aria-label="关闭">×</button><h2 id="lxBuyDirectTitle">支付成功</h2><div class="lx-payment-stage"><span class="lx-payment-success-icon" aria-hidden="true">✓</span><strong class="lx-payment-success-title">订单支付成功</strong><p class="lx-payment-success-meta">订单号：<b>${escapeHtml(paidOrder.orderId)}</b><br>实付：<b>¥${payableAmount().toLocaleString('zh-CN')}</b></p></div><div class="lx-payment-actions"><button type="button" class="primary" data-view-paid-order>查看订单</button></div>`;
     };
     const updatePaymentChatCard = () => {
-      const card = paymentState.chatCard;
-      if (!card?.isConnected) return;
-      card.setAttribute('aria-label', `查看${product.name}的支付信息`);
+      document.querySelectorAll('[data-payment-chat-card]').forEach(card => {
+        if (card.dataset.paymentChatCard !== id) return;
+        card.dataset.paymentStatus = paymentState.paid ? 'paid' : 'pending';
+        const title = card.querySelector('.lx-payment-chat-card-title');
+        if (title) title.textContent = paymentState.paid ? '支付成功' : '支付信息待确认';
+        card.setAttribute('aria-label', `查看${product.name}的支付信息`);
+      });
+      try {window.__lxSaveConversationNow?.();} catch (_) {}
     };
     const openPaymentFromChatCard = () => {
-      if (!modal.isConnected) return;
+      ensureMounted();
       if (paymentState.paid) showPaymentSuccess();
       else showPaymentProcessing();
       dialog.querySelector('.lx-buy-direct-close')?.focus();
@@ -19556,13 +19681,50 @@ async function openEduZone() {
     const openPaidOrderDetail = () => {
       const paidOrder = persistPaidOrder();
       stopPaymentTimer();
-      modal.remove();
+      modal.hidden = true;
       window.dispatchEvent(new Event('lx:orders-updated'));
+      if (window.__lxCheckoutOrderDetail) {
+        const tabId = 'info:checkout-order:' + id;
+        const cardHtml = '<button type="button" class="answer-cta lx-payment-chat-card lx-checkout-order-preview" data-checkout-view-order="' + escapeHtml(id) + '" data-lx-result-id="' + escapeHtml(tabId) + '"><span class="answer-cta-copy"><span class="answer-cta-title">查看订单详情</span></span><span class="answer-cta-icon" aria-hidden="true"></span></button>';
+        const result = window.__lxCheckoutOrderDetail(paidOrder, cardHtml);
+        if (result) {
+          const tab = {id:tabId,kind:'info',label:'订单详情 · '+paidOrder.orderId,
+            html:'<div class="lx-orders-poc lx-checkout-detail-surface">' + result.html.replace('data-order-back', 'data-checkout-detail-back').replace('data-order-detail','data-checkout-detail') + '</div>'};
+          rememberCheckout(id,{...checkoutRecords[id],detailTab:tab});
+          restoreCheckoutDetail(id);
+          result.done?.then(() => {try{window.__lxSaveConversationNow?.();}catch(_){}});
+          return;
+        }
+      }
 
+      const attachOrderDetailPreview = () => {
+        const detail = document.querySelector('.content [data-order-detail].is-active');
+        const state = window.__lxState;
+        if (!detail || !state || !window.__lxBridge?.activateTab) return;
+        const copy = detail.cloneNode(true);
+        copy.querySelector('[data-order-back]')?.setAttribute('data-checkout-detail-back','');
+        copy.querySelector('[data-order-back]')?.removeAttribute('data-order-back');
+        const tab = {id:'info:checkout-order:' + id, kind:'info', label:'订单详情 · '+paidOrder.orderId,
+          html:'<div class="lx-orders-poc lx-checkout-detail-surface">' + copy.outerHTML + '</div>'};
+        rememberCheckout(id, {...checkoutRecords[id], detailTab:tab});
+        const messages = document.querySelectorAll('.lx-p0-messages .msg.ai,.lx-p0-messages .lx-p0-message.ai,.lxfd-thread .lxfd-msg-ai');
+        const answer = messages[messages.length-1];
+        if (answer && !answer.querySelector('[data-checkout-view-order]')) {
+          const card = document.createElement('button');
+          card.type='button'; card.className='answer-cta lx-payment-chat-card lx-checkout-order-preview';
+          card.dataset.checkoutViewOrder=id;
+          card.dataset.lxResultId=tab.id;
+          card.innerHTML='<span class="answer-cta-copy"><span class="answer-cta-title">查看订单详情</span></span><span class="answer-cta-icon" aria-hidden="true"></span>';
+          (answer.querySelector('.ai-body,.lxfd-ai-body') || answer).appendChild(card);
+        }
+        restoreCheckoutDetail(id);
+        try {window.__lxSaveConversationNow?.();} catch (_) {}
+      };
       const clickOrderCenterDetail = () => {
         const trigger = Array.from(document.querySelectorAll('[data-order-detail-id]')).find((item) => String(item.dataset.orderDetailId) === String(paidOrder.orderId));
         if (!trigger) return false;
         trigger.click();
+        attachOrderDetailPreview();
         return true;
       };
 
@@ -19589,8 +19751,21 @@ async function openEduZone() {
       document.body.appendChild(legacyTrigger);
       legacyTrigger.click();
       legacyTrigger.remove();
+      const legacyTab = window.__lxState?.tabs?.find(tab => tab.id === 'info:order-detail');
+      if (legacyTab) {
+        const tab = {...legacyTab,id:'info:checkout-order:'+id,label:'订单详情 · '+paidOrder.orderId};
+        rememberCheckout(id,{...checkoutRecords[id],detailTab:tab});
+        const host = document.querySelector('.lx-p0-messages');
+        if (host) {
+          const user = document.createElement('div'); user.className='lx-p0-message msg user';
+          user.innerHTML='<div class="user-bubble">查看这笔订单的详细信息</div>';host.appendChild(user);
+        }
+        window.__lxAgentAPI?.addAiMessage?.('<p>已查询到“'+escapeHtml(product.name)+'”的订单详情，可在右侧查看订单信息。</p><button type="button" class="answer-cta lx-payment-chat-card lx-checkout-order-preview" data-checkout-view-order="'+escapeHtml(id)+'"><span class="answer-cta-copy"><span class="answer-cta-title">查看订单详情</span></span><span class="answer-cta-icon" aria-hidden="true"></span></button>');
+        restoreCheckoutDetail(id);
+        try {window.__lxSaveConversationNow?.();} catch (_) {}
+      }
     };
-    const showOrder = () => { dialog.className = 'lx-buy-direct-dialog'; dialog.innerHTML = orderHtml(); mountNationalSubsidy(); };
+    const showOrder = () => { ensureMounted(); stopPaymentTimer(); dialog.className = 'lx-buy-direct-dialog'; delete dialog.dataset.pickupSuccess; dialog.innerHTML = orderHtml(); mountNationalSubsidy(); applyReadonly(); };
     const showConfigEdit = () => {
       if (product.sku) return window.__lxPurchaseContext.renderConfig({dialog, product, quantity: configState.quantity, onSelect: selected => {
         product = selected; configState.color = selected.color; configState.size = selected.size; configState.spec = selected.configuration;
@@ -19778,7 +19953,7 @@ async function openEduZone() {
       if (target.closest('[data-invoice-notice-close],[data-invoice-notice-back]')) return showInvoiceEdit();
       if (target.closest('.lx-buy-direct-close')) { stopPaymentTimer(); if (paymentState.chatCard) { modal.hidden = true; return; } return modal.remove(); }
       if (target.closest('.lx-buy-direct-mask')) return;
-      if (target.closest('[data-pay-now]')) { openPaymentPage(); appendPaymentChatCard(); showPaymentProcessing(); return; }
+      if (target.closest('[data-pay-now]')) { if (paymentState.started) return; paymentState.started=true; snapshot(); applyReadonly(); openPaymentPage(); appendPaymentChatCard(); showPaymentProcessing(); return; }
       if (target.closest('[data-go-pay]')) return openPaymentPage();
       if (target.closest('[data-confirm-payment]')) return showPaymentSuccess();
       if (target.closest('[data-view-paid-order]')) return openPaidOrderDetail();
@@ -19945,11 +20120,18 @@ async function openEduZone() {
         showPriceDetail();
       }
     });
+    checkoutSessions.set(id, {modal, openOrder:showOrder, openPayment:openPaymentFromChatCard});
+    const pending = window.__lxState?.pendingOrderProduct;
+    const pendingCards = Array.from(document.querySelectorAll('[data-lx-result-id="modal:pending-payment"]'));
+    const pendingCard = pendingCards.filter(card => !card.dataset.checkoutOrderId).pop();
+    if (pendingCard && String(pending?._pendingOrderNo || '') === id) pendingCard.dataset.checkoutOrderId=id;
+    snapshot();
     modal.querySelector('.primary')?.focus();
+    return modal;
   };
 
   window.__lxOpenUnifiedDiscountOrder = product => {
-    try { return openOrderModal({...window.__lxPurchaseContext.normalize(product), originalPrice: Number(product.originalPrice || product.original_price || product.price), discount: Math.max(0, Number(product.discount) || 0)}); } catch (error) { showToast(error.message); }
+    try { return openOrderModal({...window.__lxPurchaseContext.normalize(product), _pendingOrderNo:product._pendingOrderNo || product._checkoutId, originalPrice: Number(product.originalPrice || product.original_price || product.price), discount: Math.max(0, Number(product.discount) || 0)}); } catch (error) { showToast(error.message); }
   };
 
   const removeRepeatedOfflineErrors = () => {
@@ -20171,7 +20353,7 @@ async function openEduZone() {
   function customizeSuccess(session, dialog) {
     var title = dialog.querySelector('#lxBuyDirectTitle');
     if (!title || title.textContent.trim() !== '支付成功') return;
-    var newest = window.__lxState && window.__lxState.orders && window.__lxState.orders[0];
+    var newest = window.__lxState && window.__lxState.orders && window.__lxState.orders.find(function(order){return String(order.orderId) === String(session.modal.dataset.checkoutOrder);});
     if (newest && session.mode !== 'delivery') {
       newest.type = session.mode;
       newest.typeLabel = session.mode === 'pickup' ? '到店自提' : '门店闪送';
@@ -20197,13 +20379,29 @@ async function openEduZone() {
   function openWithMode(product, options) {
     options = options || {};
     var normalized = normalizeProduct(product);
-    originalOpen(normalized);
+    var reopened = originalOpen(normalized);
     var modal = document.querySelector('[data-buy-modal-direct]');
     if (!modal) return;
+    var priorSession = sessions.get(modal);
+    if (priorSession) {
+      if (options.mode && modal.dataset.checkoutLocked !== 'true') {
+        priorSession.mode = options.mode;
+        priorSession.store = stores.filter(function(store){return store.id === options.storeId;})[0] || priorSession.store;
+        modal.dataset.fulfillmentMode = priorSession.mode;
+        priorSession.size = null;
+        var priorDialog = modal.querySelector('.lx-buy-direct-dialog');
+        var modeHeight = Math.min(priorSession.mode === 'delivery' ? 560 : 600, window.innerHeight - 32);
+        priorDialog.style.setProperty('height', modeHeight + 'px', 'important');
+        priorDialog.style.setProperty('min-height', modeHeight + 'px', 'important');
+      }
+      decorateOrder(priorSession);
+      return modal;
+    }
     var mode = options.mode === 'pickup' || options.mode === 'flash' ? options.mode : 'delivery';
     var selectedStore = stores.filter(function (store) { return store.id === options.storeId; })[0] || stores[0];
     var session = { modal: modal, product: normalized, mode: mode, store: selectedStore, size: options.size || null, authenticated: false, draftStoreId: '' };
     sessions.set(modal, session);
+    modal._lxFulfillmentSession = session;
     modal.dataset.fulfillmentMode = mode;
     if (mode === 'pickup' || mode === 'flash') {
       var fulfillmentDialog = modal.querySelector('.lx-buy-direct-dialog');
@@ -20296,7 +20494,9 @@ async function openEduZone() {
     }, 50);
   }
 })();
+
 </script>
 </body>
 </html>
+
 

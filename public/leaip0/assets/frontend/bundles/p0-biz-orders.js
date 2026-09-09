@@ -1077,6 +1077,15 @@
           window.lxHandleCommerceEntry = function (entry) {
             if (entry === "orders") openOrdersFromChat("");
           };
+          // checkout-payment-state-v67-20260909: render checkout details without replacing the workspace.
+          window.__lxCheckoutOrderDetail = function (source, cardHtml) {
+            var order = normalizeLiveOrder(source);
+            if (!order) return null;
+            if (source.status === "待取货") order.status = source.status;
+            var mainItem = primaryItem(order);
+            var done = streamSkillAnswer("查看这笔订单的详细信息", "订单详情查询", ["已查询到“" + mainItem.name + "”的订单详情。", "这是一笔“" + order.typeLabel + "”，当前状态为“" + order.status + "”，下单时间是 " + order.createdAt + "，应付金额 " + orderAmount(order) + "。右侧可查看商品清单、付款信息、交付信息和订单状态轨迹。"], {cardHtml: cardHtml || ""});
+            return {html: '<section class="lx-order-detail is-active" data-order-detail>' + detailMarkup(order) + '</section>', done: done};
+          };
           window.__lxOpenOrdersCenter = function (options) {
             var question = options && typeof options.question === "string" ? options.question : "";
             openOrdersFromChat(question);
@@ -1358,3 +1367,4 @@ observer.observe(document.body,{childList:true,subtree:true,characterData:true})
 })();
 
 ;
+
