@@ -18831,7 +18831,7 @@ async function openEduZone() {
       })();
     </script>
   
-<script data-buy-modal-direct-offline-v67>
+<script data-buy-modal-direct-offline-v68>
 /* p0-purchase-context:start */
 /* Product-to-order boundary. No title scraping, demo fallback, or payment writes. */
 (() => {
@@ -19334,7 +19334,7 @@ async function openEduZone() {
   window.__lxCheckoutStateV67 = { sessions: checkoutSessions, records: checkoutRecords, restore: restoreCheckout };
   const readonlyStyle = document.createElement('style');
   readonlyStyle.dataset.checkoutPaymentStateV67 = '';
-  readonlyStyle.textContent = '[data-buy-modal-direct] [data-checkout-disabled="true"]{color:#aaa4ad!important;background:#f1eef3!important;border-color:#e4dfe7!important;cursor:not-allowed!important;box-shadow:none!important;opacity:.68!important}[data-buy-modal-direct] .lx-buy-price-line[data-checkout-disabled="true"]{background:transparent!important}[data-buy-modal-direct] [data-checkout-disabled="true"] .arrow{visibility:hidden}.lx-checkout-detail-surface{min-height:100%;background:white}.lx-checkout-detail-surface [data-order-detail]{display:block!important}.lx-checkout-order-preview{margin-top:12px}';
+  readonlyStyle.textContent = '[data-buy-modal-direct] [data-checkout-disabled="true"]{color:#aaa4ad!important;background:#f1eef3!important;border-color:#e4dfe7!important;cursor:not-allowed!important;box-shadow:none!important;opacity:.68!important}[data-buy-modal-direct] .lx-buy-price-line[data-checkout-disabled="true"]{background:transparent!important}[data-buy-modal-direct] [data-checkout-disabled="true"] .arrow{visibility:hidden}.info-page:has(.lx-checkout-detail-surface){width:100%!important;max-width:none!important;box-sizing:border-box!important}.lx-checkout-detail-surface{width:100%;max-width:none;min-height:100%;box-sizing:border-box;background:white}.lx-checkout-detail-surface .lx-order-detail{width:100%!important;max-width:none!important;margin:0!important;box-sizing:border-box!important}.lx-checkout-detail-surface [data-order-detail]{display:block!important}.lx-checkout-order-preview{margin-top:12px}';
   document.head.appendChild(readonlyStyle);
   readonlyStyle.textContent += '.lx-checkout-detail-surface [data-checkout-detail]{display:block!important}.info-page:has(.lx-checkout-detail-surface)>h2{display:none!important}[data-checkout-disabled="true"] *{color:inherit!important}';
   window.addEventListener('click', event => {
@@ -20240,6 +20240,13 @@ async function openEduZone() {
     document.head.appendChild(style);
   }
 
+  if (!document.querySelector('[data-checkout-answer-v68-style]')) {
+    var answerStyle = document.createElement('style');
+    answerStyle.dataset.checkoutAnswerV68Style = 'true';
+    answerStyle.textContent = '.lx-checkout-benefit-list{display:grid;gap:10px;margin:14px 0 4px}.lx-checkout-benefit-row{display:grid;grid-template-columns:18px minmax(0,1fr);gap:8px;align-items:center;color:#2f2a31;font-size:13px;line-height:20px}.lx-checkout-benefit-check{display:grid;width:16px;height:16px;place-items:center;border-radius:50%;background:#e6f7ef;color:#19a365}.lx-checkout-benefit-check svg{display:block;width:12px;height:12px}.lx-checkout-benefit-name{font-weight:600}';
+    document.head.appendChild(answerStyle);
+  }
+
   function normalizeProduct(product) {
     var copy = Object.assign({}, product);
     copy.image_url = copy.image_url || copy.image || '';
@@ -20252,6 +20259,38 @@ async function openEduZone() {
     var message = messages[messages.length - 1];
     return message && (message.querySelector('.ai-body,.lxfd-ai-body') || message);
   }
+  function benefitNames() {
+    return ['国补焕新专享券', '商品平台满减券', '联想会员折扣券'];
+  }
+  function benefitMarkup() {
+    var check = window.__lxApprovedIcon ? window.__lxApprovedIcon('global-check') : '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="m3.2 8.1 2.7 2.7 6.5-6.3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    return '<div class="lx-checkout-benefit-list" aria-label="已使用优惠">' + benefitNames().map(function (name) {
+      return '<div class="lx-checkout-benefit-row"><span class="lx-checkout-benefit-check" aria-hidden="true">' + check + '</span><span class="lx-checkout-benefit-name">' + name + '</span></div>';
+    }).join('') + '</div>';
+  }
+  function purchaseCopyMarkup() {
+    return '<p>已为你自动领取<strong>3项可用优惠</strong>，共节省<strong>¥3,350</strong>。商品、优惠与收货信息已核对，请在<strong>待支付订单</strong>中确认后继续。查询到您附近门店存在此商品的库存，您是否想要今日就可取到商品呢，您可 <button class="lx-fulfillment-link" type="button" data-open-fulfillment="pickup">到店自提</button> <button class="lx-fulfillment-link" type="button" data-open-fulfillment="flash">门店闪送</button> 进行下单哦~</p>';
+  }
+  function normalizePurchaseAnswer(body, product) {
+    if (!body) return;
+    var copy = body.querySelector('.lx-payment-confirm-copy');
+    if (!copy) return;
+    copy.dataset.fulfillmentSuggestion = String(product.sku || product.name || 'product');
+    copy.classList.add('lx-fulfillment-suggestion');
+    copy.innerHTML = purchaseCopyMarkup();
+    copy._lxProduct = product;
+    body.querySelectorAll('.lx-fulfillment-suggestion').forEach(function (node) {
+      if (node !== copy) node.remove();
+    });
+    var oldBenefits = body.querySelector('.lx-discount-detail-list');
+    if (oldBenefits) oldBenefits.remove();
+    var existingBenefits = body.querySelector('.lx-checkout-benefit-list');
+    if (existingBenefits) existingBenefits.remove();
+    copy.insertAdjacentHTML('afterend', benefitMarkup());
+    var card = body.querySelector('.answer-cta,[data-answer-card],.lx-answer-card');
+    var benefits = body.querySelector('.lx-checkout-benefit-list');
+    if (card && benefits) benefits.insertAdjacentElement('afterend', card);
+  }
   function appendSuggestion(product, attempt) {
     attempt = attempt || 0;
     var body = latestAssistantBody();
@@ -20259,18 +20298,52 @@ async function openEduZone() {
       if (attempt < 10) window.setTimeout(function () { appendSuggestion(product, attempt + 1); }, 160);
       return;
     }
-    var key = String(product.sku || product.name || 'product');
-    if (body.querySelector('[data-fulfillment-suggestion]')) return;
-    var suggestion = document.createElement('p');
-    suggestion.className = 'lx-fulfillment-suggestion';
-    suggestion.dataset.fulfillmentSuggestion = key;
-    suggestion.innerHTML = '查询到您附近门店存在此商品的库存，您是否想要今日就可取到商品呢，您可 <button class="lx-fulfillment-link" type="button" data-open-fulfillment="pickup">到店自提</button> <button class="lx-fulfillment-link" type="button" data-open-fulfillment="flash">门店闪送</button> 进行下单哦~';
-    suggestion._lxProduct = product;
-    var card = body.querySelector('.answer-cta,[data-answer-card],.lx-answer-card');
-    if (card) body.insertBefore(suggestion, card);
-    else body.appendChild(suggestion);
+    normalizePurchaseAnswer(body, product);
     var thread = body.closest('.lx-p0-messages,.lxfd-thread');
     if (thread) thread.scrollTop = thread.scrollHeight;
+  }
+  function appendFulfillmentChat(product, mode) {
+    var modeLabel = mode === 'pickup' ? '到店自提' : '门店闪送';
+    var orderId = 'LX' + Date.now() + Math.random().toString(36).slice(2, 6);
+    var originalPrice = Number(product.originalPrice || product.original_price || product.price) || 0;
+    var discount = Number(product.discount) || Math.max(0, originalPrice - Number(product.price || originalPrice));
+    var pending = Object.assign({}, product, {
+      _pendingOrderNo: orderId,
+      originalPrice: originalPrice,
+      original_price: originalPrice,
+      discount: discount,
+      price: Math.max(0, originalPrice - discount),
+      benefits: Array.isArray(product.benefits) ? product.benefits : []
+    });
+    var currentBody = latestAssistantBody();
+    var host = currentBody && currentBody.closest('.lx-p0-messages,.lxfd-thread');
+    host = host || document.querySelector('.lx-p0-messages') || document.querySelector('.lxfd-thread');
+    if (!host) return;
+    var fullscreen = host.classList.contains('lxfd-thread');
+    var query = '购买' + String(product.name || '这件商品') + '，' + modeLabel;
+    var user = document.createElement('div');
+    user.className = fullscreen ? 'lxfd-msg-user' : 'lx-p0-message msg user';
+    if (fullscreen) user.textContent = query;
+    else user.innerHTML = '<div class="user-bubble">' + esc(query) + '</div>';
+    host.appendChild(user);
+    var card = '<button class="answer-cta lx-answer-page lx-auth-answer-card lx-edu-auth-reco lx-payment-confirm-reco" type="button" data-lx-recommended-modal="pending-payment" data-open-payment-confirm data-lx-order-id="' + esc(orderId) + '" data-lx-result-id="modal:pending-payment" aria-label="打开待支付订单弹窗" aria-pressed="false"><span class="answer-cta-title">待支付订单</span><span class="answer-cta-icon" aria-hidden="true">' + (window.__lxApprovedIcon ? window.__lxApprovedIcon('global-next') : '') + '</span></button>';
+    var answer = '<div class="lx-payment-confirm-copy"><p>已为你按<strong>' + modeLabel + '</strong>方式重新生成【' + esc(product.name || '该商品') + '】的待支付订单，请确认门店、收货信息和优惠后继续。</p></div>' + benefitMarkup() + card;
+    var assistantMessage = !fullscreen && window.__lxAgentAPI && window.__lxAgentAPI.addAiMessage ? window.__lxAgentAPI.addAiMessage(answer) : null;
+    if (!assistantMessage) {
+      assistantMessage = document.createElement('div');
+      assistantMessage.className = fullscreen ? 'lxfd-msg-ai lx-chat-skin' : 'lx-p0-message msg ai lx-chat-skin';
+      assistantMessage.innerHTML = fullscreen ? '<div class="lxfd-ai-body">' + answer + '</div>' : '<div class="ai-body">' + answer + '</div>';
+      host.appendChild(assistantMessage);
+    }
+    if (window.__lxState) {
+      window.__lxState.pendingOrderProduct = pending;
+      window.__lxState.queryHistory = Array.isArray(window.__lxState.queryHistory) ? window.__lxState.queryHistory : [];
+      window.__lxState.queryHistory.push(query);
+    }
+    window.__lxSetConversationQuery && window.__lxSetConversationQuery(query);
+    host.scrollTop = host.scrollHeight;
+    openWithMode(pending, { mode: mode, skipSuggestion: true });
+    try { window.__lxSaveConversationNow && window.__lxSaveConversationNow(); } catch (ignore) {}
   }
   function shippingMarkup(session) {
     var store = session.store;
@@ -20427,7 +20500,7 @@ async function openEduZone() {
       if (!suggestion || !suggestion._lxProduct) return;
       event.preventDefault();
       event.stopImmediatePropagation();
-      openWithMode(suggestion._lxProduct, { mode: link.dataset.openFulfillment, skipSuggestion: true });
+      appendFulfillmentChat(suggestion._lxProduct, link.dataset.openFulfillment);
       return;
     }
     var modal = event.target.closest && event.target.closest('[data-buy-modal-direct]');
@@ -20494,9 +20567,9 @@ async function openEduZone() {
     }, 50);
   }
 })();
-
 </script>
 </body>
 </html>
+
 
 
