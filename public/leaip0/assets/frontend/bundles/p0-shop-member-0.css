@@ -11948,3 +11948,19 @@ body .leai-voucher-page .leai-voucher-summary .leai-summary-usage {
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* Phone rebind: verification action inside the existing code field. */
+body .leai-modal .leai-phone-code { position: relative; min-width: 0; }
+body .leai-modal .leai-phone-code input { padding-right: 112px; }
+body .leai-modal .leai-phone-code-send {
+  position: absolute; top: 50%; right: 4px; transform: translateY(-50%);
+  width: 100px; height: 30px; padding: 0 8px; border: 0;
+  border-left: 1px solid var(--ms-line); border-radius: 0 6px 6px 0;
+  background: transparent; color: var(--ms-brand);
+  font-family: inherit; font-size: 12px; font-weight: 600; line-height: 1;
+  white-space: nowrap; cursor: pointer;
+}
+body .leai-modal .leai-phone-code-send:hover:not(:disabled) { background: var(--ms-hover); }
+body .leai-modal .leai-phone-code-send:focus-visible { outline: 2px solid var(--ms-brand); outline-offset: -2px; }
+body .leai-modal .leai-phone-code-send:disabled { color: var(--ms-muted); cursor: not-allowed; }
+body .leai-modal .leai-phone-code-status { margin: 0; color: var(--ms-text-soft); font-size: 12px; line-height: 20px; }

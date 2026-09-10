@@ -1872,14 +1872,51 @@
     window.setTimeout(function () { form.querySelector("#leaiProfileNickname").focus(); }, 0);
   }
 
+  function clearPhoneCodeCountdown() {
+    var form = el("#leaiModalForm");
+    if (form && form._phoneCodeTimer) {
+      window.clearInterval(form._phoneCodeTimer);
+      form._phoneCodeTimer = null;
+    }
+  }
+
+  function bindPhoneCodeButton(form) {
+    var button = form.querySelector("#leaiPhoneSendCode");
+    button.onclick = function () {
+      var phone = form.querySelector("#leaiPhoneNew");
+      if (!phone.checkValidity()) { phone.reportValidity(); return; }
+      if (button.disabled) return;
+      var remaining = 60;
+      button.disabled = true;
+      button.textContent = remaining + "s 后重发";
+      var status = form.querySelector("#leaiPhoneCodeStatus");
+      status.hidden = false;
+      status.textContent = "演示验证码：123456（不会发送短信）";
+      form._phoneCodeTimer = window.setInterval(function () {
+        if (!button.isConnected || state.modalType !== "phone-rebind") { clearPhoneCodeCountdown(); return; }
+        remaining -= 1;
+        if (remaining <= 0) {
+          clearPhoneCodeCountdown();
+          button.disabled = false;
+          button.textContent = "重新发送";
+          return;
+        }
+        button.textContent = remaining + "s 后重发";
+      }, 1000);
+      form.querySelector("#leaiPhoneCode").focus();
+    };
+  }
+
   function openPhoneRebindModal(trigger) {
+    clearPhoneCodeCountdown();
     state.modalType = "phone-rebind";
     var mask = el("#leaiModal");
     mask.querySelector(".leai-modal").classList.remove("is-student", "is-wechat", "is-service-order", "is-profile-editor");
     el("#leaiModalTitle").textContent = "更换绑定手机号";
     el("#leaiModalDesc").textContent = "完成新手机号验证后再更新绑定关系。";
     var form = el("#leaiModalForm");
-    form.innerHTML = '<div class="leai-phone-current"><span>当前绑定手机号</span><strong>' + escapeHtml(state.profile.phone) + '</strong></div><div class="leai-profile-fields"><div class="leai-field"><label for="leaiPhoneNew">新手机号</label><input id="leaiPhoneNew" inputmode="numeric" autocomplete="tel" maxlength="11" pattern="1[3-9][0-9]{9}" required placeholder="请输入 11 位手机号"></div><div class="leai-field"><label for="leaiPhoneCode">短信验证码</label><input id="leaiPhoneCode" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" required placeholder="请输入 6 位验证码"></div></div><div class="leai-modal-actions"><button class="leai-secondary" type="button" data-modal-close>取消</button><button class="leai-primary" type="submit">确认换绑</button></div>';
+    form.innerHTML = '<div class="leai-phone-current"><span>当前绑定手机号</span><strong>' + escapeHtml(state.profile.phone) + '</strong></div><div class="leai-profile-fields"><div class="leai-field"><label for="leaiPhoneNew">新手机号</label><input id="leaiPhoneNew" inputmode="numeric" autocomplete="tel" maxlength="11" pattern="1[3-9][0-9]{9}" required placeholder="请输入 11 位手机号"></div><div class="leai-field"><label for="leaiPhoneCode">短信验证码</label><div class="leai-phone-code"><input id="leaiPhoneCode" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" required placeholder="请输入 6 位验证码"><button class="leai-phone-code-send" id="leaiPhoneSendCode" type="button">发送验证码</button></div></div></div><p class="leai-phone-code-status" id="leaiPhoneCodeStatus" role="status" hidden></p><div class="leai-modal-actions"><button class="leai-secondary" type="button" data-modal-close>取消</button><button class="leai-primary" type="submit">确认换绑</button></div>';
+    bindPhoneCodeButton(form);
     form.onsubmit = function (event) {
       event.preventDefault();
       if (!form.checkValidity()) {
@@ -2051,6 +2088,7 @@
   }
 
   function closeModal() {
+    clearPhoneCodeCountdown();
     var mask = el("#leaiModal");
     mask.classList.remove("is-open");
     mask.querySelector(".leai-modal").classList.remove("is-student", "is-service-order", "is-profile-editor");
