@@ -1,0 +1,390 @@
+/* Exact coupon module rules captured from the user-selected 8091 page. Selectors are scoped to preserve the rest of P0. */
+.lx-coupon-center {--answer-card-bg:linear-gradient(135deg,rgba(255,255,255,0.985),rgba(250,248,252,0.68)),repeating-linear-gradient(120deg,transparent 0 15px,rgba(77,20,74,0.018) 15px 24px);--lexiang-gradient-light:linear-gradient(96deg, #fcf2f8 22.83%, #e3eafd 98.41%);--ms-brand:#4d144a;--ms-card-shadow:0 3px 10px rgba(77, 20, 74, 0.035);--ms-line:#e2ddeb;--ms-line-soft:#efe4f1;--ms-muted:#979797;--ms-page:#fcfaff;--ms-surface:#ffffff;--ms-text:#252525;--ms-text-soft:#625b68;font-family:"Source Han Sans CN Local","PingFang SC","Microsoft YaHei",Arial,sans-serif;}
+*:is(.lx-coupon-center, .lx-coupon-center *) { box-sizing: border-box; }
+button:is(.lx-coupon-center, .lx-coupon-center *),
+input:is(.lx-coupon-center, .lx-coupon-center *),
+textarea:is(.lx-coupon-center, .lx-coupon-center *) { font: inherit; }
+button:is(.lx-coupon-center, .lx-coupon-center *) { cursor: pointer; }
+.leai-page:is(.lx-coupon-center, .lx-coupon-center *) { max-width: 1120px; margin: 0px auto; }
+.leai-page-header:is(.lx-coupon-center, .lx-coupon-center *) { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; margin-bottom: 18px; }
+.leai-page-title:is(.lx-coupon-center, .lx-coupon-center *) { margin: 0px; padding-inline-start: 10px; color: var(--ms-text); font-size: 22px; line-height: 32px; font-weight: 500; }
+.leai-page-desc:is(.lx-coupon-center, .lx-coupon-center *) { margin: 8px 0px 0px; color: var(--ms-text-soft); font-size: 13px; line-height: 21px; }
+@media (max-width: 900px) {
+.leai-page-header:is(.lx-coupon-center, .lx-coupon-center *) { display: grid; }
+}
+body:is(.lx-coupon-center, .lx-coupon-center *),
+button:is(.lx-coupon-center, .lx-coupon-center *),
+input:is(.lx-coupon-center, .lx-coupon-center *),
+select:is(.lx-coupon-center, .lx-coupon-center *),
+textarea:is(.lx-coupon-center, .lx-coupon-center *) { font-family: "Source Han Sans CN Local", "PingFang SC", "Microsoft YaHei", Arial, sans-serif; }
+.leai-coupon-list:is(.lx-coupon-center, .lx-coupon-center *),
+.leai-coupon-product-list:is(.lx-coupon-center, .lx-coupon-center *) { display: grid; gap: 12px; }
+.leai-coupon-card:is(.lx-coupon-center, .lx-coupon-center *) { position: relative; display: grid; grid-template-columns: minmax(150px, 0.34fr) minmax(0px, 1fr); overflow: hidden; border: 1px solid var(--ms-line-soft); border-radius: 14px; background: var(--ms-surface); box-shadow: var(--ms-card-shadow); }
+.leai-coupon-value:is(.lx-coupon-center, .lx-coupon-center *) { min-height: 154px; display: grid; place-items: center; align-content: center; gap: 8px; padding: 18px; background: var(--lexiang-gradient-brand); color: var(--ms-surface); }
+.leai-coupon-value strong:is(.lx-coupon-center, .lx-coupon-center *) { font-size: 32px; line-height: 1; }
+.leai-coupon-copy:is(.lx-coupon-center, .lx-coupon-center *) { position: relative; min-width: 0px; padding: 18px 20px; }
+.leai-coupon-copy h3:is(.lx-coupon-center, .lx-coupon-center *) { margin: 0px; padding-right: 76px; color: var(--ms-text); font-size: 15px; line-height: 22px; }
+.leai-coupon-copy > p:not(.leai-coupon-detail):is(.lx-coupon-center, .lx-coupon-center *) { margin: 10px 0px 0px; color: var(--ms-muted); font-size: 11px; }
+.lx-member-component-host > .leai-page:not(.leai-member-page):is(.lx-coupon-center, .lx-coupon-center *) { max-width: none; padding-bottom: 24px; }
+.lx-member-component-host > .leai-page:not(.leai-member-page) > .leai-page-header:is(.lx-coupon-center, .lx-coupon-center *) { margin-bottom: 16px; }
+.lx-member-component-host > .leai-page:not(.leai-member-page):is(.lx-coupon-center, .lx-coupon-center *) { max-width: none; padding-bottom: 24px; }
+.lx-member-component-host > .leai-page:not(.leai-member-page) > .leai-page-header:is(.lx-coupon-center, .lx-coupon-center *) { margin-bottom: 16px; }
+body .lx-member-component-host > .leai-page:not(.leai-member-page):is(.lx-coupon-center, .lx-coupon-center *) { width: 100%; max-width: none; margin-inline: 0px; padding-inline: 0px !important; }
+body .lx-member-component-host.leai-aui-view:has(> .leai-page:not(.leai-member-page)):is(.lx-coupon-center, .lx-coupon-center *),
+body .lx-member-component-host > .leai-page:not(.leai-member-page):is(.lx-coupon-center, .lx-coupon-center *) { background: rgb(255, 255, 255) !important; }
+body .lx-member-component-host > .leai-page:not(.leai-member-page):is(.lx-coupon-center, .lx-coupon-center *) { max-width: none; padding: 24px 28px 40px; background: rgb(255, 255, 255) !important; }
+body .lx-member-component-host > .leai-page:not(.leai-member-page) > .leai-page-header:is(.lx-coupon-center, .lx-coupon-center *) { gap: 24px; margin-bottom: 20px; }
+body .lx-member-component-host > .leai-page:not(.leai-member-page) .leai-page-title:is(.lx-coupon-center, .lx-coupon-center *) { padding-inline-start: 0px; font-size: 24px; line-height: 32px; font-weight: 650; letter-spacing: -0.25px; }
+body .lx-member-component-host > .leai-page:not(.leai-member-page) .leai-page-desc:is(.lx-coupon-center, .lx-coupon-center *) { max-width: 760px; margin-top: 6px; font-size: 12px; line-height: 20px; }
+@container member-right-surface (max-width: 700px) {
+body .lx-member-component-host > .leai-page:not(.leai-member-page):is(.lx-coupon-center, .lx-coupon-center *) { padding: 20px 16px 32px; }
+}
+body .lx-member-component-host > .leai-page:not(.leai-member-page):is(.lx-coupon-center, .lx-coupon-center *) { padding: 20px 24px 32px !important; }
+body .lx-member-component-host > .leai-page:not(.leai-member-page) > .leai-page-header:is(.lx-coupon-center, .lx-coupon-center *) { min-height: 0px; align-items: flex-start; margin: 0px 0px 20px; padding: 0px; }
+body .lx-member-component-host > .leai-page:not(.leai-member-page) .leai-page-title:is(.lx-coupon-center, .lx-coupon-center *) { font-size: 22px; line-height: 30px; font-weight: 650; letter-spacing: -0.2px; }
+body .lx-member-component-host > .leai-page:not(.leai-member-page) .leai-page-desc:is(.lx-coupon-center, .lx-coupon-center *) { margin-top: 5px; font-size: 12px; line-height: 19px; }
+body .lx-member-component-host > .leai-page:not(.leai-member-page):is(.lx-coupon-center, .lx-coupon-center *) { --secondary-section-gap: 16px; --secondary-panel-radius: 14px; --secondary-panel-pad-x: 18px; --secondary-page-title-size: 20px; --secondary-page-title-line: 28px; --secondary-section-title-size: 16px; --secondary-section-title-line: 24px; display: flex; flex-direction: column; gap: var(--secondary-section-gap); padding: 20px 24px 32px !important; }
+body .lx-member-component-host > .leai-page:not(.leai-member-page) > *:is(.lx-coupon-center, .lx-coupon-center *) { margin-top: 0px !important; margin-bottom: 0px !important; }
+body .lx-member-component-host > .leai-page:not(.leai-member-page) > .leai-page-header:is(.lx-coupon-center, .lx-coupon-center *) { min-height: 0px; gap: 16px; }
+body .lx-member-component-host > .leai-page:not(.leai-member-page) .leai-page-title:is(.lx-coupon-center, .lx-coupon-center *),
+body .lx-member-component-host > .leai-page:not(.leai-member-page) .leai-recommendation-brief .leai-page-title:is(.lx-coupon-center, .lx-coupon-center *) { font-size: var(--secondary-page-title-size); line-height: var(--secondary-page-title-line); font-weight: 650; letter-spacing: -0.15px; }
+body .lx-member-component-host > .leai-page:not(.leai-member-page) .leai-page-desc:is(.lx-coupon-center, .lx-coupon-center *) { margin-top: 6px; font-size: 12px; line-height: 19px; }
+@container member-right-surface (min-width: 701px) {
+body .lx-member-component-host > .leai-page:not(.leai-member-page) > .leai-page-header:is(.lx-coupon-center, .lx-coupon-center *) { display: flex; align-items: flex-start; justify-content: space-between; }
+}
+@container member-right-surface (max-width: 700px) {
+body .lx-member-component-host > .leai-page:not(.leai-member-page):is(.lx-coupon-center, .lx-coupon-center *) { gap: 14px; padding: 18px 16px 28px !important; }
+}
+.leai-asset-filterbar:is(.lx-coupon-center, .lx-coupon-center *) { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 14px; border: 1px solid var(--ms-line); border-radius: 12px; background: var(--ms-surface); box-shadow: var(--ms-card-shadow); }
+.leai-asset-filter-tabs:is(.lx-coupon-center, .lx-coupon-center *) { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+.leai-asset-filter-tabs button:is(.lx-coupon-center, .lx-coupon-center *) { min-height: 34px; padding: 0px 12px; border: 1px solid transparent; border-radius: 8px; background: transparent; color: var(--ms-text-soft); font-family: inherit; font-size: 12px; }
+.leai-asset-filter-tabs button:hover:is(.lx-coupon-center, .lx-coupon-center *),
+.leai-asset-filter-tabs button:focus-visible:is(.lx-coupon-center, .lx-coupon-center *),
+.leai-asset-filter-tabs button.is-active:is(.lx-coupon-center, .lx-coupon-center *) { border-color: var(--ms-brand); background: var(--ms-hover); color: var(--ms-brand); outline: none; }
+body .lx-member-component-host > .leai-member-asset-page:not(.leai-ledou-ledger-page):is(.lx-coupon-center, .lx-coupon-center *) { gap: 18px !important; padding: 22px 24px 32px !important; background: rgb(255, 255, 255) !important; }
+body .leai-member-asset-page > .leai-asset-filterbar:is(.lx-coupon-center, .lx-coupon-center *) { padding: 4px 0px 14px; border-top: 0px; border-right: 0px; border-left: 0px; border-image: none; border-bottom: 1px solid var(--ms-line-soft); border-radius: 0px; background: rgb(255, 255, 255); box-shadow: none; }
+body .leai-member-asset-page > .leai-asset-filterbar .leai-asset-filter-tabs:is(.lx-coupon-center, .lx-coupon-center *) { gap: 14px; }
+body .leai-member-asset-page > .leai-asset-filterbar .leai-asset-filter-tabs button:is(.lx-coupon-center, .lx-coupon-center *) { position: relative; min-height: 34px; padding: 0px 2px; border: 0px; border-radius: 0px; background: transparent; color: var(--ms-text-soft); font-size: 12px; }
+body .leai-member-asset-page > .leai-asset-filterbar .leai-asset-filter-tabs button:hover:is(.lx-coupon-center, .lx-coupon-center *),
+body .leai-member-asset-page > .leai-asset-filterbar .leai-asset-filter-tabs button:focus-visible:is(.lx-coupon-center, .lx-coupon-center *) { border: 0px; background: transparent; color: var(--ms-brand); outline: none; }
+body .leai-member-asset-page > .leai-asset-filterbar .leai-asset-filter-tabs button.is-active:is(.lx-coupon-center, .lx-coupon-center *) { border: 0px; background: transparent; color: var(--ms-brand); font-weight: 700; }
+body .leai-member-asset-page > .leai-asset-filterbar .leai-asset-filter-tabs button.is-active:is(.lx-coupon-center, .lx-coupon-center *)::after { position: absolute; right: 0px; bottom: -15px; left: 0px; height: 2px; border-radius: 2px; background: var(--ms-brand); content: ""; }
+@media (max-width: 720px) {
+.leai-asset-filterbar:is(.lx-coupon-center, .lx-coupon-center *),
+.leai-education-state-panel:is(.lx-coupon-center, .lx-coupon-center *) { align-items: stretch; flex-direction: column; }
+}
+body .leai-member-asset-page.leai-coupon-page:is(.lx-coupon-center, .lx-coupon-center *) { gap: 14px !important; }
+body .leai-coupon-page > .leai-asset-filterbar:is(.lx-coupon-center, .lx-coupon-center *) { min-height: 48px; padding: 0px 0px 8px; }
+body .leai-coupon-page > .leai-asset-filterbar .leai-asset-filter-tabs:is(.lx-coupon-center, .lx-coupon-center *) { width: min(430px, 100%); flex-wrap: nowrap; justify-content: space-between; gap: 24px; }
+body .leai-coupon-page > .leai-asset-filterbar .leai-asset-filter-tabs button:is(.lx-coupon-center, .lx-coupon-center *) { min-height: 36px; padding: 0px; color: var(--ms-text-soft); font-size: 14px; line-height: 22px; white-space: nowrap; }
+body .leai-coupon-page > .leai-asset-filterbar .leai-asset-filter-tabs button.is-active:is(.lx-coupon-center, .lx-coupon-center *) { color: var(--ms-brand); font-weight: 700; }
+body .leai-coupon-page > .leai-asset-filterbar .leai-asset-filter-tabs button.is-active:is(.lx-coupon-center, .lx-coupon-center *)::after { bottom: -9px; height: 2px; }
+body .leai-coupon-grid-section:is(.lx-coupon-center, .lx-coupon-center *) { margin: 0px; padding: 0px; border: 0px; background: transparent; }
+body .leai-coupon-grid-section > .leai-coupon-list:is(.lx-coupon-center, .lx-coupon-center *) { display: grid; grid-template-columns: repeat(2, minmax(0px, 1fr)); gap: 12px; margin: 0px; padding: 0px; }
+body .leai-coupon-grid-section .leai-coupon-card:is(.lx-coupon-center, .lx-coupon-center *) { min-height: 132px; grid-template-columns: 132px minmax(0px, 1fr); border: 1px solid var(--ms-line-soft); border-radius: 12px; background: rgb(255, 255, 255); box-shadow: none; }
+body .leai-coupon-grid-section .leai-coupon-value:is(.lx-coupon-center, .lx-coupon-center *) { min-height: 132px; padding: 14px; background: linear-gradient(145deg, rgb(241, 235, 248) 0%, rgb(250, 238, 244) 100%); color: var(--ms-brand); }
+body .leai-coupon-grid-section .leai-coupon-value strong:is(.lx-coupon-center, .lx-coupon-center *) { font-size: 25px; }
+body .leai-coupon-grid-section .leai-coupon-copy:is(.lx-coupon-center, .lx-coupon-center *) { min-height: 132px; padding: 14px 15px 12px; }
+body .leai-coupon-grid-section .leai-coupon-copy h3:is(.lx-coupon-center, .lx-coupon-center *) { padding-right: 58px; font-size: 13px; line-height: 20px; }
+@media (max-width: 900px) {
+body .leai-coupon-grid-section > .leai-coupon-list:is(.lx-coupon-center, .lx-coupon-center *) { grid-template-columns: 1fr; }
+}
+body .leai-member-asset-page > .leai-asset-filterbar:is(.lx-coupon-center, .lx-coupon-center *) { position: relative; }
+body .leai-member-asset-page > .leai-asset-filterbar .leai-asset-filter-tabs:is(.lx-coupon-center, .lx-coupon-center *) { align-self: stretch; align-items: flex-end; }
+body .leai-member-asset-page > .leai-asset-filterbar .leai-asset-filter-tabs button.is-active:is(.lx-coupon-center, .lx-coupon-center *)::after { bottom: -9px; z-index: 2; height: 2px; }
+body .leai-coupon-grid-section .leai-coupon-card:is(.lx-coupon-center, .lx-coupon-center *) { min-height: 108px; grid-template-columns: 112px minmax(0px, 1fr); }
+body .leai-coupon-grid-section .leai-coupon-value:is(.lx-coupon-center, .lx-coupon-center *) { min-height: 108px; gap: 3px; padding: 11px; }
+body .leai-coupon-grid-section .leai-coupon-value strong:is(.lx-coupon-center, .lx-coupon-center *) { font-size: 22px; line-height: 28px; }
+body .leai-coupon-grid-section .leai-coupon-copy:is(.lx-coupon-center, .lx-coupon-center *) { min-height: 108px; padding: 11px 13px 10px; }
+body .leai-coupon-grid-section .leai-coupon-copy h3:is(.lx-coupon-center, .lx-coupon-center *) { padding-right: 54px; font-size: 12px; line-height: 18px; }
+body .leai-coupon-grid-section .leai-coupon-copy > p:not(.leai-coupon-detail):is(.lx-coupon-center, .lx-coupon-center *) { margin-top: 3px; line-height: 15px; }
+body .leai-coupon-page > .leai-asset-filterbar .leai-asset-filter-tabs:is(.lx-coupon-center, .lx-coupon-center *) { width: min(420px, 100%); display: grid; grid-template-columns: repeat(3, minmax(0px, 1fr)); align-items: end; justify-content: initial; gap: 0px; }
+body .leai-coupon-page > .leai-asset-filterbar .leai-asset-filter-tabs button:is(.lx-coupon-center, .lx-coupon-center *) { width: 100%; justify-self: stretch; text-align: center; }
+body .leai-coupon-page > .leai-asset-filterbar .leai-asset-filter-tabs button.is-active:is(.lx-coupon-center, .lx-coupon-center *)::after { right: auto; left: 50%; width: 44px; transform: translateX(-50%); }
+body .lx-member-component-host > .leai-page:not(.leai-member-page) > .leai-page-header:is(.lx-coupon-center, .lx-coupon-center *),
+body .leai-member-asset-page > .leai-asset-sticky-header:is(.lx-coupon-center, .lx-coupon-center *),
+body .leai-ledou-ledger-page > .leai-ledou-sticky-header:is(.lx-coupon-center, .lx-coupon-center *) { width: 100%; min-height: 48px; border: 0px; border-radius: 0px; background: rgba(255, 255, 255, 0.98); box-shadow: none; margin: 0px !important; padding: 6px 0px 8px !important; }
+body .lx-member-component-host > .leai-page:not(.leai-member-page) .leai-page-title:is(.lx-coupon-center, .lx-coupon-center *) { padding-inline-start: 8px; font-size: 20px; line-height: 30px; font-weight: 650; letter-spacing: -0.2px; }
+body .lx-member-component-host > .leai-page:not(.leai-member-page) .leai-page-desc:is(.lx-coupon-center, .lx-coupon-center *) { margin: 3px 0px 0px 40px; font-size: 12px; line-height: 18px; }
+body .leai-member-asset-page > .leai-asset-filterbar:is(.lx-coupon-center, .lx-coupon-center *) { min-height: 44px; margin: 0px; padding: 0px 0px 8px; }
+body .leai-member-asset-page > .leai-asset-filterbar .leai-asset-filter-tabs:is(.lx-coupon-center, .lx-coupon-center *),
+body .leai-coupon-page > .leai-asset-filterbar .leai-asset-filter-tabs:is(.lx-coupon-center, .lx-coupon-center *),
+body .leai-ledou-ledger-page .leai-asset-filter-tabs:is(.lx-coupon-center, .lx-coupon-center *) { width: auto; display: flex; flex-wrap: nowrap; align-items: flex-end; justify-content: flex-start; gap: 20px; }
+body .leai-member-asset-page > .leai-asset-filterbar .leai-asset-filter-tabs button:is(.lx-coupon-center, .lx-coupon-center *),
+body .leai-coupon-page > .leai-asset-filterbar .leai-asset-filter-tabs button:is(.lx-coupon-center, .lx-coupon-center *),
+body .leai-ledou-ledger-page .leai-asset-filter-tabs button:is(.lx-coupon-center, .lx-coupon-center *) { width: auto; min-height: 34px; padding: 0px 2px; font-size: 14px; line-height: 21px; text-align: left; }
+body .leai-member-asset-page > .leai-asset-filterbar .leai-asset-filter-tabs button.is-active:is(.lx-coupon-center, .lx-coupon-center *)::after,
+body .leai-coupon-page > .leai-asset-filterbar .leai-asset-filter-tabs button.is-active:is(.lx-coupon-center, .lx-coupon-center *)::after,
+body .leai-ledou-ledger-page .leai-asset-filter-tabs button.is-active:is(.lx-coupon-center, .lx-coupon-center *)::after { right: 0px; bottom: -9px; left: 0px; width: auto; height: 2px; transform: none; }
+body .leai-coupon-grid-section .leai-coupon-card:is(.lx-coupon-center, .lx-coupon-center *),
+body .leai-coupon-grid-section .leai-coupon-value:is(.lx-coupon-center, .lx-coupon-center *),
+body .leai-coupon-grid-section .leai-coupon-copy:is(.lx-coupon-center, .lx-coupon-center *) { min-height: 96px; }
+body .leai-coupon-grid-section .leai-coupon-value:is(.lx-coupon-center, .lx-coupon-center *) { padding-block: 9px; }
+body .leai-coupon-grid-section .leai-coupon-copy:is(.lx-coupon-center, .lx-coupon-center *) { padding-top: 9px; padding-bottom: 8px; }
+body .leai-coupon-grid-section .leai-coupon-card:is(.lx-coupon-center, .lx-coupon-center *),
+body .leai-coupon-grid-section .leai-coupon-value:is(.lx-coupon-center, .lx-coupon-center *),
+body .leai-coupon-grid-section .leai-coupon-copy:is(.lx-coupon-center, .lx-coupon-center *) { min-height: 104px; }
+body .leai-coupon-grid-section .leai-coupon-copy:is(.lx-coupon-center, .lx-coupon-center *) { padding-top: 13px; padding-bottom: 8px; }
+body .lx-member-component-host > .leai-page:not(.leai-member-page) .leai-page-title:is(.lx-coupon-center, .lx-coupon-center *) { padding-inline-start: 2px; }
+body .leai-member-asset-page > .leai-asset-filterbar .leai-asset-filter-tabs button.is-active:is(.lx-coupon-center, .lx-coupon-center *)::after,
+body .leai-coupon-page > .leai-asset-filterbar .leai-asset-filter-tabs button.is-active:is(.lx-coupon-center, .lx-coupon-center *)::after,
+body .leai-ledou-ledger-page .leai-asset-filter-tabs button.is-active:is(.lx-coupon-center, .lx-coupon-center *)::after { right: auto; left: 50%; width: 32px; transform: translateX(-50%); }
+body .leai-coupon-grid-section .leai-coupon-copy:is(.lx-coupon-center, .lx-coupon-center *) { padding-right: 16px; padding-left: 16px; }
+body .leai-coupon-grid-section .leai-coupon-copy > h3:is(.lx-coupon-center, .lx-coupon-center *),
+body .leai-coupon-grid-section .leai-coupon-copy > p:not(.leai-coupon-detail):is(.lx-coupon-center, .lx-coupon-center *),
+body .leai-coupon-grid-section .leai-coupon-actions > button:first-child:is(.lx-coupon-center, .lx-coupon-center *) { position: relative; top: 4px; }
+body .lx-member-component-host > .leai-page:not(.leai-member-page):is(.lx-coupon-center, .lx-coupon-center *) { --secondary-section-gap: 12px; gap: 12px !important; padding: 14px 20px 24px !important; }
+body .lx-member-component-host > .leai-page:not(.leai-member-page) > .leai-page-header:is(.lx-coupon-center, .lx-coupon-center *),
+body .leai-member-asset-page > .leai-asset-sticky-header:is(.lx-coupon-center, .lx-coupon-center *),
+body .leai-ledou-ledger-page > .leai-ledou-sticky-header:is(.lx-coupon-center, .lx-coupon-center *) { min-height: 40px; padding: 3px 0px 5px !important; }
+body .leai-member-asset-page > .leai-asset-filterbar:is(.lx-coupon-center, .lx-coupon-center *) { min-height: 38px; margin: 0px !important; padding: 0px 0px 5px !important; }
+body .leai-member-asset-page > .leai-asset-filterbar .leai-asset-filter-tabs:is(.lx-coupon-center, .lx-coupon-center *),
+body .leai-coupon-page > .leai-asset-filterbar .leai-asset-filter-tabs:is(.lx-coupon-center, .lx-coupon-center *),
+body .leai-ledou-ledger-page .leai-asset-filter-tabs:is(.lx-coupon-center, .lx-coupon-center *) { gap: 16px; }
+body .leai-member-asset-page > .leai-asset-filterbar .leai-asset-filter-tabs button:is(.lx-coupon-center, .lx-coupon-center *),
+body .leai-coupon-page > .leai-asset-filterbar .leai-asset-filter-tabs button:is(.lx-coupon-center, .lx-coupon-center *),
+body .leai-ledou-ledger-page .leai-asset-filter-tabs button:is(.lx-coupon-center, .lx-coupon-center *) { min-height: 30px; }
+body .leai-member-asset-page > .leai-asset-filterbar .leai-asset-filter-tabs button.is-active:is(.lx-coupon-center, .lx-coupon-center *)::after,
+body .leai-coupon-page > .leai-asset-filterbar .leai-asset-filter-tabs button.is-active:is(.lx-coupon-center, .lx-coupon-center *)::after,
+body .leai-ledou-ledger-page .leai-asset-filter-tabs button.is-active:is(.lx-coupon-center, .lx-coupon-center *)::after { bottom: -6px; }
+html body .leai-coupon-list:is(.lx-coupon-center, .lx-coupon-center *) { display: grid !important; grid-template-columns: repeat(2, minmax(0px, 1fr)) !important; gap: 12px !important; }
+html body .leai-coupon-list > .leai-coupon-card:is(.lx-coupon-center, .lx-coupon-center *) { min-width: 0px !important; width: auto !important; grid-column: auto !important; }
+html body .leai-coupon-list .leai-coupon-copy:is(.lx-coupon-center, .lx-coupon-center *) { min-width: 0px; }
+html body .leai-coupon-list .leai-coupon-copy h3:is(.lx-coupon-center, .lx-coupon-center *),
+html body .leai-coupon-list .leai-coupon-copy p:is(.lx-coupon-center, .lx-coupon-center *) { overflow-wrap: anywhere; }
+html body .leai-coupon-page .leai-coupon-list:is(.lx-coupon-center, .lx-coupon-center *) { grid-template-columns: minmax(0px, 1fr) !important; gap: 12px !important; }
+html body .leai-coupon-page .leai-coupon-card:is(.lx-coupon-center, .lx-coupon-center *),
+html body .leai-coupon-page .leai-coupon-value:is(.lx-coupon-center, .lx-coupon-center *),
+html body .leai-coupon-page .leai-coupon-copy:is(.lx-coupon-center, .lx-coupon-center *) { min-height: 104px !important; }
+html body .leai-coupon-page .leai-coupon-card:is(.lx-coupon-center, .lx-coupon-center *) { grid-template-columns: 90px minmax(0px, 1fr) !important; border: 1px solid rgb(234, 223, 234) !important; border-radius: 12px !important; background: rgb(255, 255, 255) !important; box-shadow: none !important; }
+html body .leai-coupon-page .leai-coupon-value:is(.lx-coupon-center, .lx-coupon-center *) { padding: 12px 8px !important; background: linear-gradient(135deg, rgb(251, 240, 246) 0%, rgb(233, 237, 255) 100%) !important; color: rgb(91, 20, 82) !important; }
+html body .leai-coupon-page .leai-coupon-value strong:is(.lx-coupon-center, .lx-coupon-center *) { font-size: 16px !important; line-height: 24px !important; font-weight: 700 !important; letter-spacing: 0px !important; }
+html body .leai-coupon-page .leai-coupon-copy:is(.lx-coupon-center, .lx-coupon-center *) { display: flex !important; flex-direction: column !important; justify-content: center !important; padding: 16px 14px !important; }
+html body .leai-coupon-page .leai-coupon-copy h3:is(.lx-coupon-center, .lx-coupon-center *) { margin: 0px !important; padding: 0px !important; color: rgb(38, 35, 38) !important; font-size: 13px !important; line-height: 20px !important; font-weight: 650 !important; }
+html body .leai-coupon-page .leai-coupon-copy > p:is(.lx-coupon-center, .lx-coupon-center *) { margin: 6px 0px 0px !important; color: rgb(119, 112, 123) !important; font-size: 11px !important; line-height: 17px !important; }
+@media (max-width: 900px) {
+html body .leai-coupon-page .leai-coupon-list:is(.lx-coupon-center, .lx-coupon-center *) { grid-template-columns: minmax(0px, 1fr) !important; }
+html body .leai-coupon-page .leai-coupon-card:is(.lx-coupon-center, .lx-coupon-center *) { grid-template-columns: 72px minmax(0px, 1fr) !important; }
+}
+@media (min-width: 901px) {
+html body .leai-coupon-page .leai-coupon-list:is(.lx-coupon-center, .lx-coupon-center *) { grid-template-columns: repeat(3, minmax(0px, 1fr)) !important; }
+html body .leai-coupon-page .leai-coupon-card:is(.lx-coupon-center, .lx-coupon-center *) { grid-template-columns: 72px minmax(0px, 1fr) !important; }
+}
+html body .lx-member-component-host .leai-coupon-page .leai-coupon-grid-section .leai-coupon-card:is(.lx-coupon-center, .lx-coupon-center *),
+html body .lx-member-component-host .leai-coupon-page .leai-coupon-grid-section .leai-coupon-copy:is(.lx-coupon-center, .lx-coupon-center *) { background: rgb(252, 250, 255) !important; }
+html body .lx-member-component-host .leai-coupon-page .leai-coupon-grid-section .leai-coupon-copy h3:is(.lx-coupon-center, .lx-coupon-center *) { position: relative !important; top: -4px !important; white-space: nowrap !important; }
+html body .lx-member-component-host .leai-coupon-page .leai-coupon-grid-section .leai-coupon-copy > p:not(.leai-coupon-detail):is(.lx-coupon-center, .lx-coupon-center *) { margin-top: 4px !important; white-space: nowrap !important; }
+html body .leai-coupon-page .leai-coupon-copy > p:is(.lx-coupon-center, .lx-coupon-center *) { white-space: nowrap !important; overflow-wrap: normal !important; word-break: keep-all !important; }
+html body .lx-member-component-host > .leai-page:not(.leai-member-page) .leai-page-title:is(.lx-coupon-center, .lx-coupon-center *) { padding-inline-start: 0px !important; }
+html body .lx-member-component-host > .leai-page:not(.leai-member-page) .leai-page-desc:is(.lx-coupon-center, .lx-coupon-center *) { margin-left: 26px !important; }
+@media (min-width: 901px) {
+html body .lx-member-component-host .leai-coupon-page .leai-coupon-grid-section > .leai-coupon-list:is(.lx-coupon-center, .lx-coupon-center *) { display: grid !important; grid-template-columns: repeat(3, minmax(0px, 1fr)) !important; grid-auto-flow: row !important; gap: 12px !important; }
+html body .lx-member-component-host .leai-coupon-page .leai-coupon-grid-section > .leai-coupon-list > .leai-coupon-card:is(.lx-coupon-center, .lx-coupon-center *) { min-width: 0px !important; width: auto !important; grid-column: auto !important; }
+}
+html body .leai-member-asset-page:is(.lx-coupon-center, .lx-coupon-center *) { padding-bottom: 24px !important; }
+.lx-member-component-host > .lx-coupon-center:is(.lx-coupon-center, .lx-coupon-center *) { width: 100%; max-width: none; box-sizing: border-box; display: flex !important; flex-direction: column !important; }
+.lx-coupon-center > .leai-page-header:is(.lx-coupon-center, .lx-coupon-center *) { flex-shrink: 0; margin: 0px !important; }
+.lx-coupon-center > .leai-coupon-grid-section:is(.lx-coupon-center, .lx-coupon-center *) { flex-shrink: 0; }
+@media (min-width: 1101px) {
+html body .lx-member-component-host .leai-coupon-page .leai-coupon-grid-section > .leai-coupon-list:is(.lx-coupon-center, .lx-coupon-center *) { grid-template-columns: repeat(3, minmax(0px, 1fr)) !important; }
+}
+html body .lx-member-component-host .leai-coupon-page .leai-coupon-grid-section .leai-coupon-card:is(.lx-coupon-center, .lx-coupon-center *),
+html body .lx-member-component-host .leai-coupon-page .leai-coupon-grid-section .leai-coupon-copy:is(.lx-coupon-center, .lx-coupon-center *) { background: rgb(251, 248, 255) !important; }
+html body .lx-member-component-host .leai-coupon-page .leai-coupon-grid-section .leai-coupon-copy h3:is(.lx-coupon-center, .lx-coupon-center *) { position: relative !important; top: -4px !important; white-space: nowrap !important; }
+html body .lx-member-component-host .leai-coupon-page .leai-coupon-grid-section .leai-coupon-copy > p:not(.leai-coupon-detail):is(.lx-coupon-center, .lx-coupon-center *) { margin-top: 4px !important; white-space: nowrap !important; }
+.leai-page:is(.lx-coupon-center, .lx-coupon-center *) { max-width: 1120px; margin: 0px auto; }
+.leai-page-header:is(.lx-coupon-center, .lx-coupon-center *) { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; margin-bottom: 18px; }
+.leai-page-title:is(.lx-coupon-center, .lx-coupon-center *) { margin: 0px; padding-inline-start: 10px; color: var(--ms-text); font-size: 22px; line-height: 32px; font-weight: 500; }
+.leai-page-desc:is(.lx-coupon-center, .lx-coupon-center *) { margin: 8px 0px 0px; color: var(--ms-text-soft); font-size: 13px; line-height: 21px; }
+@media (max-width: 900px) {
+.leai-page-header:is(.lx-coupon-center, .lx-coupon-center *) { display: grid; }
+}
+body:is(.lx-coupon-center, .lx-coupon-center *),
+button:is(.lx-coupon-center, .lx-coupon-center *),
+input:is(.lx-coupon-center, .lx-coupon-center *),
+select:is(.lx-coupon-center, .lx-coupon-center *),
+textarea:is(.lx-coupon-center, .lx-coupon-center *) { font-family: "Source Han Sans CN Local", "PingFang SC", "Microsoft YaHei", Arial, sans-serif; }
+.leai-coupon-list:is(.lx-coupon-center, .lx-coupon-center *),
+.leai-coupon-product-list:is(.lx-coupon-center, .lx-coupon-center *) { display: grid; gap: 12px; }
+.leai-coupon-card:is(.lx-coupon-center, .lx-coupon-center *) { position: relative; display: grid; grid-template-columns: minmax(150px, 0.34fr) minmax(0px, 1fr); overflow: hidden; border: 1px solid var(--ms-line-soft); border-radius: 14px; background: var(--ms-surface); box-shadow: var(--ms-card-shadow); }
+.leai-coupon-value:is(.lx-coupon-center, .lx-coupon-center *) { min-height: 154px; display: grid; place-items: center; align-content: center; gap: 8px; padding: 18px; background: var(--lexiang-gradient-brand); color: var(--ms-surface); }
+.leai-coupon-value strong:is(.lx-coupon-center, .lx-coupon-center *) { font-size: 32px; line-height: 1; }
+.leai-coupon-copy:is(.lx-coupon-center, .lx-coupon-center *) { position: relative; min-width: 0px; padding: 18px 20px; }
+.leai-coupon-copy h3:is(.lx-coupon-center, .lx-coupon-center *) { margin: 0px; padding-right: 76px; color: var(--ms-text); font-size: 15px; line-height: 22px; }
+.leai-coupon-copy > p:not(.leai-coupon-detail):is(.lx-coupon-center, .lx-coupon-center *) { margin: 10px 0px 0px; color: var(--ms-muted); font-size: 11px; }
+.lx-member-component-host > .leai-page:not(.leai-member-page):is(.lx-coupon-center, .lx-coupon-center *) { max-width: none; padding-bottom: 24px; }
+.lx-member-component-host > .leai-page:not(.leai-member-page) > .leai-page-header:is(.lx-coupon-center, .lx-coupon-center *) { margin-bottom: 16px; }
+.lx-member-component-host > .leai-page:not(.leai-member-page):is(.lx-coupon-center, .lx-coupon-center *) { max-width: none; padding-bottom: 24px; }
+.lx-member-component-host > .leai-page:not(.leai-member-page) > .leai-page-header:is(.lx-coupon-center, .lx-coupon-center *) { margin-bottom: 16px; }
+body .lx-member-component-host > .leai-page:not(.leai-member-page):is(.lx-coupon-center, .lx-coupon-center *) { width: 100%; max-width: none; margin-inline: 0px; padding-inline: 0px !important; }
+body .lx-member-component-host.leai-aui-view:has(> .leai-page:not(.leai-member-page)):is(.lx-coupon-center, .lx-coupon-center *),
+body .lx-member-component-host > .leai-page:not(.leai-member-page):is(.lx-coupon-center, .lx-coupon-center *) { background: rgb(255, 255, 255) !important; }
+body .lx-member-component-host > .leai-page:not(.leai-member-page):is(.lx-coupon-center, .lx-coupon-center *) { max-width: none; padding: 24px 28px 40px; background: rgb(255, 255, 255) !important; }
+body .lx-member-component-host > .leai-page:not(.leai-member-page) > .leai-page-header:is(.lx-coupon-center, .lx-coupon-center *) { gap: 24px; margin-bottom: 20px; }
+body .lx-member-component-host > .leai-page:not(.leai-member-page) .leai-page-title:is(.lx-coupon-center, .lx-coupon-center *) { padding-inline-start: 0px; font-size: 24px; line-height: 32px; font-weight: 650; letter-spacing: -0.25px; }
+body .lx-member-component-host > .leai-page:not(.leai-member-page) .leai-page-desc:is(.lx-coupon-center, .lx-coupon-center *) { max-width: 760px; margin-top: 6px; font-size: 12px; line-height: 20px; }
+@container member-right-surface (max-width: 700px) {
+body .lx-member-component-host > .leai-page:not(.leai-member-page):is(.lx-coupon-center, .lx-coupon-center *) { padding: 20px 16px 32px; }
+}
+body .lx-member-component-host > .leai-page:not(.leai-member-page):is(.lx-coupon-center, .lx-coupon-center *) { padding: 20px 24px 32px !important; }
+body .lx-member-component-host > .leai-page:not(.leai-member-page) > .leai-page-header:is(.lx-coupon-center, .lx-coupon-center *) { min-height: 0px; align-items: flex-start; margin: 0px 0px 20px; padding: 0px; }
+body .lx-member-component-host > .leai-page:not(.leai-member-page) .leai-page-title:is(.lx-coupon-center, .lx-coupon-center *) { font-size: 22px; line-height: 30px; font-weight: 650; letter-spacing: -0.2px; }
+body .lx-member-component-host > .leai-page:not(.leai-member-page) .leai-page-desc:is(.lx-coupon-center, .lx-coupon-center *) { margin-top: 5px; font-size: 12px; line-height: 19px; }
+body .lx-member-component-host > .leai-page:not(.leai-member-page):is(.lx-coupon-center, .lx-coupon-center *) { --secondary-section-gap: 16px; --secondary-panel-radius: 14px; --secondary-panel-pad-x: 18px; --secondary-page-title-size: 20px; --secondary-page-title-line: 28px; --secondary-section-title-size: 16px; --secondary-section-title-line: 24px; display: flex; flex-direction: column; gap: var(--secondary-section-gap); padding: 20px 24px 32px !important; }
+body .lx-member-component-host > .leai-page:not(.leai-member-page) > *:is(.lx-coupon-center, .lx-coupon-center *) { margin-top: 0px !important; margin-bottom: 0px !important; }
+body .lx-member-component-host > .leai-page:not(.leai-member-page) > .leai-page-header:is(.lx-coupon-center, .lx-coupon-center *) { min-height: 0px; gap: 16px; }
+body .lx-member-component-host > .leai-page:not(.leai-member-page) .leai-page-title:is(.lx-coupon-center, .lx-coupon-center *),
+body .lx-member-component-host > .leai-page:not(.leai-member-page) .leai-recommendation-brief .leai-page-title:is(.lx-coupon-center, .lx-coupon-center *) { font-size: var(--secondary-page-title-size); line-height: var(--secondary-page-title-line); font-weight: 650; letter-spacing: -0.15px; }
+body .lx-member-component-host > .leai-page:not(.leai-member-page) .leai-page-desc:is(.lx-coupon-center, .lx-coupon-center *) { margin-top: 6px; font-size: 12px; line-height: 19px; }
+@container member-right-surface (min-width: 701px) {
+body .lx-member-component-host > .leai-page:not(.leai-member-page) > .leai-page-header:is(.lx-coupon-center, .lx-coupon-center *) { display: flex; align-items: flex-start; justify-content: space-between; }
+}
+@container member-right-surface (max-width: 700px) {
+body .lx-member-component-host > .leai-page:not(.leai-member-page):is(.lx-coupon-center, .lx-coupon-center *) { gap: 14px; padding: 18px 16px 28px !important; }
+}
+.leai-asset-filterbar:is(.lx-coupon-center, .lx-coupon-center *) { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 14px; border: 1px solid var(--ms-line); border-radius: 12px; background: var(--ms-surface); box-shadow: var(--ms-card-shadow); }
+.leai-asset-filter-tabs:is(.lx-coupon-center, .lx-coupon-center *) { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+.leai-asset-filter-tabs button:is(.lx-coupon-center, .lx-coupon-center *) { min-height: 34px; padding: 0px 12px; border: 1px solid transparent; border-radius: 8px; background: transparent; color: var(--ms-text-soft); font-family: inherit; font-size: 12px; }
+.leai-asset-filter-tabs button:hover:is(.lx-coupon-center, .lx-coupon-center *),
+.leai-asset-filter-tabs button:focus-visible:is(.lx-coupon-center, .lx-coupon-center *),
+.leai-asset-filter-tabs button.is-active:is(.lx-coupon-center, .lx-coupon-center *) { border-color: var(--ms-brand); background: var(--ms-hover); color: var(--ms-brand); outline: none; }
+body .lx-member-component-host > .leai-member-asset-page:not(.leai-ledou-ledger-page):is(.lx-coupon-center, .lx-coupon-center *) { gap: 18px !important; padding: 22px 24px 32px !important; background: rgb(255, 255, 255) !important; }
+body .leai-member-asset-page > .leai-asset-filterbar:is(.lx-coupon-center, .lx-coupon-center *) { padding: 4px 0px 14px; border-top: 0px; border-right: 0px; border-left: 0px; border-image: none; border-bottom: 1px solid var(--ms-line-soft); border-radius: 0px; background: rgb(255, 255, 255); box-shadow: none; }
+body .leai-member-asset-page > .leai-asset-filterbar .leai-asset-filter-tabs:is(.lx-coupon-center, .lx-coupon-center *) { gap: 14px; }
+body .leai-member-asset-page > .leai-asset-filterbar .leai-asset-filter-tabs button:is(.lx-coupon-center, .lx-coupon-center *) { position: relative; min-height: 34px; padding: 0px 2px; border: 0px; border-radius: 0px; background: transparent; color: var(--ms-text-soft); font-size: 12px; }
+body .leai-member-asset-page > .leai-asset-filterbar .leai-asset-filter-tabs button:hover:is(.lx-coupon-center, .lx-coupon-center *),
+body .leai-member-asset-page > .leai-asset-filterbar .leai-asset-filter-tabs button:focus-visible:is(.lx-coupon-center, .lx-coupon-center *) { border: 0px; background: transparent; color: var(--ms-brand); outline: none; }
+body .leai-member-asset-page > .leai-asset-filterbar .leai-asset-filter-tabs button.is-active:is(.lx-coupon-center, .lx-coupon-center *) { border: 0px; background: transparent; color: var(--ms-brand); font-weight: 700; }
+body .leai-member-asset-page > .leai-asset-filterbar .leai-asset-filter-tabs button.is-active:is(.lx-coupon-center, .lx-coupon-center *)::after { position: absolute; right: 0px; bottom: -15px; left: 0px; height: 2px; border-radius: 2px; background: var(--ms-brand); content: ""; }
+@media (max-width: 720px) {
+.leai-asset-filterbar:is(.lx-coupon-center, .lx-coupon-center *),
+.leai-education-state-panel:is(.lx-coupon-center, .lx-coupon-center *) { align-items: stretch; flex-direction: column; }
+}
+body .leai-member-asset-page.leai-coupon-page:is(.lx-coupon-center, .lx-coupon-center *) { gap: 14px !important; }
+body .leai-coupon-page > .leai-asset-filterbar:is(.lx-coupon-center, .lx-coupon-center *) { min-height: 48px; padding: 0px 0px 8px; }
+body .leai-coupon-page > .leai-asset-filterbar .leai-asset-filter-tabs:is(.lx-coupon-center, .lx-coupon-center *) { width: min(430px, 100%); flex-wrap: nowrap; justify-content: space-between; gap: 24px; }
+body .leai-coupon-page > .leai-asset-filterbar .leai-asset-filter-tabs button:is(.lx-coupon-center, .lx-coupon-center *) { min-height: 36px; padding: 0px; color: var(--ms-text-soft); font-size: 14px; line-height: 22px; white-space: nowrap; }
+body .leai-coupon-page > .leai-asset-filterbar .leai-asset-filter-tabs button.is-active:is(.lx-coupon-center, .lx-coupon-center *) { color: var(--ms-brand); font-weight: 700; }
+body .leai-coupon-page > .leai-asset-filterbar .leai-asset-filter-tabs button.is-active:is(.lx-coupon-center, .lx-coupon-center *)::after { bottom: -9px; height: 2px; }
+body .leai-coupon-grid-section:is(.lx-coupon-center, .lx-coupon-center *) { margin: 0px; padding: 0px; border: 0px; background: transparent; }
+body .leai-coupon-grid-section > .leai-coupon-list:is(.lx-coupon-center, .lx-coupon-center *) { display: grid; grid-template-columns: repeat(2, minmax(0px, 1fr)); gap: 12px; margin: 0px; padding: 0px; }
+body .leai-coupon-grid-section .leai-coupon-card:is(.lx-coupon-center, .lx-coupon-center *) { min-height: 132px; grid-template-columns: 132px minmax(0px, 1fr); border: 1px solid var(--ms-line-soft); border-radius: 12px; background: rgb(255, 255, 255); box-shadow: none; }
+body .leai-coupon-grid-section .leai-coupon-value:is(.lx-coupon-center, .lx-coupon-center *) { min-height: 132px; padding: 14px; background: linear-gradient(145deg, rgb(241, 235, 248) 0%, rgb(250, 238, 244) 100%); color: var(--ms-brand); }
+body .leai-coupon-grid-section .leai-coupon-value strong:is(.lx-coupon-center, .lx-coupon-center *) { font-size: 25px; }
+body .leai-coupon-grid-section .leai-coupon-copy:is(.lx-coupon-center, .lx-coupon-center *) { min-height: 132px; padding: 14px 15px 12px; }
+body .leai-coupon-grid-section .leai-coupon-copy h3:is(.lx-coupon-center, .lx-coupon-center *) { padding-right: 58px; font-size: 13px; line-height: 20px; }
+@media (max-width: 900px) {
+body .leai-coupon-grid-section > .leai-coupon-list:is(.lx-coupon-center, .lx-coupon-center *) { grid-template-columns: 1fr; }
+}
+body .leai-member-asset-page > .leai-asset-filterbar:is(.lx-coupon-center, .lx-coupon-center *) { position: relative; }
+body .leai-member-asset-page > .leai-asset-filterbar .leai-asset-filter-tabs:is(.lx-coupon-center, .lx-coupon-center *) { align-self: stretch; align-items: flex-end; }
+body .leai-member-asset-page > .leai-asset-filterbar .leai-asset-filter-tabs button.is-active:is(.lx-coupon-center, .lx-coupon-center *)::after { bottom: -9px; z-index: 2; height: 2px; }
+body .leai-coupon-grid-section .leai-coupon-card:is(.lx-coupon-center, .lx-coupon-center *) { min-height: 108px; grid-template-columns: 112px minmax(0px, 1fr); }
+body .leai-coupon-grid-section .leai-coupon-value:is(.lx-coupon-center, .lx-coupon-center *) { min-height: 108px; gap: 3px; padding: 11px; }
+body .leai-coupon-grid-section .leai-coupon-value strong:is(.lx-coupon-center, .lx-coupon-center *) { font-size: 22px; line-height: 28px; }
+body .leai-coupon-grid-section .leai-coupon-copy:is(.lx-coupon-center, .lx-coupon-center *) { min-height: 108px; padding: 11px 13px 10px; }
+body .leai-coupon-grid-section .leai-coupon-copy h3:is(.lx-coupon-center, .lx-coupon-center *) { padding-right: 54px; font-size: 12px; line-height: 18px; }
+body .leai-coupon-grid-section .leai-coupon-copy > p:not(.leai-coupon-detail):is(.lx-coupon-center, .lx-coupon-center *) { margin-top: 3px; line-height: 15px; }
+body .leai-coupon-page > .leai-asset-filterbar .leai-asset-filter-tabs:is(.lx-coupon-center, .lx-coupon-center *) { width: min(420px, 100%); display: grid; grid-template-columns: repeat(3, minmax(0px, 1fr)); align-items: end; justify-content: initial; gap: 0px; }
+body .leai-coupon-page > .leai-asset-filterbar .leai-asset-filter-tabs button:is(.lx-coupon-center, .lx-coupon-center *) { width: 100%; justify-self: stretch; text-align: center; }
+body .leai-coupon-page > .leai-asset-filterbar .leai-asset-filter-tabs button.is-active:is(.lx-coupon-center, .lx-coupon-center *)::after { right: auto; left: 50%; width: 44px; transform: translateX(-50%); }
+body .lx-member-component-host > .leai-page:not(.leai-member-page) > .leai-page-header:is(.lx-coupon-center, .lx-coupon-center *),
+body .leai-member-asset-page > .leai-asset-sticky-header:is(.lx-coupon-center, .lx-coupon-center *),
+body .leai-ledou-ledger-page > .leai-ledou-sticky-header:is(.lx-coupon-center, .lx-coupon-center *) { width: 100%; min-height: 48px; border: 0px; border-radius: 0px; background: rgba(255, 255, 255, 0.98); box-shadow: none; margin: 0px !important; padding: 6px 0px 8px !important; }
+body .lx-member-component-host > .leai-page:not(.leai-member-page) .leai-page-title:is(.lx-coupon-center, .lx-coupon-center *) { padding-inline-start: 8px; font-size: 20px; line-height: 30px; font-weight: 650; letter-spacing: -0.2px; }
+body .lx-member-component-host > .leai-page:not(.leai-member-page) .leai-page-desc:is(.lx-coupon-center, .lx-coupon-center *) { margin: 3px 0px 0px 40px; font-size: 12px; line-height: 18px; }
+body .leai-member-asset-page > .leai-asset-filterbar:is(.lx-coupon-center, .lx-coupon-center *) { min-height: 44px; margin: 0px; padding: 0px 0px 8px; }
+body .leai-member-asset-page > .leai-asset-filterbar .leai-asset-filter-tabs:is(.lx-coupon-center, .lx-coupon-center *),
+body .leai-coupon-page > .leai-asset-filterbar .leai-asset-filter-tabs:is(.lx-coupon-center, .lx-coupon-center *),
+body .leai-ledou-ledger-page .leai-asset-filter-tabs:is(.lx-coupon-center, .lx-coupon-center *) { width: auto; display: flex; flex-wrap: nowrap; align-items: flex-end; justify-content: flex-start; gap: 20px; }
+body .leai-member-asset-page > .leai-asset-filterbar .leai-asset-filter-tabs button:is(.lx-coupon-center, .lx-coupon-center *),
+body .leai-coupon-page > .leai-asset-filterbar .leai-asset-filter-tabs button:is(.lx-coupon-center, .lx-coupon-center *),
+body .leai-ledou-ledger-page .leai-asset-filter-tabs button:is(.lx-coupon-center, .lx-coupon-center *) { width: auto; min-height: 34px; padding: 0px 2px; font-size: 14px; line-height: 21px; text-align: left; }
+body .leai-member-asset-page > .leai-asset-filterbar .leai-asset-filter-tabs button.is-active:is(.lx-coupon-center, .lx-coupon-center *)::after,
+body .leai-coupon-page > .leai-asset-filterbar .leai-asset-filter-tabs button.is-active:is(.lx-coupon-center, .lx-coupon-center *)::after,
+body .leai-ledou-ledger-page .leai-asset-filter-tabs button.is-active:is(.lx-coupon-center, .lx-coupon-center *)::after { right: 0px; bottom: -9px; left: 0px; width: auto; height: 2px; transform: none; }
+body .leai-coupon-grid-section .leai-coupon-card:is(.lx-coupon-center, .lx-coupon-center *),
+body .leai-coupon-grid-section .leai-coupon-value:is(.lx-coupon-center, .lx-coupon-center *),
+body .leai-coupon-grid-section .leai-coupon-copy:is(.lx-coupon-center, .lx-coupon-center *) { min-height: 96px; }
+body .leai-coupon-grid-section .leai-coupon-value:is(.lx-coupon-center, .lx-coupon-center *) { padding-block: 9px; }
+body .leai-coupon-grid-section .leai-coupon-copy:is(.lx-coupon-center, .lx-coupon-center *) { padding-top: 9px; padding-bottom: 8px; }
+body .leai-coupon-grid-section .leai-coupon-card:is(.lx-coupon-center, .lx-coupon-center *),
+body .leai-coupon-grid-section .leai-coupon-value:is(.lx-coupon-center, .lx-coupon-center *),
+body .leai-coupon-grid-section .leai-coupon-copy:is(.lx-coupon-center, .lx-coupon-center *) { min-height: 104px; }
+body .leai-coupon-grid-section .leai-coupon-copy:is(.lx-coupon-center, .lx-coupon-center *) { padding-top: 13px; padding-bottom: 8px; }
+body .lx-member-component-host > .leai-page:not(.leai-member-page) .leai-page-title:is(.lx-coupon-center, .lx-coupon-center *) { padding-inline-start: 2px; }
+body .leai-member-asset-page > .leai-asset-filterbar .leai-asset-filter-tabs button.is-active:is(.lx-coupon-center, .lx-coupon-center *)::after,
+body .leai-coupon-page > .leai-asset-filterbar .leai-asset-filter-tabs button.is-active:is(.lx-coupon-center, .lx-coupon-center *)::after,
+body .leai-ledou-ledger-page .leai-asset-filter-tabs button.is-active:is(.lx-coupon-center, .lx-coupon-center *)::after { right: auto; left: 50%; width: 32px; transform: translateX(-50%); }
+body .leai-coupon-grid-section .leai-coupon-copy:is(.lx-coupon-center, .lx-coupon-center *) { padding-right: 16px; padding-left: 16px; }
+body .leai-coupon-grid-section .leai-coupon-copy > h3:is(.lx-coupon-center, .lx-coupon-center *),
+body .leai-coupon-grid-section .leai-coupon-copy > p:not(.leai-coupon-detail):is(.lx-coupon-center, .lx-coupon-center *),
+body .leai-coupon-grid-section .leai-coupon-actions > button:first-child:is(.lx-coupon-center, .lx-coupon-center *) { position: relative; top: 4px; }
+body .lx-member-component-host > .leai-page:not(.leai-member-page):is(.lx-coupon-center, .lx-coupon-center *) { --secondary-section-gap: 12px; gap: 12px !important; padding: 14px 20px 24px !important; }
+body .lx-member-component-host > .leai-page:not(.leai-member-page) > .leai-page-header:is(.lx-coupon-center, .lx-coupon-center *),
+body .leai-member-asset-page > .leai-asset-sticky-header:is(.lx-coupon-center, .lx-coupon-center *),
+body .leai-ledou-ledger-page > .leai-ledou-sticky-header:is(.lx-coupon-center, .lx-coupon-center *) { min-height: 40px; padding: 3px 0px 5px !important; }
+body .leai-member-asset-page > .leai-asset-filterbar:is(.lx-coupon-center, .lx-coupon-center *) { min-height: 38px; margin: 0px !important; padding: 0px 0px 5px !important; }
+body .leai-member-asset-page > .leai-asset-filterbar .leai-asset-filter-tabs:is(.lx-coupon-center, .lx-coupon-center *),
+body .leai-coupon-page > .leai-asset-filterbar .leai-asset-filter-tabs:is(.lx-coupon-center, .lx-coupon-center *),
+body .leai-ledou-ledger-page .leai-asset-filter-tabs:is(.lx-coupon-center, .lx-coupon-center *) { gap: 16px; }
+body .leai-member-asset-page > .leai-asset-filterbar .leai-asset-filter-tabs button:is(.lx-coupon-center, .lx-coupon-center *),
+body .leai-coupon-page > .leai-asset-filterbar .leai-asset-filter-tabs button:is(.lx-coupon-center, .lx-coupon-center *),
+body .leai-ledou-ledger-page .leai-asset-filter-tabs button:is(.lx-coupon-center, .lx-coupon-center *) { min-height: 30px; }
+body .leai-member-asset-page > .leai-asset-filterbar .leai-asset-filter-tabs button.is-active:is(.lx-coupon-center, .lx-coupon-center *)::after,
+body .leai-coupon-page > .leai-asset-filterbar .leai-asset-filter-tabs button.is-active:is(.lx-coupon-center, .lx-coupon-center *)::after,
+body .leai-ledou-ledger-page .leai-asset-filter-tabs button.is-active:is(.lx-coupon-center, .lx-coupon-center *)::after { bottom: -6px; }
+html body .leai-coupon-list:is(.lx-coupon-center, .lx-coupon-center *) { display: grid !important; grid-template-columns: repeat(2, minmax(0px, 1fr)) !important; gap: 12px !important; }
+html body .leai-coupon-list > .leai-coupon-card:is(.lx-coupon-center, .lx-coupon-center *) { min-width: 0px !important; width: auto !important; grid-column: auto !important; }
+html body .leai-coupon-list .leai-coupon-copy:is(.lx-coupon-center, .lx-coupon-center *) { min-width: 0px; }
+html body .leai-coupon-list .leai-coupon-copy h3:is(.lx-coupon-center, .lx-coupon-center *),
+html body .leai-coupon-list .leai-coupon-copy p:is(.lx-coupon-center, .lx-coupon-center *) { overflow-wrap: anywhere; }
+html body .leai-coupon-page .leai-coupon-list:is(.lx-coupon-center, .lx-coupon-center *) { grid-template-columns: minmax(0px, 1fr) !important; gap: 12px !important; }
+html body .leai-coupon-page .leai-coupon-card:is(.lx-coupon-center, .lx-coupon-center *),
+html body .leai-coupon-page .leai-coupon-value:is(.lx-coupon-center, .lx-coupon-center *),
+html body .leai-coupon-page .leai-coupon-copy:is(.lx-coupon-center, .lx-coupon-center *) { min-height: 104px !important; }
+html body .leai-coupon-page .leai-coupon-card:is(.lx-coupon-center, .lx-coupon-center *) { grid-template-columns: 90px minmax(0px, 1fr) !important; border: 1px solid rgb(234, 223, 234) !important; border-radius: 12px !important; background: rgb(255, 255, 255) !important; box-shadow: none !important; }
+html body .leai-coupon-page .leai-coupon-value:is(.lx-coupon-center, .lx-coupon-center *) { padding: 12px 8px !important; background: linear-gradient(135deg, rgb(251, 240, 246) 0%, rgb(233, 237, 255) 100%) !important; color: rgb(91, 20, 82) !important; }
+html body .leai-coupon-page .leai-coupon-value strong:is(.lx-coupon-center, .lx-coupon-center *) { font-size: 16px !important; line-height: 24px !important; font-weight: 700 !important; letter-spacing: 0px !important; }
+html body .leai-coupon-page .leai-coupon-copy:is(.lx-coupon-center, .lx-coupon-center *) { display: flex !important; flex-direction: column !important; justify-content: center !important; padding: 16px 14px !important; }
+html body .leai-coupon-page .leai-coupon-copy h3:is(.lx-coupon-center, .lx-coupon-center *) { margin: 0px !important; padding: 0px !important; color: rgb(38, 35, 38) !important; font-size: 13px !important; line-height: 20px !important; font-weight: 650 !important; }
+html body .leai-coupon-page .leai-coupon-copy > p:is(.lx-coupon-center, .lx-coupon-center *) { margin: 6px 0px 0px !important; color: rgb(119, 112, 123) !important; font-size: 11px !important; line-height: 17px !important; }
+@media (max-width: 900px) {
+html body .leai-coupon-page .leai-coupon-list:is(.lx-coupon-center, .lx-coupon-center *) { grid-template-columns: minmax(0px, 1fr) !important; }
+html body .leai-coupon-page .leai-coupon-card:is(.lx-coupon-center, .lx-coupon-center *) { grid-template-columns: 72px minmax(0px, 1fr) !important; }
+}
+@media (min-width: 901px) {
+html body .leai-coupon-page .leai-coupon-list:is(.lx-coupon-center, .lx-coupon-center *) { grid-template-columns: repeat(3, minmax(0px, 1fr)) !important; }
+html body .leai-coupon-page .leai-coupon-card:is(.lx-coupon-center, .lx-coupon-center *) { grid-template-columns: 72px minmax(0px, 1fr) !important; }
+}
+html body .lx-member-component-host .leai-coupon-page .leai-coupon-grid-section .leai-coupon-card:is(.lx-coupon-center, .lx-coupon-center *),
+html body .lx-member-component-host .leai-coupon-page .leai-coupon-grid-section .leai-coupon-copy:is(.lx-coupon-center, .lx-coupon-center *) { background: rgb(252, 250, 255) !important; }
+html body .lx-member-component-host .leai-coupon-page .leai-coupon-grid-section .leai-coupon-copy h3:is(.lx-coupon-center, .lx-coupon-center *) { position: relative !important; top: -4px !important; white-space: nowrap !important; }
+html body .lx-member-component-host .leai-coupon-page .leai-coupon-grid-section .leai-coupon-copy > p:not(.leai-coupon-detail):is(.lx-coupon-center, .lx-coupon-center *) { margin-top: 4px !important; white-space: nowrap !important; }
+html body .leai-coupon-page .leai-coupon-copy > p:is(.lx-coupon-center, .lx-coupon-center *) { white-space: nowrap !important; overflow-wrap: normal !important; word-break: keep-all !important; }
+html body .lx-member-component-host > .leai-page:not(.leai-member-page) .leai-page-title:is(.lx-coupon-center, .lx-coupon-center *) { padding-inline-start: 0px !important; }
+html body .lx-member-component-host > .leai-page:not(.leai-member-page) .leai-page-desc:is(.lx-coupon-center, .lx-coupon-center *) { margin-left: 26px !important; }
+@media (min-width: 901px) {
+html body .lx-member-component-host .leai-coupon-page .leai-coupon-grid-section > .leai-coupon-list:is(.lx-coupon-center, .lx-coupon-center *) { display: grid !important; grid-template-columns: repeat(3, minmax(0px, 1fr)) !important; grid-auto-flow: row !important; gap: 12px !important; }
+html body .lx-member-component-host .leai-coupon-page .leai-coupon-grid-section > .leai-coupon-list > .leai-coupon-card:is(.lx-coupon-center, .lx-coupon-center *) { min-width: 0px !important; width: auto !important; grid-column: auto !important; }
+}
+html body .leai-coupon-grid-section .leai-coupon-list:is(.lx-coupon-center, .lx-coupon-center *) { grid-template-columns: repeat(2, minmax(0px, 1fr)) !important; gap: 12px !important; }
+html body .leai-coupon-grid-section .leai-coupon-card:is(.lx-coupon-center, .lx-coupon-center *) { width: 100% !important; max-width: 100% !important; min-width: 0px !important; box-sizing: border-box !important; }
+body .lx-member-component-host > .leai-page:not(.leai-member-page):is(.lx-coupon-center, .lx-coupon-center *) { gap: 12px !important; padding: 14px 20px 24px !important; }
+body .lx-member-component-host > .leai-page:not(.leai-member-page) > .leai-page-header:is(.lx-coupon-center, .lx-coupon-center *),
+body .leai-member-asset-page > .leai-asset-sticky-header:is(.lx-coupon-center, .lx-coupon-center *),
+body .leai-ledou-ledger-page > .leai-ledou-sticky-header:is(.lx-coupon-center, .lx-coupon-center *) { min-height: 40px !important; padding: 3px 0px 5px !important; }
+body .leai-member-asset-page > .leai-asset-filterbar:is(.lx-coupon-center, .lx-coupon-center *) { min-height: 38px !important; margin: 0px !important; padding: 0px 0px 5px !important; }
+body .leai-member-asset-page > .leai-asset-filterbar .leai-asset-filter-tabs:is(.lx-coupon-center, .lx-coupon-center *),
+body .leai-coupon-page > .leai-asset-filterbar .leai-asset-filter-tabs:is(.lx-coupon-center, .lx-coupon-center *),
+body .leai-ledou-ledger-page .leai-asset-filter-tabs:is(.lx-coupon-center, .lx-coupon-center *) { gap: 16px !important; }
+body .leai-member-asset-page > .leai-asset-filterbar .leai-asset-filter-tabs button:is(.lx-coupon-center, .lx-coupon-center *),
+body .leai-coupon-page > .leai-asset-filterbar .leai-asset-filter-tabs button:is(.lx-coupon-center, .lx-coupon-center *),
+body .leai-ledou-ledger-page .leai-asset-filter-tabs button:is(.lx-coupon-center, .lx-coupon-center *) { min-height: 30px !important; }
+body .leai-member-asset-page > .leai-asset-filterbar .leai-asset-filter-tabs button.is-active:is(.lx-coupon-center, .lx-coupon-center *)::after,
+body .leai-coupon-page > .leai-asset-filterbar .leai-asset-filter-tabs button.is-active:is(.lx-coupon-center, .lx-coupon-center *)::after,
+body .leai-ledou-ledger-page .leai-asset-filter-tabs button.is-active:is(.lx-coupon-center, .lx-coupon-center *)::after { bottom: -6px !important; }
+
+.info-page:has(.lx-coupon-center){max-width:none!important;padding:0!important;background:#fff!important;overflow:auto!important}.info-page:has(.lx-coupon-center)>.reco-head{display:none!important}
+
+.lx-coupon-center { color: #101010; }
