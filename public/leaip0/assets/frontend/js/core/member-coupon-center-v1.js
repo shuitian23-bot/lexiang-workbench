@@ -35,13 +35,20 @@
     return /^(会员优惠券|我的优惠券|门店优惠券)$/.test(String(query || '').replace(/[\s，。！？、,.!?]/g, ''));
   }
 
-  async function run(api) {
-    var generation = window.__lxGeneration;
-    var token = api.token;
-    var category = String(api.query).indexOf('门店') > -1 ? 'store' : 'product';
+  function describe(query) {
+    var category = String(query).indexOf('门店') > -1 ? 'store' : 'product';
     var copy = category === 'store'
       ? '已为你整理**门店优惠券**，涵盖到店购机与配件优惠。可在右侧**会员领券中心**查看适用内容和有效期。'
       : '已为你整理**会员优惠券**，涵盖商品、服务与门店权益。可在右侧**会员领券中心**查看优惠内容和有效期。';
+    return {category: category, copy: copy, desc: category === 'store' ? '门店权益 · 到店购机与配件优惠' : '商品权益 · 服务权益 · 门店权益'};
+  }
+
+  async function run(api) {
+    var generation = window.__lxGeneration;
+    var token = api.token;
+    var data = describe(api.query);
+    var category = data.category;
+    var copy = data.copy;
     api.state.sending = true;
     api.refresh();
     try {
@@ -50,7 +57,7 @@
       if (!generation.current(token)) return false;
       api.appendCard(reply, api.card({
         title: '查看会员领券中心',
-        desc: category === 'store' ? '门店权益 · 到店购机与配件优惠' : '商品权益 · 服务权益 · 门店权益',
+        desc: data.desc,
         attr: 'data-lx-open-tab="info:member-coupon-center" aria-label="查看会员领券中心页面"'
       }));
       var card = reply && reply.querySelector('[data-lx-result-id="info:member-coupon-center"]');
@@ -78,7 +85,7 @@
     }
   }
 
-  window.__lxCouponCenter = { pageHtml: pageHtml, matches: matches, run: run };
+  window.__lxCouponCenter = { pageHtml: pageHtml, matches: matches, describe: describe, run: run };
   document.addEventListener('click', function (event) {
     var tab = event.target.closest('[data-lx-coupon-tab]');
     if (tab && typeof window.__lxOpenCouponCenter === 'function') {
