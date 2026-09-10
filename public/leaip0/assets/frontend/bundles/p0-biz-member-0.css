@@ -11917,3 +11917,34 @@ html body:is([data-page="home"],[data-page="personal"],[data-page="business"],[d
 
 
 .leai-ledou-balance-banner .leai-ledou-shop-link { display: inline-flex; align-items: center; justify-content: center; text-decoration: none; }
+
+/* P0 voucher summary: available amount, matching the single-card reference. */
+body .leai-member-asset-page > .leai-voucher-summary {
+  grid-template-columns: 1.4fr repeat(3, minmax(0, .8fr));
+}
+html body .leai-member-asset-page.leai-voucher-page > .leai-voucher-summary .leai-summary-value {
+  position: absolute;
+  left: 16px;
+  bottom: 18px;
+  margin: 0;
+  font-size: 24px;
+  line-height: 32px;
+  font-weight: 700;
+}
+body .leai-voucher-summary .leai-summary-value small {
+  font-size: 18px;
+  font-weight: 600;
+}
+body .leai-voucher-page .leai-voucher-summary .leai-summary-usage {
+  color: var(--ms-brand);
+}
+@media (max-width: 900px) {
+  body .leai-member-asset-page > .leai-voucher-summary {
+    grid-template-columns: minmax(280px, 1fr) 1fr;
+  }
+}
+@media (max-width: 720px) {
+  body .leai-member-asset-page > .leai-voucher-summary {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

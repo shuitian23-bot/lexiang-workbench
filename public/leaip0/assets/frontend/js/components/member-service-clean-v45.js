@@ -2497,8 +2497,12 @@
         filters + '<section class="leai-coupon-grid-section" aria-label="优惠券列表">' + recordList + '</section></section>';
     }
     if (type === "vouchers") {
+      var availableVoucherCents = page.records.reduce(function (total, record) {
+        return record[3] === "available" ? total + Math.round(Number(record[1].replace(/[^0-9.-]/g, "")) * 100) : total;
+      }, 0);
+      var voucherAmount = (availableVoucherCents / 100).toFixed(2).split(".");
       return '<section class="leai-page leai-member-asset-page leai-voucher-page" data-member-asset-page="vouchers" aria-labelledby="leaiAssetTitle-vouchers">' + assetHeader +
-        '<div class="leai-summary-grid"><article class="leai-summary-card leai-member-main"><span class="leai-summary-label">' + page.unit + '</span><strong class="leai-summary-value">' + page.value + '</strong>' + summaryRuleButton + '</article>' + page.metrics.map(function (metric) { return '<article class="leai-summary-card"><span class="leai-summary-label">' + metric[0] + '</span><strong class="leai-summary-value">' + metric[1] + '</strong><span class="leai-summary-sub">以账户实时资产为准</span></article>'; }).join("") + '</div>' +
+        '<div class="leai-summary-grid leai-voucher-summary"><article class="leai-summary-card leai-member-main"><span class="leai-summary-label">当前可用代金券金额</span><strong class="leai-summary-value">' + voucherAmount[0] + '<small>.' + voucherAmount[1] + '</small></strong>' + summaryRuleButton + '</article></div>' +
         filters + '<section class="leai-voucher-ledger-panel" aria-label="代金券列表">' + recordList + '</section></section>';
     }
     var defaultSummary = type === "redpacket"
