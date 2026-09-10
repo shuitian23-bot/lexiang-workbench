@@ -8992,7 +8992,7 @@ body .leai-member-page > .leai-member-overview-group .leai-member-insight:nth-ch
   grid-column: 1 / -1;
 }
 
-.leai-ledou-overview-row .leai-ledou-balance-banner > div > button {
+.leai-ledou-overview-row .leai-ledou-balance-banner > div > :is(button, .leai-ledou-shop-link) {
   position: absolute;
   right: 22px;
   bottom: 18px;
@@ -9029,7 +9029,7 @@ body .leai-member-page > .leai-member-overview-group .leai-member-insight:nth-ch
   font-size: 11px;
 }
 
-.leai-ledou-balance-banner > div > button {
+.leai-ledou-balance-banner > div > :is(button, .leai-ledou-shop-link) {
   min-height: 36px;
   margin-top: 8px;
   padding: 0 18px;
@@ -11913,3 +11913,5 @@ html body:is([data-page="home"],[data-page="personal"],[data-page="business"],[d
   padding: 0 !important;
 }
 
+
+.leai-ledou-balance-banner .leai-ledou-shop-link { display: inline-flex; align-items: center; justify-content: center; text-decoration: none; }
