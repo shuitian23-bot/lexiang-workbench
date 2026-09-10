@@ -1,0 +1,414 @@
+/* Enterprise authentication: original 8091 rules, scoped capture 2026-09-10. */
+html body #lxEnterpriseAuthOriginal{--lx-modal-control-height:40px;--lx-modal-control-radius:8px;--lx-modal-form:580px;--lx-modal-gap:16px;--lx-modal-gutter:28px;--lx-modal-head-height:64px;--lx-modal-header-height:64px;--lx-modal-overlay-background:#190e21d1;--lx-modal-radius:20px;--lx-modal-shell-radius:16px;--lx-modal-width-form:620px;font-family:"Source Han Sans CN Local", "PingFang SC", "Microsoft YaHei", Arial, sans-serif;font-size:16px;font-weight:400;color:#101010;}
+html body #lxEnterpriseAuthOriginal:is(*),
+html body #lxEnterpriseAuthOriginal :is(*){box-sizing: border-box;}
+html body #lxEnterpriseAuthOriginal:is(button),
+html body #lxEnterpriseAuthOriginal :is(button),
+html body #lxEnterpriseAuthOriginal:is(input),
+html body #lxEnterpriseAuthOriginal :is(input){font: inherit;}
+html body #lxEnterpriseAuthOriginal:is(button),
+html body #lxEnterpriseAuthOriginal :is(button){cursor: pointer;}
+html body #lxEnterpriseAuthOriginal:is(.lx-p0-modal-mask),
+html body #lxEnterpriseAuthOriginal :is(.lx-p0-modal-mask){position: fixed; inset: 0px; z-index: 10000; display: none; align-items: center; justify-content: center; padding: 24px; background: rgba(25, 14, 33, 0.82);}
+html body #lxEnterpriseAuthOriginal:is(.lx-p0-modal-mask.show),
+html body #lxEnterpriseAuthOriginal :is(.lx-p0-modal-mask.show){display: flex;}
+html body #lxEnterpriseAuthOriginal:is(.lx-p0-modal),
+html body #lxEnterpriseAuthOriginal :is(.lx-p0-modal){width: min(720px, 94vw); max-height: min(760px, 88vh); display: flex; flex-direction: column; overflow: hidden; border: 0px; border-radius: 20px; background: rgb(255, 255, 255); box-shadow: rgba(155, 142, 182, 0.62) 0px 24px 70px, rgba(50, 29, 57, 0.08) 0px 4px 14px;}
+html body #lxEnterpriseAuthOriginal:is(.lx-p0-modal-head),
+html body #lxEnterpriseAuthOriginal :is(.lx-p0-modal-head){display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 22px 28px 16px; border-bottom: 1px solid rgb(243, 237, 246);}
+html body #lxEnterpriseAuthOriginal:is(.lx-p0-modal-title),
+html body #lxEnterpriseAuthOriginal :is(.lx-p0-modal-title){margin: 0px; color: rgb(37, 37, 37); font-size: 17px; line-height: 24px; font-weight: 800; letter-spacing: 0.3px;}
+html body #lxEnterpriseAuthOriginal:is(.lx-p0-close),
+html body #lxEnterpriseAuthOriginal :is(.lx-p0-close){flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border: 0px; border-radius: 50%; background: rgba(146, 86, 214, 0.08); color: rgb(151, 151, 151); font-size: 18px; line-height: 1; cursor: pointer; transition: background-color 0.16s, color 0.16s;}
+html body #lxEnterpriseAuthOriginal:is(.lx-p0-close:hover),
+html body #lxEnterpriseAuthOriginal :is(.lx-p0-close:hover){background: rgba(146, 86, 214, 0.08); color: rgb(37, 37, 37);}
+html body #lxEnterpriseAuthOriginal:is(.lx-p0-modal-body),
+html body #lxEnterpriseAuthOriginal :is(.lx-p0-modal-body){overflow: auto; padding: 18px 28px 24px;}
+html body #lxEnterpriseAuthOriginal:is(.lx-p0-modal:has(.lx-lead-modal)),
+html body #lxEnterpriseAuthOriginal :is(.lx-p0-modal:has(.lx-lead-modal)){width: min(520px, -48px + 100vw); border-radius: 20px; box-shadow: rgba(155, 142, 182, 0.62) 0px 24px 70px, rgba(50, 29, 57, 0.08) 0px 4px 14px;}
+html body #lxEnterpriseAuthOriginal:is(.lx-p0-modal:has(.lx-lead-modal) .lx-p0-modal-head),
+html body #lxEnterpriseAuthOriginal :is(.lx-p0-modal:has(.lx-lead-modal) .lx-p0-modal-head){padding: 24px 30px 8px; border-bottom: 0px;}
+html body #lxEnterpriseAuthOriginal:is(.lx-p0-modal:has(.lx-lead-modal) .lx-p0-modal-title),
+html body #lxEnterpriseAuthOriginal :is(.lx-p0-modal:has(.lx-lead-modal) .lx-p0-modal-title){font-size: 20px; line-height: 28px; letter-spacing: 0px;}
+html body #lxEnterpriseAuthOriginal:is(.lx-p0-modal:has(.lx-lead-modal) .lx-p0-modal-body),
+html body #lxEnterpriseAuthOriginal :is(.lx-p0-modal:has(.lx-lead-modal) .lx-p0-modal-body){padding: 0px 30px 30px;}
+html body #lxEnterpriseAuthOriginal:is(.lx-lead-modal),
+html body #lxEnterpriseAuthOriginal :is(.lx-lead-modal){color: rgb(37, 37, 37);}
+html body #lxEnterpriseAuthOriginal:is(.lx-lead-actions),
+html body #lxEnterpriseAuthOriginal :is(.lx-lead-actions){display: grid; grid-template-columns: 138px 1fr; gap: 12px; margin-top: 28px;}
+html body #lxEnterpriseAuthOriginal:is(.lx-lead-cancel),
+html body #lxEnterpriseAuthOriginal :is(.lx-lead-cancel),
+html body #lxEnterpriseAuthOriginal:is(.lx-lead-submit),
+html body #lxEnterpriseAuthOriginal :is(.lx-lead-submit){height: 56px; border-radius: 28px; font-style: inherit; font-variant: inherit; font-stretch: inherit; line-height: inherit; font-family: inherit; font-optical-sizing: inherit; font-size-adjust: inherit; font-kerning: inherit; font-feature-settings: inherit; font-variation-settings: inherit; font-language-override: inherit; font-size: 16px; font-weight: 850; cursor: pointer; transition: transform 0.16s, box-shadow 0.16s, filter 0.16s;}
+html body #lxEnterpriseAuthOriginal:is(.lx-lead-cancel),
+html body #lxEnterpriseAuthOriginal :is(.lx-lead-cancel){border: 1.5px solid rgb(91, 20, 82); color: rgb(91, 20, 82); background: rgb(255, 255, 255);}
+html body #lxEnterpriseAuthOriginal:is(.lx-lead-submit),
+html body #lxEnterpriseAuthOriginal :is(.lx-lead-submit){border: 0px; color: rgb(255, 255, 255); background: linear-gradient(90deg, rgb(91, 20, 82) 0%, rgb(184, 37, 46) 100%); box-shadow: rgba(146, 86, 214, 0.16) 0px 14px 28px;}
+html body #lxEnterpriseAuthOriginal:is(.lx-lead-cancel:hover),
+html body #lxEnterpriseAuthOriginal :is(.lx-lead-cancel:hover),
+html body #lxEnterpriseAuthOriginal:is(.lx-lead-submit:hover),
+html body #lxEnterpriseAuthOriginal :is(.lx-lead-submit:hover){transform: translateY(-1px);}
+html body #lxEnterpriseAuthOriginal:is(.lx-lead-submit:hover),
+html body #lxEnterpriseAuthOriginal :is(.lx-lead-submit:hover){filter: brightness(1.03);}
+@media (max-width: 640px){html body #lxEnterpriseAuthOriginal:is(.lx-lead-actions),
+html body #lxEnterpriseAuthOriginal :is(.lx-lead-actions){grid-template-columns: 1fr;}
+}
+html body #lxEnterpriseAuthOriginal:is(.lx-p0-modal-mask.lx-lead-modal-mask),
+html body #lxEnterpriseAuthOriginal :is(.lx-p0-modal-mask.lx-lead-modal-mask){background: rgba(77, 20, 74, 0.48) !important; padding: 18px !important;}
+html body #lxEnterpriseAuthOriginal:is(.lx-p0-modal.lx-lead-shell),
+html body #lxEnterpriseAuthOriginal :is(.lx-p0-modal.lx-lead-shell){width: min(480px, -32px + 100vw) !important; max-height: min(860px, -36px + 100vh) !important; border: 0px !important; border-radius: 20px !important; background: rgb(255, 255, 255) !important; box-shadow: rgba(155, 142, 182, 0.62) 0px 24px 70px, rgba(50, 29, 57, 0.08) 0px 4px 14px !important; overflow: hidden !important;}
+html body #lxEnterpriseAuthOriginal:is(.lx-p0-modal.lx-lead-shell),
+html body #lxEnterpriseAuthOriginal :is(.lx-p0-modal.lx-lead-shell),
+html body #lxEnterpriseAuthOriginal:is(.lx-p0-modal.lx-lead-shell *),
+html body #lxEnterpriseAuthOriginal :is(.lx-p0-modal.lx-lead-shell *){box-sizing: border-box !important; font-family: "PingFang SC", "Microsoft YaHei", "Source Han Sans CN", Arial, sans-serif !important; letter-spacing: 0px !important;}
+html body #lxEnterpriseAuthOriginal:is(.lx-p0-modal.lx-lead-shell .lx-p0-modal-head),
+html body #lxEnterpriseAuthOriginal :is(.lx-p0-modal.lx-lead-shell .lx-p0-modal-head){height: auto !important; padding: 24px 30px 6px !important; border-bottom: 0px !important; align-items: flex-start !important;}
+html body #lxEnterpriseAuthOriginal:is(.lx-p0-modal.lx-lead-shell .lx-p0-modal-title),
+html body #lxEnterpriseAuthOriginal :is(.lx-p0-modal.lx-lead-shell .lx-p0-modal-title){margin: 0px !important; color: rgb(37, 37, 37) !important; font-size: 22px !important; line-height: 30px !important; font-weight: 850 !important;}
+html body #lxEnterpriseAuthOriginal:is(.lx-p0-modal.lx-lead-shell .lx-p0-close),
+html body #lxEnterpriseAuthOriginal :is(.lx-p0-modal.lx-lead-shell .lx-p0-close){width: 34px !important; height: 34px !important; border-radius: 50% !important; background: rgb(243, 240, 247) !important; color: rgb(151, 151, 151) !important; font-size: 28px !important; line-height: 1 !important; font-weight: 300 !important;}
+html body #lxEnterpriseAuthOriginal:is(.lx-p0-modal.lx-lead-shell .lx-p0-close:hover),
+html body #lxEnterpriseAuthOriginal :is(.lx-p0-modal.lx-lead-shell .lx-p0-close:hover){background: rgb(239, 228, 241) !important; color: rgb(91, 20, 82) !important;}
+html body #lxEnterpriseAuthOriginal:is(.lx-p0-modal.lx-lead-shell .lx-p0-modal-body),
+html body #lxEnterpriseAuthOriginal :is(.lx-p0-modal.lx-lead-shell .lx-p0-modal-body){scrollbar-width: thin; scrollbar-color: rgb(226, 221, 235) transparent; padding: 0px 30px 28px !important; overflow: auto !important;}
+html body #lxEnterpriseAuthOriginal:is(.lx-p0-modal.lx-lead-shell .lx-p0-modal-body)::-webkit-scrollbar,
+html body #lxEnterpriseAuthOriginal :is(.lx-p0-modal.lx-lead-shell .lx-p0-modal-body)::-webkit-scrollbar{width: 6px;}
+html body #lxEnterpriseAuthOriginal:is(.lx-p0-modal.lx-lead-shell .lx-p0-modal-body)::-webkit-scrollbar-thumb,
+html body #lxEnterpriseAuthOriginal :is(.lx-p0-modal.lx-lead-shell .lx-p0-modal-body)::-webkit-scrollbar-thumb{background: rgb(226, 221, 235); border-radius: 8px;}
+html body #lxEnterpriseAuthOriginal:is(.lx-p0-modal.lx-lead-shell .lx-lead-actions),
+html body #lxEnterpriseAuthOriginal :is(.lx-p0-modal.lx-lead-shell .lx-lead-actions){position: sticky !important; bottom: -28px !important; z-index: 2 !important; display: grid !important; grid-template-columns: 138px 1fr !important; gap: 12px !important; margin: 22px -30px -28px !important; padding: 16px 30px 28px !important; background: linear-gradient(rgb(255, 255, 255), rgb(255, 255, 255) 34%) !important;}
+html body #lxEnterpriseAuthOriginal:is(.lx-p0-modal.lx-lead-shell .lx-lead-cancel),
+html body #lxEnterpriseAuthOriginal :is(.lx-p0-modal.lx-lead-shell .lx-lead-cancel),
+html body #lxEnterpriseAuthOriginal:is(.lx-p0-modal.lx-lead-shell .lx-lead-submit),
+html body #lxEnterpriseAuthOriginal :is(.lx-p0-modal.lx-lead-shell .lx-lead-submit){width: 100% !important; height: 50px !important; min-height: 50px !important; border-radius: 25px !important; font-size: 15px !important; line-height: 20px !important; font-weight: 850 !important; cursor: pointer !important; transition: transform 0.16s, box-shadow 0.16s, filter 0.16s, background 0.16s !important;}
+html body #lxEnterpriseAuthOriginal:is(.lx-p0-modal.lx-lead-shell .lx-lead-cancel),
+html body #lxEnterpriseAuthOriginal :is(.lx-p0-modal.lx-lead-shell .lx-lead-cancel){border: 1.5px solid rgb(91, 20, 82) !important; background: rgb(255, 255, 255) !important; color: rgb(91, 20, 82) !important; box-shadow: none !important;}
+html body #lxEnterpriseAuthOriginal:is(.lx-p0-modal.lx-lead-shell .lx-lead-submit),
+html body #lxEnterpriseAuthOriginal :is(.lx-p0-modal.lx-lead-shell .lx-lead-submit){border: 0px !important; background: linear-gradient(90deg, rgb(91, 20, 82) 0%, rgb(184, 37, 46) 100%) !important; color: rgb(255, 255, 255) !important; box-shadow: rgba(146, 86, 214, 0.16) 0px 12px 24px !important;}
+html body #lxEnterpriseAuthOriginal:is(.lx-p0-modal.lx-lead-shell .lx-lead-cancel:hover),
+html body #lxEnterpriseAuthOriginal :is(.lx-p0-modal.lx-lead-shell .lx-lead-cancel:hover),
+html body #lxEnterpriseAuthOriginal:is(.lx-p0-modal.lx-lead-shell .lx-lead-submit:hover),
+html body #lxEnterpriseAuthOriginal :is(.lx-p0-modal.lx-lead-shell .lx-lead-submit:hover){transform: translateY(-1px) !important;}
+html body #lxEnterpriseAuthOriginal:is(.lx-p0-modal.lx-lead-shell .lx-lead-cancel:active),
+html body #lxEnterpriseAuthOriginal :is(.lx-p0-modal.lx-lead-shell .lx-lead-cancel:active),
+html body #lxEnterpriseAuthOriginal:is(.lx-p0-modal.lx-lead-shell .lx-lead-submit:active),
+html body #lxEnterpriseAuthOriginal :is(.lx-p0-modal.lx-lead-shell .lx-lead-submit:active){transform: translateY(0px) scale(0.99) !important;}
+@media (max-width: 520px){html body #lxEnterpriseAuthOriginal:is(.lx-p0-modal.lx-lead-shell),
+html body #lxEnterpriseAuthOriginal :is(.lx-p0-modal.lx-lead-shell){width: calc(-24px + 100vw) !important;}
+}
+@media (max-width: 520px){html body #lxEnterpriseAuthOriginal:is(.lx-p0-modal.lx-lead-shell .lx-p0-modal-head),
+html body #lxEnterpriseAuthOriginal :is(.lx-p0-modal.lx-lead-shell .lx-p0-modal-head){padding-left: 22px !important; padding-right: 22px !important;}
+}
+@media (max-width: 520px){html body #lxEnterpriseAuthOriginal:is(.lx-p0-modal.lx-lead-shell .lx-p0-modal-body),
+html body #lxEnterpriseAuthOriginal :is(.lx-p0-modal.lx-lead-shell .lx-p0-modal-body){padding-left: 22px !important; padding-right: 22px !important;}
+}
+@media (max-width: 520px){html body #lxEnterpriseAuthOriginal:is(.lx-p0-modal.lx-lead-shell .lx-lead-actions),
+html body #lxEnterpriseAuthOriginal :is(.lx-p0-modal.lx-lead-shell .lx-lead-actions){grid-template-columns: 1fr !important; margin-left: -22px !important; margin-right: -22px !important; padding-left: 22px !important; padding-right: 22px !important;}
+}
+html body #lxEnterpriseAuthOriginal:is(.lx-p0-modal.lx-lead-shell),
+html body #lxEnterpriseAuthOriginal :is(.lx-p0-modal.lx-lead-shell){width: min(620px, -40px + 100vw) !important; max-height: min(780px, -40px + 100vh) !important; border-radius: 20px !important;}
+html body #lxEnterpriseAuthOriginal:is(.lx-p0-modal.lx-lead-shell .lx-p0-modal-head),
+html body #lxEnterpriseAuthOriginal :is(.lx-p0-modal.lx-lead-shell .lx-p0-modal-head){padding: 24px 28px 12px !important; border-bottom: 1px solid rgb(243, 237, 246) !important; align-items: center !important;}
+html body #lxEnterpriseAuthOriginal:is(.lx-p0-modal.lx-lead-shell .lx-p0-modal-title),
+html body #lxEnterpriseAuthOriginal :is(.lx-p0-modal.lx-lead-shell .lx-p0-modal-title){font-size: 17px !important; line-height: 24px !important; font-weight: 850 !important; color: rgb(37, 37, 37) !important;}
+html body #lxEnterpriseAuthOriginal:is(.lx-p0-modal.lx-lead-shell .lx-p0-close),
+html body #lxEnterpriseAuthOriginal :is(.lx-p0-modal.lx-lead-shell .lx-p0-close){width: 30px !important; height: 30px !important; font-size: 20px !important; background: rgba(146, 86, 214, 0.08) !important;}
+html body #lxEnterpriseAuthOriginal:is(.lx-p0-modal.lx-lead-shell .lx-p0-modal-body),
+html body #lxEnterpriseAuthOriginal :is(.lx-p0-modal.lx-lead-shell .lx-p0-modal-body){padding: 18px 28px 24px !important;}
+html body #lxEnterpriseAuthOriginal:is(.lx-p0-modal.lx-lead-shell .lx-lead-actions),
+html body #lxEnterpriseAuthOriginal :is(.lx-p0-modal.lx-lead-shell .lx-lead-actions){position: static !important; display: grid !important; grid-template-columns: 120px 1fr !important; gap: 12px !important; margin: 18px 0px 0px !important; padding: 0px !important; background: transparent !important;}
+html body #lxEnterpriseAuthOriginal:is(.lx-p0-modal.lx-lead-shell .lx-lead-cancel),
+html body #lxEnterpriseAuthOriginal :is(.lx-p0-modal.lx-lead-shell .lx-lead-cancel),
+html body #lxEnterpriseAuthOriginal:is(.lx-p0-modal.lx-lead-shell .lx-lead-submit),
+html body #lxEnterpriseAuthOriginal :is(.lx-p0-modal.lx-lead-shell .lx-lead-submit){height: 50px !important; min-height: 50px !important; border-radius: 13px !important; font-size: 16px !important; line-height: 20px !important; font-weight: 850 !important;}
+html body #lxEnterpriseAuthOriginal:is(.lx-p0-modal.lx-lead-shell .lx-lead-cancel),
+html body #lxEnterpriseAuthOriginal :is(.lx-p0-modal.lx-lead-shell .lx-lead-cancel){border: 1px solid rgb(226, 221, 235) !important; background: rgb(255, 255, 255) !important; color: rgb(91, 20, 82) !important;}
+html body #lxEnterpriseAuthOriginal:is(.lx-p0-modal.lx-lead-shell .lx-lead-cancel:hover),
+html body #lxEnterpriseAuthOriginal :is(.lx-p0-modal.lx-lead-shell .lx-lead-cancel:hover){border-color: rgb(91, 20, 82) !important; background: rgb(252, 250, 255) !important;}
+html body #lxEnterpriseAuthOriginal:is(.lx-p0-modal.lx-lead-shell .lx-lead-submit),
+html body #lxEnterpriseAuthOriginal :is(.lx-p0-modal.lx-lead-shell .lx-lead-submit){border: 0px !important; background: linear-gradient(90deg, rgb(77, 20, 74) 11.9%, rgb(184, 37, 46) 100%) !important; color: rgb(255, 255, 255) !important; box-shadow: rgba(146, 86, 214, 0.16) 0px 12px 26px !important;}
+html body #lxEnterpriseAuthOriginal:is(.lx-p0-modal.lx-lead-shell .lx-lead-submit:hover),
+html body #lxEnterpriseAuthOriginal :is(.lx-p0-modal.lx-lead-shell .lx-lead-submit:hover){transform: translateY(-1px) !important; box-shadow: rgba(146, 86, 214, 0.16) 0px 16px 30px !important;}
+@media (max-width: 640px){html body #lxEnterpriseAuthOriginal:is(.lx-p0-modal.lx-lead-shell),
+html body #lxEnterpriseAuthOriginal :is(.lx-p0-modal.lx-lead-shell){width: calc(-24px + 100vw) !important;}
+}
+@media (max-width: 640px){html body #lxEnterpriseAuthOriginal:is(.lx-p0-modal.lx-lead-shell .lx-lead-actions),
+html body #lxEnterpriseAuthOriginal :is(.lx-p0-modal.lx-lead-shell .lx-lead-actions){grid-template-columns: 1fr !important;}
+}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal-mask),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal-mask),
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal-mask.lx-lead-modal-mask),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal-mask.lx-lead-modal-mask){background: var(--lx-modal-overlay-background) !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal-mask > .lx-p0-modal),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal-mask > .lx-p0-modal),
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal-mask .lx-p0-modal.lx-lead-shell),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal-mask .lx-p0-modal.lx-lead-shell){box-shadow: none !important; filter: none !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal-mask > .lx-p0-modal:not(.lx-service-region-dialog)),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal-mask > .lx-p0-modal:not(.lx-service-region-dialog)){border: 1px solid rgb(226, 221, 235) !important; border-radius: var(--lx-modal-radius) !important; background: rgb(255, 255, 255) !important; color: rgb(37, 37, 37) !important; overflow: hidden !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal-mask > .lx-p0-modal:not(.lx-service-region-dialog) > .lx-p0-modal-head),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal-mask > .lx-p0-modal:not(.lx-service-region-dialog) > .lx-p0-modal-head){min-height: var(--lx-modal-head-height) !important; padding: 0 var(--lx-modal-gutter) !important; border-bottom: 1px solid rgb(239, 228, 241) !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal-mask > .lx-p0-modal:not(.lx-service-region-dialog) .lx-p0-modal-title),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal-mask > .lx-p0-modal:not(.lx-service-region-dialog) .lx-p0-modal-title){margin: 0px !important; color: rgb(37, 37, 37) !important; font-size: 17px !important; line-height: 24px !important; font-weight: 600 !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal-mask > .lx-p0-modal:not(.lx-service-region-dialog) > .lx-p0-modal-body),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal-mask > .lx-p0-modal:not(.lx-service-region-dialog) > .lx-p0-modal-body){padding: 20px var(--lx-modal-gutter) 24px !important; color: rgb(98, 91, 104) !important; font-size: 13px !important; line-height: 20px !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal-mask > .lx-p0-modal.lx-lead-shell),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal-mask > .lx-p0-modal.lx-lead-shell){width: min(var(--lx-modal-width-form),calc(100vw - 48px)) !important; max-width: none !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal-mask .lx-p0-modal :is(.lx-p0-btn, .lx-lead-cancel, .lx-lead-submit, .lx-wpa-btn, .lxst-confirm-acts button, .lxst-wiz-acts button, .lxof-actions3 button, .lxof-success-actions button, .lxsv5-appoint-actions button, .lx-global-profile-actions button)),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal-mask .lx-p0-modal :is(.lx-p0-btn, .lx-lead-cancel, .lx-lead-submit, .lx-wpa-btn, .lxst-confirm-acts button, .lxst-wiz-acts button, .lxof-actions3 button, .lxof-success-actions button, .lxsv5-appoint-actions button, .lx-global-profile-actions button)){min-height: var(--lx-modal-control-height) !important; padding: 0px 18px !important; border-radius: 8px !important; font-size: 14px !important; line-height: 20px !important; font-weight: 600 !important; box-shadow: none !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal-mask .lx-p0-modal :is(.lx-p0-btn.primary, .lx-lead-submit, .lx-wpa-btn.primary, .lxof-actions3 .primary, .lxof-success-actions .primary, .lxsv5-appoint-actions .primary, .lx-global-profile-actions button[type="submit"])),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal-mask .lx-p0-modal :is(.lx-p0-btn.primary, .lx-lead-submit, .lx-wpa-btn.primary, .lxof-actions3 .primary, .lxof-success-actions .primary, .lxsv5-appoint-actions .primary, .lx-global-profile-actions button[type="submit"])){border: 0px !important; background: linear-gradient(90deg, rgb(77, 20, 74) 11.9%, rgb(184, 37, 46) 100%) !important; color: rgb(255, 255, 255) !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal-mask .lx-p0-modal :is(.lx-p0-btn:not(.primary), .lx-lead-cancel, .lx-wpa-btn:not(.primary), .lxof-actions3 button:not(.primary), .lxof-success-actions button:not(.primary), .lxsv5-appoint-actions button:not(.primary), .lx-global-profile-actions button[type="button"])),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal-mask .lx-p0-modal :is(.lx-p0-btn:not(.primary), .lx-lead-cancel, .lx-wpa-btn:not(.primary), .lxof-actions3 button:not(.primary), .lxof-success-actions button:not(.primary), .lxsv5-appoint-actions button:not(.primary), .lx-global-profile-actions button[type="button"])){border: 1px solid rgb(226, 221, 235) !important; background: rgb(255, 255, 255) !important; color: rgb(77, 20, 74) !important;}
+@media (max-width: 640px){html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal-mask > .lx-p0-modal:not(.lx-service-region-dialog)),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal-mask > .lx-p0-modal:not(.lx-service-region-dialog)){width: calc(-32px + 100vw) !important; max-height: calc(-32px + 100vh) !important;}
+}
+html body #lxEnterpriseAuthOriginal:is(.lx-enterprise-lead .lx-lead-actions),
+html body #lxEnterpriseAuthOriginal :is(.lx-enterprise-lead .lx-lead-actions){grid-column: 1 / -1 !important; width: 100% !important; display: grid !important; grid-template-columns: 138px minmax(0px, 1fr) !important; gap: 14px !important; align-items: stretch !important; margin: 20px 0px 0px !important; position: static !important; inset: auto !important; padding: 0px !important; background: transparent !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell .lx-lead-modal.lx-enterprise-lead form#lxEnterpriseAuthForm),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell .lx-lead-modal.lx-enterprise-lead form#lxEnterpriseAuthForm){display: grid !important; grid-template-columns: minmax(0px, 1fr) minmax(0px, 1fr) !important; grid-auto-flow: row !important; column-gap: 16px !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell .lx-lead-modal.lx-enterprise-lead form#lxEnterpriseAuthForm > .lx-lead-actions),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell .lx-lead-modal.lx-enterprise-lead form#lxEnterpriseAuthForm > .lx-lead-actions){grid-area: 3 / 1 / auto / 3 !important;}
+html body #lxEnterpriseAuthOriginal:is(.lx-enterprise-lead .lx-lead-actions > button),
+html body #lxEnterpriseAuthOriginal :is(.lx-enterprise-lead .lx-lead-actions > button){width: 100% !important; min-width: 0px !important; height: 50px !important;}
+html body #lxEnterpriseAuthOriginal:is(.lx-enterprise-lead .lx-lead-submit:disabled),
+html body #lxEnterpriseAuthOriginal :is(.lx-enterprise-lead .lx-lead-submit:disabled){background: rgb(230, 224, 237) !important; color: rgb(154, 146, 159) !important; box-shadow: none !important; cursor: not-allowed !important; transform: none !important; filter: none !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal-mask.lx-enterprise-member-auth-mask),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal-mask.lx-enterprise-member-auth-mask){padding: 24px !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal-mask > .lx-p0-modal.lx-lead-shell:has(.lx-enterprise-lead)),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal-mask > .lx-p0-modal.lx-lead-shell:has(.lx-enterprise-lead)){width: min(860px, -48px + 100vw) !important; min-height: 0px !important; max-height: calc(-48px + 100vh) !important; border-radius: 20px !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell:has(.lx-enterprise-lead) .lx-p0-modal-head),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell:has(.lx-enterprise-lead) .lx-p0-modal-head){min-height: 76px !important; padding: 0px 36px !important; border-bottom: 1px solid rgb(241, 237, 243) !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell:has(.lx-enterprise-lead) .lx-p0-modal-title),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell:has(.lx-enterprise-lead) .lx-p0-modal-title){font-size: 24px !important; line-height: 34px !important; font-weight: 700 !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell:has(.lx-enterprise-lead) .lx-p0-modal-body),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell:has(.lx-enterprise-lead) .lx-p0-modal-body){min-height: 0px !important; padding: 22px 36px 30px !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell .lx-enterprise-lead .lx-lead-actions),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell .lx-enterprise-lead .lx-lead-actions){width: 320px !important; margin: 36px 0px 0px auto !important; grid-template-columns: 120px 188px !important; gap: 12px !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell .lx-enterprise-lead .lx-lead-actions > button),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell .lx-enterprise-lead .lx-lead-actions > button){height: 44px !important; min-height: 44px !important; border-radius: 999px !important; font-size: 14px !important; line-height: 20px !important; font-weight: 600 !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell:has(.lx-diamond-upgrade) .lx-p0-modal-head),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell:has(.lx-diamond-upgrade) .lx-p0-modal-head){min-height: 60px !important; padding: 0px 28px !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell:has(.lx-diamond-upgrade) .lx-p0-modal-title),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell:has(.lx-diamond-upgrade) .lx-p0-modal-title){font-size: 18px !important; line-height: 26px !important; font-weight: 600 !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell:has(.lx-diamond-upgrade) .lx-p0-modal-body),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell:has(.lx-diamond-upgrade) .lx-p0-modal-body){padding: 4px 28px 24px !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell .lx-lead-modal.lx-enterprise-lead form#lxEnterpriseAuthForm.lx-diamond-upgrade-form),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell .lx-lead-modal.lx-enterprise-lead form#lxEnterpriseAuthForm.lx-diamond-upgrade-form){display: flex !important; flex-direction: column !important; gap: 16px 0px !important; grid-template-columns: none !important; grid-auto-flow: initial !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-field),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-field){display: grid !important; grid-template-columns: 84px minmax(0px, 1fr) !important; gap: 8px !important; align-items: start !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-field > span:first-child),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-field > span:first-child){padding-top: 13px !important; color: rgb(36, 33, 38) !important; font-size: 14px !important; line-height: 20px !important; font-weight: 600 !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-field-control),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-field-control){display: flex !important; align-items: center !important; gap: 16px !important; min-width: 0px !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-field-control > input),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-field-control > input){flex: 0 0 auto !important; width: 260px !important; height: 40px !important; min-height: 40px !important; padding: 0px 14px !important; border: 1px solid rgb(226, 221, 235) !important; border-radius: 8px !important; background: rgb(255, 255, 255) !important; color: rgb(36, 33, 38) !important; font-size: 14px !important; font-weight: 400 !important; line-height: 38px !important; box-shadow: none !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-field-control > input)::placeholder,
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-field-control > input)::placeholder{color: rgb(143, 137, 145) !important; font-size: 13px !important; font-weight: 400 !important; opacity: 1 !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-field-control > small),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-field-control > small){color: rgb(161, 154, 164) !important; font-size: 12px !important; line-height: 18px !important; font-weight: 400 !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-phone-field .lx-diamond-field-control),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-phone-field .lx-diamond-field-control){flex-direction: column !important; align-items: flex-start !important; gap: 6px !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-phone-field .lx-diamond-field-control > small),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-phone-field .lx-diamond-field-control > small){width: max-content !important; max-width: none !important; white-space: nowrap !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-material-field > span:first-child),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-material-field > span:first-child){padding-top: 4px !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-material-field .lx-diamond-field-control),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-material-field .lx-diamond-field-control){display: block !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-upload),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-upload){width: 260px !important; height: 132px !important; display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: center !important; gap: 8px !important; border: 1px solid rgb(231, 225, 235) !important; border-radius: 8px !important; background: rgb(252, 250, 255) !important; color: rgb(143, 135, 146) !important; cursor: pointer !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-upload-plus),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-upload-plus){width: 32px !important; height: 32px !important; display: block !important; overflow: hidden !important; background: url("/assets/icons/full-create.svg") center center / 28px 28px no-repeat !important; color: transparent !important; font-size: 0px !important; line-height: 0 !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-upload strong),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-upload strong){color: rgb(151, 144, 154) !important; font-size: 12px !important; line-height: 18px !important; font-weight: 400 !important; text-align: center !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-upload-preview),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-upload-preview){display: none !important; width: 100% !important; height: 100% !important; object-fit: cover !important; border-radius: 7px !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-upload input),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-upload input){position: absolute !important; width: 1px !important; height: 1px !important; opacity: 0 !important; pointer-events: none !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-material-field .lx-diamond-field-control > small),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-material-field .lx-diamond-field-control > small){display: block !important; max-width: 440px !important; margin-top: 8px !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-agree),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-agree){display: flex !important; align-items: flex-start !important; gap: 9px !important; margin-top: 28px !important; color: rgb(98, 91, 104) !important; font-size: 12px !important; line-height: 18px !important; font-weight: 400 !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-agree > span),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-agree > span){font-weight: 400 !important; flex: 1 1 auto !important; min-width: 0px !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-agree input),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-agree input){position: relative !important; flex: 0 0 16px !important; width: 16px !important; height: 16px !important; margin: 1px 0px 0px !important; appearance: none !important; border: 1px solid rgb(169, 162, 172) !important; border-radius: 50% !important; background: rgb(255, 255, 255) !important; cursor: pointer !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-agree input:checked),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-agree input:checked){border-color: transparent !important; background: linear-gradient(135deg, rgb(91, 20, 82) 0%, rgb(201, 37, 53) 100%) !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-agree input:checked)::after,
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-agree input:checked)::after{content: "" !important; position: absolute !important; left: 4px !important; top: 2px !important; width: 5px !important; height: 8px !important; border-style: solid !important; border-color: rgb(255, 255, 255) !important; border-image: none !important; border-width: 0px 2px 2px 0px !important; background: transparent !important; mask: none !important; transform: rotate(45deg) !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-error),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-error){min-height: 0px !important; margin: -10px 0px 0px 92px !important; color: rgb(197, 42, 50) !important; font-size: 13px !important; line-height: 20px !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-upgrade .lx-lead-actions),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-upgrade .lx-lead-actions){width: min(324px, 100%) !important; margin: 4px 0px 0px auto !important; display: grid !important; grid-template-columns: 140px 172px !important; gap: 12px !important; grid-area: auto !important; flex: 0 0 auto !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-upgrade .lx-lead-actions > button),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-upgrade .lx-lead-actions > button){width: 100% !important; min-width: 0px !important; height: 44px !important; min-height: 44px !important; padding: 0px 18px !important; border-radius: 999px !important; font-size: 16px !important; line-height: 44px !important; font-weight: 600 !important; box-shadow: none !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-upgrade .lx-lead-cancel),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-upgrade .lx-lead-cancel){border: 1px solid rgb(216, 197, 220) !important; background: rgb(255, 255, 255) !important; color: rgb(91, 20, 82) !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-field-control > input),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-field-control > input),
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-field-control > input:hover),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-field-control > input:hover),
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-field-control > input:focus),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-field-control > input:focus),
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-field-control > input:focus-visible),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-field-control > input:focus-visible),
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-field-control > input:valid),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-field-control > input:valid){border-color: rgb(226, 221, 235) !important; background: rgb(255, 255, 255) !important; outline: none !important; box-shadow: none !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-upload),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-upload),
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-upload:hover),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-upload:hover),
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-upload:focus),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-upload:focus),
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-upload:focus-visible),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-upload:focus-visible),
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-upload:focus-within),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-upload:focus-within){border: 1px solid rgb(231, 225, 235) !important; background: rgb(252, 250, 255) !important; outline: none !important; box-shadow: none !important;}
+@media (max-width: 720px){html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal-mask.lx-enterprise-member-auth-mask),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal-mask.lx-enterprise-member-auth-mask){padding: 12px !important;}
+}
+@media (max-width: 720px){html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal-mask > .lx-p0-modal.lx-lead-shell:has(.lx-enterprise-lead)),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal-mask > .lx-p0-modal.lx-lead-shell:has(.lx-enterprise-lead)){width: calc(-24px + 100vw) !important; min-height: 0px !important;}
+}
+@media (max-width: 720px){html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell:has(.lx-enterprise-lead) .lx-p0-modal-head),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell:has(.lx-enterprise-lead) .lx-p0-modal-head){min-height: 72px !important; padding: 0px 20px !important;}
+}
+@media (max-width: 720px){html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell:has(.lx-enterprise-lead) .lx-p0-modal-title),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell:has(.lx-enterprise-lead) .lx-p0-modal-title){font-size: 22px !important;}
+}
+@media (max-width: 720px){html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell:has(.lx-enterprise-lead) .lx-p0-modal-body),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell:has(.lx-enterprise-lead) .lx-p0-modal-body){min-height: 0px !important; padding: 18px 20px 24px !important;}
+}
+@media (max-width: 720px){html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell .lx-enterprise-lead .lx-lead-actions),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell .lx-enterprise-lead .lx-lead-actions){width: 100% !important; margin-top: 24px !important;}
+}
+@media (max-width: 720px){html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell .lx-lead-modal.lx-enterprise-lead form#lxEnterpriseAuthForm),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell .lx-lead-modal.lx-enterprise-lead form#lxEnterpriseAuthForm){grid-template-columns: 1fr !important;}
+}
+@media (max-width: 720px){html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell .lx-lead-modal.lx-enterprise-lead form#lxEnterpriseAuthForm > .lx-lead-actions),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell .lx-lead-modal.lx-enterprise-lead form#lxEnterpriseAuthForm > .lx-lead-actions){grid-area: auto / 1 !important;}
+}
+@media (max-width: 720px){html body #lxEnterpriseAuthOriginal:is(.lx-enterprise-lead .lx-lead-actions),
+html body #lxEnterpriseAuthOriginal :is(.lx-enterprise-lead .lx-lead-actions){grid-template-columns: 1fr !important;}
+}
+@media (max-width: 720px){html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell:has(.lx-diamond-upgrade) .lx-p0-modal-title),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell:has(.lx-diamond-upgrade) .lx-p0-modal-title){font-size: 18px !important; line-height: 26px !important;}
+}
+html body #lxEnterpriseAuthOriginal:is(button),
+html body #lxEnterpriseAuthOriginal :is(button),
+html body #lxEnterpriseAuthOriginal:is(input),
+html body #lxEnterpriseAuthOriginal :is(input){font-family: "Source Han Sans CN Local", "PingFang SC", "Microsoft YaHei", Arial, sans-serif;}
+html body #lxEnterpriseAuthOriginal:is(html body form#lxEnterpriseAuthForm > .lx-lead-actions),
+html body #lxEnterpriseAuthOriginal :is(html body form#lxEnterpriseAuthForm > .lx-lead-actions){grid-area: auto / 1 / auto / -1 !important; width: 100% !important; box-sizing: border-box !important; position: static !important; inset: auto !important; margin: 20px 0px 0px !important; padding: 0px !important; display: flex !important; justify-content: flex-end !important; align-items: center !important; gap: 12px !important; background: transparent !important;}
+html body #lxEnterpriseAuthOriginal:is(html body form#lxEnterpriseAuthForm > .lx-lead-actions > button),
+html body #lxEnterpriseAuthOriginal :is(html body form#lxEnterpriseAuthForm > .lx-lead-actions > button){flex: 0 1 auto !important; width: auto !important; min-width: 120px !important;}
+@media (max-width: 480px){html body #lxEnterpriseAuthOriginal:is(html body form#lxEnterpriseAuthForm > .lx-lead-actions > button),
+html body #lxEnterpriseAuthOriginal :is(html body form#lxEnterpriseAuthForm > .lx-lead-actions > button){flex: 1 1 0px !important; min-width: 0px !important;}
+}
+html body #lxEnterpriseAuthOriginal:is(button),
+html body #lxEnterpriseAuthOriginal :is(button),
+html body #lxEnterpriseAuthOriginal:is(input),
+html body #lxEnterpriseAuthOriginal :is(input){font-family: "Source Han Sans CN Local", "PingFang SC", "Microsoft YaHei", Arial, sans-serif;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal-mask > .lx-p0-modal:not(.lx-service-region-dialog)),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal-mask > .lx-p0-modal:not(.lx-service-region-dialog)){width: min(var(--lx-modal-form),calc(100vw - 48px)) !important; max-width: none !important; border: 1px solid rgb(226, 221, 235) !important; border-radius: var(--lx-modal-shell-radius) !important; background: rgb(255, 255, 255) !important; box-shadow: none !important; filter: none !important; overflow: hidden !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal-mask > .lx-p0-modal:not(.lx-service-region-dialog) > .lx-p0-modal-head),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal-mask > .lx-p0-modal:not(.lx-service-region-dialog) > .lx-p0-modal-head){min-height: var(--lx-modal-header-height) !important; align-items: center !important; padding: 0 var(--lx-modal-gutter) !important; border-bottom: 0px !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal-mask .lx-p0-modal-title),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal-mask .lx-p0-modal-title){margin: 0px !important; color: rgb(37, 37, 37) !important; font-size: 17px !important; line-height: 24px !important; font-weight: 600 !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal-mask .lx-p0-close),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal-mask .lx-p0-close),
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal-mask .lx-p0-modal-head [data-modal-close]),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal-mask .lx-p0-modal-head [data-modal-close]){position: static !important; flex: 0 0 32px !important; width: 32px !important; min-width: 32px !important; height: 32px !important; min-height: 32px !important; display: grid !important; place-items: center !important; margin: 0px !important; padding: 0px 0px 2px !important; border: 0px !important; border-radius: 0px !important; background: transparent !important; color: rgb(98, 91, 104) !important; font-size: 22px !important; line-height: 1 !important; font-weight: 400 !important; box-shadow: none !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal-mask .lx-p0-close:hover),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal-mask .lx-p0-close:hover),
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal-mask .lx-p0-close:focus-visible),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal-mask .lx-p0-close:focus-visible),
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal-mask .lx-p0-modal-head [data-modal-close]:hover),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal-mask .lx-p0-modal-head [data-modal-close]:hover),
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal-mask .lx-p0-modal-head [data-modal-close]:focus-visible),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal-mask .lx-p0-modal-head [data-modal-close]:focus-visible){background: transparent !important; color: rgb(77, 20, 74) !important; outline: 0px !important; box-shadow: none !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal-mask > .lx-p0-modal.lx-lead-shell),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal-mask > .lx-p0-modal.lx-lead-shell){width: min(var(--lx-modal-form),calc(100vw - 48px)) !important; max-width: none !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal-mask > .lx-p0-modal:not(.lx-service-region-dialog) > .lx-p0-modal-body),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal-mask > .lx-p0-modal:not(.lx-service-region-dialog) > .lx-p0-modal-body){padding: 20px var(--lx-modal-gutter) 24px !important; color: rgb(98, 91, 104) !important; font-size: 13px !important; line-height: 20px !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal-mask :is(label, .lx-lead-row > label, .lx-stuauth-field > label)),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal-mask :is(label, .lx-lead-row > label, .lx-stuauth-field > label)){color: rgb(37, 37, 37) !important; font-size: 13px !important; line-height: 20px !important; font-weight: 600 !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal-mask .lx-p0-modal :is(input, select, textarea, .lx-p0-field)),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal-mask .lx-p0-modal :is(input, select, textarea, .lx-p0-field)){border: 1px solid rgb(226, 221, 235) !important; border-radius: var(--lx-modal-control-radius) !important; background: rgb(255, 255, 255) !important; color: rgb(37, 37, 37) !important; font-size: 13px !important; line-height: 20px !important; box-shadow: none !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal-mask .lx-p0-modal :is(input, select):not([type="checkbox"])),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal-mask .lx-p0-modal :is(input, select):not([type="checkbox"])){height: 40px !important; min-height: 40px !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal-mask .lx-p0-modal :is(.lx-stuauth-modal, .lx-lead-modal form, .lxsv5-appointment, .lxst-confirm)),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal-mask .lx-p0-modal :is(.lx-stuauth-modal, .lx-lead-modal form, .lxsv5-appointment, .lxst-confirm)){gap: var(--lx-modal-gap) !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal-mask .lx-lead-modal form),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal-mask .lx-lead-modal form){gap: 14px 16px !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal-mask .lx-p0-modal :is(.lx-p0-actions, .lx-stuauth-actions, .lx-wpa-actions, .lx-lead-actions, .lxst-confirm-acts, .lxst-wiz-acts, .lxof-actions3, .lxof-success-actions, .lxsv5-appoint-actions, .lx-global-profile-actions)),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal-mask .lx-p0-modal :is(.lx-p0-actions, .lx-stuauth-actions, .lx-wpa-actions, .lx-lead-actions, .lxst-confirm-acts, .lxst-wiz-acts, .lxof-actions3, .lxof-success-actions, .lxsv5-appoint-actions, .lx-global-profile-actions)){gap: 12px !important; margin-top: 16px !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal-mask .lx-p0-modal :is(.lx-p0-btn, .lx-lead-cancel, .lx-lead-submit, .lx-wpa-btn, .lxst-confirm-acts button, .lxst-wiz-acts button, .lxof-actions3 button, .lxof-success-actions button, .lxsv5-appoint-actions button, .lx-global-profile-actions button)),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal-mask .lx-p0-modal :is(.lx-p0-btn, .lx-lead-cancel, .lx-lead-submit, .lx-wpa-btn, .lxst-confirm-acts button, .lxst-wiz-acts button, .lxof-actions3 button, .lxof-success-actions button, .lxsv5-appoint-actions button, .lx-global-profile-actions button)){min-width: 96px !important; height: 40px !important; min-height: 40px !important; padding: 0px 18px !important; border-radius: var(--lx-modal-control-radius) !important; font-size: 14px !important; line-height: 20px !important; font-weight: 600 !important; box-shadow: none !important; transform: none !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal-mask .lx-p0-modal :is(.lx-p0-btn.primary, .lx-lead-submit, .lx-wpa-btn.primary, .lxof-actions3 .primary, .lxof-success-actions .primary, .lxsv5-appoint-actions .primary, .lx-global-profile-actions button[type="submit"])),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal-mask .lx-p0-modal :is(.lx-p0-btn.primary, .lx-lead-submit, .lx-wpa-btn.primary, .lxof-actions3 .primary, .lxof-success-actions .primary, .lxsv5-appoint-actions .primary, .lx-global-profile-actions button[type="submit"])){border: 0px !important; background: linear-gradient(90deg, rgb(77, 20, 74) 11.9%, rgb(184, 37, 46) 100%) !important; color: rgb(255, 255, 255) !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal-mask .lx-p0-modal :is(.lx-p0-btn:not(.primary), .lx-lead-cancel, .lx-wpa-btn:not(.primary), .lxof-actions3 button:not(.primary), .lxof-success-actions button:not(.primary), .lxsv5-appoint-actions button:not(.primary), .lx-global-profile-actions button[type="button"])),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal-mask .lx-p0-modal :is(.lx-p0-btn:not(.primary), .lx-lead-cancel, .lx-wpa-btn:not(.primary), .lxof-actions3 button:not(.primary), .lxof-success-actions button:not(.primary), .lxsv5-appoint-actions button:not(.primary), .lx-global-profile-actions button[type="button"])){border: 1px solid rgb(226, 221, 235) !important; background: rgb(255, 255, 255) !important; color: rgb(77, 20, 74) !important;}
+@media (max-width: 640px){html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal-mask > .lx-p0-modal:not(.lx-service-region-dialog)),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal-mask > .lx-p0-modal:not(.lx-service-region-dialog)){width: calc(-32px + 100vw) !important; max-height: calc(-32px + 100vh) !important;}
+}
+html body #lxEnterpriseAuthOriginal:is(html body :is(.lx-p0-modal-mask, .leai-modal-mask) :is(.lx-p0-modal, .leai-modal) button:is(.primary, .leai-primary, .lx-lead-submit, .lx-wpa-submit, .lxof-pay-confirm, .lxof-primary, .lxst-primary, .acta, .cta, [class*="-submit"], [class*="-confirm"], [data-stuauth-submit], [data-diamond-submit], [data-lx-service-region-confirm], [data-lx-order-confirm], [data-lx-payment-confirm], [type="submit"])),
+html body #lxEnterpriseAuthOriginal :is(html body :is(.lx-p0-modal-mask, .leai-modal-mask) :is(.lx-p0-modal, .leai-modal) button:is(.primary, .leai-primary, .lx-lead-submit, .lx-wpa-submit, .lxof-pay-confirm, .lxof-primary, .lxst-primary, .acta, .cta, [class*="-submit"], [class*="-confirm"], [data-stuauth-submit], [data-diamond-submit], [data-lx-service-region-confirm], [data-lx-order-confirm], [data-lx-payment-confirm], [type="submit"])){border-color: transparent !important; background-color: rgb(77, 20, 74) !important; background-image: linear-gradient(90deg, rgb(77, 20, 74) 11.9%, rgb(184, 37, 46) 100%) !important; color: rgb(255, 255, 255) !important; box-shadow: none !important; filter: none !important; transform: none !important;}
+html body #lxEnterpriseAuthOriginal:is(html body :is(.lx-p0-modal-mask, .leai-modal-mask) :is(.lx-p0-modal, .leai-modal) button:is(.primary, .leai-primary, .lx-lead-submit, .lx-wpa-submit, .lxof-pay-confirm, .lxof-primary, .lxst-primary, .acta, .cta, [class*="-submit"], [class*="-confirm"], [data-stuauth-submit], [data-diamond-submit], [data-lx-service-region-confirm], [data-lx-order-confirm], [data-lx-payment-confirm], [type="submit"]):disabled),
+html body #lxEnterpriseAuthOriginal :is(html body :is(.lx-p0-modal-mask, .leai-modal-mask) :is(.lx-p0-modal, .leai-modal) button:is(.primary, .leai-primary, .lx-lead-submit, .lx-wpa-submit, .lxof-pay-confirm, .lxof-primary, .lxst-primary, .acta, .cta, [class*="-submit"], [class*="-confirm"], [data-stuauth-submit], [data-diamond-submit], [data-lx-service-region-confirm], [data-lx-order-confirm], [data-lx-payment-confirm], [type="submit"]):disabled){background-image: linear-gradient(90deg, rgb(77, 20, 74) 11.9%, rgb(184, 37, 46) 100%) !important; color: rgb(255, 255, 255) !important; opacity: 0.45 !important; cursor: not-allowed !important;}
+html body #lxEnterpriseAuthOriginal:is(html body :is(.lx-p0-modal-mask, .leai-modal-mask) :is(.lx-p0-modal, .leai-modal) :is(.lx-p0-modal-head, .leai-modal-head, .lx-p0-actions, .lx-stuauth-actions, .lx-wpa-actions, .lx-lead-actions, .lxst-confirm-acts, .lxst-wiz-acts, .lxof-actions3, .lxof-success-actions, .lxsv5-appoint-actions, .lx-global-profile-actions, .leai-modal-actions, .leai-profile-actions)),
+html body #lxEnterpriseAuthOriginal :is(html body :is(.lx-p0-modal-mask, .leai-modal-mask) :is(.lx-p0-modal, .leai-modal) :is(.lx-p0-modal-head, .leai-modal-head, .lx-p0-actions, .lx-stuauth-actions, .lx-wpa-actions, .lx-lead-actions, .lxst-confirm-acts, .lxst-wiz-acts, .lxof-actions3, .lxof-success-actions, .lxsv5-appoint-actions, .lx-global-profile-actions, .leai-modal-actions, .leai-profile-actions)){border-top: 0px !important; border-bottom: 0px !important;}
+html body #lxEnterpriseAuthOriginal:is(html body :is(.lx-p0-modal-mask, .leai-modal-mask) :is(.lx-p0-close, .leai-modal-close, [data-modal-close], .lx-p0-modal > .head > .x, .lx-p0-modal > .order-head .x)),
+html body #lxEnterpriseAuthOriginal :is(html body :is(.lx-p0-modal-mask, .leai-modal-mask) :is(.lx-p0-close, .leai-modal-close, [data-modal-close], .lx-p0-modal > .head > .x, .lx-p0-modal > .order-head .x)){border: 0px !important; border-radius: 0px !important; background: transparent !important; outline: 0px !important; box-shadow: none !important; transform: none !important; filter: none !important; animation: auto ease 0s 1 normal none running none !important; transition: color 0.15s !important;}
+html body #lxEnterpriseAuthOriginal:is(html body :is(.lx-p0-modal-mask, .leai-modal-mask) :is(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), textarea, select, .lx-p0-field, .leai-field, [contenteditable="true"])),
+html body #lxEnterpriseAuthOriginal :is(html body :is(.lx-p0-modal-mask, .leai-modal-mask) :is(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), textarea, select, .lx-p0-field, .leai-field, [contenteditable="true"])){transition: border-color 0.15s, box-shadow 0.15s, background-color 0.15s !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal-mask > .lx-p0-modal.lx-lead-shell:has(.lx-lead-modal)),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal-mask > .lx-p0-modal.lx-lead-shell:has(.lx-lead-modal)){width: min(640px, -48px + 100vw) !important; max-height: min(760px, -32px + 100vh) !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell:has(.lx-lead-modal) .lx-p0-modal-head),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell:has(.lx-lead-modal) .lx-p0-modal-head){min-height: 64px !important; padding: 0px 28px !important; border: 0px !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell:has(.lx-lead-modal) .lx-p0-close),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell:has(.lx-lead-modal) .lx-p0-close){width: 32px !important; height: 32px !important; border: 0px !important; border-radius: 0px !important; background: transparent !important; box-shadow: none !important; transform: none !important; animation: auto ease 0s 1 normal none running none !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell:has(.lx-lead-modal) .lx-p0-modal-body),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell:has(.lx-lead-modal) .lx-p0-modal-body){padding: 0px 28px 22px !important; overflow-y: auto !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell .lx-lead-actions),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell .lx-lead-actions){grid-column: 1 / -1 !important; display: flex !important; justify-content: flex-end !important; gap: 10px !important; margin: 2px 0px 0px !important; padding: 0px !important; border: 0px !important; background: transparent !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell :is(.lx-lead-cancel, .lx-lead-submit)),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell :is(.lx-lead-cancel, .lx-lead-submit)){flex: 0 0 auto !important; width: auto !important; min-width: 96px !important; height: 40px !important; padding: 0px 20px !important; border-radius: 10px !important; font-size: 14px !important; line-height: 38px !important; font-weight: 500 !important; box-shadow: none !important; transform: none !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell .lx-lead-submit),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell .lx-lead-submit){min-width: 128px !important; border: 0px !important; background: linear-gradient(90deg, rgb(77, 20, 74) 11.9%, rgb(184, 37, 46) 100%) !important;}
+html body #lxEnterpriseAuthOriginal:is(html body :is(.lx-p0-modal-mask, .leai-modal-mask)),
+html body #lxEnterpriseAuthOriginal :is(html body :is(.lx-p0-modal-mask, .leai-modal-mask)){background: var(--lx-modal-overlay-background) !important; backdrop-filter: none !important;}
+html body #lxEnterpriseAuthOriginal:is(html body :is(.lx-p0-modal, .leai-modal) > :is(.lx-p0-modal-body, .leai-modal-body)),
+html body #lxEnterpriseAuthOriginal :is(html body :is(.lx-p0-modal, .leai-modal) > :is(.lx-p0-modal-body, .leai-modal-body)){min-height: 0px; overscroll-behavior: contain;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal-mask > .lx-p0-modal:not(.lx-auth-modal)),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal-mask > .lx-p0-modal:not(.lx-auth-modal)){max-height: calc(100dvh - 32px) !important; overflow-y: auto !important;}
+html body #lxEnterpriseAuthOriginal:is(html body :is(.lx-p0-modal-mask, .leai-modal-mask, [data-buy-modal-direct]) :is(.lx-p0-modal, .leai-modal, .lx-buy-direct-dialog) input[type="checkbox"]),
+html body #lxEnterpriseAuthOriginal :is(html body :is(.lx-p0-modal-mask, .leai-modal-mask, [data-buy-modal-direct]) :is(.lx-p0-modal, .leai-modal, .lx-buy-direct-dialog) input[type="checkbox"]),
+html body #lxEnterpriseAuthOriginal:is(html body :is(.lx-p0-modal-mask, .leai-modal-mask, [data-buy-modal-direct]) :is(.lx-p0-modal, .leai-modal, .lx-buy-direct-dialog) input[type="checkbox"]:checked),
+html body #lxEnterpriseAuthOriginal :is(html body :is(.lx-p0-modal-mask, .leai-modal-mask, [data-buy-modal-direct]) :is(.lx-p0-modal, .leai-modal, .lx-buy-direct-dialog) input[type="checkbox"]:checked){border-radius: 50% !important;}
+html body #lxEnterpriseAuthOriginal:is(.lx-diamond-upload),
+html body #lxEnterpriseAuthOriginal :is(.lx-diamond-upload){position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; min-height: 130px; border: 1px dashed rgb(216, 204, 224); border-radius: 10px; background: rgb(252, 250, 255); color: rgb(91, 20, 82); cursor: pointer; text-align: center; padding: 12px;}
+html body #lxEnterpriseAuthOriginal:is(.lx-diamond-upload span),
+html body #lxEnterpriseAuthOriginal :is(.lx-diamond-upload span){color: rgb(139, 132, 144); font-size: 12px;}
+html body #lxEnterpriseAuthOriginal:is(.lx-diamond-upload strong),
+html body #lxEnterpriseAuthOriginal :is(.lx-diamond-upload strong){max-width: 100%; overflow-wrap: anywhere;}
+html body #lxEnterpriseAuthOriginal:is(.lx-diamond-upload input),
+html body #lxEnterpriseAuthOriginal :is(.lx-diamond-upload input){position: absolute; width: 1px; height: 1px; opacity: 0;}
+html body #lxEnterpriseAuthOriginal:is(.lx-diamond-upload:focus-within),
+html body #lxEnterpriseAuthOriginal :is(.lx-diamond-upload:focus-within){outline: rgb(162, 98, 215) solid 2px; outline-offset: 2px;}
+html body #lxEnterpriseAuthOriginal:is(.lx-diamond-agree),
+html body #lxEnterpriseAuthOriginal :is(.lx-diamond-agree){display: flex; align-items: flex-start; gap: 8px; font-size: 12px; line-height: 1.7; margin-top: 4px;}
+html body #lxEnterpriseAuthOriginal:is(.lx-diamond-agree input),
+html body #lxEnterpriseAuthOriginal :is(.lx-diamond-agree input){appearance: none; width: 16px; height: 16px; flex: 0 0 16px; border: 1px solid rgb(188, 180, 193); border-radius: 50%; margin: 3px 0px 0px;}
+html body #lxEnterpriseAuthOriginal:is(.lx-diamond-agree input:checked),
+html body #lxEnterpriseAuthOriginal :is(.lx-diamond-agree input:checked){background: linear-gradient(90deg, rgb(77, 20, 74), rgb(184, 37, 46)); border-color: transparent;}
+html body #lxEnterpriseAuthOriginal:is(.lx-diamond-agree input:checked)::after,
+html body #lxEnterpriseAuthOriginal :is(.lx-diamond-agree input:checked)::after{content: ""; display: block; width: 7px; height: 4px; border-left: 2px solid white; border-bottom: 2px solid white; transform: translate(3px, 3px) rotate(-45deg);}
+html body #lxEnterpriseAuthOriginal:is(.lx-diamond-error),
+html body #lxEnterpriseAuthOriginal :is(.lx-diamond-error){color: rgb(184, 37, 46); font-size: 12px;}
+html body #lxEnterpriseAuthOriginal:is(.lx-diamond-error:empty),
+html body #lxEnterpriseAuthOriginal :is(.lx-diamond-error:empty){display: none;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-field-control > input, html body .lx-p0-modal.lx-lead-shell .lx-diamond-field-control > input:hover, html body .lx-p0-modal.lx-lead-shell .lx-diamond-field-control > input:focus, html body .lx-p0-modal.lx-lead-shell .lx-diamond-field-control > input:focus-visible, html body .lx-p0-modal.lx-lead-shell .lx-diamond-field-control > input:valid),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-field-control > input, html body .lx-p0-modal.lx-lead-shell .lx-diamond-field-control > input:hover, html body .lx-p0-modal.lx-lead-shell .lx-diamond-field-control > input:focus, html body .lx-p0-modal.lx-lead-shell .lx-diamond-field-control > input:focus-visible, html body .lx-p0-modal.lx-lead-shell .lx-diamond-field-control > input:valid){border-color: rgb(226, 221, 235) !important; background: rgb(255, 255, 255) !important; outline: none !important; box-shadow: none !important;}
+html body #lxEnterpriseAuthOriginal:is(html body :is(.lx-p0-modal-mask, .leai-modal-mask) :is(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), textarea, select, .lx-p0-field, .leai-field, [contenteditable="true"]):is(:focus, :focus-visible)),
+html body #lxEnterpriseAuthOriginal :is(html body :is(.lx-p0-modal-mask, .leai-modal-mask) :is(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), textarea, select, .lx-p0-field, .leai-field, [contenteditable="true"]):is(:focus, :focus-visible)){border-color: rgb(207, 195, 213) !important; outline: 0px !important; box-shadow: rgba(91, 20, 82, 0.055) 0px 0px 0px 3px !important;}
