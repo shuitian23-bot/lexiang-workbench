@@ -1840,13 +1840,23 @@
     window.setTimeout(function () { el(type === "deviceBind" ? "#leaiField0" : "#leaiModalForm input, #leaiModalForm select").focus(); }, 0);
   }
 
+  function clearPhoneCodeCountdown() {
+    var form = el("#leaiModalForm");
+    if (form && form._phoneCodeTimer) {
+      window.clearInterval(form._phoneCodeTimer);
+      form._phoneCodeTimer = null;
+    }
+  }
+
   function openProfileEditorModal(trigger) {
     if (window.parent && window.parent !== window) {
       window.parent.postMessage({ type: "lexiang:open-profile-editor", profile: state.profile }, window.location.origin);
       return;
     }
+    clearPhoneCodeCountdown();
     state.modalType = "profile-editor";
     var mask = el("#leaiModal");
+    mask.dataset.profileParity = state.modalType === "profile-editor" ? "profile" : "phone";
     var dialog = mask.querySelector(".leai-modal");
     dialog.classList.remove("is-student", "is-wechat", "is-service-order");
     dialog.classList.add("is-profile-editor");
@@ -1862,6 +1872,7 @@
     form.setAttribute("data-member-profile-form", "");
     form.onsubmit = null;
     var actions = form.querySelector(".leai-profile-actions");
+    actions.classList.add("leai-order-action-pair");
     actions.insertAdjacentHTML("afterbegin", "<button class=\"leai-secondary\" type=\"button\" data-modal-close>取消</button>");
     var save = actions.querySelector(".leai-primary");
     save.textContent = "保存";
@@ -1871,58 +1882,68 @@
     window.setTimeout(function () { form.querySelector("#leaiProfileNickname").focus(); }, 0);
   }
 
-  function clearPhoneCodeCountdown() {
-    var form = el("#leaiModalForm");
-    if (form && form._phoneCodeTimer) {
-      window.clearInterval(form._phoneCodeTimer);
-      form._phoneCodeTimer = null;
-    }
-  }
-
-  function bindPhoneCodeButton(form) {
-    var button = form.querySelector("#leaiPhoneSendCode");
-    button.onclick = function () {
-      var phone = form.querySelector("#leaiPhoneNew");
-      if (!phone.checkValidity()) { phone.reportValidity(); return; }
-      if (button.disabled) return;
-      var remaining = 60;
-      button.disabled = true;
-      button.textContent = remaining + "s 后重发";
-      var status = form.querySelector("#leaiPhoneCodeStatus");
-      status.hidden = false;
-      status.textContent = "演示验证码：123456（不会发送短信）";
-      form._phoneCodeTimer = window.setInterval(function () {
-        if (!button.isConnected || state.modalType !== "phone-rebind") { clearPhoneCodeCountdown(); return; }
-        remaining -= 1;
-        if (remaining <= 0) {
-          clearPhoneCodeCountdown();
-          button.disabled = false;
-          button.textContent = "重新发送";
-          return;
-        }
-        button.textContent = remaining + "s 后重发";
-      }, 1000);
-      form.querySelector("#leaiPhoneCode").focus();
-    };
-  }
-
   function openPhoneRebindModal(trigger) {
     clearPhoneCodeCountdown();
     state.modalType = "phone-rebind";
     var mask = el("#leaiModal");
+    mask.dataset.profileParity = state.modalType === "profile-editor" ? "profile" : "phone";
     mask.querySelector(".leai-modal").classList.remove("is-student", "is-wechat", "is-service-order", "is-profile-editor");
     el("#leaiModalTitle").textContent = "更换绑定手机号";
     el("#leaiModalDesc").textContent = "完成新手机号验证后再更新绑定关系。";
     var form = el("#leaiModalForm");
-    form.innerHTML = '<div class="leai-phone-current"><span>当前绑定手机号</span><strong>' + escapeHtml(state.profile.phone) + '</strong></div><div class="leai-profile-fields"><div class="leai-field"><label for="leaiPhoneNew">新手机号</label><input id="leaiPhoneNew" inputmode="numeric" autocomplete="tel" maxlength="11" pattern="1[3-9][0-9]{9}" required placeholder="请输入 11 位手机号"></div><div class="leai-field"><label for="leaiPhoneCode">短信验证码</label><div class="leai-phone-code"><input id="leaiPhoneCode" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" required placeholder="请输入 6 位验证码"><button class="leai-phone-code-send" id="leaiPhoneSendCode" type="button">发送验证码</button></div></div></div><p class="leai-phone-code-status" id="leaiPhoneCodeStatus" role="status" hidden></p><div class="leai-modal-actions"><button class="leai-secondary" type="button" data-modal-close>取消</button><button class="leai-primary" type="submit">确认换绑</button></div>';
-    bindPhoneCodeButton(form);
+    form.innerHTML = '<div class="leai-phone-current"><span>当前绑定手机号</span><strong>' + escapeHtml(state.profile.phone) + '</strong></div><div class="leai-profile-fields"><div class="leai-field"><label for="leaiPhoneNew">新手机号</label><input id="leaiPhoneNew" inputmode="numeric" autocomplete="tel" maxlength="11" pattern="1[3-9][0-9]{9}" required placeholder="请输入 11 位手机号"></div><div class="leai-field"><label for="leaiPhoneCode">短信验证码</label><div class="leai-phone-code-row"><input id="leaiPhoneCode" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" required placeholder="请输入 6 位验证码"><button class="leai-phone-code-send" type="button" disabled data-phone-code-send>获取验证码</button></div><p class="leai-phone-code-feedback" data-phone-code-feedback aria-live="polite"></p></div></div><div class="leai-modal-actions leai-order-action-pair"><button class="leai-secondary" type="button" data-modal-close>取消</button><button class="leai-primary" type="submit">确认换绑</button></div>';
+    var phoneInput = form.querySelector("#leaiPhoneNew");
+    var codeInput = form.querySelector("#leaiPhoneCode");
+    var codeButton = form.querySelector("[data-phone-code-send]");
+    var codeFeedback = form.querySelector("[data-phone-code-feedback]");
+    var codeCountdown = 0;
+    var codeTimer = null;
+    var syncCodeButton = function () {
+      codeButton.disabled = codeCountdown > 0 || !/^1[3-9]\d{9}$/.test(phoneInput.value.trim());
+    };
+    phoneInput.addEventListener("input", function () {
+      phoneInput.value = phoneInput.value.replace(/\D/g, "").slice(0, 11);
+      codeFeedback.textContent = "";
+      syncCodeButton();
+    });
+    codeInput.addEventListener("input", function () {
+      codeInput.value = codeInput.value.replace(/\D/g, "").slice(0, 6);
+      codeFeedback.textContent = "";
+    });
+    codeButton.addEventListener("click", function () {
+      if (!/^1[3-9]\d{9}$/.test(phoneInput.value.trim())) {
+        codeFeedback.textContent = "请先输入正确的 11 位手机号。";
+        phoneInput.focus();
+        return;
+      }
+      codeCountdown = 60;
+      codeFeedback.textContent = "验证码已发送；POC 演示验证码为 123456。";
+      codeButton.textContent = codeCountdown + "s 后重发";
+      syncCodeButton();
+      codeTimer = form._phoneCodeTimer = window.setInterval(function () {
+        codeCountdown -= 1;
+        if (codeCountdown <= 0) {
+          window.clearInterval(codeTimer);
+          codeButton.textContent = "重新获取";
+          syncCodeButton();
+          return;
+        }
+        codeButton.textContent = codeCountdown + "s 后重发";
+      }, 1000);
+    });
     form.onsubmit = function (event) {
       event.preventDefault();
       if (!form.checkValidity()) {
         form.reportValidity();
         return;
       }
-      state.profile.phone = maskPhone(form.querySelector("#leaiPhoneNew").value);
+      if (codeInput.value !== "123456") {
+        codeFeedback.textContent = "验证码不正确，请输入 123456。";
+        codeInput.focus();
+        return;
+      }
+      window.clearInterval(codeTimer);
+      state.profile.phone = maskPhone(phoneInput.value);
       state.profilePhoneStatus = "手机号已换绑（Mock）";
       closeModal();
       refreshRightView();
@@ -1930,6 +1951,7 @@
     mask.classList.add("is-open");
     mask.setAttribute("aria-hidden", "false");
     trigger.dataset.modalTrigger = "active";
+    syncCodeButton();
     window.setTimeout(function () { form.querySelector("#leaiPhoneNew").focus(); }, 0);
   }
 
@@ -2090,6 +2112,7 @@
     clearPhoneCodeCountdown();
     var mask = el("#leaiModal");
     mask.classList.remove("is-open");
+    delete mask.dataset.profileParity;
     mask.querySelector(".leai-modal").classList.remove("is-student", "is-service-order", "is-profile-editor");
     mask.setAttribute("aria-hidden", "true");
     var trigger = el('[data-modal-trigger="active"]');
