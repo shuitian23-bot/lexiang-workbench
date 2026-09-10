@@ -2525,7 +2525,7 @@
 
   function memberPage() {
     return '<section class="leai-page leai-member-page" aria-labelledby="leaiMemberTitle">' +
-          '<header class="leai-member-main-header"><div class="leai-member-main-copy"><div class="leai-member-title-row"><h1 class="leai-page-title" id="leaiMemberTitle">会员中心</h1></div>' + memberProfileHeader() + '</div>' + memberCheckinPrompt() + '</header>' +
+          '<header class="leai-member-main-header"><div class="leai-member-main-copy"><div class="leai-member-title-row"><h1 class="leai-page-title" id="leaiMemberTitle">会员中心</h1></div>' + memberProfileHeader() + '</div></header>' +
       '<section class="leai-member-overview-group" aria-label="会员概览与乐享建议">' +
         '<section class="leai-panel leai-member-overview leai-member-suggestions-panel" data-member-section="insights">' + memberInsights() + '</section>' +
         '<section class="leai-panel leai-member-overview" data-member-overview data-member-identities data-member-section="overview">' + memberIdentityHub() + '</section>' +
