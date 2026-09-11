@@ -35,6 +35,7 @@
       await generation.wait(token,new Promise(resolve=>generation.timeout(token,resolve,720)));
       if(generation.current(token))adapter.open(products,result);
     } catch(error) {
+      console.warn("Gaming recommendation failed", error);
       if(generation.current(token))await generation.wait(token,adapter.answer('拯救者商品暂时加载失败，请稍后重新发送这条需求。'));
     } finally { if(generation.current(token)){adapter.busy(false);adapter.save();} }
   }
