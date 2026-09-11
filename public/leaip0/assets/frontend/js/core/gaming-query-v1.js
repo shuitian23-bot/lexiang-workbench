@@ -19,6 +19,45 @@
     const bySku = new Map(rows.map(p => [String(p.sku), p]));
     return slots.map((sku, index) => ({...bySku.get(sku), specs:{...bySku.get(sku).specs, lx_gaming_query:marker, lx_gaming_position:index+1}}));
   }
+
+  // Historical cards keep their original result IDs while their full list follows the current order.
+  function normalize(items) {
+    if (!Array.isArray(items) || items.length !== slots.length) return items;
+    const specsOf = p => {
+      try { return typeof p?.specs === 'string' ? JSON.parse(p.specs) : p?.specs; } catch (_) { return null; }
+    };
+    if (!items.every(p => specsOf(p)?.lx_gaming_query === marker)) return items;
+    const oldOrder = ['1054054', '1055587', '1054054', '1055589', '1054054', '1053096', '1052919', '1056246'];
+    const order = items.map(p => String(p.sku));
+    if (!order.every((sku, index) => sku === oldOrder[index] || sku === slots[index])) return items;
+    if (order.every((sku, index) => sku === slots[index]) &&
+        items.every((p, index) => Number(specsOf(p)?.lx_gaming_position) === index + 1)) return items;
+    const pool = items.slice(), updated = [];
+    for (let index = 0; index < slots.length; index += 1) {
+      const source = pool.findIndex(p => String(p.sku) === slots[index]);
+      if (source < 0) return items;
+      const product = pool.splice(source, 1)[0], specs = {...specsOf(product), lx_gaming_position:index + 1};
+      updated.push({...product, specs:typeof product.specs === 'string' ? JSON.stringify(specs) : specs});
+    }
+    return updated;
+  }
+  function migrate() {
+    for (const key of ['lexiang.recoPayloads.v1', 'lexiang.resultTabs.v1']) {
+      try {
+        const raw = localStorage.getItem(key);
+        if (!raw) continue;
+        const records = JSON.parse(raw);
+        if (!Array.isArray(records)) continue;
+        let changed = false;
+        for (const record of records) {
+          if (!record || (record.kind && record.kind !== 'reco')) continue;
+          const products = normalize(record.products);
+          if (products !== record.products) { record.products = products; changed = true; }
+        }
+        if (changed) localStorage.setItem(key, JSON.stringify(records));
+      } catch (_) {}
+    }
+  }
   function pick(items) {
     if (!Array.isArray(items) || items.length !== 3) return null;
     const positions = items.map(p => p?.specs?.lx_gaming_query === marker ? Number(p.specs.lx_gaming_position) : 0).sort((a,b)=>a-b).join(',');
@@ -39,5 +78,6 @@
       if(generation.current(token))await generation.wait(token,adapter.answer('推荐商品暂时加载失败，请稍后重新发送这条需求。'));
     } finally { if(generation.current(token)){adapter.busy(false);adapter.save();} }
   }
-  window.__lxGamingQuery={matches,load,pick,advice,run,copy,slots};
+  window.__lxGamingQuery={matches,load,pick,advice,run,copy,slots,normalize,migrate};
+  migrate();
 })();
