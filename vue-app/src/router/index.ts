@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
 import { useAppStore } from '@/stores/app'
 import { allowPreviewAuth } from '@/config/runtimeMode'
+import { aiInspectRoutes } from '@/views/aiinspect/routes'
 
 // 布局
 const AppLayout = () => import('@/components/AppLayout.vue')
@@ -98,6 +99,8 @@ const routes: RouteRecordRaw[] = [
 
       // 营销中心 / 广告管理
       { path: 'advertising/product-videos', component: ProductVideoConfig, meta: { pageId: 'advertising.productVideo', group: 'advertising' } },
+
+      ...aiInspectRoutes,
 
       // Agent 入口（从用户菜单进入，不在侧栏显示）
       { path: 'agent/skills',         component: AgentSkills, meta: { pageId: 'agent.skills' } },

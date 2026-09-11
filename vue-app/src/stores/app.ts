@@ -19,8 +19,9 @@ import { STORAGE_KEYS, clearBooleanStorage, readBooleanStorage, writeBooleanStor
 import { syncThemeMode } from '@/composables/useThemeMode'
 import { showWorkbenchToast } from '@/services/toast'
 import { allowPreviewAuth } from '@/config/runtimeMode'
+import { AI_INSPECT_MENU, withAiInspectMenu } from '@/services/aiInspectAccess'
 
-type MenuGroupKey = 'dashboard' | 'geo' | 'employee' | 'lead' | 'order' | 'advertising'
+type MenuGroupKey = 'dashboard' | 'geo' | 'employee' | 'lead' | 'order' | 'advertising' | 'aiinspect'
 export type PageId = string
 
 interface MenuItem {
@@ -167,7 +168,8 @@ export const MENU_TREE: Record<MenuGroupKey, MenuGroup> = {
     children: {
       'advertising.productVideo': { label: '商品视频管理', path: '/advertising/product-videos' }
     }
-  }
+  },
+  aiinspect: AI_INSPECT_MENU
 }
 
 // pageId → path 快速查表
@@ -284,9 +286,9 @@ export const useAppStore = defineStore('app', () => {
 
   // ---- 过滤后的菜单树（对应原 STATE.visibleMenus 过滤 MENU_TREE）----
   const filteredMenuTree = computed(() =>
-    Object.fromEntries(
+    withAiInspectMenu(Object.fromEntries(
       Object.entries(MENU_TREE).filter(([key]) => visibleMenus.value.includes(key as MenuGroupKey))
-    )
+    ), user.value, role.value, permissions.value)
   )
 
   // ===== 对应原 loadUserContext() =====

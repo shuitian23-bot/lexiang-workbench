@@ -122,7 +122,7 @@ Figma 04 中标为 `list` 的历史快照统一登记为“列表族 T1/T2”。
 | 企业客户 / 线索看板 | `/lead/dashboard` · O2 | T3 · C1/C4/C9 | E1/E2 | S1；04 无直接页 | [VA-0](page-visual-acceptance.json) |
 | 企业客户 / 线索池 | `/lead/pool` · O2 | T2 · C1/C2/C3/C9 | E1/E3 | S1；04 无直接页 | [VA-0](page-visual-acceptance.json) |
 | 企业客户 / 打分模型 | `/lead/score` · O2 | T7 · C1/C8/C5/C9 | E1/E3 | S1；04 无直接页 | [VA-0](page-visual-acceptance.json) |
-| Agent / Skill Hub | `/agent/skills` · O1 | T7 · C1/C2/C3/C8/C9 | E3/E4 | S1；04 无直接页 | [VA-0](page-visual-acceptance.json) |
+| Agent / Skill Hub | `/agent/skills` · O1；场景技能包创建使用同一路由 `/agent/skills?tab=packages&mode=create` | T7 · C1/C2/C3/C8/C9；场景技能包创建态 T4 · C1/C5/C9 | E3/E4；场景技能包创建态 V2 | S1；同一路由，不新增页面；04 无直接页 | [VA-0](page-visual-acceptance.json) |
 | Agent / Skill 创建 | `/agent/skill-create` · O1 | T4 · C1/C5/C9 | V2 · E3/E4 | S1；封板专项 | [VA-0](page-visual-acceptance.json) |
 | Agent / 权限管理 | `/agent/permissions` · O1 | T6 · C1/C7/C5/C9 | V2 · E3/E4 | S1；封板专项 | [VA-0](page-visual-acceptance.json) |
 

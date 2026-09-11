@@ -22,22 +22,31 @@
       >
         <div class="account-hub-panel" @click.stop>
           <button type="button" class="account-hub-close" @click="$emit('close-user-menu')" aria-label="关闭">×</button>
-          <button type="button" class="account-hub-card primary" @click="$emit('open-skill-create')">
+          <button type="button" class="account-hub-card account-hub-card-create primary" @click="$emit('open-skill-create')">
             <span class="account-hub-icon">＋</span>
             <b>创建 Skill</b>
             <small>从业务场景定义新能力、参数、输入输出和审批规则。</small>
           </button>
-          <button type="button" class="account-hub-card" @click="$emit('open-skill-manager')">
+          <button
+            type="button"
+            class="account-hub-card account-hub-card-create primary"
+            @click="$emit('open-scenario-package-create')"
+          >
+            <span class="account-hub-icon">◎＋</span>
+            <b>创建场景技能包</b>
+            <small>按业务场景组合、串联已发布 Skill，并完成权限与版本评估。</small>
+          </button>
+          <button type="button" class="account-hub-card account-hub-card-manage" @click="$emit('open-skill-manager')">
             <span class="account-hub-icon">◎</span>
             <b>Skill Hub</b>
             <small>查看已提交 Skill 状态，处理审批、发布、启用或禁用。</small>
           </button>
-          <button type="button" class="account-hub-card" @click="$emit('open-permission-manager')">
+          <button type="button" class="account-hub-card account-hub-card-manage" @click="$emit('open-permission-manager')">
             <span class="account-hub-icon">◇</span>
             <b>权限管理</b>
             <small>管理菜单权限、Skill 权限、数据范围和审批边界。</small>
           </button>
-          <button type="button" class="account-hub-card" @click="$emit('open-poc-log')">
+          <button type="button" class="account-hub-card account-hub-card-manage account-hub-card-log" @click="$emit('open-poc-log')">
             <span class="account-hub-icon">LOG</span>
             <b>调整日志</b>
             <small>查看功能调整记录。仅用于 POC 记录。</small>
@@ -73,6 +82,7 @@ defineEmits([
   'close-user-menu',
   'logout',
   'open-skill-create',
+  'open-scenario-package-create',
   'open-skill-manager',
   'open-permission-manager',
   'open-poc-log'

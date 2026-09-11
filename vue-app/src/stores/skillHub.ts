@@ -143,6 +143,13 @@ export interface SkillDraftSnapshot {
   savedAt: string
 }
 
+export interface SkillPublishedContract {
+  version: string
+  description: string
+  input: string
+  output: string
+}
+
 export interface SkillHubItem {
   name: string
   cnName: string
@@ -166,6 +173,7 @@ export interface SkillHubItem {
   submittedAt?: string
   score?: string
   draft?: SkillDraftSnapshot
+  publishedContract?: SkillPublishedContract
   capabilityUpdate?: SkillCapabilityUpdate
 }
 
@@ -199,7 +207,10 @@ const defaultItems: SeedSkillHubItem[] = [
   { name: 'customer-profile-export', cnName: '客户画像导出', platform: 'lexiang', desc: '根据授权范围生成企业客户画像与跟进摘要，已审批待发布。', version: 'v1.1.0', online: '未发布', status: 'approved', statusText: '已审批', category: '企业客户管理', tags: ['客户', '画像'], owner: 'admin', reviewer: 'admin', reviewTime: '2026-08-20 15:20', reviewNote: '审批通过：可进入发布流程。', updated: '2026-08-20 15:20' },
   { name: 'gmv-daily-summary', cnName: 'GMV 日报汇总', platform: 'lexiang', desc: '汇总每日 GMV、订单量和渠道贡献，生成标准运营日报。', version: 'v1.2.0', online: 'v1.2.0', status: 'published', statusText: '已发布', category: '乐享运营', tags: ['GMV', '日报'], owner: 'admin', updated: '2026-08-20 14:10' },
   { name: 'weather-query', cnName: '实时天气查询', platform: 'lexiang', desc: '根据用户指定地点查询实时天气数据，支持默认城市和运营活动场景。', version: 'v1.0.0', online: 'v1.0.0', status: 'disabled', statusText: '已禁用', category: '乐享运营', tags: ['工具'], owner: 'admin', updated: '2026-06-02 11:16' },
-  { name: 'legacy-inventory-alert', cnName: '旧版库存预警', platform: 'lexiang', desc: '按历史库存阈值生成预警清单，当前已禁用并暂停参与任务匹配。', version: 'v0.9.0', online: 'v0.9.0', status: 'disabled', statusText: '已禁用', category: '乐享运营', tags: ['库存', '预警'], owner: 'admin', updated: '2026-08-20 13:40' }
+  { name: 'legacy-inventory-alert', cnName: '旧版库存预警', platform: 'lexiang', desc: '按历史库存阈值生成预警清单，当前已禁用并暂停参与任务匹配。', version: 'v0.9.0', online: 'v0.9.0', status: 'disabled', statusText: '已禁用', category: '乐享运营', tags: ['库存', '预警'], owner: 'admin', updated: '2026-08-20 13:40' },
+  { name: 'employee-certification-insight', cnName: '职场认证状态查询', platform: 'lexiang', desc: '输入职场员工的认证筛选条件，输出认证状态、待处理原因和可跟进名单。', version: 'v1.0.0', online: 'v1.0.0', status: 'published', statusText: '已发布', category: '在职员工管理', tags: ['认证', '查询'], owner: 'admin', updated: '2026-09-04 10:00' },
+  { name: 'workplace-segment-operations', cnName: '职场人群经营分析', platform: 'lexiang', desc: '输入认证人群范围与经营时间，输出人群规模、转化表现和运营建议。', version: 'v1.2.0', online: 'v1.2.0', status: 'published', statusText: '已发布', category: '乐享运营', tags: ['人群', '经营'], owner: 'admin', updated: '2026-09-04 10:00' },
+  { name: 'enterprise-customer-followup', cnName: '企业客户跟进建议', platform: 'lexiang', desc: '输入企业客户及跟进目标，输出下一步跟进建议、重点事项和沟通要点。', version: 'v1.0.0', online: 'v1.0.0', status: 'published', statusText: '已发布', category: '企业客户管理', tags: ['企业客户', '跟进'], owner: 'admin', updated: '2026-09-04 10:00' }
 ]
 
 export function skillHubStatusLabel(status: SkillStatus) {
@@ -215,6 +226,15 @@ export function skillHubStatusLabel(status: SkillStatus) {
 
 function nowMinute() {
   return formatShanghaiMinute(new Date())
+}
+
+function capturePublishedContract(item: SkillHubItem): SkillPublishedContract {
+  return {
+    version: item.online,
+    description: typeof item.desc === 'string' ? item.desc : '',
+    input: typeof item.draft?.form?.input === 'string' ? item.draft.form.input : '',
+    output: typeof item.draft?.form?.output === 'string' ? item.draft.form.output : ''
+  }
 }
 
 function cloneDefaultItems() {
@@ -386,7 +406,13 @@ export const useSkillHubStore = defineStore('skillHub', () => {
   function updateCapabilityEditStatus(item: SkillHubItem, status: 'draft' | 'approved' | 'rejected' | 'published', reviewer = 'admin') {
     const index = items.value.findIndex(row => row.name === item.name)
     if (index < 0) return
-    items.value[index] = transitionCapabilityEdit(items.value[index], status, reviewer, nowMinute())
+    const current = items.value[index]
+    const next = transitionCapabilityEdit(current, status, reviewer, nowMinute())
+    if (status === 'published' && current.capabilityUpdate?.status === 'processing'
+      && current.editStatus === 'approved' && next.capabilityUpdate?.status === 'resolved') {
+      next.publishedContract = capturePublishedContract(next)
+    }
+    items.value[index] = next
     persist()
   }
 
@@ -405,6 +431,9 @@ export const useSkillHubStore = defineStore('skillHub', () => {
   function updateStatus(item: SkillHubItem, status: SkillStatus, reviewer = 'admin') {
     const target = items.value.find(row => row.name === item.name)
     if (!target) return
+    // Enabling an existing online version must never capture a newer editing draft.
+    const isInitialPublication = status === 'published' && target.workflowStatus === 'approved'
+      && (!target.online || target.online === '未发布')
     const updated = nowMinute()
     target.status = status
     target.workflowStatus = status
@@ -435,6 +464,7 @@ export const useSkillHubStore = defineStore('skillHub', () => {
     if (status === 'published') {
       target.online = target.online && target.online !== '未发布' ? target.online : target.version
       target.onlineStatus = 'published'
+      if (isInitialPublication) target.publishedContract = capturePublishedContract(target)
       target.reviewNote = '已发布：当前版本可被工作台调用。'
     }
     if (status === 'disabled') {

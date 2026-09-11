@@ -298,10 +298,10 @@ export const CONTENT_SLOT_GROUPS = [
         path: '/agent/skills',
         layout: CONTENT_SLOT_LAYOUTS.agentWorkbench,
         sourceRenderer: 'src/views/agent/AgentSkillsView.vue',
-        fixedStyles: ['Skill Hub summary', 'Skill table/cards', 'approval modals'],
+        fixedStyles: ['Skill Hub summary', 'Skill / 场景技能包双页签', 'Skill table/cards', '场景技能包四步创建', 'approval modals'],
         sharedCandidates: ['status tabs', 'skill card', 'detail modal', 'confirm modal'],
-        customAreas: ['Skill 状态机', '审批/发布流程'],
-        interactions: ['filter Skill', 'approve/reject', 'evaluate', 'publish', 'enable/disable']
+        customAreas: ['Skill 状态机', '审批/发布流程', '跨菜单已发布 Skill 固定版本编排', '运行时权限校验策略'],
+        interactions: ['filter Skill', '切换 Skill / 场景技能包', '四步创建场景技能包、拖入画布并连线编排链路', '评估固定版本并说明运行时权限校验策略', 'approve/reject', 'evaluate', 'publish', 'enable/disable']
       },
       {
         pageId: 'agent.skillCreate',
