@@ -4,6 +4,9 @@ import { createServer } from 'vite'
 import * as domain from '../src/domain/scenarioSkillPackages.js'
 import { runScenarioSimulation } from '../src/domain/scenarioPackageTesting.js'
 
+const previousStorage = globalThis.localStorage
+globalThis.localStorage = { getItem() { return null }, setItem() {}, removeItem() {} }
+
 const actor = { id: 'admin', permissions: ['*'] }
 const reviewer = { id: 'reviewer', permissions: ['scenario-package:review'] }
 const pendingReview = draft => ({ ...draft, status: 'review', submittedBy: draft.ownerId, submittedAt: at, auditEvents: [{ type: 'submitted', actorId: draft.ownerId, at }] })
@@ -128,7 +131,11 @@ test('malformed canvas coordinates are discarded without changing executable con
 })
 
 let server
-after(async () => server?.close())
+after(async () => {
+  await server?.close()
+  if (previousStorage === undefined) delete globalThis.localStorage
+  else globalThis.localStorage = previousStorage
+})
 
 test('store evaluates and publishes connected order with isolated canvas snapshots', async () => {
   server = await createServer({ root: new URL('..', import.meta.url).pathname, logLevel: 'silent', server: { middlewareMode: true } })

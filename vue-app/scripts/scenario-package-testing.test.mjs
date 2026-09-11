@@ -3,6 +3,9 @@ import test, { after } from 'node:test'
 import { createServer } from 'vite'
 import * as domain from '../src/domain/scenarioSkillPackages.js'
 
+const previousStorage = globalThis.localStorage
+globalThis.localStorage = { getItem() { return null }, setItem() {}, removeItem() {} }
+
 const sim = await import('../src/domain/scenarioPackageTesting.js').catch(error => {
   if (error.code !== 'ERR_MODULE_NOT_FOUND') throw error
   return {}
@@ -481,7 +484,11 @@ test('request edits invalidate reports and stored snapshots never alias later us
 })
 
 let server
-after(async () => { await server?.close() })
+after(async () => {
+  await server?.close()
+  if (previousStorage === undefined) delete globalThis.localStorage
+  else globalThis.localStorage = previousStorage
+})
 test('reports remain isolated and only a successful current retrial allows submission or resubmission', async () => {
   server = await createServer({ root: new URL('..', import.meta.url).pathname, logLevel: 'silent', server: { middlewareMode: true } })
   const [{ createPinia, setActivePinia }, module] = await Promise.all([import('pinia'), server.ssrLoadModule('/src/stores/scenarioSkillPackages.ts')])

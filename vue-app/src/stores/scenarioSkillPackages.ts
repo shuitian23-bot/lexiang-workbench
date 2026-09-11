@@ -1,4 +1,4 @@
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { defineStore } from 'pinia'
 import {
   createPinnedScenarioStep,
@@ -19,6 +19,7 @@ import {
   resolveScenarioChain
 } from '../domain/scenarioSkillPackages.js'
 import { useSkillHubStore, type SkillHubItem } from './skillHub'
+import { useAppStore } from './app'
 import { buildScenarioRunPlan } from '../domain/scenarioRunPlan.js'
 import { runScenarioSimulation, type ScenarioSimulationReport, type ScenarioSimulationRequest } from '../domain/scenarioPackageTesting.js'
 
@@ -237,7 +238,7 @@ export function createSelectableScenarioSkills(items: SkillHubItem[]): ScenarioS
     })
 }
 
-function createSeedScenarioPackages(selectableSkills: ScenarioSelectableSkill[]): ScenarioSkillPackage[] {
+function createSeedScenarioPackages(selectableSkills: ScenarioSelectableSkill[], catalog: SkillHubItem[], ownerId: string): ScenarioSkillPackage[] {
   const findSelectableSkill = (id: string) => {
     const skill = selectableSkills.find((item) => item.id === id)
     if (!skill) throw new Error(`场景技能包缺少 POC Skill：${id}`)
@@ -310,7 +311,7 @@ function createSeedScenarioPackages(selectableSkills: ScenarioSelectableSkill[])
     submittedBy: 'pm-li',
     auditEvents: [{ type: 'submitted', actorId: 'pm-li', at: publishedAt }]
   }]
-  return seededPackages.map(packageItem => {
+  const originalExamples = seededPackages.map((packageItem): ScenarioSkillPackage => {
     if (packageItem.status === 'published') {
       return { ...packageItem, onlineStatus: 'published', publishedSnapshot: scenarioPublishedSnapshot(packageItem) as ScenarioSkillPackage }
     }
@@ -326,12 +327,110 @@ function createSeedScenarioPackages(selectableSkills: ScenarioSelectableSkill[])
       testReport: runScenarioSimulation(packageItem, selectableSkills, testRequest, { id: packageItem.ownerId, permissions: ['*'] }, publishedAt)
     }
   })
+
+  const submittedAt = '2026-09-03T08:00:00.000Z'
+  const changedAt = '2026-09-10T08:00:00.000Z'
+  const reviewerFor = (creator: string) => ({ id: creator === 'admin' ? 'zhangrui' : 'admin', permissions: ['*'] })
+  const createDraftExample = (id: string, name: string, creator: string, exampleSteps: ScenarioPinnedStep[] = reviewSteps): ScenarioSkillPackage => ({
+    id, name, ownerId: creator, version: 'v1.0.0', status: 'draft', onlineStatus: 'unpublished',
+    description: '当运营人员需要分析指定职场人群的认证状态、经营表现并准备客户跟进建议时使用；仅处理授权范围内的数据，不修改认证结果或发送客户消息。',
+    targetAudience: '认证运营与企业客户运营人员',
+    steps: cloneScenarioTestSnapshot(exampleSteps),
+    health: evaluatePackageHealth(exampleSteps) as ScenarioPackageHealth,
+    updatedAt: submittedAt, auditEvents: []
+  })
+  const createReviewExample = (draft: ScenarioSkillPackage, skills = selectableSkills): ScenarioSkillPackage => {
+    const creator = { id: draft.ownerId, permissions: ['*'] }
+    const testRequest: ScenarioSimulationRequest = {
+      input: '按场景配置检查节点执行与结果传递。', expectedOutput: '输出节点分析结果与客户跟进建议。',
+      activeOptionalStepIds: draft.steps.filter(step => !step.required).map(step => step.id),
+      confirmedStepIds: [], approvedStepIds: [],
+      sampleOutputs: Object.fromEntries(draft.steps.map(step => [step.id, `${step.name}的模拟分析结果。`]))
+    }
+    const tested = { ...draft, testRequest, testReport: runScenarioSimulation(draft, skills, testRequest, creator, submittedAt) }
+    return submitScenarioPackage(tested, creator, submittedAt, skills) as ScenarioSkillPackage
+  }
+  const createPublishedExample = (draft: ScenarioSkillPackage, skills = selectableSkills): ScenarioSkillPackage => (
+    publishScenarioPackage(createReviewExample(draft, skills), reviewerFor(draft.ownerId), publishedAt, skills) as ScenarioSkillPackage
+  )
+
+  // These dependencies were published before they were disabled in the existing Skill catalog.
+  // Reconstruct their historical snapshots locally, without making them selectable again.
+  const createHistoricalSkill = (id: string): ScenarioSelectableSkill => {
+    const item = catalog.find(skill => skill.name === id)
+    if (!item || item.online === '未发布') throw new Error(`缺少场景包历史 Skill：${id}`)
+    return {
+      id, name: item.cnName || item.name, menu: item.category, version: item.online,
+      status: 'published', onlineStatus: 'published', online: item.online,
+      description: item.desc, inputDescription: '本次场景的查询范围', outputDescription: `${item.cnName}结果`,
+      permissions: permissionSnapshotFor(item)
+    }
+  }
+  const historicalWeather = createHistoricalSkill('weather-query')
+  const historicalInventory = createHistoricalSkill('legacy-inventory-alert')
+  const historicalCatalog = [...selectableSkills, historicalWeather, historicalInventory]
+  const degradedDraft = createDraftExample('seed-scenario-degraded', '职场活动运营分析', 'pm-li', [
+    ...reviewSteps.slice(0, 2),
+    createPinnedScenarioStep(historicalWeather, {
+      id: 'activity-weather', kind: 'conditional', condition: '需要安排线下职场活动时', required: false
+    }) as ScenarioPinnedStep
+  ])
+  degradedDraft.description = '当需要分析职场认证人群与经营表现、制定线下运营活动计划时使用；天气查询为可选分支，不可用时仍可输出核心人群分析。'
+  const pausedDraft = createDraftExample('seed-scenario-paused', '企业客户库存预警协同', 'pm-li', [
+    createPinnedScenarioStep(findSelectableSkill('enterprise-customer-followup'), { id: 'customer-followup', required: true }) as ScenarioPinnedStep,
+    createPinnedScenarioStep(historicalInventory, { id: 'inventory-alert', required: true }) as ScenarioPinnedStep
+  ])
+  pausedDraft.description = '当需要结合企业客户跟进目标与库存预警制定供货建议时使用；库存预警属于核心链路，依赖不可用时暂停整个技能包。'
+  const dependencyExamples = [degradedDraft, pausedDraft].map(draft => {
+    const published = createPublishedExample(draft, historicalCatalog)
+    const currentSteps = published.steps.map(step => ({
+      ...step,
+      dependencyState: [historicalWeather.id, historicalInventory.id].includes(step.skillId)
+        ? 'emergency_disabled' as const : step.dependencyState
+    }))
+    const current = { ...published, steps: currentSteps, health: evaluatePackageHealth(currentSteps) as ScenarioPackageHealth, updatedAt: changedAt }
+    delete current.publishedSnapshot
+    return { ...current, publishedSnapshot: scenarioPublishedSnapshot(current) as ScenarioSkillPackage }
+  })
+
+  const ownExamples: ScenarioSkillPackage[] = []
+  if (ownerId) {
+    const id = `seed-scenario-own-${encodeURIComponent(ownerId)}`
+    ownExamples.push(createDraftExample(`${id}-draft`, '职场人群认证分析（草稿）', ownerId))
+    ownExamples.push(createReviewExample(createDraftExample(`${id}-review`, '职场人群经营协作（待审核）', ownerId)))
+    ownExamples.push(rejectScenarioPackage(
+      createReviewExample(createDraftExample(`${id}-rejected`, '企业客户跟进分析（已驳回）', ownerId)),
+      reviewerFor(ownerId), '请在场景描述中补充适用的客户范围，以及不适用的情况。', publishedAt
+    ) as ScenarioSkillPackage)
+    ownExamples.push(createPublishedExample(createDraftExample(`${id}-published`, '职场人群经营分析（已发布）', ownerId)))
+    const disabled = transitionScenarioPackage(
+      createPublishedExample(createDraftExample(`${id}-disabled`, '职场运营综合分析（已禁用）', ownerId)),
+      reviewerFor(ownerId), 'disable', changedAt
+    ) as ScenarioPackageMutationResult
+    if (!disabled.ok || !disabled.package) throw new Error('无法初始化已禁用的场景包示例')
+    ownExamples.push(disabled.package)
+    if (ownerId === 'pm-li') {
+      ownExamples.push(createReviewExample(createDraftExample('seed-scenario-review-by-zhangrui', '职场客户协同（待审核）', 'zhangrui')))
+    }
+  }
+  return cloneScenarioTestSnapshot([...originalExamples, ...dependencyExamples, ...ownExamples])
 }
 
 export const useScenarioSkillPackagesStore = defineStore('scenarioSkillPackages', () => {
+  const app = useAppStore()
   const skillHub = useSkillHubStore()
   const selectableSkills = computed(() => createSelectableScenarioSkills(skillHub.items))
-  const storedPackages = ref<ScenarioSkillPackage[]>(createSeedScenarioPackages(selectableSkills.value))
+  const initialSeedCatalog = cloneScenarioTestSnapshot(skillHub.items)
+  const initialSeedSkills = createSelectableScenarioSkills(initialSeedCatalog)
+  const storedPackages = ref<ScenarioSkillPackage[]>(createSeedScenarioPackages(selectableSkills.value, skillHub.items, app.user || ''))
+  const seededOwners = new Set(app.user ? [app.user] : [])
+  // Login can finish after store creation. Add new-account examples once; preserve all existing edits and submissions.
+  watch(() => app.user, ownerId => {
+    if (!ownerId || seededOwners.has(ownerId)) return
+    const existingIds = new Set(storedPackages.value.map(item => item.id))
+    storedPackages.value.push(...createSeedScenarioPackages(initialSeedSkills, initialSeedCatalog, ownerId).filter(item => !existingIds.has(item.id)))
+    seededOwners.add(ownerId)
+  })
 
   function clonePackage(packageItem: ScenarioSkillPackage): ScenarioSkillPackage {
     return {
@@ -512,7 +611,9 @@ export const useScenarioSkillPackagesStore = defineStore('scenarioSkillPackages'
   }
 
   function resetToInitialMock() {
-    storedPackages.value = createSeedScenarioPackages(selectableSkills.value)
+    storedPackages.value = createSeedScenarioPackages(selectableSkills.value, skillHub.items, app.user || '')
+    seededOwners.clear()
+    if (app.user) seededOwners.add(app.user)
   }
 
   function prepareRunPlan(

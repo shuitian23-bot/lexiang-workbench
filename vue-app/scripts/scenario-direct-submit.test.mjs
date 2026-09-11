@@ -21,7 +21,7 @@ export function seedScenarioPackagesForTest(store, seeds) {
   scenarioPackageTestSeeds = seeds
   try { store.resetToInitialMock() } finally { scenarioPackageTestSeeds = undefined }
 }
-${source.replaceAll('createSeedScenarioPackages(selectableSkills.value)', '(scenarioPackageTestSeeds || createSeedScenarioPackages(selectableSkills.value))')}`
+${source.replaceAll("createSeedScenarioPackages(selectableSkills.value, skillHub.items, app.user || '')", "(scenarioPackageTestSeeds || createSeedScenarioPackages(selectableSkills.value, skillHub.items, app.user || ''))")}`
   },
 }
 const server = await createServer({ root, plugins: [seedPlugin], logLevel: 'error', server: { middlewareMode: true, hmr: { server: httpHost } }, appType: 'custom' })

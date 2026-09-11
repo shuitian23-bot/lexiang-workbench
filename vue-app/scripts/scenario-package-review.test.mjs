@@ -4,6 +4,9 @@ import { createServer } from 'vite'
 import * as domain from '../src/domain/scenarioSkillPackages.js'
 import { runScenarioSimulation } from '../src/domain/scenarioPackageTesting.js'
 
+const previousStorage = globalThis.localStorage
+globalThis.localStorage = { getItem() { return null }, setItem() {}, removeItem() {} }
+
 const at = '2026-09-09T10:00:00.000Z'
 const owner = { id: 'creator', permissions: ['*'] }
 const reviewer = { id: 'reviewer', permissions: ['scenario-package:review'] }
@@ -52,7 +55,11 @@ async function fixture() {
   const currentDraft = draft(store.selectableSkills.filter(s => ['employee-certification-insight', 'workplace-segment-operations'].includes(s.id)))
   return { store, hub: modules.hub.useSkillHubStore(), draft: withTrial(currentDraft, store.selectableSkills, owner) }
 }
-after(async () => { await server?.close() })
+after(async () => {
+  await server?.close()
+  if (previousStorage === undefined) delete globalThis.localStorage
+  else globalThis.localStorage = previousStorage
+})
 
 test('submission requires creation permissions but never self-approval permission or publication evidence', async () => {
   const { store, draft } = await fixture()

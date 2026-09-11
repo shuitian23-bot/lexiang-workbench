@@ -23,7 +23,7 @@ export function seedScenarioPackagesForTest(store, seeds) {
   scenarioPackageTestSeeds = seeds
   try { store.resetToInitialMock() } finally { scenarioPackageTestSeeds = undefined }
 }
-${source.replaceAll('createSeedScenarioPackages(selectableSkills.value)', '(scenarioPackageTestSeeds || createSeedScenarioPackages(selectableSkills.value))')}`
+${source.replaceAll("createSeedScenarioPackages(selectableSkills.value, skillHub.items, app.user || '')", "(scenarioPackageTestSeeds || createSeedScenarioPackages(selectableSkills.value, skillHub.items, app.user || ''))")}`
   },
 }
 const server = await createServer({ root, plugins: [seedPlugin], logLevel: 'error', server: { middlewareMode: true, hmr: { server: httpHost } }, appType: 'custom' })
@@ -515,8 +515,9 @@ test('a pending revision is counted and filtered independently from its publishe
   const initialReviewCount = count('review')
   assert.equal(record.status, 'review')
   assert.equal(record.onlineStatus, 'published')
-  assert.equal(initialReviewCount, 1)
-  assert.equal(initialPublishedCount, 2)
+  const otherPackages = store.packages.filter(item => item.id !== record.id)
+  assert.equal(initialReviewCount, otherPackages.filter(item => item.status === 'review').length + 1)
+  assert.equal(initialPublishedCount, otherPackages.filter(item => item.onlineStatus === 'published').length + 1)
   for (const filter of ['review', 'published']) {
     state.setPackageSummaryFilter(filter)
     await nextTick()
@@ -566,4 +567,23 @@ test('a healthy pending revision reports its old online snapshot as paused when 
   await nextTick()
   assert.equal(state.filteredScenarioPackages.value.some(item => item.id === record.id), false, 'a disabled online snapshot is not a dependency-paused published version')
   assert.match(state.packageHealthHint(store.findPackage(record.id)), /已审核版本.*保持禁用/)
+})
+
+test('initial examples render all eight state filters and preserve owner review and published actions', async () => {
+  const { state, store, account, html, renderCurrent } = await fixture({ actor: 'initial-state-viewer' })
+  for (const filter of ['draft', 'review', 'rejected', 'published', 'disabled', 'upgrade_required', 'degraded', 'paused']) {
+    state.resetPackageFilters()
+    state.packageStatusFilter.value = filter
+    await nextTick()
+    const records = state.filteredScenarioPackages.value
+    assert.ok(records.length > 0, `the initial ${filter} filter must contain an example`)
+    const filteredHtml = (await renderCurrent()).html
+    for (const record of records) packageRowHtml(filteredHtml, record.id)
+  }
+  const ownReview = store.packages.find(item => item.ownerId === account.user && item.status === 'review')
+  const ownPublished = store.packages.find(item => item.ownerId === account.user && item.status === 'published')
+  assert.ok(ownReview)
+  assert.ok(ownPublished)
+  assert.deepEqual(rowActions(html, ownReview.id), ['详情'])
+  assert.deepEqual(rowActions(html, ownPublished.id), ['详情', '编辑', '禁用'])
 })

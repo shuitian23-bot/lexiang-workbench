@@ -12,6 +12,9 @@ import {
   publishScenarioPackage
 } from '../src/domain/scenarioSkillPackages.js'
 
+const previousStorage = globalThis.localStorage
+globalThis.localStorage = { getItem() { return null }, setItem() {}, removeItem() {} }
+
 const actor = (overrides = {}) => ({
   id: 'admin',
   permissions: ['*'],
@@ -138,6 +141,8 @@ async function loadScenarioStoreModules() {
 
 after(async () => {
   await scenarioStoreServer?.close()
+  if (previousStorage === undefined) delete globalThis.localStorage
+  else globalThis.localStorage = previousStorage
 })
 
 async function createScenarioStores() {

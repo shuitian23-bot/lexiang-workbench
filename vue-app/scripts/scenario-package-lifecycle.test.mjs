@@ -5,6 +5,9 @@ import { createPinia, setActivePinia } from 'pinia'
 import { runScenarioSimulation } from '../src/domain/scenarioPackageTesting.js'
 import * as domain from '../src/domain/scenarioSkillPackages.js'
 
+const previousStorage = globalThis.localStorage
+globalThis.localStorage = { getItem() { return null }, setItem() {}, removeItem() {} }
+
 const owner = { id: 'lifecycle-owner', permissions: ['*'] }
 const reviewer = { id: 'independent-reviewer', permissions: ['scenario-package:review'] }
 const stranger = { id: 'stranger', permissions: ['scenario-package:create', 'scenario-package:compose:cross-menu'] }
@@ -14,7 +17,11 @@ const [{ useScenarioSkillPackagesStore }, { useSkillHubStore }] = await Promise.
   server.ssrLoadModule('/src/stores/scenarioSkillPackages.ts'),
   server.ssrLoadModule('/src/stores/skillHub.ts')
 ])
-after(async () => { await server.close() })
+after(async () => {
+  await server.close()
+  if (previousStorage === undefined) delete globalThis.localStorage
+  else globalThis.localStorage = previousStorage
+})
 
 function withTrial(draft, catalog) {
   const testRequest = {
