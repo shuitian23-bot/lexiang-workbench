@@ -1,0 +1,26 @@
+/* PC-商城-商品卡片: scoped to the temporary points exchange catalogue. */
+[data-ledou-exchange-list], [data-ledou-exchange-detail] { container-type:inline-size; }
+[data-ledou-exchange-list] { padding:20px; border-radius:8px; background:var(--lx-neutral-bg, #f6f6f6); }
+.leai-ledou-exchange-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:20px; }
+.leai-ledou-exchange-card { display:flex; flex-direction:column; min-width:0; width:100%; padding:20px 16px; border:1px solid var(--lx-surface, #ffffff); border-radius:15px; background:var(--lx-surface, #ffffff); color:var(--lx-text, #252525); font:inherit; text-align:left; cursor:pointer; transition:border-color .18s ease; }
+.leai-ledou-exchange-card:hover { border-color:var(--lx-border-strong, #d3bfd2); }
+.leai-ledou-exchange-card:focus-visible { outline:2px solid var(--lx-focus, #4d144a); outline-offset:3px; }
+.leai-ledou-exchange-photo { --photo-height:176px; display:flex; align-items:center; justify-content:center; width:100%; height:var(--photo-height); margin-bottom:20px; overflow:hidden; background:var(--lx-surface, #ffffff); }
+.leai-ledou-exchange-crop { display:block; position:relative; flex:none; max-width:100%; width:calc(var(--photo-height) * var(--photo-ratio)); aspect-ratio:var(--photo-ratio); overflow:hidden; }
+.leai-ledou-exchange-crop img { position:absolute; display:block; max-width:none!important; height:auto!important; object-fit:fill!important; pointer-events:none; }
+.leai-ledou-exchange-name { display:block; min-height:24px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:16px; line-height:24px; font-weight:500; }
+.leai-ledou-exchange-price { display:flex; flex-wrap:wrap; align-items:baseline; gap:4px 10px; margin-top:12px; }
+.leai-ledou-exchange-price strong { color:var(--lx-price-red, #ff2f2f); font-size:22px; line-height:30px; font-weight:600; white-space:nowrap; }
+.leai-ledou-exchange-price strong small { font-size:14px; font-weight:500; }
+.leai-ledou-exchange-price del { color:var(--lx-text-muted, #979797); font-size:13px; white-space:nowrap; }
+.leai-ledou-exchange-heading { margin:28px 0 16px 10px; color:var(--lx-text, #252525); font-size:22px; line-height:32px; font-weight:500; }
+[data-ledou-exchange-list]>.leai-member-disclaimer { margin:24px 0 0; color:var(--lx-text-soft, #606060); font-size:12px; line-height:20px; }
+[data-ledou-exchange-detail] .leai-ledou-exchange-photo { --photo-height:280px; margin:0; }
+[data-ledou-exchange-detail] .leai-ledou-exchange-detail-body { display:grid; grid-template-columns:1fr 1fr; align-items:center; gap:32px; padding:24px; background:var(--lx-surface, #ffffff); border:1px solid var(--lx-border, #e2ddeb); border-radius:8px; }
+[data-ledou-exchange-detail] .leai-ledou-exchange-detail-copy { color:var(--lx-text-soft, #606060); font-size:14px; line-height:24px; }
+[data-ledou-exchange-detail] .leai-ledou-exchange-detail-copy h2 { color:var(--lx-text, #252525); font-size:20px; line-height:30px; font-weight:500; }
+[data-ledou-exchange-detail] .leai-ledou-exchange-detail-copy .leai-primary { display:inline-flex; width:auto; text-decoration:none; }
+@container (max-width:1000px) { .leai-ledou-exchange-grid { grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; } }
+@container (max-width:720px) { .leai-ledou-exchange-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } [data-ledou-exchange-detail] .leai-ledou-exchange-detail-body { grid-template-columns:1fr; } }
+@container (max-width:440px) { .leai-ledou-exchange-grid { grid-template-columns:1fr; } }
+@media (prefers-reduced-motion:reduce) { .leai-ledou-exchange-card { transition:none; } }

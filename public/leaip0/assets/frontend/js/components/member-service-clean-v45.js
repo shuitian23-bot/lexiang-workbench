@@ -2293,6 +2293,7 @@
     if (view.indexOf("asset:") === 0 || view === "profile" || view === "devices" || view === "ledou") return "member";
     if (view.indexOf("coupon-products:") === 0) return "asset:coupons";
     if (view.indexOf("device:") === 0) return "devices";
+    if (view.indexOf("ledou-product:exchange-") === 0) return "asset:points";
     if (view.indexOf("ledou-product:") === 0) return state.ledouProductOrigin === "member" ? "member" : "ledou";
     if (view.indexOf("service-detail:") === 0 || view.indexOf("selection:") === 0) return "service";
     if (view === "appointment-code") return "orders";
@@ -2469,12 +2470,48 @@
     return '<div class="leai-asset-ledger"' + (type === "vouchers" ? ' data-voucher-ledger' : '') + '>' + records.map(function (record) { return '<div data-asset-record-status="' + record[3] + '"><span><strong>' + record[0] + '</strong><small>' + record[2] + '</small></span><em>' + record[1] + '</em></div>'; }).join("") + '</div>';
   }
 
+
+  // Product copy and redemption prices are the user's supplied reference, not live checkout quotes.
+  var ledouExchangeCatalog = [{"id":"exchange-lamp","name":"LED卡通宠物小台灯","cash":"13","beans":600,"original":"19","crop":[75,45,280,210]},{"id":"exchange-cable","name":"type-c 120W闪充数据线","cash":"8","beans":1000,"original":"12.9","crop":[443,45,280,210]},{"id":"exchange-earbuds","name":"迪沃星动TYPE-C耳机","cash":"22.9","beans":600,"original":"58","crop":[810,45,280,210]},{"id":"exchange-bottle","name":"pissa运动桶水壶","cash":"19.9","beans":1000,"original":"38","crop":[1180,45,280,210]},{"id":"exchange-pouch","name":"多功能数码收纳包","cash":"18.9","beans":1000,"original":"29","crop":[75,425,280,210]},{"id":"exchange-humidifier","name":"戈尔斯诺桌面加湿器","cash":"19.9","beans":600,"original":"38","crop":[443,425,280,210]},{"id":"exchange-headset","name":"拯救者电竞耳机 Y360","cash":"84","beans":500,"original":"99","crop":[810,425,280,210]},{"id":"exchange-stand","name":"联想笔记本支架散热架","cash":"16","beans":100,"original":"16.9","crop":[1180,425,280,210]},{"id":"exchange-notebooks","name":"海错图迷你练习本","cash":"9.9","beans":600,"original":"15","crop":[138,1040,230,152]},{"id":"exchange-journal","name":"海错图手账本","cash":"14.9","beans":1000,"original":"45.8","crop":[491,1040,230,255]},{"id":"exchange-refills","name":"得力子弹头笔芯20支","cash":"9","beans":1000,"original":"9.5","crop":[941,1017,157,175]},{"id":"exchange-sleeve","name":"得力单入文件套","cash":"14","beans":600,"original":"19","crop":[1370,966,104,93]},{"id":"exchange-pins","name":"晨光彩色工字钉2盒","cash":"10.9","beans":300,"original":"13.9","crop":[146,1385,202,229]},{"id":"exchange-folders","name":"锦绣风华单页文件夹","cash":"11.9","beans":800,"original":"15","crop":[505,1481,224,151]},{"id":"exchange-drafts","name":"晨光草稿本2本","cash":"8.9","beans":800,"original":"10","crop":[881,1388,220,242]},{"id":"exchange-cup","name":"得力金属网纹圆形笔筒","cash":"10.5","beans":600,"original":"11.5","crop":[1382,1158,88,101]},{"id":"exchange-highlighters","name":"晨光荧光笔","cash":"7.5","beans":800,"original":"8","crop":[1364,1357,112,89]},{"id":"exchange-calculator","name":"得力便携型计算器","cash":"21.9","beans":600,"original":"25","crop":[1387,1533,83,108]}];
+
+  function ensureLedouExchangeStyle() {
+    if (document.getElementById("lx-ledou-exchange-style")) return;
+    var link = document.createElement("link");
+    link.id = "lx-ledou-exchange-style";
+    link.rel = "stylesheet";
+    link.href = resolveMemberAssetUrl("/assets/frontend/css/components/member-ledou-exchange-v1.css?p0v=29232f601420362c");
+    document.head.appendChild(link);
+  }
+
+  function ledouExchangePhoto(product) {
+    var c = product.crop;
+    return '<span class="leai-ledou-exchange-photo" role="img" aria-label="' + escapeHtml(product.name) + '"><span class="leai-ledou-exchange-crop" style="--photo-ratio:' + (c[2] / c[3]) + '"><img src="' + resolveMemberAssetUrl('/assets/img/ledou-exchange-reference-20260911.png') + '" alt="" aria-hidden="true" decoding="async" style="width:' + (1504 / c[2] * 100) + '%;left:' + (-c[0] / c[2] * 100) + '%;top:' + (-c[1] / c[3] * 100) + '%"></span></span>';
+  }
+
+  function ledouExchangePrice(product) {
+    return '<span class="leai-ledou-exchange-price"><strong><small>¥</small>' + product.cash + '<small> + </small>' + product.beans + '<small>乐豆</small></strong><del aria-label="原价 ' + product.original + ' 元">¥' + product.original + '</del></span>';
+  }
+
+  function ledouExchangeCard(product) {
+    return '<button type="button" class="leai-ledou-exchange-card" data-ledou-product="' + product.id + '" aria-label="查看' + escapeHtml(product.name) + '详情，兑换价' + product.cash + '元加' + product.beans + '乐豆">' + ledouExchangePhoto(product) + '<span class="leai-ledou-exchange-name" title="' + escapeHtml(product.name) + '">' + escapeHtml(product.name) + '</span>' + ledouExchangePrice(product) + '</button>';
+  }
+
+  function renderLedouExchangeProducts() {
+    ensureLedouExchangeStyle();
+    return '<section data-ledou-exchange-list aria-label="兑换商品列表"><div class="leai-ledou-exchange-grid" aria-label="乐豆精选商品">' + ledouExchangeCatalog.slice(0, 8).map(ledouExchangeCard).join('') + '</div><h2 class="leai-ledou-exchange-heading">学习必备</h2><div class="leai-ledou-exchange-grid" aria-label="学习必备商品">' + ledouExchangeCatalog.slice(8).map(ledouExchangeCard).join('') + '</div><p class="leai-member-disclaimer">商品库存、乐豆抵扣及成交价格以乐豆商城实时页面为准。</p></section>';
+  }
+
+  function renderLedouExchangeDetail(product) {
+    ensureLedouExchangeStyle();
+    return '<section class="leai-page" data-ledou-exchange-detail aria-label="' + escapeHtml(product.name) + '详情"><header class="leai-page-header"><h1 class="leai-page-title">商品详情</h1></header><div class="leai-ledou-exchange-detail-body">' + ledouExchangePhoto(product) + '<div class="leai-ledou-exchange-detail-copy"><h2>' + escapeHtml(product.name) + '</h2><span>参考兑换价</span>' + ledouExchangePrice(product) + '<p>使用 ' + product.beans + ' 乐豆加 ¥' + product.cash + ' 兑换此商品。</p><p>商品库存、乐豆抵扣及成交价格以乐豆商城实时页面为准。</p><a class="leai-primary" href="https://shop.lenovo.com.cn/page/jf/jfsc.html" target="_blank" rel="noopener noreferrer">去乐豆商城</a></div></div></section>';
+  }
+
   function memberAssetPage(type) {
     var pages = {
       points: {
         label: "乐豆", value: "2,580", unit: "可用乐豆", description: "查看乐豆余额、获取与使用记录，以及当前适用规则。",
         metrics: [["近 30 天获得", "+860"], ["近 30 天使用", "-300"], ["即将到期", "0"]],
-        filters: [["all", "全部"], ["earned", "获得"], ["used", "使用"]],
+        filters: [["all", "兑换商品"], ["earned", "获得"], ["used", "使用"]],
         periodOptions: [["30d", "30天内"], ["3m", "3个月内"], ["6m", "6个月内"], ["1y", "一年内"], ["custom", "自定义"]],
         records: [
           { title: "购买服务商品奖励", amount: "+500", sourceDescription: "完成笔记本深度清灰服务订单后获得乐豆奖励", sourceChannel: "联想商城", acquiredAt: "2026.08.16 14:32", expiresAt: "2027.12.31 23:59", status: "earned" },
@@ -2530,7 +2567,7 @@
     if (type === "coupons" && activeFilter === "all") activeFilter = "available";
     var records = page.records.filter(function (record) { return activeFilter === "all" || assetRecordStatus(record) === activeFilter; });
     var periodFilter = "";
-    if (page.periodOptions) {
+    if (page.periodOptions && !(type === "points" && activeFilter === "all")) {
       if (type === "points") {
         var selectedPeriod = page.periodOptions.find(function (option) { return option[0] === state.assetPeriods[type]; }) || page.periodOptions[2];
         periodFilter = '<div class="leai-ledou-period-filter"><span>筛选时间</span><div class="leai-ledou-period-picker" data-ledou-period-picker><button type="button" data-ledou-period-trigger aria-haspopup="listbox" aria-expanded="false">' + selectedPeriod[1] + '<i aria-hidden="true"></i></button><div class="leai-ledou-period-menu" data-ledou-period-menu role="listbox" hidden>' + page.periodOptions.map(function (option) { var selected = option[0] === selectedPeriod[0]; return '<button class="' + (selected ? 'is-selected' : '') + '" type="button" role="option" aria-selected="' + selected + '" data-ledou-period-option="' + option[0] + '"><span>' + (selected ? '✓' : '') + '</span>' + option[1] + '</button>'; }).join("") + '</div></div></div>';
@@ -2551,7 +2588,7 @@
       var pointsMetrics = '<div class="leai-ledou-metrics">' + page.metrics.map(function (metric) { return '<article><span>' + metric[0] + '</span><strong>' + metric[1] + '</strong><small>以账户实时资产为准</small></article>'; }).join("") + '</div>';
       return '<section class="leai-page leai-member-asset-page leai-ledou-ledger-page" data-member-asset-page="points" aria-label="乐豆明细">' + pointsHeader +
         '<div class="leai-ledou-overview-row"><section class="leai-ledou-balance-banner"><div><span>可用乐豆</span><strong>' + page.value + '</strong><small>未来 30 天无过期乐豆</small><a class="leai-ledou-shop-link" href="https://shop.lenovo.com.cn/page/jf/jfsc.html" target="_blank" rel="noopener noreferrer">去乐豆商城</a></div><button class="leai-ledou-rule-link" type="button" data-asset-rule-trigger="points" aria-expanded="' + ruleOpened + '">ⓘ 乐豆规则</button>' + (ruleOpened ? '<div class="leai-asset-rule-tooltip leai-ledou-rule-popover" data-asset-rule-tooltip role="tooltip"><strong>规则说明</strong><p>' + page.rule + '</p></div>' : '') + '</section>' + pointsMetrics + '</div>' +
-        filters + '<section class="leai-ledou-ledger-panel">' + recordList + '</section></section>';
+        filters + (activeFilter === "all" ? renderLedouExchangeProducts() : '<section class="leai-ledou-ledger-panel">' + recordList + '</section>') + '</section>';
     }
     if (type === "coupons") {
       return '<section class="leai-page leai-member-asset-page leai-coupon-page" data-member-asset-page="coupons" aria-labelledby="leaiAssetTitle-coupons">' + assetHeader +
@@ -2657,7 +2694,7 @@
   }
 
   function findLedouProduct(id) {
-    return ledouCatalog.find(function (product) { return product.id === id; }) || ledouCatalog[0];
+    return ledouExchangeCatalog.find(function (product) { return product.id === id; }) || ledouCatalog.find(function (product) { return product.id === id; }) || ledouCatalog[0];
   }
 
   function ledouPage() {
@@ -2666,6 +2703,7 @@
 
   function ledouProductPage(id) {
     var product = findLedouProduct(id);
+    if (product.crop) return renderLedouExchangeDetail(product);
     return '<section class="leai-page" data-ledou-product-page aria-labelledby="leaiLedouProductTitle"><header class="leai-page-header"><div><p class="leai-page-kicker">乐豆好物</p><h1 class="leai-page-title" id="leaiLedouProductTitle">' + product.name + '</h1><p class="leai-page-desc">' + product.description + '</p></div><span class="leai-status-pill"><img src="' + icons.rewards + '" alt="">会员兑购</span></header><section class="leai-panel leai-ledou-detail"><div class="leai-ledou-detail-visual"><img src="' + product.icon + '" alt=""></div><div><span>参考兑购价</span><strong>' + product.price + '</strong><p>当前账户展示 2,580 乐豆，是否可兑、库存与运费需以实时商城结算页为准。</p><button class="leai-primary" type="button" data-member-asset="points">查看我的乐豆</button></div></section><section class="leai-panel"><div class="leai-panel-head"><div><h2 class="leai-panel-title">兑购说明</h2><p>浏览信息使用完整页面承接。</p></div></div><p class="leai-detail-copy">商品详情、乐豆抵扣比例、现金补差、库存、运费和售后规则以乐豆商城实时页面为准。当前页面不发起真实交易。</p></section></section>';
   }
 
