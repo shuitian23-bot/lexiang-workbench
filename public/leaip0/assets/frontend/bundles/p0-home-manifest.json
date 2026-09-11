@@ -188,11 +188,11 @@
         "public/leaip0/assets/frontend/js/core/arrival-notice-flow-v1.js",
         "public/leaip0/assets/frontend/js/core/home.solution-original-v152.js"
       ],
-      "url": "/assets/frontend/bundles/p0-home-core-2.js?p0v=2ebd02ddd7b18062",
-      "hash": "2ebd02ddd7b180628b5476bfc609bb2aee4607cba0c10763f945eed4bf466c75",
+      "url": "/assets/frontend/bundles/p0-home-core-2.js?p0v=28f7ecd24ae9b547",
+      "hash": "28f7ecd24ae9b54730b0e235e3e88c9938e661a182aa6af7b775af2af103d448",
       "sourceHashes": [
         "174b29c6a044e0eeae43c3a3ba566ffbef7baed7281443439a31a192c39fad66",
-        "fed95c0d003bae85b4f87d0e385441f765237c698809a53b5e64a298da819174"
+        "94a87a28367d73fdb8ea3a0f45083e4ba176f34f2fb4d5691539d722d2db7816"
       ]
     },
     {
@@ -585,12 +585,12 @@
         "public/leaip0/assets/frontend/js/core/shop-chat.solution-original-v152.js",
         "public/leaip0/assets/frontend/js/core/app-lxfd.industry-v114.controls-v150.js"
       ],
-      "url": "/assets/frontend/bundles/p0-shop-core-4.js?p0v=bedf9c6a31d67f2a",
-      "hash": "bedf9c6a31d67f2ac19820b149dbb6fe42d30f8f8623600e79b3b2ffa46cf0b5",
+      "url": "/assets/frontend/bundles/p0-shop-core-4.js?p0v=77515202546a4a19",
+      "hash": "77515202546a4a197f64f29f5a965f245da90a75220f03862930858af05a2520",
       "sourceHashes": [
         "174b29c6a044e0eeae43c3a3ba566ffbef7baed7281443439a31a192c39fad66",
-        "67bd8c8d850f1e8bd79b6fec3f037b4fc453897bf2a80eea8b39095b2d25d5d9",
-        "6ecb5ba40e329fa1a6cc71f511bf2aa8274f5179128a2d968aa5fc029e38890c"
+        "98457d230cc380163e833c7a2bbb96fd5777f28c3d89695441fb0ac3ac13dcb6",
+        "417b3be8cb67d4bca5ecf386183bdf283030cb147d777d68473b75767dcf7ab9"
       ]
     },
     {
@@ -939,12 +939,12 @@
         "public/leaip0/assets/frontend/js/core/b-chat.solution-original-v152.js",
         "public/leaip0/assets/frontend/js/core/app-lxfd.industry-v114.controls-v150.js"
       ],
-      "url": "/assets/frontend/bundles/p0-smb-core-4.js?p0v=2b36abc2ec7a0927",
-      "hash": "2b36abc2ec7a0927415266b396d6bc1c8a3ba1c1a091f65158d9f957a9e3a72b",
+      "url": "/assets/frontend/bundles/p0-smb-core-4.js?p0v=33e31058e21e8d7f",
+      "hash": "33e31058e21e8d7f572db5466659fba7c20101300778b6015acf2dc0d7262c59",
       "sourceHashes": [
         "174b29c6a044e0eeae43c3a3ba566ffbef7baed7281443439a31a192c39fad66",
-        "bc79e45329fdd19d14248d660b7d7e1d3f99476d9e7808945b0a1ed203266714",
-        "6ecb5ba40e329fa1a6cc71f511bf2aa8274f5179128a2d968aa5fc029e38890c"
+        "b390ec003afd0a443314192eabb476d4b477200e64f11710d26e1cac14f62a6d",
+        "417b3be8cb67d4bca5ecf386183bdf283030cb147d777d68473b75767dcf7ab9"
       ]
     },
     {
@@ -1317,12 +1317,12 @@
         "public/leaip0/assets/frontend/js/core/biz-chat.solution-original-v152.js",
         "public/leaip0/assets/frontend/js/core/app-lxfd.industry-v114.controls-v150.js"
       ],
-      "url": "/assets/frontend/bundles/p0-biz-core-4.js?p0v=dc6bcd02b23006e7",
-      "hash": "dc6bcd02b23006e769cd4493bcda898697df4326edc2264df4428b88aab11059",
+      "url": "/assets/frontend/bundles/p0-biz-core-4.js?p0v=ae681916791de227",
+      "hash": "ae681916791de2276be0fef8602f9ab7067a53ca647be224ca508576dd908166",
       "sourceHashes": [
         "174b29c6a044e0eeae43c3a3ba566ffbef7baed7281443439a31a192c39fad66",
-        "06f4d21c01cacc3db5ab815a2be50a8692eae7d3b1f64de478525150ccbc28a0",
-        "6ecb5ba40e329fa1a6cc71f511bf2aa8274f5179128a2d968aa5fc029e38890c"
+        "8a8a958a55bba0caf99dcb15688df7008bf5769abedb333e3c11492311b901ea",
+        "417b3be8cb67d4bca5ecf386183bdf283030cb147d777d68473b75767dcf7ab9"
       ]
     },
     {
@@ -1513,12 +1513,12 @@
         "public/leaip0/assets/frontend/js/core/app-brand.industry-v114.trace-first-v117.tabs-v120.min.js",
         "public/leaip0/assets/frontend/js/core/app-lxfd.industry-v114.js"
       ],
-      "url": "/assets/frontend/bundles/p0-brand-core-4.js?p0v=bca1151dec874431",
-      "hash": "bca1151dec8744318a5562b690083ee5fc688745c875c60febf8e18c67591b51",
+      "url": "/assets/frontend/bundles/p0-brand-core-4.js?p0v=5de6a9a3602daffd",
+      "hash": "5de6a9a3602daffdc9cd4d29381c0affbba44256adc6d63fa678da0748a7a701",
       "sourceHashes": [
         "174b29c6a044e0eeae43c3a3ba566ffbef7baed7281443439a31a192c39fad66",
-        "88d436ff8089e160ecab99e93a5e80c767cc9d3942682e11c8339e56a199838f",
-        "79015d0f2db69cc84835c909cf9c40954864e95b1e32c94c16a874865be43de6"
+        "3c54bbf3a045b3a87067b7594097d7b14552c7a61d1d6f72389b2f5e4921324b",
+        "b206a8eac60331ec9a97195142e22ca874abf01a0e27eb38dd66d49fc3c5a3c1"
       ]
     },
     {
@@ -1715,7 +1715,7 @@
     {
       "file": "public/leaip0/index.html",
       "source": "public/leaip0/assets/frontend/js/core/app-lxfd.home-conversation-v122.placeholder-v147.controls-v150.js",
-      "url": "/assets/frontend/js/core/app-lxfd.home-conversation-v122.placeholder-v147.controls-v150.js"
+      "url": "/assets/frontend/js/core/app-lxfd.home-conversation-v122.placeholder-v147.controls-v150.js?p0v=e23c05c573d0f34c"
     },
     {
       "file": "public/leaip0/index.html",
@@ -2920,7 +2920,7 @@
     {
       "file": "public/leaip0/shop-chat/index.html",
       "source": "public/leaip0/assets/frontend/bundles/p0-shop-core-4-appointment-v66.js",
-      "url": "/assets/frontend/bundles/p0-shop-core-4-appointment-v66.js"
+      "url": "/assets/frontend/bundles/p0-shop-core-4-appointment-v66.js?p0v=0a4ce6b145c1ea32"
     },
     {
       "file": "public/leaip0/b-chat/index.html",
@@ -3021,6 +3021,81 @@
       "file": "public/leaip0/assets/frontend/js/components/member-service-clean-v45.js",
       "source": "public/leaip0/assets/frontend/css/components/member-ledou-exchange-v1.css",
       "url": "/assets/frontend/css/components/member-ledou-exchange-v1.css?p0v=29232f601420362c"
+    },
+    {
+      "file": "public/leaip0/index.html",
+      "source": "public/leaip0/assets/frontend/css/core/recruitment-v1.css",
+      "url": "/assets/frontend/css/core/recruitment-v1.css?p0v=bb19520ea9cb2c34"
+    },
+    {
+      "file": "public/leaip0/index.html",
+      "source": "public/leaip0/assets/frontend/js/core/query-result-runtime-v1.js",
+      "url": "/assets/frontend/js/core/query-result-runtime-v1.js?p0v=1a731551d7935e8a"
+    },
+    {
+      "file": "public/leaip0/index.html",
+      "source": "public/leaip0/assets/frontend/js/core/recruitment-v1.js",
+      "url": "/assets/frontend/js/core/recruitment-v1.js?p0v=8d314777721c0b0c"
+    },
+    {
+      "file": "public/leaip0/shop-chat/index.html",
+      "source": "public/leaip0/assets/frontend/css/core/recruitment-v1.css",
+      "url": "/assets/frontend/css/core/recruitment-v1.css?p0v=bb19520ea9cb2c34"
+    },
+    {
+      "file": "public/leaip0/shop-chat/index.html",
+      "source": "public/leaip0/assets/frontend/js/core/query-result-runtime-v1.js",
+      "url": "/assets/frontend/js/core/query-result-runtime-v1.js?p0v=1a731551d7935e8a"
+    },
+    {
+      "file": "public/leaip0/shop-chat/index.html",
+      "source": "public/leaip0/assets/frontend/js/core/recruitment-v1.js",
+      "url": "/assets/frontend/js/core/recruitment-v1.js?p0v=8d314777721c0b0c"
+    },
+    {
+      "file": "public/leaip0/b-chat/index.html",
+      "source": "public/leaip0/assets/frontend/css/core/recruitment-v1.css",
+      "url": "/assets/frontend/css/core/recruitment-v1.css?p0v=bb19520ea9cb2c34"
+    },
+    {
+      "file": "public/leaip0/b-chat/index.html",
+      "source": "public/leaip0/assets/frontend/js/core/query-result-runtime-v1.js",
+      "url": "/assets/frontend/js/core/query-result-runtime-v1.js?p0v=1a731551d7935e8a"
+    },
+    {
+      "file": "public/leaip0/b-chat/index.html",
+      "source": "public/leaip0/assets/frontend/js/core/recruitment-v1.js",
+      "url": "/assets/frontend/js/core/recruitment-v1.js?p0v=8d314777721c0b0c"
+    },
+    {
+      "file": "public/leaip0/biz-chat/index.html",
+      "source": "public/leaip0/assets/frontend/css/core/recruitment-v1.css",
+      "url": "/assets/frontend/css/core/recruitment-v1.css?p0v=bb19520ea9cb2c34"
+    },
+    {
+      "file": "public/leaip0/biz-chat/index.html",
+      "source": "public/leaip0/assets/frontend/js/core/query-result-runtime-v1.js",
+      "url": "/assets/frontend/js/core/query-result-runtime-v1.js?p0v=1a731551d7935e8a"
+    },
+    {
+      "file": "public/leaip0/biz-chat/index.html",
+      "source": "public/leaip0/assets/frontend/js/core/recruitment-v1.js",
+      "url": "/assets/frontend/js/core/recruitment-v1.js?p0v=8d314777721c0b0c"
+    },
+    {
+      "file": "public/leaip0/brand/index.html",
+      "source": "public/leaip0/assets/frontend/css/core/recruitment-v1.css",
+      "url": "/assets/frontend/css/core/recruitment-v1.css?p0v=bb19520ea9cb2c34"
+    },
+    {
+      "file": "public/leaip0/brand/index.html",
+      "source": "public/leaip0/assets/frontend/js/core/query-result-runtime-v1.js",
+      "url": "/assets/frontend/js/core/query-result-runtime-v1.js?p0v=1a731551d7935e8a"
+    },
+    {
+      "file": "public/leaip0/brand/index.html",
+      "source": "public/leaip0/assets/frontend/js/core/recruitment-v1.js",
+      "url": "/assets/frontend/js/core/recruitment-v1.js?p0v=8d314777721c0b0c"
     }
   ],
   "inlineSources": [

@@ -1838,6 +1838,19 @@
       return;
     }
 
+    if (window.__lxQueryResults?.matches(value)) {
+      await window.__lxGeneration.wait(__lxGenerationToken,window.__lxQueryResults.run({
+        query:value,token:__lxGenerationToken,
+        busy:active=>{chatState.sending=active;syncSend();},
+        create:skill=>{const ai=document.createElement('div');ai.className='lxfd-msg-ai lx-chat-skin';ai._loadingStarted=Date.now();ai.innerHTML='<div class="lxfd-ai-body"></div>';ai._traceLines=['正在调用 Skill('+skill+')'];ai._traceSkills=new Set();ai._traceCollapsed=false;thread?.appendChild(ai);lxfdRenderTraceLive(ai);return ai;},
+        answer:async(ai,text,skill,status,success=true)=>{ai._traceLines=[status];ai._traceSkills=success?new Set([skill]):new Set();ai._traceCollapsed=true;await lxfdAnimateFinal(ai,text);},
+        card:(ai,meta)=>{const body=ai.querySelector('.lxfd-ai-body');body.insertAdjacentHTML('beforeend',renderLxfdPageCta({resultId:meta.resultId,title:meta.title,desc:meta.desc}));return body.querySelector('[data-lx-result-id="'+meta.resultId+'"]');},
+        reveal:commit=>{lxfdPersistCurrent();lxfdExitToResultAtomically(commit);},
+        save:()=>{if(thread?.querySelector('.lxfd-msg-ai'))lxfdPersistCurrent();else window.__lxSaveConversationNow?.();}
+      }));
+      return;
+    }
+
     if (window.__lxGamingQuery?.matches(value)) {
       let gamingAi;
       await window.__lxGeneration.wait(__lxGenerationToken, window.__lxGamingQuery.run({
