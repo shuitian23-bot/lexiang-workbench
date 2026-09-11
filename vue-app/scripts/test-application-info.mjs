@@ -10,16 +10,16 @@ import {
 
 const expectedSchemas = {
   changeInternal: {
-    fields: [FIELD.applicantIdentity, FIELD.targetItcode, FIELD.mobile, FIELD.email, FIELD.applicantManager, FIELD.targetManager, FIELD.reason],
-    required: [FIELD.targetItcode, FIELD.targetManager, FIELD.reason]
+    fields: [FIELD.applicantIdentity, FIELD.targetItcode, FIELD.mobile, FIELD.email, FIELD.applicantManager, FIELD.targetManager, FIELD.businessApprover, FIELD.reason],
+    required: [FIELD.targetItcode, FIELD.targetManager, FIELD.businessApprover, FIELD.reason]
   },
   changeExternal: {
-    fields: [FIELD.applicantIdentity, FIELD.targetUser, FIELD.relatedAccount, FIELD.mobile, FIELD.email, FIELD.applicantManager, FIELD.reason],
-    required: [FIELD.targetUser, FIELD.relatedAccount, FIELD.reason]
+    fields: [FIELD.applicantIdentity, FIELD.targetUser, FIELD.relatedAccount, FIELD.mobile, FIELD.email, FIELD.applicantManager, FIELD.businessApprover, FIELD.reason],
+    required: [FIELD.targetUser, FIELD.relatedAccount, FIELD.businessApprover, FIELD.reason]
   },
   create: {
-    fields: [FIELD.applicantIdentity, FIELD.targetUser, FIELD.accountPassword, FIELD.confirmAccountPassword, FIELD.relatedAccount, FIELD.mobile, FIELD.email, FIELD.applicantManager, FIELD.reason],
-    required: [FIELD.targetUser, FIELD.accountPassword, FIELD.confirmAccountPassword, FIELD.relatedAccount, FIELD.reason]
+    fields: [FIELD.applicantIdentity, FIELD.targetUser, FIELD.accountPassword, FIELD.confirmAccountPassword, FIELD.relatedAccount, FIELD.mobile, FIELD.email, FIELD.applicantManager, FIELD.businessApprover, FIELD.reason],
+    required: [FIELD.targetUser, FIELD.accountPassword, FIELD.confirmAccountPassword, FIELD.relatedAccount, FIELD.businessApprover, FIELD.reason]
   },
   statusInternal: {
     fields: [FIELD.applicantIdentity, FIELD.targetItcode, FIELD.mobile, FIELD.email, FIELD.reason],

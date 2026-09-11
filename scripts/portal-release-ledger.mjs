@@ -1,4 +1,5 @@
 import { open, mkdir, readFile, rename, unlink, writeFile } from 'node:fs/promises'
+import { createHash } from 'node:crypto'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 
@@ -11,9 +12,13 @@ function requiredText(value, name) {
   return value.trim()
 }
 
-async function readLedger(file) {
+async function readLedger(file, expectedSha256) {
   try {
-    const parsed = JSON.parse(await readFile(file, 'utf8'))
+    const contents = await readFile(file)
+    if (expectedSha256 && createHash('sha256').update(contents).digest('hex') !== expectedSha256) {
+      throw new Error('release ledger changed since review; expected digest does not match')
+    }
+    const parsed = JSON.parse(contents.toString('utf8'))
     if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
       throw new Error('ledger root must be an object')
     }
@@ -22,7 +27,7 @@ async function readLedger(file) {
     }
     return parsed
   } catch (error) {
-    if (error?.code === 'ENOENT') {
+    if (error?.code === 'ENOENT' && !expectedSha256) {
       return { schemaVersion: 1, updatedAt: '', records: {} }
     }
     throw new Error(`cannot read release ledger: ${error.message}`)
@@ -74,12 +79,18 @@ export async function recordPortalRelease(input) {
   const releasedAt = requiredText(input.releasedAt, 'releasedAt')
   const version = requiredText(input.version, 'version')
   const ledgerPath = requiredText(input.ledgerPath, 'ledgerPath')
+  const expectedLedgerSha256 = input.expectedLedgerSha256 === undefined
+    ? undefined
+    : requiredText(input.expectedLedgerSha256, 'expectedLedgerSha256')
+  if (expectedLedgerSha256 !== undefined && !/^[a-f0-9]{64}$/.test(expectedLedgerSha256)) {
+    throw new Error('expectedLedgerSha256 must be a lowercase SHA-256 digest')
+  }
   const outputPaths = Array.isArray(input.outputPaths)
     ? input.outputPaths.map(file => requiredText(file, 'outputPath'))
     : []
 
   return withFileLock(`${ledgerPath}.lock`, async () => {
-    const ledger = await readLedger(ledgerPath)
+    const ledger = await readLedger(ledgerPath, expectedLedgerSha256)
     const current = ledger.records[recordKey] || { title, releases: {} }
     const releases = current.releases && typeof current.releases === 'object'
       ? current.releases
@@ -130,6 +141,7 @@ async function runCli() {
     releasedAt: options['released-at'],
     version: options.version,
     ledgerPath: options.ledger,
+    expectedLedgerSha256: options['expected-ledger-sha256'],
     outputPaths: options.outputPaths
   })
 }
