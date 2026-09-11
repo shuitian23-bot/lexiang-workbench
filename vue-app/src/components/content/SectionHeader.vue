@@ -102,6 +102,10 @@ withDefaults(
     flex-direction: column;
   }
 
+  .content-section-header__heading {
+    flex-basis: auto;
+  }
+
   .content-section-header__aside,
   .content-section-header__actions {
     justify-content: flex-start;

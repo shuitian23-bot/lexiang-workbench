@@ -661,7 +661,7 @@ watch([form, chain, ownerId, testReport, testRequest], () => {
   height: 100%;
   min-width: 0;
   min-height: 0;
-  padding: 20px 24px 0;
+  padding: 0;
   overflow: hidden;
   color: var(--color-text);
   container-type: inline-size;

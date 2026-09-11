@@ -72,102 +72,104 @@
         </button>
       </div>
 
-      <div class="skill-hub-toolbar">
-        <input v-model="keyword" aria-label="搜索 Skill" placeholder="搜索技能名称、中文名或描述">
-        <input v-model="creatorKeyword" type="search" aria-label="搜索创建人" placeholder="搜索创建人">
-        <select v-model="statusFilter" aria-label="Skill 状态">
-          <option value="all">状态</option>
-          <option v-for="status in statusOptions" :key="status" :value="status">{{ skillHubStatusLabel(status) }}</option>
-        </select>
-        <select v-model="categoryFilter" aria-label="Skill 分类">
-          <option value="all">分类</option>
-          <option v-for="category in categories" :key="category" :value="category">{{ category }}</option>
-        </select>
-        <div class="skill-hub-filter-actions">
-          <label class="skill-hub-update-toggle">
-            <span>只看有更新</span>
-            <input v-model="onlyCapabilityUpdates" type="checkbox">
-            <i aria-hidden="true"></i>
-          </label>
-          <button class="btn btn-primary" type="button">搜索</button>
+      <div class="skill-hub-list-workspace" data-page-block="list-workspace">
+        <div class="skill-hub-toolbar">
+          <input v-model="keyword" aria-label="搜索 Skill" placeholder="搜索技能名称、中文名或描述">
+          <input v-model="creatorKeyword" type="search" aria-label="搜索创建人" placeholder="搜索创建人">
+          <select v-model="statusFilter" aria-label="Skill 状态">
+            <option value="all">状态</option>
+            <option v-for="status in statusOptions" :key="status" :value="status">{{ skillHubStatusLabel(status) }}</option>
+          </select>
+          <select v-model="categoryFilter" aria-label="Skill 分类">
+            <option value="all">分类</option>
+            <option v-for="category in categories" :key="category" :value="category">{{ category }}</option>
+          </select>
+          <div class="skill-hub-filter-actions">
+            <label class="skill-hub-update-toggle">
+              <span>只看有更新</span>
+              <input v-model="onlyCapabilityUpdates" type="checkbox">
+              <i aria-hidden="true"></i>
+            </label>
+            <button class="btn btn-primary" type="button">搜索</button>
+          </div>
         </div>
-      </div>
 
-      <div class="skill-hub-table-card">
-        <table class="skill-hub-table">
-          <thead>
-            <tr>
-              <th>名称</th>
-              <th>中文名</th>
-              <th>绑定平台</th>
-              <th>创建人</th>
-              <th>描述</th>
-              <th>版本</th>
-              <th>上线版本</th>
-              <th>状态</th>
-              <th>更新时间</th>
-              <th>操作</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr
-              v-for="item in filteredItems"
-              :key="item.name"
-              class="skill-hub-row"
-              :data-status="item.workflowStatus"
-              :data-category="item.category"
-            >
-              <td>
-                <div class="skill-hub-name">
-                  <span class="skill-hub-doc-icon">▤</span>
-                  <strong>{{ item.name }}</strong>
-                </div>
-              </td>
-              <td><div class="skill-hub-cn">{{ item.cnName || '-' }}</div></td>
-              <td>{{ item.platform }}</td>
-              <td class="skill-hub-creator">{{ item.owner || '-' }}</td>
-              <td>
-                <div class="skill-hub-desc">{{ item.desc }}</div>
-                <div v-if="shouldShowCapabilityChangeSummary(item.capabilityUpdate)" class="skill-hub-change-summary">
-                  <b>{{ decisionCapabilityUpdate(item)?.summary }}</b>
-                  <span>{{ decisionCapabilityUpdate(item)?.detectedAt }} 检测</span>
-                </div>
-              </td>
-              <td>
-                <span class="skill-hub-version">{{ item.editVersion || item.version }}</span>
-                <small v-if="item.editVersion" class="skill-hub-edit-version">编辑版本</small>
-              </td>
-              <td><span class="skill-hub-online" :class="{ empty: item.onlineStatus === 'unpublished' }">{{ item.online }}</span></td>
-              <td>
-                <div class="skill-hub-status-stack">
-                  <span class="skill-hub-status" :class="`status-${rowPresentation(item).mainStatus}`">{{ rowPresentation(item).mainStatusLabel }}</span>
-                  <span v-if="rowPresentation(item).updateStatusLabel" class="skill-hub-update-status" :class="`is-${rowPresentation(item).updateStatus}`">
-                    {{ rowPresentation(item).updateStatusLabel }}
-                  </span>
-                </div>
-              </td>
-              <td>{{ item.updated }}</td>
-              <td>
-                <div class="skill-hub-actions">
-                  <button
-                    v-for="action in allowedActionsFor(item)"
-                    :key="action.code"
-                    class="skill-hub-action"
-                    :class="actionTone(action.code)"
-                    type="button"
-                    :disabled="!action.enabled"
-                    @click="handleAction(item, action.code)"
-                  >
-                    {{ actionLabel(action.code) }}
-                  </button>
-                </div>
-              </td>
-            </tr>
-            <tr v-if="!filteredItems.length">
-              <td colspan="10" class="skill-hub-detail-empty">当前筛选下暂无 Skill</td>
-            </tr>
-          </tbody>
-        </table>
+        <div class="skill-hub-table-card">
+          <table class="skill-hub-table">
+            <thead>
+              <tr>
+                <th>名称</th>
+                <th>中文名</th>
+                <th>绑定平台</th>
+                <th>创建人</th>
+                <th>描述</th>
+                <th>版本</th>
+                <th>上线版本</th>
+                <th>状态</th>
+                <th>更新时间</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                v-for="item in filteredItems"
+                :key="item.name"
+                class="skill-hub-row"
+                :data-status="item.workflowStatus"
+                :data-category="item.category"
+              >
+                <td>
+                  <div class="skill-hub-name">
+                    <span class="skill-hub-doc-icon">▤</span>
+                    <strong>{{ item.name }}</strong>
+                  </div>
+                </td>
+                <td><div class="skill-hub-cn">{{ item.cnName || '-' }}</div></td>
+                <td>{{ item.platform }}</td>
+                <td class="skill-hub-creator">{{ item.owner || '-' }}</td>
+                <td>
+                  <div class="skill-hub-desc">{{ item.desc }}</div>
+                  <div v-if="shouldShowCapabilityChangeSummary(item.capabilityUpdate)" class="skill-hub-change-summary">
+                    <b>{{ decisionCapabilityUpdate(item)?.summary }}</b>
+                    <span>{{ decisionCapabilityUpdate(item)?.detectedAt }} 检测</span>
+                  </div>
+                </td>
+                <td>
+                  <span class="skill-hub-version">{{ item.editVersion || item.version }}</span>
+                  <small v-if="item.editVersion" class="skill-hub-edit-version">编辑版本</small>
+                </td>
+                <td><span class="skill-hub-online" :class="{ empty: item.onlineStatus === 'unpublished' }">{{ item.online }}</span></td>
+                <td>
+                  <div class="skill-hub-status-stack">
+                    <span class="skill-hub-status" :class="`status-${rowPresentation(item).mainStatus}`">{{ rowPresentation(item).mainStatusLabel }}</span>
+                    <span v-if="rowPresentation(item).updateStatusLabel" class="skill-hub-update-status" :class="`is-${rowPresentation(item).updateStatus}`">
+                      {{ rowPresentation(item).updateStatusLabel }}
+                    </span>
+                  </div>
+                </td>
+                <td>{{ item.updated }}</td>
+                <td>
+                  <div class="skill-hub-actions">
+                    <button
+                      v-for="action in allowedActionsFor(item)"
+                      :key="action.code"
+                      class="skill-hub-action"
+                      :class="actionTone(action.code)"
+                      type="button"
+                      :disabled="!action.enabled"
+                      @click="handleAction(item, action.code)"
+                    >
+                      {{ actionLabel(action.code) }}
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              <tr v-if="!filteredItems.length">
+                <td colspan="10" class="skill-hub-detail-empty">当前筛选下暂无 Skill</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </section>
 
@@ -1462,10 +1464,15 @@ onBeforeUnmount(() => {
   line-height: 1.35;
 }
 
+.skill-hub-list-workspace,
 .scenario-package-list-workspace {
   display: grid;
   min-width: 0;
   gap: 12px;
+}
+
+.skill-hub-list-workspace > * {
+  margin-block: 0;
 }
 
 .scenario-package-toolbar {

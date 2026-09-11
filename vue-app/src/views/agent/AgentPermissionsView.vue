@@ -10781,7 +10781,7 @@ onUnmounted(() => {
   grid-template-columns: minmax(220px, 260px) minmax(360px, 1fr) auto;
   gap: 12px;
   align-items: start;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-md);
   padding: 12px;
@@ -12994,7 +12994,19 @@ onUnmounted(() => {
 
 
 .function-workspace-card {
-  gap: 12px;
+  gap: 0;
+}
+
+.function-workspace-card > * {
+  margin-block: 0;
+}
+
+.function-workspace-card > * + * {
+  margin-top: 12px;
+}
+
+.function-workspace-card > :deep(.content-section-header) + * {
+  margin-top: 16px;
 }
 
 .function-section-actions {

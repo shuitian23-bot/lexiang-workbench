@@ -147,6 +147,15 @@ const pocReleaseLedger = ref({ records: {} })
 
 const basePocLogRecords = [
   {
+    time: '2026-09-11 14:07',
+    releaseKey: 'workbench-ui-0908-compatible-20260911',
+    title: '工作台 0908 样式兼容更新',
+    changePoint: '统一内容区留白、标题与列表间距，修正窄窗口标题区的大块空白。',
+    detail: '参考 0908 样式规范，保留最新场景技能包、试运行、独立审批、创建人搜索、权限管理及 AI 巡检功能。移除场景包创建页重复留白，统一筛选与列表之间的间距；标题区在内容变窄时自然换行。未用旧示例覆盖现有业务代码，发布环境、人员、时间和版本分别以实际发布记录为准。',
+    deployTargets: [],
+    status: '发布状态以环境记录为准'
+  },
+  {
     time: '2026-09-09 13:15',
     releaseKey: 'skillhub-creator-search-20260909',
     title: 'Skill 管理按创建人搜索',
