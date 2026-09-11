@@ -1,0 +1,25 @@
+/* Manufacturing only: preserve the existing responsive column count. */
+.content .lx-solution-floor[data-solution-industry="制造"] > .lx-floor-body {
+  --lx-manufacturing-row-height:270px;
+  grid-auto-rows:var(--lx-manufacturing-row-height)!important;
+  height:calc(var(--lx-manufacturing-row-height) * 2.5 + 28px)!important;
+  max-height:none!important;
+  overflow-x:hidden!important;
+  overflow-y:auto!important;
+  overscroll-behavior-y:contain;
+  scrollbar-width:thin;
+  scrollbar-color:rgba(77,20,74,.16) transparent;
+  scroll-padding:14px;
+}
+.content .lx-solution-floor[data-solution-industry="制造"] > .lx-floor-body > .lx-solution-card {
+  display:flex!important;
+  min-height:0!important;
+  height:var(--lx-manufacturing-row-height)!important;
+  box-sizing:border-box!important;
+}
+.content .lx-solution-floor[data-solution-industry="制造"] .lx-solution-card-image {
+  height:clamp(104px,calc(var(--lx-manufacturing-row-height) * .42),160px)!important;
+}
+.content .lx-solution-floor[data-solution-industry="制造"] > .lx-floor-body::-webkit-scrollbar {width:4px}
+.content .lx-solution-floor[data-solution-industry="制造"] > .lx-floor-body::-webkit-scrollbar-thumb {background:rgba(77,20,74,.16);border-radius:4px}
+.content .lx-solution-floor[data-solution-industry="制造"] > .lx-floor-body:focus-visible {outline:2px solid #b9a8ca;outline-offset:3px}
