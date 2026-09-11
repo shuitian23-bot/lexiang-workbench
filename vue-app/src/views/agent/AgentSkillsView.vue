@@ -203,6 +203,7 @@
           <input v-model="packageKeyword" type="search" aria-label="搜索场景技能包" placeholder="搜索名称、场景描述或主责任人">
           <select v-model="packageStatusFilter" aria-label="场景技能包状态" @change="packageSummaryFilter = 'all'">
             <option value="all">全部状态</option>
+            <option value="draft">草稿</option>
             <option value="review">待审核</option>
             <option value="rejected">已驳回</option>
             <option value="published">已发布</option>
@@ -261,10 +262,14 @@
                   <td>
                     <div class="scenario-package-actions">
                       <button class="skill-hub-action" type="button" @click="openPackageDetail(packageItem, $event)">详情</button>
+                      <button v-if="hasPackageAction(packageItem, 'edit')" class="skill-hub-action" type="button" @click="editPackage(packageItem)">编辑</button>
                       <template v-if="canReviewPackage(packageItem)">
                         <button class="skill-hub-action" type="button" @click="openPackageDetail(packageItem, $event, 'approve')">审批</button>
                         <button class="skill-hub-action" type="button" @click="openPackageDetail(packageItem, $event, 'reject')">驳回</button>
                       </template>
+                      <button v-if="hasPackageAction(packageItem, 'withdraw')" class="skill-hub-action" type="button" @click="openPackageDetail(packageItem, $event, 'withdraw')">撤回</button>
+                      <button v-if="hasPackageAction(packageItem, 'disable')" class="skill-hub-action" type="button" @click="openPackageDetail(packageItem, $event, 'disable')">禁用</button>
+                      <button v-if="hasPackageAction(packageItem, 'enable')" class="skill-hub-action" type="button" @click="openPackageDetail(packageItem, $event, 'enable')">启用</button>
                     </div>
                   </td>
                 </tr>
@@ -379,17 +384,19 @@
       >
         <div class="skill-hub-detail-head">
           <div>
-            <h3 id="scenario-package-detail-title">{{ packageReviewMode === 'approve' ? '审批场景技能包 · ' : packageReviewMode === 'reject' ? '驳回场景技能包 · ' : '' }}{{ packageDetailItem.name }}</h3>
+            <h3 id="scenario-package-detail-title">{{ packageModeTitle }}{{ packageDetailItem.name }}</h3>
             <p>{{ packageDetailItem.description }}</p>
           </div>
           <button ref="packageDetailClose" type="button" class="skill-hub-detail-close" aria-label="关闭场景技能包详情" @click="closePackageDetail">×</button>
         </div>
         <div class="skill-hub-detail-body scenario-package-detail-body">
+          <p v-if="packageActionStale" class="scenario-package-review-error" role="alert">技能包已更新，请关闭后重新查看并操作。</p>
           <dl class="scenario-package-detail-summary">
             <div><dt>目标人群</dt><dd>{{ packageDetailItem.targetAudience }}</dd></div>
             <div><dt>主责任人</dt><dd>{{ packageDetailItem.ownerId }}</dd></div>
             <div><dt>技能包版本</dt><dd><code>{{ packageDetailItem.version }}</code></dd></div>
             <div><dt>状态</dt><dd>{{ packageStatusLabel(packageDetailItem) }}</dd></div>
+            <div v-if="packageDetailItem.publishedSnapshot"><dt>已审核版本</dt><dd><code>{{ packageDetailItem.publishedSnapshot.version }}</code> · {{ packageDetailItem.onlineStatus === 'disabled' ? '已禁用' : '已发布' }}</dd></div>
             <div v-if="packageDetailItem.submittedAt"><dt>提交时间</dt><dd>{{ formatPackageUpdatedAt(packageDetailItem.submittedAt) }}</dd></div>
             <div v-if="packageDetailItem.reviewedBy"><dt>审核人</dt><dd>{{ packageDetailItem.reviewedBy }}</dd></div>
             <div v-if="packageDetailItem.reviewedAt"><dt>审核时间</dt><dd>{{ formatPackageUpdatedAt(packageDetailItem.reviewedAt) }}</dd></div>
@@ -457,10 +464,10 @@
             </ol>
             <p v-else>暂无审计事件。</p>
           </section>
-          <section v-if="packageReviewMode !== 'detail' && packageDetailItem.status === 'review'" class="scenario-package-detail-section scenario-package-review-section">
+          <section v-if="(packageReviewMode === 'approve' || packageReviewMode === 'reject') && packageDetailItem.status === 'review'" class="scenario-package-detail-section scenario-package-review-section">
             <h4>{{ packageReviewMode === 'reject' ? '驳回原因' : '管理员审批' }}</h4>
             <template v-if="packageReviewDecision.ok">
-              <p>{{ packageReviewMode === 'reject' ? '请说明需要修改的内容，创建人可修改后重新提交。' : '审批通过后将发布当前固定版本链路。' }}</p>
+              <p>{{ packageReviewMode === 'reject' ? '请说明需要修改的内容，创建人可修改后重新提交。' : packageDetailItem.onlineStatus === 'disabled' ? '审批通过后更新已审核版本，技能包仍保持禁用。' : '审批通过后将发布当前固定版本链路。' }}</p>
               <label class="scenario-package-review-field">
                 <span>{{ packageReviewMode === 'reject' ? '驳回原因（必填）' : '审批意见（选填）' }}</span>
                 <textarea ref="packageReviewInput" v-model="packageReviewNote" rows="3" :required="packageReviewMode === 'reject'" :placeholder="packageReviewMode === 'reject' ? '例如：请补充条件步骤的触发范围和预期输出。' : '可填写本次审批的补充说明。'" :aria-invalid="packageReviewError ? 'true' : undefined" :aria-describedby="packageReviewError ? 'scenario-review-error' : undefined"></textarea>
@@ -469,14 +476,21 @@
             <p v-else>{{ packageReviewDecision.reasons.join('；') }}</p>
             <p v-if="packageReviewError" id="scenario-review-error" class="scenario-package-review-error" role="alert">{{ packageReviewError }}</p>
           </section>
+          <section v-if="packageManagementMode" class="scenario-package-detail-section scenario-package-review-section">
+            <h4>{{ packageManagementLabels[packageManagementMode] }}</h4>
+            <p>{{ packageManagementDescriptions[packageManagementMode] }}</p>
+            <p v-if="!hasPackageAction(packageDetailItem, packageManagementMode)" class="scenario-package-review-error" role="alert">状态或操作权限已变更，请关闭后重新查看。</p>
+            <p v-if="packageReviewError" class="scenario-package-review-error" role="alert">{{ packageReviewError }}</p>
+          </section>
         </div>
         <div class="skill-hub-detail-foot">
           <button class="btn btn-secondary" type="button" @click="closePackageDetail">关闭</button>
-          <button v-if="canEditRejectedPackage" class="btn btn-primary" type="button" @click="editRejectedPackage">修改后重新提交</button>
-          <template v-if="packageReviewDecision.ok && packageReviewMode !== 'detail'">
+          <button v-if="packageReviewMode === 'detail' && hasPackageAction(packageDetailItem, 'edit')" class="btn btn-primary" type="button" @click="editPackage(packageDetailItem)">编辑</button>
+          <template v-if="!packageActionStale && packageReviewDecision.ok && (packageReviewMode === 'approve' || packageReviewMode === 'reject')">
             <button v-if="packageReviewMode === 'reject'" class="btn btn-primary" type="button" :disabled="packageReviewBusy" @click="reviewPackage('reject')">确认驳回</button>
-            <button v-else class="btn btn-primary" type="button" :disabled="packageReviewBusy" @click="reviewPackage('approve')">审批通过并发布</button>
+            <button v-else class="btn btn-primary" type="button" :disabled="packageReviewBusy" @click="reviewPackage('approve')">{{ packageDetailItem.onlineStatus === 'disabled' ? '审批通过' : '审批通过并发布' }}</button>
           </template>
+          <button v-if="!packageActionStale && packageManagementMode && hasPackageAction(packageDetailItem, packageManagementMode)" class="btn btn-primary" type="button" :disabled="packageReviewBusy" @click="managePackage(packageManagementMode)">{{ packageManagementLabels[packageManagementMode] }}</button>
         </div>
       </div>
     </div>
@@ -594,6 +608,7 @@ import ScenarioTestReportSummary from '@/views/agent/ScenarioTestReportSummary.v
 import { isScenarioSimulationCurrent } from '@/domain/scenarioPackageTesting.js'
 import {
   useScenarioSkillPackagesStore,
+  type ScenarioPackageAction,
   type ScenarioSkillPackage
 } from '@/stores/scenarioSkillPackages'
 import {
@@ -603,7 +618,9 @@ import {
 } from '@/services/skillCapabilityChanges'
 
 type HubTabId = 'skills' | 'packages'
-type PackageListFilter = 'all' | 'review' | 'rejected' | 'published' | 'upgrade_required' | 'degraded' | 'paused' | 'disabled'
+type PackageListFilter = 'all' | 'draft' | 'review' | 'rejected' | 'published' | 'upgrade_required' | 'degraded' | 'paused' | 'disabled'
+type PackageManagementMode = 'withdraw' | 'disable' | 'enable'
+type PackageDetailMode = 'detail' | 'approve' | 'reject' | PackageManagementMode
 
 const route = useRoute()
 const router = useRouter()
@@ -623,8 +640,9 @@ const hubTabElements = new Map<HubTabId, HTMLButtonElement>()
 const packageRowElements = new Map<string, HTMLElement>()
 const activeHubTab = computed<HubTabId>(() => route.query.tab === 'packages' || route.query.tab === 'review' ? 'packages' : 'skills')
 const editingPackage = computed(() => {
-  const item = typeof route.query.edit === 'string' ? scenarioStore.findPackage(route.query.edit) : undefined
-  return item?.status === 'rejected' && item.ownerId === user.value ? item : undefined
+  return typeof route.query.edit === 'string'
+    ? scenarioStore.editableDraft(route.query.edit, { id: user.value || '', permissions: permissions.value }) || undefined
+    : undefined
 })
 const isPackageCreate = computed(() => activeHubTab.value === 'packages' && route.query.mode === 'create' && (!route.query.edit || editingPackage.value))
 
@@ -653,12 +671,28 @@ const packageSummaryFilter = ref<PackageListFilter>('all')
 const packageReviewNote = ref('')
 const packageReviewError = ref('')
 const packageReviewBusy = ref(false)
-const packageReviewMode = ref<'detail' | 'approve' | 'reject'>('detail')
+const packageReviewMode = ref<PackageDetailMode>('detail')
+const packageManagementLabels = { withdraw: '确认撤回', disable: '确认禁用', enable: '确认启用' }
+const packageManagementDescriptions = {
+  withdraw: '撤回后将退出本轮审核，回到草稿状态，可继续编辑并重新试运行、提交。已有线上版本保持当前状态。',
+  disable: '禁用后，当前已审核版本将停止被调用。正在编辑或审核的内容会保留，后续审批通过也不会自动启用。',
+  enable: '启用后恢复当前已审核版本的调用；运行时仍检查依赖和调用权限。正在编辑或审核的内容不会提前生效。'
+}
+const packageManagementMode = computed<PackageManagementMode | null>(() =>
+  ['withdraw', 'disable', 'enable'].includes(packageReviewMode.value) ? packageReviewMode.value as PackageManagementMode : null
+)
+const packageModeTitle = computed(() => ({
+  detail: '', approve: '审批场景技能包 · ', reject: '驳回场景技能包 · ',
+  withdraw: '撤回审核 · ', disable: '禁用场景技能包 · ', enable: '启用场景技能包 · '
+})[packageReviewMode.value])
 const packageReviewInput = ref<HTMLTextAreaElement | null>(null)
 const packageDetailId = ref('')
+const packageOpenedUpdatedAt = ref('')
 const packageDetailItem = computed(() => packageDetailId.value
   ? scenarioStore.findPackage(packageDetailId.value) || null
   : null)
+const packageActionStale = computed(() => packageReviewMode.value !== 'detail'
+  && packageDetailItem.value?.updatedAt !== packageOpenedUpdatedAt.value)
 const packageActor = computed(() => ({ id: user.value || '', permissions: permissions.value }))
 const packageTestIsStale = computed(() => {
   const item = packageDetailItem.value
@@ -669,7 +703,6 @@ const packageTestIsStale = computed(() => {
 const packageReviewDecision = computed(() => packageDetailItem.value?.status === 'review'
   ? scenarioStore.reviewDecision(packageDetailItem.value.id, packageActor.value)
   : { ok: false, reasons: [] as string[] })
-const canEditRejectedPackage = computed(() => packageDetailItem.value?.status === 'rejected' && packageDetailItem.value.ownerId === user.value)
 const packageRunPlan = computed(() => packageDetailItem.value
   ? scenarioStore.prepareRunPlan(packageDetailItem.value.id, { id: user.value || '', permissions: permissions.value })
   : null)
@@ -781,9 +814,18 @@ function packageMenus(packageItem: ScenarioSkillPackage) {
 }
 
 function packageHealthHint(packageItem: ScenarioSkillPackage) {
-  if (packageItem.status === 'review') return '等待其他管理员审核，尚未发布'
-  if (packageItem.status === 'rejected') return packageItem.reviewNote || '按审核意见修改后重新提交'
-  if (packageItem.status === 'disabled') return '主责任人已停止调用'
+  const onlineHealth = packageItem.publishedSnapshot?.health || packageItem.health
+  const onlineState = packageItem.onlineStatus === 'disabled' ? '保持禁用'
+    : onlineHealth.status === 'paused' ? '因依赖异常暂停'
+      : onlineHealth.status === 'degraded' ? '部分分支降级'
+        : '保持已发布'
+  const onlineHint = packageItem.publishedSnapshot
+    ? `；已审核版本 ${packageItem.publishedSnapshot.version} ${onlineState}`
+    : ''
+  if (packageItem.status === 'draft') return `本人可编辑、试运行后提交审核${onlineHint}`
+  if (packageItem.status === 'review') return `等待其他管理员审核${onlineHint || '，尚未发布'}`
+  if (packageItem.status === 'rejected') return `${packageItem.reviewNote || '按审核意见修改后重新提交'}${onlineHint}`
+  if (packageItem.status === 'disabled') return '已审核版本暂停调用，启用后恢复'
   if (packageItem.health.status === 'upgrade_required') {
     return packageItem.health.explanations[0] || '存在新版 Skill，继续使用当前固定版本'
   }
@@ -792,7 +834,15 @@ function packageHealthHint(packageItem: ScenarioSkillPackage) {
   return '固定版本依赖均可用'
 }
 
-const listedScenarioPackages = computed(() => packages.value.filter(packageItem => packageItem.status !== 'draft'))
+const listedScenarioPackages = computed(() => packages.value)
+
+function matchesPackageStatus(packageItem: ScenarioSkillPackage, filter: PackageListFilter) {
+  if (filter === 'all') return true
+  if (['draft', 'review', 'rejected'].includes(filter)) return packageItem.status === filter
+  const onlineStatus = packageItem.onlineStatus || packageItem.status
+  if (filter === 'published' || filter === 'disabled') return onlineStatus === filter
+  return onlineStatus === 'published' && (packageItem.publishedSnapshot?.health || packageItem.health).status === filter
+}
 
 const filteredScenarioPackages = computed(() => {
   const query = packageKeyword.value.trim().toLowerCase()
@@ -805,19 +855,19 @@ const filteredScenarioPackages = computed(() => {
       packageItem.description,
       packageItem.ownerId
     ].some(value => value.toLowerCase().includes(query))
-    const matchesStatus = selectedFilter === 'all' || packageStatusKey(packageItem) === selectedFilter
+    const matchesStatus = matchesPackageStatus(packageItem, selectedFilter)
     return matchesKeyword && matchesStatus
   })
 })
 
 const packageSummaryItems = computed(() => {
   const count = (filter: Exclude<PackageListFilter, 'all'>) => (
-    listedScenarioPackages.value.filter(packageItem => packageStatusKey(packageItem) === filter).length
+    listedScenarioPackages.value.filter(packageItem => matchesPackageStatus(packageItem, filter)).length
   )
   return [
     { key: 'all', label: '全部技能包', value: listedScenarioPackages.value.length, desc: '跨菜单固定版本链路', tone: 'is-primary', filter: 'all' as const },
     { key: 'review', label: '待审核', value: count('review'), desc: '等待其他管理员审核', tone: 'is-warning', filter: 'review' as const },
-    { key: 'published', label: '已发布', value: count('published'), desc: '依赖健康，可正常调用', tone: 'is-success', filter: 'published' as const },
+    { key: 'published', label: '已发布', value: count('published'), desc: '已有已审核发布版本', tone: 'is-success', filter: 'published' as const },
     { key: 'upgrade', label: '待升级', value: count('upgrade_required'), desc: '有新版，仍使用固定版本', tone: 'is-warning', filter: 'upgrade_required' as const },
     { key: 'degraded', label: '降级运行', value: count('degraded'), desc: '条件分支部分关闭', tone: 'is-warning', filter: 'degraded' as const },
     { key: 'paused', label: '已暂停', value: count('paused'), desc: '必需步骤当前不可用', tone: 'is-danger', filter: 'paused' as const }
@@ -1089,16 +1139,21 @@ function handleHubTabKeydown(event: KeyboardEvent, tab: HubTabId) {
 }
 
 function canReviewPackage(packageItem: ScenarioSkillPackage) {
-  return packageItem.status === 'review' && scenarioStore.reviewDecision(packageItem.id, packageActor.value).ok
+  return hasPackageAction(packageItem, 'approve') && hasPackageAction(packageItem, 'reject')
 }
 
-function openPackageDetail(packageItem: ScenarioSkillPackage, event?: MouseEvent, mode: 'detail' | 'approve' | 'reject' = 'detail') {
-  if (packageReviewBusy.value || (mode !== 'detail' && !canReviewPackage(packageItem))) return
+function hasPackageAction(packageItem: ScenarioSkillPackage, action: ScenarioPackageAction) {
+  return scenarioStore.actionsFor(packageItem.id, packageActor.value).includes(action)
+}
+
+function openPackageDetail(packageItem: ScenarioSkillPackage, event?: MouseEvent, mode: PackageDetailMode = 'detail') {
+  if (packageReviewBusy.value || (mode !== 'detail' && !hasPackageAction(packageItem, mode))) return
   packageDetailTrigger = typeof HTMLButtonElement !== 'undefined' && event?.currentTarget instanceof HTMLButtonElement ? event.currentTarget : null
   packageReviewMode.value = mode
   packageReviewNote.value = ''
   packageReviewError.value = ''
   packageDetailId.value = packageItem.id
+  packageOpenedUpdatedAt.value = packageItem.updatedAt
   syncPackageDocumentKeydown()
   void nextTick(() => packageDetailClose.value?.focus())
 }
@@ -1130,23 +1185,23 @@ function clearPackageDetailWithoutFocus() {
 }
 
 function packageAuditLabel(type: string) {
-  return ({ submitted: '提交审核', approved: '审核通过', rejected: '审核驳回', published: '发布完成' } as Record<string, string>)[type] || type
+  return ({ submitted: '提交审核', approved: '审核通过', rejected: '审核驳回', published: '发布完成', withdrawn: '撤回审核', disabled: '禁用', enabled: '启用' } as Record<string, string>)[type] || type
 }
 
 async function reviewPackage(action: 'approve' | 'reject') {
   const item = packageDetailItem.value
-  if (!item || packageReviewBusy.value || packageReviewMode.value !== action) return
+  if (!item || packageActionStale.value || packageReviewBusy.value || packageReviewMode.value !== action) return
   packageReviewError.value = ''
   packageReviewBusy.value = true
   try {
     const note = packageReviewNote.value.trim()
     if (action === 'reject') {
       if (!note) throw new Error('请填写驳回原因，说明需要修改的内容。')
-      scenarioStore.rejectPackage(item.id, packageActor.value, note)
+      scenarioStore.rejectPackage(item.id, packageActor.value, note, packageOpenedUpdatedAt.value)
       toast(`${item.name}：已驳回，等待创建人修改后重新提交`)
     } else {
-      scenarioStore.approvePackage(item.id, packageActor.value, note)
-      toast(`${item.name}：审核通过并已发布`)
+      const approved = scenarioStore.approvePackage(item.id, packageActor.value, note, packageOpenedUpdatedAt.value)
+      toast(`${item.name}：${approved.onlineStatus === 'disabled' ? '审核通过，保持禁用' : '审核通过并已发布'}`)
     }
     packageReviewNote.value = ''
     packageReviewMode.value = 'detail'
@@ -1161,12 +1216,32 @@ async function reviewPackage(action: 'approve' | 'reject') {
   }
 }
 
-async function editRejectedPackage() {
-  const item = packageDetailItem.value
-  if (!item || !canEditRejectedPackage.value) return
+async function editPackage(item: ScenarioSkillPackage) {
+  if (!hasPackageAction(item, 'edit') || packageReviewBusy.value) return
   clearPackageDetailWithoutFocus()
   await router.replace({ path: '/agent/skills', query: { tab: 'packages', mode: 'create', edit: item.id } })
   await focusPackageCreator()
+}
+
+async function managePackage(action: PackageManagementMode) {
+  const item = packageDetailItem.value
+  if (!item || packageActionStale.value || packageReviewBusy.value || packageReviewMode.value !== action) return
+  packageReviewBusy.value = true
+  packageReviewError.value = ''
+  try {
+    const result = action === 'withdraw' ? scenarioStore.withdrawPackage(item.id, packageActor.value)
+      : action === 'disable' ? scenarioStore.disablePackage(item.id, packageActor.value)
+        : scenarioStore.enablePackage(item.id, packageActor.value)
+    if (!result.ok) throw new Error(result.reasons.join('；'))
+    toast(`${item.name}：${{ withdraw: '已撤回，可编辑后重新提交', disable: '已禁用', enable: '已启用已审核版本' }[action]}`)
+    packageReviewMode.value = 'detail'
+    await nextTick()
+    packageDetailClose.value?.focus()
+  } catch (error) {
+    packageReviewError.value = error instanceof Error ? error.message : '操作失败，请重试。'
+  } finally {
+    packageReviewBusy.value = false
+  }
 }
 
 function handlePackageDetailKeydown(event: KeyboardEvent) {
@@ -1544,8 +1619,8 @@ onBeforeUnmount(() => {
 .scenario-package-table th:nth-child(5) { width: 10%; }
 .scenario-package-table th:nth-child(6) { width: 14%; }
 .scenario-package-table th:nth-child(7) { width: 10%; }
-.scenario-package-table th:last-child { width: 184px; }
-.scenario-package-actions { display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; }
+.scenario-package-table th:last-child { width: 216px; }
+.scenario-package-actions { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 8px; }
 
 .scenario-package-table tbody tr:last-child td {
   border-bottom: 0;

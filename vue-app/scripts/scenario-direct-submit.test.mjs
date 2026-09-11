@@ -65,24 +65,28 @@ function configure(create, store) {
   })
 }
 
-async function fixture() {
-  const current = scope()
-  const events = []
-  const create = mount(Create, reactive({}), current.pinia, (...event) => events.push(event))
-  configure(create, current.store)
-  await nextTick()
-  const trial = mount(Trial, reactive({
+function mountTrial(create, pinia) {
+  return mount(Trial, reactive({
     get draft() { return create.currentDraft() },
     get skills() { return create.publishedSkills.value },
     get actor() { return create.actor.value },
     get modelValue() { return create.testRequest.value },
     get report() { return create.testReport.value },
     get disabled() { return !create.canEditDraft.value },
-  }), current.pinia, (event, value) => {
+  }), pinia, (event, value) => {
     if (event === 'update:modelValue') create.testRequest.value = value
     if (event === 'update:report') create.testReport.value = value
     if (event === 'running') create.trialRunning.value = value
   })
+}
+
+async function fixture() {
+  const current = scope()
+  const events = []
+  const create = mount(Create, reactive({}), current.pinia, (...event) => events.push(event))
+  configure(create, current.store)
+  await nextTick()
+  const trial = mountTrial(create, current.pinia)
   create.goNext()
   create.goNext()
   assert.equal(create.activeStep.value, 3)
@@ -180,9 +184,80 @@ for (const access of ['readonly review', 'nonowner rejected draft']) {
     await view.submitPackage()
     assert.equal(events.length, 0)
     assert.deepEqual(copy(store.findPackage(record.id)), before)
-    assert.match(view.displayedValidationErrors.value.join(' '), /仅原创建人|仅被驳回/)
+    assert.match(view.displayedValidationErrors.value.join(' '), access === 'readonly review' ? /待审核.*先撤回/ : /仅原创建人/)
   })
 }
+
+async function editFixture(status) {
+  const current = await fixture()
+  const { create, store, pinia } = current
+  const submitted = store.submitDraft(create.currentDraft(), create.actor.value)
+  if (status === 'draft') assert.equal(store.withdrawPackage(submitted.id, create.actor.value).ok, true)
+  if (status === 'rejected') store.rejectPackage(submitted.id, reviewer, '补充本次场景边界。')
+  if (status === 'published' || status === 'disabled') store.approvePackage(submitted.id, reviewer)
+  if (status === 'disabled') assert.equal(store.disablePackage(submitted.id, reviewer).ok, true)
+  const record = copy(store.findPackage(submitted.id))
+  const editable = store.editableDraft(submitted.id, create.actor.value)
+  assert.ok(editable, 'an authorized owner must receive an editable snapshot')
+  const events = []
+  const editing = mount(Create, reactive({ draft: editable }), pinia, (...event) => events.push(event))
+  const editingTrial = mountTrial(editing, pinia)
+  await nextTick()
+  return { ...current, record, editable, editing, editingTrial, events }
+}
+
+for (const status of ['draft', 'rejected', 'published', 'disabled']) {
+  test(`an owned ${status} package edits through its versioned snapshot and resubmits the same ID after a fresh trial`, async () => {
+    const { record, editable, editing, editingTrial, store, events } = await editFixture(status)
+    assert.equal(editing.canEditDraft.value, true)
+    assert.equal(editable.baseUpdatedAt, record.updatedAt)
+    assert.equal(editing.currentDraft().baseUpdatedAt, record.updatedAt)
+    editing.form.value.description += '补充本轮修订范围。'
+    editing.chain.value[0].task += '并区分已认证和待补充材料的人群。'
+    await nextTick()
+    assert.deepEqual(copy(store.findPackage(record.id)), record, 'editing must not change the stored revision or online version')
+    assert.equal(editing.trialGate.value.ok, false)
+    await editing.submitPackage()
+    assert.equal(events.length, 0, 'changed configuration must not reuse the previous report')
+    editing.goNext()
+    editing.goNext()
+    assert.equal(editing.activeStep.value, 3)
+    await editingTrial.runTrial()
+    await nextTick()
+    assert.equal(editing.trialGate.value.ok, true)
+    await editing.submitPackage()
+    assert.equal(events.length, 1)
+    assert.equal(events[0][0], 'submitted')
+    const revised = store.findPackage(record.id)
+    assert.equal(events[0][1].id, record.id)
+    assert.equal(revised.status, 'review')
+    assert.equal(revised.description, editing.form.value.description)
+    assert.deepEqual(revised.auditEvents.slice(0, record.auditEvents.length), record.auditEvents)
+    assert.equal(revised.auditEvents.at(-1).type, 'submitted')
+    assert.equal(store.packages.filter(item => item.id === record.id).length, 1)
+    assert.equal(store.reviewDecision(record.id, editing.actor.value).ok, false)
+    if (status === 'published' || status === 'disabled') {
+      assert.equal(revised.publishedSnapshot.version, record.version)
+      assert.equal(revised.publishedSnapshot.description, record.description)
+      assert.equal(revised.onlineStatus, status)
+    }
+  })
+}
+
+test('a previously opened editable snapshot cannot submit after the online status changes', async () => {
+  const { record, editing, editingTrial, store, events } = await editFixture('published')
+  await editingTrial.runTrial()
+  await nextTick()
+  assert.equal(editing.trialGate.value.ok, true)
+  assert.equal(store.disablePackage(record.id, reviewer).ok, true)
+  const disabled = copy(store.findPackage(record.id))
+  await nextTick()
+  assert.equal(editing.canEditDraft.value, false)
+  await editing.submitPackage()
+  assert.equal(events.length, 0)
+  assert.deepEqual(copy(store.findPackage(record.id)), disabled)
+  assert.match(editing.displayedValidationErrors.value.join(' '), /状态已更新.*重新打开编辑/)
+})
 
 test('losing creation permissions after a successful trial still blocks direct submission', async () => {
   const { create, store, account, events } = await fixture()

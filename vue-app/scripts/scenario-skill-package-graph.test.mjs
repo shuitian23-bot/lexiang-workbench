@@ -86,7 +86,7 @@ for (const [name, fixture, reasonPattern] of invalidGraphs) {
 
 test('publication stores connected order and runtime follows connections while skipping inactive conditions', () => {
   const steps = [step('c', 'b'), step('a', null), step('b', 'a', { kind: 'conditional', required: false, condition: '需要跟进时' })]
-  const published = domain.publishScenarioPackage(pendingReview(draft(steps)), reviewer, at, catalog)
+  const published = domain.publishScenarioPackage(pendingReview(withTrial(draft(steps), catalog, actor)), reviewer, at, catalog)
   assert.deepEqual(ids(published.steps), ['a', 'b', 'c'])
   const active = domain.evaluateRuntimeAccess(runtimePackage(steps), actor, ['b'])
   assert.equal(active.status, 'ready')
@@ -105,7 +105,7 @@ test('constructor, catalog rebuild, resolver and publication isolate position sn
   const input = draft([created, step('b', 'a', { position: { x: 200, y: 48 } })])
   const rebuilt = domain.rebuildDraftFromCatalog(input, catalog)
   const resolved = domain.resolveScenarioChain(input.steps)
-  const published = domain.publishScenarioPackage(pendingReview(input), reviewer, at, catalog)
+  const published = domain.publishScenarioPackage(pendingReview(withTrial(input, catalog, actor)), reviewer, at, catalog)
   const runtime = domain.evaluateRuntimeAccess(runtimePackage(input.steps), actor)
   for (const resultSteps of [rebuilt.draft.steps, resolved.steps, published.steps, runtime.effectiveSteps]) {
     assert.equal(resultSteps[1].predecessorId, 'a')
@@ -121,7 +121,7 @@ test('malformed canvas coordinates are discarded without changing executable con
     const created = domain.createPinnedScenarioStep(catalog[0], { id: 'a', predecessorId: null, position })
     assert.equal(created.position, undefined)
     const input = draft([step('a', null, { position }), step('b', 'a')])
-    const published = domain.publishScenarioPackage(pendingReview(input), reviewer, at, catalog)
+    const published = domain.publishScenarioPackage(pendingReview(withTrial(input, catalog, actor)), reviewer, at, catalog)
     assert.deepEqual(ids(published.steps), ['a', 'b'])
     assert.equal(published.steps[0].position, undefined)
   }

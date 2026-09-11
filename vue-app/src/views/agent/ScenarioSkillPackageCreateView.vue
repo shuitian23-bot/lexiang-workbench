@@ -49,7 +49,7 @@
         <SectionHeader
           class="scenario-package-definition-heading"
           title="场景定义"
-          :description="draft ? '根据审核意见完善适用场景与使用边界，确认后重新提交。' : '说明技能包的适用场景与使用边界，便于匹配用户需求。预填示例可修改。'"
+          :description="draft ? '修改后需重新试运行、提交审核。已有已审核版本保持当前状态，新内容通过审核后生效。' : '说明技能包的适用场景与使用边界，便于匹配用户需求。预填示例可修改。'"
         />
 
         <div class="scenario-package-form-grid">
@@ -84,7 +84,7 @@
         aria-labelledby="scenario-package-tab-2"
         tabindex="-1"
       >
-        <ScenarioSkillPackageComposer v-model="chain" :skills="publishedSkills" ref="composer" :allow-trial-example="!draft && canEditDraft && !trialRunning && !submitting" :trial-errors="trialErrors" :trial-suggestions="trialSuggestions" :trial-stale="!!testReport && !isTestCurrent" />
+        <ScenarioSkillPackageComposer v-model="chain" :skills="publishedSkills" ref="composer" :trial-errors="trialErrors" :trial-suggestions="trialSuggestions" :trial-stale="!!testReport && !isTestCurrent" />
       </section>
 
       <section
@@ -281,7 +281,7 @@ const emit = defineEmits<{
   cancel: []
   submitted: [item: ScenarioSkillPackage]
 }>()
-const props = defineProps<{ draft?: ScenarioSkillPackage }>()
+const props = defineProps<{ draft?: ScenarioSkillPackageDraft }>()
 
 const appStore = useAppStore()
 const scenarioStore = useScenarioSkillPackagesStore()
@@ -326,6 +326,7 @@ const testingSection = ref<HTMLElement | null>(null)
 const composer = ref<InstanceType<typeof ScenarioSkillPackageComposer> | null>(null)
 const submissionSection = ref<HTMLElement | null>(null)
 const draftId = props.draft?.id || `scenario-package-${Date.now().toString(36)}`
+const draftBaseUpdatedAt = props.draft?.baseUpdatedAt
 
 const emptyPolicyEvaluation = (): PolicyEvaluation => ({ ok: false, canSelfApprove: false, reasons: [] })
 const emptyHealthEvaluation = (): ScenarioPackageHealth => ({
@@ -347,8 +348,9 @@ const actor = computed(() => ({ id: ownerId.value, permissions: appStore.permiss
 const editAccessError = computed(() => {
   if (!ownerId.value) return '请登录后创建或编辑场景技能包。'
   if (!props.draft) return ''
-  if (props.draft.ownerId !== ownerId.value) return '仅原创建人可以编辑被驳回的场景技能包。'
-  if (props.draft.status !== 'rejected') return '仅被驳回的场景技能包可以编辑并重新提交。'
+  if (props.draft.ownerId !== ownerId.value) return '仅原创建人可以编辑场景技能包。'
+  if (!scenarioStore.actionsFor(draftId, actor.value).includes('edit')) return '当前状态或权限不允许编辑，待审核内容需先撤回。'
+  if (scenarioStore.findPackage(draftId)?.updatedAt !== draftBaseUpdatedAt) return '技能包状态已更新，请返回列表后重新打开编辑。'
   return ''
 })
 const canEditDraft = computed(() => !editAccessError.value)
@@ -446,6 +448,7 @@ function executionSteps(): ScenarioPinnedStep[] {
 function currentDraft(): ScenarioSkillPackageDraft {
   return {
     id: draftId,
+    ...(draftBaseUpdatedAt ? { baseUpdatedAt: draftBaseUpdatedAt } : {}),
     name: form.value.name.trim(),
     description: form.value.description.trim(),
     targetAudience: form.value.targetAudience.trim(),
@@ -619,9 +622,7 @@ async function submitPackage() {
   if (!validateStep(2) || !validateStep(3)) return
   submitting.value = true
   try {
-    const submitted = props.draft
-      ? scenarioStore.resubmitDraft(currentDraft(), actor.value)
-      : scenarioStore.submitDraft(currentDraft(), actor.value)
+    const submitted = scenarioStore.submitDraft(currentDraft(), actor.value)
     emit('submitted', submitted)
   } catch (error) {
     submitError.value = error instanceof Error ? error.message : '提交失败，请检查自动评估后重试。'

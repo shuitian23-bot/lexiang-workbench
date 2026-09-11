@@ -622,7 +622,7 @@ test('scenario Skill packages use the four-step submission workspace with a requ
     assert.match(view, new RegExp(section))
   }
   assert.match(view, /scenarioStore\.submitDraft\(/)
-  assert.match(view, /scenarioStore\.resubmitDraft\(/)
+  assert.match(view, /baseUpdatedAt: draftBaseUpdatedAt/)
   assert.match(view, /scenarioStore\.evaluateDraft\(/)
   assert.doesNotMatch(view, /packages\.value\.(?:push|unshift|splice)\(/)
   assert.equal(view.match(/@click="submitPackage"/g)?.length, 1)

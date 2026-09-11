@@ -57,7 +57,6 @@ async function flow() {
   const trialEvents = []
   const { state: create } = mount(Create, reactive({}), pinia, (...event) => events.push(event))
   const { state: composer, exposed } = mount(Composer, reactive({
-    allowTrialExample: false,
     get skills() { return create.publishedSkills.value },
     get modelValue() { return create.chain.value },
     get trialErrors() { return create.trialErrors.value },

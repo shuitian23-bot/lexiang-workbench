@@ -80,7 +80,7 @@ test('store rejects own review, unprivileged review, forged owner, duplicate sub
     assert.throws(() => store.approvePackage(draft.id, actor))
     assert.throws(() => store.rejectPackage(draft.id, actor, '补充目标'))
   }
-  assert.throws(() => store.submitDraft(draft, owner), /已存在/)
+  assert.throws(() => store.submitDraft(draft, owner), /状态|审核/)
   assert.ok(!store.publishDraft || (() => { assert.throws(() => store.publishDraft({ ...draft, id: 'bypass' }, owner)); return true })())
   assert.equal(store.findPackage(draft.id).status, 'review')
 })
@@ -116,7 +116,7 @@ test('reject requires a reason; only the original owner can resubmit and prior a
   assert.equal(store.prepareRunPlan(draft.id, owner).status, 'blocked')
   assert.throws(() => store.resubmitDraft({ ...draft, ownerId: reviewer.id }, reviewer), /所有者|主责任人/)
   assert.throws(() => store.resubmitDraft({ ...draft, ownerId: reviewer.id }, owner), /所有者|主责任人/)
-  const revised = withTrial({ ...draft, description: '当需要跨菜单分析经营情况时使用', auditEvents: [] }, store.selectableSkills, owner)
+  const revised = withTrial({ ...store.editableDraft(draft.id, owner), description: '当需要跨菜单分析经营情况时使用', auditEvents: [] }, store.selectableSkills, owner)
   const again = store.resubmitDraft(revised, owner)
   assert.equal(again.status, 'review')
   assert.equal(again.reviewedBy, undefined)
@@ -166,7 +166,7 @@ test('pending review seed identifies an example owner and can be approved agains
 
 test('independent reviewers may hold wildcard or structured policy review permission', () => {
   for (const permissions of [['*'], { policy: ['scenario-package:review'] }]) {
-    const published = domain.publishScenarioPackage(submitted(), { id: reviewer.id, permissions }, at, catalog)
+    const published = domain.publishScenarioPackage(withTrial(submitted(), catalog, owner), { id: reviewer.id, permissions }, at, catalog)
     assert.equal(published.status, 'published')
   }
 })
@@ -190,7 +190,7 @@ test('a scenario description without retired fields survives submit, reject, rev
   const rejected = store.rejectPackage(draft.id, reviewer, '补充任务边界')
   assert.equal(rejected.description, description)
   const revisedDescription = `${description}信息不足时列出待补充项。`
-  const revised = store.resubmitDraft(withTrial({ ...draft, description: revisedDescription }, store.selectableSkills, owner), owner)
+  const revised = store.resubmitDraft(withTrial({ ...store.editableDraft(draft.id, owner), description: revisedDescription }, store.selectableSkills, owner), owner)
   assert.equal(revised.description, revisedDescription)
   const published = store.approvePackage(draft.id, reviewer)
   assert.equal(published.description, revisedDescription)
@@ -204,7 +204,7 @@ test('retired fields are discarded by submitted, rebuilt, published and rejected
   const outputs = [
     domain.submitScenarioPackage(withTrial(legacy, catalog, owner), owner, at, catalog),
     domain.rebuildDraftFromCatalog(legacy, catalog).draft,
-    domain.publishScenarioPackage(legacy, reviewer, at, catalog),
+    domain.publishScenarioPackage(withTrial(legacy, catalog, owner), reviewer, at, catalog),
     domain.rejectScenarioPackage(legacy, reviewer, '补充适用场景', at)
   ]
   for (const output of outputs) {

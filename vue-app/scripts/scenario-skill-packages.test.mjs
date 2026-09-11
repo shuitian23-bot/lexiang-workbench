@@ -369,7 +369,7 @@ test('allows owner submission but never self-approval after automated gates pass
 
 test('publishing creates distinct approved and published audit events', () => {
   const published = publishScenarioPackage(
-    pendingReview(validDraft()),
+    pendingReview(withTrial(validDraft(), authoritativeCatalog(), actor())),
     reviewer(),
     '2026-09-04T00:00:00.000Z',
     authoritativeCatalog()
@@ -399,7 +399,7 @@ test('publication rebuilds step identity and permissions from the authoritative 
   })
 
   const published = publishScenarioPackage(
-    pendingReview(draft),
+    pendingReview(withTrial(draft, authoritativeCatalog(), actor())),
     reviewer(),
     '2026-09-04T00:00:00.000Z',
     authoritativeCatalog()
@@ -914,7 +914,7 @@ test('seed package is a published auditable demo with an explicit package versio
 
 test('publication adds the initial package version and uses the write time as updated time', () => {
   const published = publishScenarioPackage(
-    pendingReview(validDraft()),
+    pendingReview(withTrial(validDraft(), authoritativeCatalog(), actor())),
     reviewer(),
     '2026-09-04T00:00:00.000Z',
     authoritativeCatalog()

@@ -511,7 +511,7 @@ test('reports remain isolated and only a successful current retrial allows submi
   const rejected = store.rejectPackage(draft.id, reviewer, '补充场景说明')
   rejected.testReport.request.sampleOutputs.a = 'external sample'
   assert.equal(store.findPackage(draft.id).testReport.request.sampleOutputs.a, undefined)
-  const revision = store.findPackage(draft.id)
+  const revision = store.editableDraft(draft.id, actor)
   revision.description += '新场景'
   revision.testRequest.input = '改过的试运行输入'
   const rejectedSnapshot = clone(store.findPackage(draft.id))
@@ -532,7 +532,7 @@ test('reports remain isolated and only a successful current retrial allows submi
   assert.equal(sim.isScenarioSimulationCurrent(published.testReport, published, skills, published.testRequest), true)
   const snapshot = clone(store.findPackage(draft.id))
   assert.throws(() => store.resubmitDraft({ ...published, testReport: undefined }, actor), /驳回/)
-  assert.throws(() => store.submitDraft({ ...published, testReport: undefined }, actor), /已存在/)
+  assert.throws(() => store.submitDraft({ ...published, testReport: undefined }, actor), /编辑版本|已更新/)
   assert.deepEqual(clone(store.findPackage(draft.id)), snapshot)
   const blockedReport = sim.runScenarioSimulation({ ...draft, id: 'other' }, skills, requestOf({ input: '' }), actor, now)
   assert.throws(() => store.submitDraft({ ...draft, id: 'other', testRequest: blockedReport.request, testReport: blockedReport }, actor), /试运行/)
