@@ -101,6 +101,24 @@ function packageRowHtml(html, id) {
   return row
 }
 
+test('saved drafts return to the package list and highlight an editable draft without submitting', async () => {
+  const current = await fixture({ actor: 'draft-list-owner', query: { mode: 'create' } })
+  const saved = current.store.saveDraft({
+    id: 'draft-list-save', name: '保存后继续配置', description: '', targetAudience: '',
+    ownerId: current.account.user, steps: []
+  }, { id: current.account.user, permissions: current.account.permissions })
+  await current.state.handlePackageSaved(saved)
+  assert.deepEqual(current.router.currentRoute.value.query, { tab: 'packages' })
+  assert.equal(current.state.packageStatusFilter.value, 'draft')
+  assert.equal(current.state.highlightedPackageId.value, saved.id)
+  assert.match(current.notices.at(-1), /草稿已保存/)
+  const { html } = await current.renderCurrent()
+  const row = packageRowHtml(html, saved.id)
+  assert.match(row, /详情/)
+  assert.match(row, /编辑/)
+  assert.doesNotMatch(row, /审批|驳回|撤回/)
+})
+
 function rowActions(html, id) {
   const row = packageRowHtml(html, id)
   return [...row.matchAll(/<button\b[^>]*>(.*?)<\/button>/g)].map(match => match[1].trim())

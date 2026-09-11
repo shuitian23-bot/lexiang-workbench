@@ -761,6 +761,52 @@ export function editableScenarioPackageDraft(packageItem, actor) {
   })
 }
 
+/**
+ * Save unfinished authoring content without granting any client-supplied publication authority.
+ * Submission remains responsible for definition, reference-permission and current-trial validation.
+ * @param {ScenarioPackageDraft} draft
+ * @param {ScenarioActor} actor
+ * @param {string} now
+ * @param {ScenarioPackageDraft} [previous]
+ */
+export function saveScenarioPackageDraft(draft, actor, now, previous) {
+  if (!actor?.id?.trim() || draft?.ownerId !== actor.id || (previous && previous.ownerId !== actor.id)) {
+    throw new Error('仅原包所有者可以保存场景技能包草稿')
+  }
+  if (!hasPolicyPermission(actor, 'scenario-package:create') || !hasPolicyPermission(actor, 'scenario-package:compose:cross-menu')) {
+    throw new Error('保存草稿需要创建技能包和跨菜单编排权限')
+  }
+  if (typeof draft.id !== 'string' || !draft.id.trim()) throw new Error('技能包 ID 不能为空')
+  if (typeof draft.name !== 'string' || !draft.name.trim()) throw new Error('请填写技能包名称后保存草稿')
+  if (previous && (previous.id !== draft.id || !scenarioPackageActions(previous, actor).includes('edit'))) {
+    throw new Error('当前状态不允许保存草稿，待审核内容不能编辑')
+  }
+  if (previous && (!draft.baseUpdatedAt || draft.baseUpdatedAt !== previous.updatedAt)) {
+    throw new Error('场景技能包已更新或缺少编辑版本，请重新打开编辑后保存')
+  }
+  const steps = (Array.isArray(draft.steps) ? draft.steps : []).map(cloneStep)
+  const snapshot = previous ? scenarioPublishedSnapshot(previous) : null
+  return {
+    ...(previous ? cloneScenarioTestSnapshot(previous) : {}),
+    id: draft.id,
+    name: draft.name.trim(),
+    description: typeof draft.description === 'string' ? draft.description : '',
+    targetAudience: typeof draft.targetAudience === 'string' ? draft.targetAudience : '',
+    ownerId: actor.id,
+    version: previous ? ['published', 'disabled'].includes(previous.status) ? nextPackageVersion(previous.version) : previous.version : 'v1.0.0',
+    status: 'draft',
+    onlineStatus: previous?.onlineStatus || (previous?.status === 'published' || previous?.status === 'disabled' ? previous.status : 'unpublished'),
+    publishedSnapshot: snapshot || undefined,
+    steps,
+    health: evaluatePackageHealth(steps),
+    updatedAt: now,
+    auditEvents: cloneScenarioTestSnapshot(previous?.auditEvents || []),
+    // Retained diagnostics are evidence only when the submission fingerprint still matches.
+    testReport: cloneScenarioTestSnapshot(draft.testReport),
+    testRequest: cloneScenarioTestSnapshot(draft.testRequest)
+  }
+}
+
 /** Apply only lifecycle changes allowed by the current trusted record. */
 export function transitionScenarioPackage(packageItem, actor, action, now) {
   if (!['disable', 'enable'].includes(action) || !scenarioPackageActions(packageItem, actor).includes(action)) {

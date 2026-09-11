@@ -13,6 +13,7 @@ import {
   evaluateScenarioPackageReview,
   scenarioPackageActions,
   editableScenarioPackageDraft,
+  saveScenarioPackageDraft,
   transitionScenarioPackage,
   scenarioPublishedSnapshot,
   getScenarioRuntimePackage,
@@ -22,6 +23,7 @@ import { useSkillHubStore, type SkillHubItem } from './skillHub'
 import { useAppStore } from './app'
 import { buildScenarioRunPlan } from '../domain/scenarioRunPlan.js'
 import { runScenarioSimulation, type ScenarioSimulationReport, type ScenarioSimulationRequest } from '../domain/scenarioPackageTesting.js'
+import { readScenarioPackageState, writeScenarioPackageState } from '../services/scenarioPackageStorage'
 
 export type ScenarioDependencyState = 'available' | 'expired' | 'unavailable' | 'emergency_disabled' | 'update_available'
 export type ScenarioStepKind = 'required' | 'conditional'
@@ -424,6 +426,13 @@ export const useScenarioSkillPackagesStore = defineStore('scenarioSkillPackages'
   const initialSeedSkills = createSelectableScenarioSkills(initialSeedCatalog)
   const storedPackages = ref<ScenarioSkillPackage[]>(createSeedScenarioPackages(selectableSkills.value, skillHub.items, app.user || ''))
   const seededOwners = new Set(app.user ? [app.user] : [])
+  const persisted = readScenarioPackageState()
+  let persistedIds = new Set(persisted?.packages.map(item => item.id) || [])
+  if (persisted) {
+    const restoredIds = new Set(persisted.packages.map(item => item.id))
+    storedPackages.value = [...persisted.packages, ...storedPackages.value.filter(item => !restoredIds.has(item.id))]
+    persisted.seededOwners.forEach(ownerId => seededOwners.add(ownerId))
+  }
   // Login can finish after store creation. Add new-account examples once; preserve all existing edits and submissions.
   watch(() => app.user, ownerId => {
     if (!ownerId || seededOwners.has(ownerId)) return
@@ -458,21 +467,23 @@ export const useScenarioSkillPackagesStore = defineStore('scenarioSkillPackages'
   function refreshStep(step: ScenarioPinnedStep): ScenarioPinnedStep {
     const currentSkill = skillHub.items.find((item) => item.name === step.skillId)
     const isOnline = currentSkill?.onlineStatus === 'published' && currentSkill.online !== '未发布'
-    const preservedUnavailableState = ['expired', 'unavailable', 'emergency_disabled'].includes(step.dependencyState)
+    const preservedExpiredState = step.dependencyState === 'expired'
 
     if (!currentSkill || !isOnline) {
       return {
         ...step,
-        dependencyState: currentSkill?.onlineStatus === 'disabled' ? 'emergency_disabled' : 'unavailable',
+        dependencyState: preservedExpiredState ? 'expired' : currentSkill?.onlineStatus === 'disabled' ? 'emergency_disabled' : 'unavailable',
         permissions: clonePermissions(step.permissions)
       }
     }
 
     const currentPublishedVersion = currentSkill.online
+    const preservedUnavailableState = ['unavailable', 'emergency_disabled'].includes(step.dependencyState)
+      && currentPublishedVersion !== step.pinnedVersion
     return {
       ...step,
       currentPublishedVersion,
-      dependencyState: preservedUnavailableState
+      dependencyState: preservedExpiredState || preservedUnavailableState
         ? step.dependencyState
         : currentPublishedVersion === step.pinnedVersion
           ? 'available'
@@ -497,6 +508,35 @@ export const useScenarioSkillPackagesStore = defineStore('scenarioSkillPackages'
     return new Date(Math.max(Date.now(), (Date.parse(current?.updatedAt || '') || 0) + 1)).toISOString()
   }
 
+  function commitPackages(next: ScenarioSkillPackage[], owners = [...seededOwners]) {
+    writeScenarioPackageState({ packages: next, seededOwners: owners })
+    storedPackages.value = next
+    persistedIds = new Set(next.map(item => item.id))
+  }
+
+  function commitPackage(next: ScenarioSkillPackage) {
+    const latest = readScenarioPackageState()
+    let currentPackages = storedPackages.value
+    if (latest) {
+      const current = currentPackages.find(item => item.id === next.id)
+      const saved = latest.packages.find(item => item.id === next.id)
+      const latestIds = new Set(latest.packages.map(item => item.id))
+      currentPackages = [...latest.packages, ...currentPackages.filter(item => !latestIds.has(item.id) && !persistedIds.has(item.id))]
+      if ((saved && saved.updatedAt !== current?.updatedAt) || (!saved && persistedIds.has(next.id))) {
+        // Refresh the local view so reopening edits reads the version that actually reached storage.
+        storedPackages.value = currentPackages
+        persistedIds = latestIds
+        throw new Error('场景技能包已在其他页面更新，请重新打开当前版本后操作')
+      }
+    }
+    const packages = currentPackages.some(item => item.id === next.id)
+      ? currentPackages.map(item => item.id === next.id ? clonePackage(next) : item)
+      : [clonePackage(next), ...currentPackages]
+    const owners = [...new Set([...seededOwners, ...(latest?.seededOwners || [])])]
+    commitPackages(packages, owners)
+    owners.forEach(ownerId => seededOwners.add(ownerId))
+  }
+
   function actionsFor(id: string, actor: ScenarioPackageActor): ScenarioPackageAction[] {
     return scenarioPackageActions(storedPackages.value.find(item => item.id === id), actor) as ScenarioPackageAction[]
   }
@@ -511,7 +551,11 @@ export const useScenarioSkillPackagesStore = defineStore('scenarioSkillPackages'
     const result = transitionScenarioPackage(current, actor, action, nextWriteTime(current)) as ScenarioPackageMutationResult
     if (!result.ok || !result.package) return result
     const next = result.package
-    storedPackages.value = storedPackages.value.map(item => item.id === id ? clonePackage(next) : item)
+    try {
+      commitPackage(next)
+    } catch (error) {
+      return { ok: false, reasons: [error instanceof Error ? error.message : '场景技能包保存失败'] }
+    }
     return { ok: true, reasons: [], package: clonePackage(next) }
   }
 
@@ -544,6 +588,13 @@ export const useScenarioSkillPackagesStore = defineStore('scenarioSkillPackages'
     }
   }
 
+  function saveDraft(draft: ScenarioSkillPackageDraft, actor: ScenarioPackageActor): ScenarioSkillPackage {
+    const current = storedPackages.value.find(item => item.id === draft.id)
+    const saved = saveScenarioPackageDraft(draft, actor, nextWriteTime(current), current) as ScenarioSkillPackage
+    commitPackage(saved)
+    return clonePackage(saved)
+  }
+
   function submitDraft(draft: ScenarioSkillPackageDraft, actor: ScenarioPackageActor): ScenarioSkillPackage {
     const current = storedPackages.value.find(item => item.id === draft.id)
     const submitted = submitScenarioPackage(
@@ -553,8 +604,7 @@ export const useScenarioSkillPackagesStore = defineStore('scenarioSkillPackages'
       selectableSkills.value,
       current
     ) as ScenarioSkillPackage
-    if (current) storedPackages.value = storedPackages.value.map(item => item.id === draft.id ? clonePackage(submitted) : item)
-    else storedPackages.value.unshift(clonePackage(submitted))
+    commitPackage(submitted)
     return clonePackage(submitted)
   }
 
@@ -568,7 +618,7 @@ export const useScenarioSkillPackagesStore = defineStore('scenarioSkillPackages'
     if (!current) throw new Error(`场景技能包不存在：${id}`)
     if (expectedUpdatedAt !== undefined && expectedUpdatedAt !== current.updatedAt) throw new Error('场景技能包已更新，请重新打开当前提交版本后审核')
     const published = publishScenarioPackage(current, actor, nextWriteTime(current), selectableSkills.value, note) as ScenarioSkillPackage
-    storedPackages.value = storedPackages.value.map(item => item.id === id ? clonePackage(published) : item)
+    commitPackage(published)
     return clonePackage(published)
   }
 
@@ -577,7 +627,7 @@ export const useScenarioSkillPackagesStore = defineStore('scenarioSkillPackages'
     if (!current) throw new Error(`场景技能包不存在：${id}`)
     if (expectedUpdatedAt !== undefined && expectedUpdatedAt !== current.updatedAt) throw new Error('场景技能包已更新，请重新打开当前提交版本后审核')
     const rejected = rejectScenarioPackage(current, actor, reason, nextWriteTime(current)) as ScenarioSkillPackage
-    storedPackages.value = storedPackages.value.map(item => item.id === id ? clonePackage(rejected) : item)
+    commitPackage(rejected)
     return clonePackage(rejected)
   }
 
@@ -611,7 +661,7 @@ export const useScenarioSkillPackagesStore = defineStore('scenarioSkillPackages'
   }
 
   function resetToInitialMock() {
-    storedPackages.value = createSeedScenarioPackages(selectableSkills.value, skillHub.items, app.user || '')
+    commitPackages(createSeedScenarioPackages(selectableSkills.value, skillHub.items, app.user || ''), app.user ? [app.user] : [])
     seededOwners.clear()
     if (app.user) seededOwners.add(app.user)
   }
@@ -634,6 +684,7 @@ export const useScenarioSkillPackagesStore = defineStore('scenarioSkillPackages'
     disablePackage,
     enablePackage,
     evaluateDraft,
+    saveDraft,
     submitDraft,
     reviewDecision,
     approvePackage,

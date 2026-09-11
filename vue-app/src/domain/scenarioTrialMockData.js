@@ -35,6 +35,18 @@ const INCOMPLETE_SAMPLES = {
     output: '模拟样例：建议联系企业客户 A。',
     reason: '本轮反馈只有联系建议，缺少需确认的信息和下一步跟进行动。',
     expectedOutput: '列出需确认的采购人数、预算信息和下一步跟进行动。'
+  },
+  'legacy-inventory-alert': {
+    version: 'v0.9.0',
+    output: '模拟样例：机型 A 可用库存 3 台。',
+    reason: '本轮反馈只有可用库存，缺少预警阈值、是否触发预警和供货处理建议。',
+    expectedOutput: '列出可用库存、预警阈值、是否触发预警和供货处理建议。'
+  },
+  'weather-query': {
+    version: 'v1.0.0',
+    output: '模拟样例：活动地点 A 天气多云。',
+    reason: '本轮反馈只有天气概况，缺少气温、降水风险和活动安排建议。',
+    expectedOutput: '列出活动地点的天气、气温、降水风险和活动安排建议。'
   }
 }
 

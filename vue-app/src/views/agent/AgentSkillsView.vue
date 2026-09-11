@@ -4,6 +4,7 @@
     :key="editingPackage?.id || 'new-package'"
     :draft="editingPackage"
     @cancel="closePackageCreate"
+    @saved="handlePackageSaved"
     @submitted="handlePackageSubmitted"
   />
 
@@ -608,7 +609,8 @@ import { isScenarioSimulationCurrent } from '@/domain/scenarioPackageTesting.js'
 import {
   useScenarioSkillPackagesStore,
   type ScenarioPackageAction,
-  type ScenarioSkillPackage
+  type ScenarioSkillPackage,
+  type ScenarioSkillPackageDraft
 } from '@/stores/scenarioSkillPackages'
 import {
   capabilityDecisionUpdate,
@@ -638,11 +640,18 @@ const hubTabs: Array<{ id: HubTabId; label: string }> = [
 const hubTabElements = new Map<HubTabId, HTMLButtonElement>()
 const packageRowElements = new Map<string, HTMLElement>()
 const activeHubTab = computed<HubTabId>(() => route.query.tab === 'packages' || route.query.tab === 'review' ? 'packages' : 'skills')
-const editingPackage = computed(() => {
-  return typeof route.query.edit === 'string'
-    ? scenarioStore.editableDraft(route.query.edit, { id: user.value || '', permissions: permissions.value }) || undefined
-    : undefined
-})
+const packageEditId = computed(() => route.path === '/agent/skills' && activeHubTab.value === 'packages'
+  && route.query.mode === 'create' && typeof route.query.edit === 'string' ? route.query.edit : '')
+const editingPackage = ref<ScenarioSkillPackageDraft>()
+watch([packageEditId, user, permissions], ([id, ownerId]) => {
+  if (!id || !ownerId) {
+    editingPackage.value = undefined
+    return
+  }
+  // Keep the opened copy when storage or permissions change; the editor locks stale writes.
+  if (editingPackage.value?.id === id && editingPackage.value.ownerId === ownerId) return
+  editingPackage.value = scenarioStore.editableDraft(id, { id: ownerId, permissions: permissions.value }) || undefined
+}, { immediate: true, flush: 'sync' })
 const isPackageCreate = computed(() => activeHubTab.value === 'packages' && route.query.mode === 'create' && (!route.query.edit || editingPackage.value))
 
 const keyword = ref('')
@@ -1216,6 +1225,9 @@ async function reviewPackage(action: 'approve' | 'reject') {
 
 async function editPackage(item: ScenarioSkillPackage) {
   if (!hasPackageAction(item, 'edit') || packageReviewBusy.value) return
+  const draft = scenarioStore.editableDraft(item.id, { id: user.value || '', permissions: permissions.value })
+  if (!draft) return
+  editingPackage.value = draft
   clearPackageDetailWithoutFocus()
   await router.replace({ path: '/agent/skills', query: { tab: 'packages', mode: 'create', edit: item.id } })
   await focusPackageCreator()
@@ -1359,6 +1371,17 @@ async function handlePackageSubmitted(packageItem: ScenarioSkillPackage) {
   toast(`${packageItem.name}：已提交审核，等待其他管理员处理`)
 }
 
+async function handlePackageSaved(packageItem: ScenarioSkillPackage) {
+  resetPackageFilters()
+  packageStatusFilter.value = 'draft'
+  highlightedPackageId.value = packageItem.id
+  await router.replace({ path: '/agent/skills', query: { tab: 'packages' } })
+  await nextTick()
+  packageRowElements.get(packageItem.id)?.scrollIntoView({ block: 'nearest' })
+  packageRowElements.get(packageItem.id)?.focus()
+  toast(`${packageItem.name}：草稿已保存，可稍后继续编辑`)
+}
+
 function goPortalHome() {
   router.push('/portal/home')
 }
@@ -1383,7 +1406,6 @@ onMounted(() => {
   if (navigation && navigation.type === 'reload') {
     sessionStorage.removeItem('leai.skillCreateDraft')
     skillHubStore.resetToInitialMock()
-    scenarioStore.resetToInitialMock()
   }
   appStore.ensureStaticTab('agent.skills')
   appStore.setActiveStaticTab('agent.skills')
