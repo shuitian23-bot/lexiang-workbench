@@ -1845,8 +1845,8 @@
         busy:active=>{chatState.sending=active;syncSend();},
         answer:async text=>{gamingAi=document.createElement('div');gamingAi.className='lxfd-msg-ai lx-chat-skin';gamingAi._loadingStarted=Date.now()-5000;gamingAi.innerHTML='<div class="lxfd-ai-body"></div>';thread?.appendChild(gamingAi);await lxfdAnimateFinal(gamingAi,text);},
         card:products=>{chatState.lastProducts=products;const body=gamingAi.querySelector('.lxfd-ai-body');body.insertAdjacentHTML('beforeend',renderLxfdProducts(products));const card=body.querySelector('[data-lxfd-reco-id]');const id=card?.getAttribute('data-lxfd-reco-id')||'';card?.setAttribute('data-lx-result-id','reco:'+id);card?.classList.add('lx-document-card-enter');return id;},
-        open:(products,recoId)=>{lfxdPersistCurrent();lfxdExportToMain();exitFullscreenWithReveal(()=>window.__lxBridge?.revealProducts?.(products,{title:'为你推荐',recoId}));},
-        save:()=>lfxdPersistCurrent()
+        open:(products,recoId)=>{window.__lxfdPersistCurrentNow?.();window.__lxfdExitWithReveal(()=>window.__lxBridge?.revealProducts?.(products,{title:'为你推荐',recoId}));},
+        save:()=>window.__lxfdPersistCurrentNow?.()
       }));
       return;
     }
