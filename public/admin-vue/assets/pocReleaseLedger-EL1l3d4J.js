@@ -1,0 +1,1 @@
+const r={schemaVersion:1,updatedAt:"",records:{}};async function t(){try{const o=await fetch("/admin-vue/poc-release-ledger.json",{cache:"no-store"});if(!o.ok)return r;const e=await o.json();return!e||typeof e!="object"||!e.records||typeof e.records!="object"?r:e}catch{return r}}export{t as l};
