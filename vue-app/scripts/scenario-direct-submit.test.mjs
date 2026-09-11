@@ -11,8 +11,21 @@ const previousStorage = globalThis.localStorage
 globalThis.localStorage = { getItem() { return null }, setItem() {}, removeItem() {} }
 const root = fileURLToPath(new URL('../', import.meta.url))
 const httpHost = createHttpServer()
-const server = await createServer({ root, logLevel: 'error', server: { middlewareMode: true, hmr: { server: httpHost } }, appType: 'custom' })
-const [{ default: Create }, { default: Trial }, { useAppStore }, { useScenarioSkillPackagesStore }, domain, simulation] = await Promise.all([
+const seedPlugin = {
+  name: 'scenario-direct-submit-test-seeds', enforce: 'pre',
+  transform(source, id) {
+    if (!id.endsWith('/src/stores/scenarioSkillPackages.ts')) return
+    // Existing drafts are injected only in this test process; no product action creates them.
+    return `let scenarioPackageTestSeeds
+export function seedScenarioPackagesForTest(store, seeds) {
+  scenarioPackageTestSeeds = seeds
+  try { store.resetToInitialMock() } finally { scenarioPackageTestSeeds = undefined }
+}
+${source.replaceAll('createSeedScenarioPackages(selectableSkills.value)', '(scenarioPackageTestSeeds || createSeedScenarioPackages(selectableSkills.value))')}`
+  },
+}
+const server = await createServer({ root, plugins: [seedPlugin], logLevel: 'error', server: { middlewareMode: true, hmr: { server: httpHost } }, appType: 'custom' })
+const [{ default: Create }, { default: Trial }, { useAppStore }, { useScenarioSkillPackagesStore, seedScenarioPackagesForTest }, domain, simulation] = await Promise.all([
   server.ssrLoadModule('/src/views/agent/ScenarioSkillPackageCreateView.vue'),
   server.ssrLoadModule('/src/views/agent/ScenarioPackageTrialPanel.vue'),
   server.ssrLoadModule('/src/stores/app.ts'),
@@ -184,7 +197,7 @@ for (const access of ['readonly review', 'nonowner rejected draft']) {
     await view.submitPackage()
     assert.equal(events.length, 0)
     assert.deepEqual(copy(store.findPackage(record.id)), before)
-    assert.match(view.displayedValidationErrors.value.join(' '), access === 'readonly review' ? /待审核.*先撤回/ : /仅原创建人/)
+    assert.match(view.displayedValidationErrors.value.join(' '), access === 'readonly review' ? /待审核内容暂不可编辑/ : /仅原创建人/)
   })
 }
 
@@ -192,7 +205,10 @@ async function editFixture(status) {
   const current = await fixture()
   const { create, store, pinia } = current
   const submitted = store.submitDraft(create.currentDraft(), create.actor.value)
-  if (status === 'draft') assert.equal(store.withdrawPackage(submitted.id, create.actor.value).ok, true)
+  if (status === 'draft') seedScenarioPackagesForTest(store, copy(store.packages).map(item => item.id === submitted.id ? {
+    ...item, status: 'draft', submittedAt: undefined, submittedBy: undefined,
+    testReport: undefined, testRequest: undefined, auditEvents: [],
+  } : item))
   if (status === 'rejected') store.rejectPackage(submitted.id, reviewer, '补充本次场景边界。')
   if (status === 'published' || status === 'disabled') store.approvePackage(submitted.id, reviewer)
   if (status === 'disabled') assert.equal(store.disablePackage(submitted.id, reviewer).ok, true)

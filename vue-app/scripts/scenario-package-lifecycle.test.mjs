@@ -49,7 +49,7 @@ test('lifecycle actions follow owner permissions and independent review, not adm
   const { store, draft } = fixture()
   store.submitDraft(draft, owner)
   assert.equal(typeof store.actionsFor, 'function', 'the store must enforce the shared action policy')
-  assert.deepEqual(store.actionsFor(draft.id, owner), ['view', 'withdraw'])
+  assert.deepEqual(store.actionsFor(draft.id, owner), ['view'])
   assert.deepEqual(store.actionsFor(draft.id, reviewer), ['view', 'approve', 'reject'])
   assert.deepEqual(store.actionsFor(draft.id, stranger), ['view'])
   assert.equal(store.editableDraft(draft.id, owner), null)
@@ -85,6 +85,8 @@ test('published revisions keep the old version runnable through review and rejec
   assert.equal(queued.version, 'v1.0.1')
   assert.equal(queued.onlineStatus, 'published')
   assert.equal(queued.publishedSnapshot.version, 'v1.0.0')
+  assert.deepEqual(store.actionsFor(published.id, owner), ['view'])
+  assert.equal(store.disablePackage(published.id, owner).ok, false)
   assert.equal(store.prepareRunPlan(published.id, owner).version, 'v1.0.0')
   assert.equal(store.prepareRunPlan(published.id, owner).steps[0].task, oldTask)
   assert.equal(domain.evaluateRuntimeAccess(queued, owner).effectiveSteps[0].task, oldTask)
@@ -99,23 +101,17 @@ test('published revisions keep the old version runnable through review and rejec
   assert.equal(updated.auditEvents.filter(event => event.type === 'approved').length, 2)
 })
 
-test('withdrawal invalidates pending approval, preserves the revision, and requires a fresh submission', () => {
+test('pending review is read-only for its owner and has no withdrawal API or domain transition', () => {
   const { store, draft } = fixture()
-  store.submitDraft(draft, owner)
-  const denied = store.withdrawPackage(draft.id, stranger)
+  const submitted = store.submitDraft(draft, owner)
+  const before = copy(store.findPackage(draft.id))
+  assert.deepEqual(store.actionsFor(draft.id, owner), ['view'])
+  assert.equal(store.editableDraft(draft.id, owner), null)
+  assert.equal(store.withdrawPackage, undefined)
+  const denied = domain.transitionScenarioPackage(submitted, owner, 'withdraw', new Date().toISOString())
   assert.equal(denied.ok, false)
-  assert.equal(store.findPackage(draft.id).status, 'review')
-  const result = store.withdrawPackage(draft.id, owner)
-  assert.equal(result.ok, true)
-  assert.equal(result.package.status, 'draft')
-  assert.equal(result.package.submittedAt, undefined)
-  assert.equal(result.package.testReport, undefined)
-  assert.throws(() => store.approvePackage(draft.id, reviewer), /审核|状态/)
-  const editing = store.editableDraft(draft.id, owner)
-  assert.throws(() => store.submitDraft(editing, owner), /试运行/)
-  const again = store.submitDraft(withTrial(editing, store.selectableSkills), owner)
-  assert.equal(again.version, 'v1.0.0')
-  assert.deepEqual(again.auditEvents.map(event => event.type), ['submitted', 'withdrawn', 'submitted'])
+  assert.throws(() => store.submitDraft({ ...draft, baseUpdatedAt: submitted.updatedAt }, owner), /状态|账号|审核/)
+  assert.deepEqual(copy(store.findPackage(draft.id)), before)
 })
 
 test('only package administrators can disable or enable and approval cannot silently re-enable a disabled package', () => {
@@ -128,6 +124,8 @@ test('only package administrators can disable or enable and approval cannot sile
   const edited = store.editableDraft(published.id, owner)
   edited.steps[0].task = '修改后的禁用版任务'
   store.submitDraft(withTrial(edited, store.selectableSkills), owner)
+  assert.deepEqual(store.actionsFor(published.id, owner), ['view'])
+  assert.equal(store.enablePackage(published.id, owner).ok, false)
   const result = store.approvePackage(published.id, reviewer)
   assert.equal(result.status, 'disabled')
   assert.equal(result.onlineStatus, 'disabled')
@@ -222,15 +220,15 @@ for (const action of ['approvePackage', 'rejectPackage']) {
   test(`${action} binds confirmation to the viewed submission and rejects a replacement submission`, () => {
     const { store, draft } = fixture()
     const first = store.submitDraft(draft, owner)
-    store.withdrawPackage(draft.id, owner)
+    store.rejectPackage(draft.id, reviewer, '补充业务范围')
     const editing = store.editableDraft(draft.id, owner)
-    editing.name = '撤回后新提交'
+    editing.name = '驳回后新提交'
     const second = store.submitDraft(withTrial(editing, store.selectableSkills), owner)
     const before = copy(store.findPackage(draft.id))
     assert.throws(() => store[action](draft.id, reviewer, '审核说明', first.updatedAt), /已更新|重新打开|提交版本/)
     assert.deepEqual(copy(store.findPackage(draft.id)), before)
     const result = store[action](draft.id, reviewer, '审核说明', second.updatedAt)
     assert.equal(result.status, action === 'approvePackage' ? 'published' : 'rejected')
-    assert.equal(result.name, '撤回后新提交')
+    assert.equal(result.name, '驳回后新提交')
   })
 }

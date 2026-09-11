@@ -128,7 +128,7 @@ export interface ScenarioPackageActor {
   permissions: string[] | (Partial<ScenarioSkillPermissionSnapshot> & { policy?: string[] })
 }
 
-export type ScenarioPackageAction = 'view' | 'edit' | 'withdraw' | 'approve' | 'reject' | 'disable' | 'enable'
+export type ScenarioPackageAction = 'view' | 'edit' | 'approve' | 'reject' | 'disable' | 'enable'
 export interface ScenarioPackageMutationResult {
   ok: boolean
   reasons: string[]
@@ -406,7 +406,7 @@ export const useScenarioSkillPackagesStore = defineStore('scenarioSkillPackages'
     return editableScenarioPackageDraft(findPackage(id), actor) as (ScenarioSkillPackageDraft & { baseUpdatedAt: string }) | null
   }
 
-  function changeLifecycle(id: string, actor: ScenarioPackageActor, action: 'withdraw' | 'disable' | 'enable'): ScenarioPackageMutationResult {
+  function changeLifecycle(id: string, actor: ScenarioPackageActor, action: 'disable' | 'enable'): ScenarioPackageMutationResult {
     const current = storedPackages.value.find(item => item.id === id)
     if (!current) return { ok: false, reasons: ['场景技能包不存在'] }
     const result = transitionScenarioPackage(current, actor, action, nextWriteTime(current)) as ScenarioPackageMutationResult
@@ -416,7 +416,6 @@ export const useScenarioSkillPackagesStore = defineStore('scenarioSkillPackages'
     return { ok: true, reasons: [], package: clonePackage(next) }
   }
 
-  const withdrawPackage = (id: string, actor: ScenarioPackageActor) => changeLifecycle(id, actor, 'withdraw')
   const disablePackage = (id: string, actor: ScenarioPackageActor) => changeLifecycle(id, actor, 'disable')
   const enablePackage = (id: string, actor: ScenarioPackageActor) => changeLifecycle(id, actor, 'enable')
 
@@ -531,7 +530,6 @@ export const useScenarioSkillPackagesStore = defineStore('scenarioSkillPackages'
     selectableSkills,
     actionsFor,
     editableDraft,
-    withdrawPackage,
     disablePackage,
     enablePackage,
     evaluateDraft,

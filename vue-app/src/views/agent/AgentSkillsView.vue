@@ -267,7 +267,6 @@
                         <button class="skill-hub-action" type="button" @click="openPackageDetail(packageItem, $event, 'approve')">审批</button>
                         <button class="skill-hub-action" type="button" @click="openPackageDetail(packageItem, $event, 'reject')">驳回</button>
                       </template>
-                      <button v-if="hasPackageAction(packageItem, 'withdraw')" class="skill-hub-action" type="button" @click="openPackageDetail(packageItem, $event, 'withdraw')">撤回</button>
                       <button v-if="hasPackageAction(packageItem, 'disable')" class="skill-hub-action" type="button" @click="openPackageDetail(packageItem, $event, 'disable')">禁用</button>
                       <button v-if="hasPackageAction(packageItem, 'enable')" class="skill-hub-action" type="button" @click="openPackageDetail(packageItem, $event, 'enable')">启用</button>
                     </div>
@@ -619,7 +618,7 @@ import {
 
 type HubTabId = 'skills' | 'packages'
 type PackageListFilter = 'all' | 'draft' | 'review' | 'rejected' | 'published' | 'upgrade_required' | 'degraded' | 'paused' | 'disabled'
-type PackageManagementMode = 'withdraw' | 'disable' | 'enable'
+type PackageManagementMode = 'disable' | 'enable'
 type PackageDetailMode = 'detail' | 'approve' | 'reject' | PackageManagementMode
 
 const route = useRoute()
@@ -672,18 +671,17 @@ const packageReviewNote = ref('')
 const packageReviewError = ref('')
 const packageReviewBusy = ref(false)
 const packageReviewMode = ref<PackageDetailMode>('detail')
-const packageManagementLabels = { withdraw: '确认撤回', disable: '确认禁用', enable: '确认启用' }
+const packageManagementLabels = { disable: '确认禁用', enable: '确认启用' }
 const packageManagementDescriptions = {
-  withdraw: '撤回后将退出本轮审核，回到草稿状态，可继续编辑并重新试运行、提交。已有线上版本保持当前状态。',
   disable: '禁用后，当前已审核版本将停止被调用。正在编辑或审核的内容会保留，后续审批通过也不会自动启用。',
   enable: '启用后恢复当前已审核版本的调用；运行时仍检查依赖和调用权限。正在编辑或审核的内容不会提前生效。'
 }
 const packageManagementMode = computed<PackageManagementMode | null>(() =>
-  ['withdraw', 'disable', 'enable'].includes(packageReviewMode.value) ? packageReviewMode.value as PackageManagementMode : null
+  ['disable', 'enable'].includes(packageReviewMode.value) ? packageReviewMode.value as PackageManagementMode : null
 )
 const packageModeTitle = computed(() => ({
   detail: '', approve: '审批场景技能包 · ', reject: '驳回场景技能包 · ',
-  withdraw: '撤回审核 · ', disable: '禁用场景技能包 · ', enable: '启用场景技能包 · '
+  disable: '禁用场景技能包 · ', enable: '启用场景技能包 · '
 })[packageReviewMode.value])
 const packageReviewInput = ref<HTMLTextAreaElement | null>(null)
 const packageDetailId = ref('')
@@ -1229,11 +1227,10 @@ async function managePackage(action: PackageManagementMode) {
   packageReviewBusy.value = true
   packageReviewError.value = ''
   try {
-    const result = action === 'withdraw' ? scenarioStore.withdrawPackage(item.id, packageActor.value)
-      : action === 'disable' ? scenarioStore.disablePackage(item.id, packageActor.value)
+    const result = action === 'disable' ? scenarioStore.disablePackage(item.id, packageActor.value)
         : scenarioStore.enablePackage(item.id, packageActor.value)
     if (!result.ok) throw new Error(result.reasons.join('；'))
-    toast(`${item.name}：${{ withdraw: '已撤回，可编辑后重新提交', disable: '已禁用', enable: '已启用已审核版本' }[action]}`)
+    toast(`${item.name}：${{ disable: '已禁用', enable: '已启用已审核版本' }[action]}`)
     packageReviewMode.value = 'detail'
     await nextTick()
     packageDetailClose.value?.focus()

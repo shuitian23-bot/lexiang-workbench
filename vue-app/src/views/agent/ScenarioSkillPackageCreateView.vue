@@ -349,7 +349,7 @@ const editAccessError = computed(() => {
   if (!ownerId.value) return '请登录后创建或编辑场景技能包。'
   if (!props.draft) return ''
   if (props.draft.ownerId !== ownerId.value) return '仅原创建人可以编辑场景技能包。'
-  if (!scenarioStore.actionsFor(draftId, actor.value).includes('edit')) return '当前状态或权限不允许编辑，待审核内容需先撤回。'
+  if (!scenarioStore.actionsFor(draftId, actor.value).includes('edit')) return '当前状态或权限不允许编辑，待审核内容暂不可编辑。'
   if (scenarioStore.findPackage(draftId)?.updatedAt !== draftBaseUpdatedAt) return '技能包状态已更新，请返回列表后重新打开编辑。'
   return ''
 })

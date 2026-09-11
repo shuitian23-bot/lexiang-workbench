@@ -729,10 +729,10 @@ export function scenarioPackageActions(packageItem, actor) {
   if (!packageItem) return []
   const actions = ['view']
   const isOwner = Boolean(actor?.id?.trim() && actor.id === packageItem.ownerId)
+  if (isOwner && packageItem.status === 'review') return actions
   if (isOwner && ['draft', 'rejected', 'published', 'disabled'].includes(packageItem.status)
     && hasPolicyPermission(actor, 'scenario-package:create')
     && hasPolicyPermission(actor, 'scenario-package:compose:cross-menu')) actions.push('edit')
-  if (isOwner && packageItem.status === 'review') actions.push('withdraw')
   if (evaluateScenarioPackageReview(packageItem, actor).ok) actions.push('approve', 'reject')
   if (actor?.id?.trim() && hasPolicyPermission(actor, 'scenario-package:review') && hasIndependentPublishedEvidence(packageItem)) {
     const onlineStatus = packageItem.onlineStatus || packageItem.status
@@ -763,20 +763,15 @@ export function editableScenarioPackageDraft(packageItem, actor) {
 
 /** Apply only lifecycle changes allowed by the current trusted record. */
 export function transitionScenarioPackage(packageItem, actor, action, now) {
-  if (!['withdraw', 'disable', 'enable'].includes(action) || !scenarioPackageActions(packageItem, actor).includes(action)) {
+  if (!['disable', 'enable'].includes(action) || !scenarioPackageActions(packageItem, actor).includes(action)) {
     return { ok: false, reasons: ['当前账号或场景技能包状态不允许此操作'] }
   }
   const result = cloneScenarioTestSnapshot(packageItem)
   result.updatedAt = now
-  result.auditEvents = [...(result.auditEvents || []), { type: action === 'withdraw' ? 'withdrawn' : action === 'disable' ? 'disabled' : 'enabled', actorId: actor.id, at: now }]
-  if (action === 'withdraw') {
-    result.status = 'draft'
-    for (const field of ['submittedAt', 'submittedBy', 'reviewedAt', 'reviewedBy', 'reviewNote', 'approvedAt', 'publishedAt', 'testReport', 'testRequest']) delete result[field]
-  } else {
-    result.publishedSnapshot = scenarioPublishedSnapshot(packageItem)
-    result.onlineStatus = action === 'disable' ? 'disabled' : 'published'
-    if (['published', 'disabled'].includes(result.status)) result.status = result.onlineStatus
-  }
+  result.auditEvents = [...(result.auditEvents || []), { type: action === 'disable' ? 'disabled' : 'enabled', actorId: actor.id, at: now }]
+  result.publishedSnapshot = scenarioPublishedSnapshot(packageItem)
+  result.onlineStatus = action === 'disable' ? 'disabled' : 'published'
+  if (['published', 'disabled'].includes(result.status)) result.status = result.onlineStatus
   return { ok: true, reasons: [], package: result }
 }
 
@@ -789,11 +784,11 @@ export function transitionScenarioPackage(packageItem, actor, action, now) {
  * @param {ScenarioPackageDraft} [previous]
  */
 export function submitScenarioPackage(draft, actor, now, authoritativeSkills, previous) {
-  if (previous && (previous.id !== draft.id || !scenarioPackageActions(previous, actor).includes('edit'))) {
-    throw new Error('当前状态或账号不允许修订场景技能包，请先撤回待审核版本或使用原所有者账号')
-  }
   if (previous && (previous.ownerId !== actor.id || draft.ownerId !== previous.ownerId)) {
     throw new Error('仅原包所有者可以重新提交审核')
+  }
+  if (previous && (previous.id !== draft.id || !scenarioPackageActions(previous, actor).includes('edit'))) {
+    throw new Error('当前状态或账号不允许修订场景技能包，待审核内容不能编辑')
   }
   if (previous && (!draft.baseUpdatedAt || draft.baseUpdatedAt !== previous.updatedAt)) {
     throw new Error('场景技能包已更新或缺少编辑版本，请重新打开编辑后提交')
