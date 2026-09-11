@@ -39,6 +39,8 @@
 .lx-job-heading-body>.lx-job-source{margin:0}
 .lx-job-apply-area{display:grid;gap:10px;justify-items:center;flex:none;width:214px;padding-top:2px}
 .lx-recruitment-page .lx-job-primary{display:inline-flex;align-items:center;justify-content:center;width:180px;min-height:42px;padding:9px 20px;border:1px solid transparent;border-radius:8px;background:var(--lx-gradient-brand,linear-gradient(90deg,#4D144A 11.9%,#B8252E 100%));color:var(--job-surface);font-size:15px;text-decoration:none;font-weight:500}
+.lx-recruitment-page [data-job-apply]{cursor:pointer}
+.lx-recruitment-page [data-job-apply]:disabled{cursor:wait}
 .lx-job-primary:hover{box-shadow:var(--lx-shadow-soft,0 6px 18px rgba(50,29,57,.08))}
 .lx-job-primary:active{transform:translateY(1px)}
 .lx-job-apply-area>span{font-size:12px;color:var(--job-soft)}
