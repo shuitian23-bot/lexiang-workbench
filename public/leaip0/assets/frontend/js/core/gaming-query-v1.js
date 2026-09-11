@@ -4,7 +4,7 @@
   // Positions are intentional: the user approved reusing Y9000P twice.
   const slots = ['1054054', '1055587', '1054054', '1055589', '1054054', '1053096', '1052919', '1056246'];
   const marker = 'gaming-notebook-20260911';
-  const copy = '根据你的需求，已为你整理 **8 款笔记本电脑**（前 5 款为拯救者，另补充 3 款 YOGA），可以在右侧查看配置、价格和商品详情。\n\n列表第 **4 款是拯救者Y7000X**，搭载酷睿 7 245HX、RTX 5060 8GB 独显和 32GB 内存，可作为游戏与日常使用的选购参考。\n\n点击“**我要对比1、3、4**”后，我会并排展示这三个位置的商品，并推荐第 4 款 Y7000X；相比本次参与对比的 Y9000P，它的价格更低。AI 生成内容仅供参考，价格与配置以商品详情为准。';
+  const copy = "根据您的需求，我拆解了以下几个核心条件。\n\n- 产品类型：**游戏笔记本电脑**\n- 使用场景：**游戏娱乐**\n\n根据您的需求（**游戏、笔记本电脑**），以下是几款可供选择的联想笔记本，您可以结合配置、价格和日常使用需求进行挑选：\n\n**拯救者 Y7000X 2026**：搭载酷睿 7 245HX 处理器与 RTX 5060 8GB 独显，配备 32GB 内存和 15.3 英寸屏幕。本次推荐包含碳晶黑与冰魄白两种配置，存储分别为 512GB+1TB SSD 和 512GB SSD，适合关注游戏配置的用户。\n\n**拯救者 Y9000P**：搭载酷睿 Ultra 9 处理器与 RTX 5060 8GB 独显，配备 16 英寸屏幕、64GB 内存和 1TB SSD。大容量内存可兼顾游戏与多任务使用，冰魄白配色也提供了不同的外观选择。\n\n**YOGA Pro 15 Aura 与 YOGA Pro 16 Aura**：均搭载酷睿 Ultra 7 356H 处理器、RTX 5060 显卡、32GB 内存和 1TB SSD，可作为兼顾游戏与内容创作的备选。其中 Pro 16 Aura 配备触控 OLED 屏和灵感妙笔，适合有触控与创作需求的用户。\n\n**YOGA Pro 15 锐龙**：搭载锐龙 AI Max+ 388 处理器，配备 64GB 内存、1TB SSD 和触控 OLED 屏，采用集成显卡，可供同时关注日常办公与创作的用户参考。\n\nAI 生成内容仅供参考，具体价格与配置以商品详情为准。";
   function matches(text) { return String(text || '').replace(/\s/g, '').replace(/[。！!？?]+$/, '') === query; }
   async function load(token) {
     const generation = window.__lxGeneration;
