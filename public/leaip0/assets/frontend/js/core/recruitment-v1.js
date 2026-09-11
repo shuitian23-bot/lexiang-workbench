@@ -12,9 +12,7 @@
     return `<button type="button" class="lx-job-row" data-job-open="${escape(job.id)}" aria-label="查看${escape(job.title)}招聘详情"><span class="lx-job-row-copy"><span class="lx-job-row-heading"><strong>${escape(job.title)}</strong>${index < 3 ? '<small class="lx-job-recommend">优先推荐</small>' : ''}</span><span class="lx-job-meta">${meta(job)}</span><span class="lx-job-summary">${escape(job.summary)}</span><span class="lx-job-source">联想 · 职位编号 ${escape(job.reqId)}</span></span><span class="lx-job-row-end"><span>${escape(job.posted)} 发布</span><span class="lx-job-detail-link">查看详情 ${icon}</span></span></button>`;
   }
   function list(data) {
-    const cities = [...new Set(data.jobs.map(job=>job.city))];
-    const directions = [...new Set(data.jobs.map(job=>job.direction))];
-    return `<section class="lx-recruitment-page" data-job-list data-job-layout="2" data-job-source-date="${escape(data.checkedAt)}"><header class="lx-wp-head lx-job-page-head"><div><h2>招聘推荐</h2><p>联想官方公开职位 · ${escape(data.checkedAt)} 核对</p></div><a class="lx-job-secondary" href="https://jobs.lenovo.com/zh_CN/careers/SearchJobs" target="_blank" rel="noopener noreferrer">全部官方职位 ${icon}</a></header><div class="lx-job-toolbar" role="search" aria-label="筛选招聘职位"><label class="lx-job-search"><span>搜索职位</span><input type="search" data-job-search placeholder="搜索岗位、技能或职位编号" aria-label="搜索岗位、技能或职位编号"></label><label><span>工作地点</span><select data-job-city aria-label="工作地点"><option value="">全部地点</option>${cities.map(city=>`<option value="${escape(city)}">${escape(city)}</option>`).join('')}</select></label><label><span>职位方向</span><select data-job-direction aria-label="职位方向"><option value="">全部方向</option>${directions.map(item=>`<option value="${escape(item)}">${escape(item)}</option>`).join('')}</select></label><label><span>排序方式</span><select data-job-sort aria-label="排序方式"><option value="recommended">推荐顺序</option><option value="latest">最新发布</option></select></label></div><div class="lx-job-list-intro"><span data-job-count aria-live="polite">共 ${data.jobs.length} 个推荐职位</span><span>推荐依据：岗位方向与发布时间</span></div><div class="lx-job-list" data-job-rows>${data.jobs.map(row).join('')}</div><p class="lx-p0-disclaimer">${disclaimer}</p></section>`;
+    return `<section class="lx-recruitment-page" data-job-list data-job-layout="3"><header class="lx-wp-head lx-job-page-head"><h2>招聘推荐</h2></header><div class="lx-job-list" data-job-rows>${data.jobs.map(row).join('')}</div><p class="lx-p0-disclaimer">${disclaimer}</p></section>`;
   }
   function bullets(items) { return '<ul>'+items.map(item=>'<li>'+escape(item)+'</li>').join('')+'</ul>'; }
   function detail(payload) {
@@ -36,59 +34,33 @@
     if (cached) return cached;
     try { return JSON.parse(localStorage.getItem('lexiang.resultTabs.v1')||'[]').find(item=>item.id===listId)?.payload; } catch { return null; }
   }
-  function saveList(page) {
-    const tab = window.__lxState?.tabs?.find(item=>item.id===listId);
-    if (!tab) return;
-    const snapshot = page.cloneNode(true);
-    snapshot.querySelector('[data-job-search]').setAttribute('value',page.querySelector('[data-job-search]').value);
-    for (const selector of ['[data-job-city]','[data-job-direction]','[data-job-sort]']) {
-      const value=page.querySelector(selector).value;
-      snapshot.querySelectorAll(selector+' option').forEach(option=>option.toggleAttribute('selected',option.value===value));
-    }
-    tab.html = snapshot.outerHTML;
-    runtime.remember(tab);
-    window.__lxSaveConversationNow?.();
-  }
-  function filter(page) {
-    const data=currentData(); if (!data) return;
-    const search=page.querySelector('[data-job-search]').value.trim().toLowerCase(),city=page.querySelector('[data-job-city]').value,direction=page.querySelector('[data-job-direction]').value,sort=page.querySelector('[data-job-sort]').value;
-    const jobs=data.jobs.filter(job=>(!city||job.city===city)&&(!direction||job.direction===direction)&&(!search||[job.title,job.officialTitle,job.summary,job.reqId,...job.requirements].join(' ').toLowerCase().includes(search)));
-    if(sort==='latest')jobs.sort((a,b)=>b.posted.localeCompare(a.posted));
-    page.querySelector('[data-job-count]').textContent='共 '+jobs.length+' 个匹配职位';
-    page.querySelector('[data-job-rows]').innerHTML=jobs.length?jobs.map(job=>row(job,data.jobs.indexOf(job))).join(''):'<div class="lx-job-empty"><h3>暂未找到匹配职位</h3><p>试试其他关键词，或放宽地点和职位方向。</p><button type="button" class="lx-job-secondary" data-job-reset>重置筛选</button></div>';
-    saveList(page);
-  }
   runtime.register('recruitment-list',{
     matches,load,skill:'联想招聘推荐',complete:data=>'已完成 Skill(联想招聘推荐)：整理 '+data.jobs.length+' 个官方公开职位',
     answer:data=>[
       `已从联想招聘官网整理 **${data.jobs.length} 个近期公开职位**，包含 AI 智能运维、算力产品营销、产品安全与项目管理等方向，信息核对日期为 ${data.checkedAt}。`,
-      '目前你还没有提供工作城市和职业背景，我先按**岗位方向与发布时间**排序。你可以在右侧筛选地点、搜索关键词，进一步找到相关机会。',
+      '目前你还没有提供工作城市和职业背景，我先按**岗位方向与发布时间**整理，方便你在右侧逐项查看相关机会。',
       '点击职位可查看职责和任职要求，详情中的**一键应聘**会进入该岗位的联想官方申请入口。AI 整理内容仅供参考，招聘状态与完整要求以官网为准。'
-    ].join('\n\n'),cardTitle:'查看招聘推荐',cardDescription:data=>'已整理 '+data.jobs.length+' 个职位 · 支持筛选、查看详情与应聘',
+    ].join('\n\n'),cardTitle:'查看招聘推荐',cardDescription:data=>'已整理 '+data.jobs.length+' 个职位 · 查看详情与应聘',
     result:data=>runtime.page('recruitment-list',listId,'招聘推荐',data),render:list
   });
   runtime.register('recruitment-detail',{matches:()=>false,render:detail});
-  document.addEventListener('input',event=>{const page=event.target.closest?.('[data-job-list]');if(page&&event.target.matches('[data-job-search]'))filter(page);});
-  document.addEventListener('change',event=>{const page=event.target.closest?.('[data-job-list]');if(page&&event.target.matches('select'))filter(page);});
   document.addEventListener('click',event=>{
-    const button=event.target.closest?.('[data-job-open],[data-job-back],[data-job-reset]'); if(!button)return;
+    const button=event.target.closest?.('[data-job-open],[data-job-back]'); if(!button)return;
     event.preventDefault();
-    if(button.hasAttribute('data-job-reset')){const page=button.closest('[data-job-list]');page.querySelector('[data-job-search]').value='';page.querySelector('[data-job-city]').value='';page.querySelector('[data-job-direction]').value='';page.querySelector('[data-job-sort]').value='recommended';filter(page);return;}
     if(button.hasAttribute('data-job-back')){if(!window.__lxBridge.restoreResultTab(listId)){const data=currentData();if(data)runtime.open(runtime.page('recruitment-list',listId,'招聘推荐',data));}return;}
     const data=currentData(),job=data?.jobs.find(item=>item.id===button.dataset.jobOpen);
     if(job)runtime.open(runtime.page('recruitment-detail','info:recruitment-job:'+job.reqId,job.title+'详情',{job,checkedAt:data.checkedAt}));
   });
   function refreshLegacyPages() {
-    const pages=document.querySelectorAll('.lx-recruitment-page:not([data-job-layout="2"])');
+    const pages=document.querySelectorAll('[data-job-list]:not([data-job-layout="3"]),[data-job-detail]:not([data-job-layout="2"])');
     if(!pages.length)return;
     let stored=[];try{stored=JSON.parse(localStorage.getItem('lexiang.resultTabs.v1')||'[]');}catch{}
     const tabs=window.__lxState?.tabs||[],data=currentData();
     pages.forEach(old=>{
       if(old.hasAttribute('data-job-list')&&data){
-        const values={};for(const key of ['search','city','direction','sort'])values[key]=old.querySelector('[data-job-'+key+']')?.value||'';
-        const fragment=document.createElement('template');fragment.innerHTML=list(data);const page=fragment.content.firstElementChild;old.replaceWith(page);
-        for(const [key,value] of Object.entries(values)){const control=page.querySelector('[data-job-'+key+']');if(control)control.value=value;}
-        filter(page);
+        const html=list(data);old.outerHTML=html;
+        const tab=tabs.find(item=>item.id===listId)||stored.find(item=>item.id===listId);
+        if(tab){tab.html=html;runtime.remember(tab);window.__lxSaveConversationNow?.();}
       }else if(old.dataset.jobDetail){
         const id=old.dataset.jobDetail,tab=tabs.find(item=>item.payload?.job?.id===id),saved=tab||stored.find(item=>item.payload?.job?.id===id);
         const payload=saved?.payload||(data?.jobs.find(job=>job.id===id)?{job:data.jobs.find(job=>job.id===id),checkedAt:data.checkedAt}:null);
