@@ -29,10 +29,10 @@
 .lx-job-heading-copy{min-width:0;flex:1}
 .lx-job-title-row{display:flex;align-items:flex-start;gap:10px}
 .lx-job-title-row h2{flex:1;min-width:0;overflow-wrap:anywhere}
-.lx-recruitment-page .lx-job-back{display:inline-flex;align-items:center;justify-content:center;flex:0 0 32px;width:32px;height:32px;margin:0;padding:4px;border:0;border-radius:8px;background:transparent;cursor:pointer}
+.lx-recruitment-page[data-job-detail] .lx-job-back{display:none!important}
 .lx-job-back img{display:block;width:24px;height:24px;transform:rotate(180deg)}
 .lx-recruitment-page .lx-job-back:hover{background:var(--job-hover)}
-.lx-job-heading-body{padding-left:42px}
+.lx-job-heading-body{padding-left:0}
 .lx-job-tags{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 14px}
 .lx-job-official-title{font-size:12px;color:var(--job-soft);overflow-wrap:anywhere}
 .lx-job-lead{font-size:14px;color:var(--job-secondary);margin:0 0 12px!important}
@@ -61,7 +61,7 @@
 .lx-job-fit small{color:var(--job-soft);font-size:12px}
 .lx-recruitment-page>.lx-p0-disclaimer{margin:22px 0 0!important;color:var(--job-soft);font-size:12px;line-height:1.7}
 @container(max-width:780px){.lx-job-row{padding:18px!important;gap:14px!important}.lx-job-row-heading{flex-wrap:wrap;gap:6px}.lx-job-row-heading strong{white-space:normal}.lx-job-apply-area{width:185px}.lx-job-requirement-grid{grid-template-columns:minmax(0,1fr);gap:28px}.lx-job-facts{grid-template-columns:repeat(2,minmax(0,1fr))}.lx-job-overview{padding:20px 18px 0}.lx-job-detail-body{padding:22px 20px}}
-@container(max-width:520px){.lx-job-page-head{align-items:flex-start;flex-direction:column}.lx-job-row{align-items:flex-start!important;flex-direction:column}.lx-job-row-end{display:flex;justify-content:space-between;width:100%;gap:12px}.lx-job-detail-head{flex-direction:column;gap:20px}.lx-job-apply-area{width:100%;justify-items:start;padding-left:42px}.lx-job-fit-heading{align-items:flex-start;flex-direction:column;gap:4px}}
+@container(max-width:520px){.lx-job-page-head{align-items:flex-start;flex-direction:column}.lx-job-row{align-items:flex-start!important;flex-direction:column}.lx-job-row-end{display:flex;justify-content:space-between;width:100%;gap:12px}.lx-job-detail-head{flex-direction:column;gap:20px}.lx-job-apply-area{width:100%;justify-items:start;padding-left:0}.lx-job-fit-heading{align-items:flex-start;flex-direction:column;gap:4px}}
 @media(prefers-reduced-motion:reduce){.lx-recruitment-page *{transition:none!important;animation:none!important}}
 .content[data-view="info"]>.info-page:has(>.lx-recruitment-page){max-width:none!important;width:100%!important}
 .info-page:has(>.lx-recruitment-page)>.reco-head{display:none!important}
