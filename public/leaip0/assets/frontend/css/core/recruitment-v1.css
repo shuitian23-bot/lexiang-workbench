@@ -11,7 +11,7 @@
 .lx-job-secondary img,.lx-job-detail-link img{width:18px;height:18px;flex:none}
 .lx-recruitment-page .lx-job-secondary:hover{background:var(--job-hover);border-color:var(--job-accent)}
 .lx-recruitment-page .lx-job-secondary:active{transform:translateY(1px)}
-.lx-job-list{display:grid;gap:14px;background:var(--job-page);border-radius:14px}
+.lx-job-list{display:grid;gap:14px;background:transparent;border-radius:14px}
 .lx-recruitment-page .lx-job-row{width:100%;display:flex;align-items:center;justify-content:space-between;gap:24px;text-align:left;min-height:136px;padding:20px 24px;border:0;border-radius:14px;box-shadow:none;background:var(--job-surface);color:var(--job-text);cursor:pointer;transition:transform .18s ease}
 .lx-recruitment-page .lx-job-row:hover{background:var(--job-surface);transform:translateY(-1px)}
 .lx-recruitment-page .lx-job-row:active{transform:translateY(0)}
@@ -65,3 +65,14 @@
 @media(prefers-reduced-motion:reduce){.lx-recruitment-page *{transition:none!important;animation:none!important}}
 .content[data-view="info"]>.info-page:has(>.lx-recruitment-page){max-width:none!important;width:100%!important}
 .info-page:has(>.lx-recruitment-page)>.reco-head{display:none!important}
+
+/* One background for the complete recruitment workspace, including its side gutters. */
+html body .shell>.content[data-view="info"]:has(>.info-page>[data-job-list]){
+  background-color:var(--lx-neutral-bg,#f6f6f6)!important;
+  background-image:linear-gradient(180deg,var(--lx-surface,#fff) 0,var(--lx-surface,#fff) 74px,var(--lx-neutral-bg,#f6f6f6) 214px)!important;
+  background-size:100% 214px!important;
+  background-repeat:no-repeat!important;
+}
+.content[data-view="info"]>.info-page:has(>[data-job-list]),
+.lx-recruitment-page[data-job-list],
+.lx-recruitment-page[data-job-list]>.lx-job-list{background:transparent!important}
