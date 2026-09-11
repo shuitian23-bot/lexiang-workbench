@@ -17,6 +17,10 @@ RELEASED_AT=${PORTAL_RELEASED_AT:-$(TZ=Asia/Shanghai date '+%Y-%m-%d %H:%M:%S')}
 LEDGER_PATH=${PORTAL_RELEASE_LEDGER_PATH:-/opt/projects/portal-workbench-release-ledger.json}
 NEW_OUTPUT=${PORTAL_RELEASE_NEW_OUTPUT:-/opt/projects/lexiang-new/public/admin-vue/poc-release-ledger.json}
 FORMAL_OUTPUT=${PORTAL_RELEASE_FORMAL_OUTPUT:-/opt/projects/lexiang/public/admin-vue/poc-release-ledger.json}
+EXPECTED_LEDGER_ARGS=()
+if [ -n "${PORTAL_RELEASE_EXPECTED_LEDGER_SHA256:-}" ]; then
+  EXPECTED_LEDGER_ARGS+=(--expected-ledger-sha256 "$PORTAL_RELEASE_EXPECTED_LEDGER_SHA256")
+fi
 
 node "$SCRIPT_DIR/portal-release-ledger.mjs" record \
   --environment "$ENVIRONMENT" \
@@ -27,6 +31,7 @@ node "$SCRIPT_DIR/portal-release-ledger.mjs" record \
   --version "$VERSION" \
   --ledger "$LEDGER_PATH" \
   --output "$NEW_OUTPUT" \
-  --output "$FORMAL_OUTPUT"
+  --output "$FORMAL_OUTPUT" \
+  "${EXPECTED_LEDGER_ARGS[@]}"
 
 echo "Recorded $ENVIRONMENT release for $LOG_TITLE by $PUBLISHER at $RELEASED_AT ($VERSION)"
