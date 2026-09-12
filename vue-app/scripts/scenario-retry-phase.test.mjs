@@ -2,8 +2,8 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import { createPinnedScenarioStep, evaluateScenarioTrialForSubmit, getScenarioTestFingerprint, isScenarioSimulationCurrent, normalizeScenarioSimulationRequest, submitScenarioPackage } from '../src/domain/scenarioSkillPackages.js'
 import { createScenarioSimulationRequest, runScenarioSimulation } from '../src/domain/scenarioPackageTesting.js'
+import { scenarioPmActor } from './helpers/scenarioActors.mjs'
 
-const actor = { id: 'retry-creator', permissions: ['*'] }
 const catalog = [
   ['workplace-segment-operations', 'v1.2.0', '职场人群经营分析'],
   ['employee-certification-insight', 'v1.0.0', '职场认证状态查询']
@@ -11,6 +11,7 @@ const catalog = [
   id, version, name, menu: name, online: version, status: 'published', onlineStatus: 'published',
   permissions: { menu: [`menu:${id}`], skill: [`skill:${id}`], data: [`data:${id}`], action: [`action:${id}`] }
 }))
+const actor = scenarioPmActor('retry-creator', catalog)
 
 function fixture(skills = catalog) {
   const steps = skills.map((skill, index) => createPinnedScenarioStep(skill, {

@@ -2,8 +2,9 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import { createPinnedScenarioStep, evaluateScenarioTrialForSubmit } from '../src/domain/scenarioSkillPackages.js'
 import { createScenarioSimulationRequest, runScenarioSimulation } from '../src/domain/scenarioPackageTesting.js'
+import { scenarioPmActor } from './helpers/scenarioActors.mjs'
 
-const owner = { id: 'inventory-owner', permissions: ['*'] }
+const owner = { id: 'inventory-owner' }
 const skill = (id, name, version, menu) => ({
   id, name, version, online: version, status: 'published', onlineStatus: 'published', menu,
   permissions: { menu: [`menu:${menu}`], skill: [`skill:${id}`], data: [`data:${id}`], action: [`action:${id}`] }
@@ -26,7 +27,7 @@ function recoveredInventory({ id = 'legacy-inventory-alert', version = 'v0.9.0' 
   return { catalog, draft, request: createScenarioSimulationRequest(draft) }
 }
 
-function run(state, actor = owner) {
+function run(state, actor = scenarioPmActor(owner.id, state.catalog)) {
   state.draft.testRequest = state.request
   state.draft.testReport = runScenarioSimulation(state.draft, state.catalog, state.request, actor)
   return state.draft.testReport
@@ -111,10 +112,10 @@ for (const [name, override] of [
 
 for (const [name, change, actor] of [
   ['missing permissions', () => {}, { id: owner.id, permissions: [] }],
-  ['another owner', () => {}, { id: 'another-owner', permissions: ['*'] }],
-  ['a disabled source Skill', state => { state.catalog[1].onlineStatus = 'disabled' }, owner],
-  ['an unresolved chain', state => { state.draft.steps[1].predecessorId = 'missing-node' }, owner],
-  ['an outdated fixed version', state => { state.catalog[1].version = 'v0.9.1'; state.catalog[1].online = 'v0.9.1' }, owner]
+  ['another owner', () => {}, scenarioPmActor('another-owner', ['enterprise-customer-followup', 'legacy-inventory-alert'])],
+  ['a disabled source Skill', state => { state.catalog[1].onlineStatus = 'disabled' }],
+  ['an unresolved chain', state => { state.draft.steps[1].predecessorId = 'missing-node' }],
+  ['an outdated fixed version', state => { state.catalog[1].version = 'v0.9.1'; state.catalog[1].online = 'v0.9.1' }]
 ]) {
   test(`the inventory fixture does not bypass ${name}`, () => {
     const state = recoveredInventory()

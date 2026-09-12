@@ -8,6 +8,7 @@ import { createSSRApp, nextTick, shallowRef } from 'vue'
 import { renderToString } from 'vue/server-renderer'
 import { createMemoryHistory, createRouter, matchedRouteKey } from 'vue-router'
 import { runScenarioSimulation } from '../src/domain/scenarioPackageTesting.js'
+import { scenarioPmActor, scenarioPmPermissions } from './helpers/scenarioActors.mjs'
 
 const previousStorage = globalThis.localStorage
 globalThis.localStorage = { getItem() { return null }, setItem() {}, removeItem() {} }
@@ -17,13 +18,14 @@ const seedPlugin = {
   name: 'scenario-package-actions-test-seeds', enforce: 'pre',
   transform(source, id) {
     if (!id.endsWith('/src/stores/scenarioSkillPackages.ts')) return
-    // Existing drafts are injected only in this test process; no product action creates them.
+    // Existing draft revisions are injected only in this test process.
     return `let scenarioPackageTestSeeds
 export function seedScenarioPackagesForTest(store, seeds) {
   scenarioPackageTestSeeds = seeds
   try { store.resetToInitialMock() } finally { scenarioPackageTestSeeds = undefined }
 }
-${source.replaceAll("createSeedScenarioPackages(selectableSkills.value, skillHub.items, app.user || '')", "(scenarioPackageTestSeeds || createSeedScenarioPackages(selectableSkills.value, skillHub.items, app.user || ''))")}`
+${source.replaceAll('createSeedScenarioPackages(selectableSkills.value, skillHub.items, currentAuthorId())', '(scenarioPackageTestSeeds || createSeedScenarioPackages(selectableSkills.value, skillHub.items, currentAuthorId()))')
+    .replaceAll('createSeedScenarioPackages(selectableSkills.value, skillHub.items, ownerId)', '(scenarioPackageTestSeeds || createSeedScenarioPackages(selectableSkills.value, skillHub.items, ownerId))')}`
   },
 }
 const server = await createServer({ root, plugins: [seedPlugin], logLevel: 'error', server: { middlewareMode: true, hmr: { server: httpHost } }, appType: 'custom' })
@@ -34,7 +36,7 @@ const [{ default: View }, { useAppStore }, { useScenarioSkillPackagesStore, seed
   server.ssrLoadModule('/src/stores/skillHub.ts'),
 ])
 const copy = value => JSON.parse(JSON.stringify(value))
-const creationPermissions = ['scenario-package:create', 'scenario-package:compose:cross-menu']
+const creationPermissions = scenarioPmPermissions([])
 const reviewer = { id: 'independent-package-reviewer', permissions: ['scenario-package:review'] }
 function seedDraft(store, id) {
   seedScenarioPackagesForTest(store, copy(store.packages).map(item => item.id === id ? {
@@ -50,7 +52,7 @@ after(async () => {
   else globalThis.localStorage = previousStorage
 })
 
-async function fixture({ actor = reviewer.id, permissions = ['*'], role = '工作台用户', mode, status, recordId = 'seed-scenario-pending-review', prepare, query = {} } = {}) {
+async function fixture({ actor = reviewer.id, permissions = reviewer.permissions, role = '工作台用户', mode, status, recordId = 'seed-scenario-pending-review', prepare, query = {} } = {}) {
   const pinia = createPinia()
   setActivePinia(pinia)
   const account = useAppStore()
@@ -61,7 +63,7 @@ async function fixture({ actor = reviewer.id, permissions = ['*'], role = '工�
   account.notify = message => notices.push(message)
   const store = useScenarioSkillPackagesStore()
   const hub = useSkillHubStore()
-  const owner = { id: store.findPackage(recordId).ownerId, permissions: ['*'] }
+  const owner = scenarioPmActor(store.findPackage(recordId).ownerId, store.selectableSkills)
   if (status === 'rejected') store.rejectPackage(recordId, reviewer, '补充本次场景边界。')
   if (status === 'draft') seedDraft(store, recordId)
   if (status === 'published' || status === 'disabled') store.approvePackage(recordId, reviewer)
@@ -102,7 +104,7 @@ function packageRowHtml(html, id) {
 }
 
 test('saved drafts return to the package list and highlight an editable draft without submitting', async () => {
-  const current = await fixture({ actor: 'draft-list-owner', query: { mode: 'create' } })
+  const current = await fixture({ actor: 'draft-list-owner', permissions: creationPermissions, query: { mode: 'create' } })
   const saved = current.store.saveDraft({
     id: 'draft-list-save', name: '保存后继续配置', description: '', targetAudience: '',
     ownerId: current.account.user, steps: []
@@ -131,7 +133,7 @@ test('an independent administrator sees separate detail, approve and reject acti
 })
 
 for (const audience of [
-  { label: 'the original creator', actor: 'pm-li', actions: ['详情'] },
+  { label: 'the original creator', actor: 'pm-li', permissions: creationPermissions, actions: ['详情'] },
   { label: 'an account without review permission', permissions: [], actions: ['详情'] },
   { label: 'a published package', recordId: 'seed-workplace-certification-operations', actions: ['详情', '禁用'] },
 ]) {
@@ -283,6 +285,15 @@ for (const status of ['draft', 'review', 'rejected', 'published', 'disabled']) {
     assert.deepEqual(rowActions(html, record.id), status === 'review' ? ['详情'] : ['详情', '编辑'])
   })
 
+  test(`an owner with administrator permissions cannot edit a historical ${status} package`, async () => {
+    const { html, record, state } = await fixture({ actor: 'pm-li', permissions: ['*'], status })
+    const actions = { published: ['禁用'], disabled: ['启用'] }[status] || []
+    assert.deepEqual(rowActions(html, record.id), ['详情', ...actions])
+    await state.editPackage(record)
+    assert.equal(state.isPackageCreate.value, false)
+    assert.equal(state.editingPackage.value, undefined)
+  })
+
   test(`an unrelated account cannot manage a ${status} package through an administrator role label alone`, async () => {
     const { html, record } = await fixture({ permissions: [], role: '平台管理员', status })
     assert.deepEqual(rowActions(html, record.id), ['详情'])
@@ -338,6 +349,7 @@ for (const audience of [
   { label: 'a pending owner', actor: 'pm-li', status: 'review', permissions: creationPermissions },
   { label: 'a different owner', status: 'published' },
   { label: 'an owner without creation permission', actor: 'pm-li', status: 'published', permissions: [] },
+  { label: 'an administrator who owns a historical package', actor: 'pm-li', status: 'published', permissions: ['*'] },
 ]) {
   test(`the edit route cannot bypass ownership, permissions or review state for ${audience.label}`, async () => {
     const { state } = await fixture({ ...audience, query: { mode: 'create', edit: 'seed-scenario-pending-review' } })
@@ -587,8 +599,8 @@ test('a healthy pending revision reports its old online snapshot as paused when 
   assert.match(state.packageHealthHint(store.findPackage(record.id)), /已审核版本.*保持禁用/)
 })
 
-test('initial examples render all eight state filters and preserve owner review and published actions', async () => {
-  const { state, store, account, html, renderCurrent } = await fixture({ actor: 'initial-state-viewer' })
+test('initial examples render all eight state filters while administrators review PM-owned records', async () => {
+  const { state, store, account, html, renderCurrent } = await fixture({ actor: 'initial-state-reviewer' })
   for (const filter of ['draft', 'review', 'rejected', 'published', 'disabled', 'upgrade_required', 'degraded', 'paused']) {
     state.resetPackageFilters()
     state.packageStatusFilter.value = filter
@@ -598,10 +610,21 @@ test('initial examples render all eight state filters and preserve owner review 
     const filteredHtml = (await renderCurrent()).html
     for (const record of records) packageRowHtml(filteredHtml, record.id)
   }
+  assert.ok(store.packages.every(item => item.ownerId !== account.user))
+  const review = store.packages.find(item => item.ownerId === 'pm-li' && item.status === 'review')
+  const published = store.packages.find(item => item.ownerId === 'pm-li' && item.status === 'published')
+  assert.ok(review)
+  assert.ok(published)
+  assert.deepEqual(rowActions(html, review.id), ['详情', '审批', '驳回'])
+  assert.deepEqual(rowActions(html, published.id), ['详情', '禁用'])
+})
+
+test('initial PM examples permit author editing without review or management actions', async () => {
+  const { store, account, html } = await fixture({ actor: 'initial-pm-author', permissions: creationPermissions })
   const ownReview = store.packages.find(item => item.ownerId === account.user && item.status === 'review')
   const ownPublished = store.packages.find(item => item.ownerId === account.user && item.status === 'published')
   assert.ok(ownReview)
   assert.ok(ownPublished)
   assert.deepEqual(rowActions(html, ownReview.id), ['详情'])
-  assert.deepEqual(rowActions(html, ownPublished.id), ['详情', '编辑', '禁用'])
+  assert.deepEqual(rowActions(html, ownPublished.id), ['详情', '编辑'])
 })

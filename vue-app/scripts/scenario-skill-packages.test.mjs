@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import test, { after } from 'node:test'
 import { createServer } from 'vite'
 import { runScenarioSimulation } from '../src/domain/scenarioPackageTesting.js'
+import { scenarioPmActor } from './helpers/scenarioActors.mjs'
 
 import {
   createPinnedScenarioStep,
@@ -16,8 +17,7 @@ const previousStorage = globalThis.localStorage
 globalThis.localStorage = { getItem() { return null }, setItem() {}, removeItem() {} }
 
 const actor = (overrides = {}) => ({
-  id: 'admin',
-  permissions: ['*'],
+  ...scenarioPmActor('pm-owner', ['skill-customer-query', 'skill-order-export', 'employee-certification-insight', 'workplace-segment-operations', 'enterprise-customer-followup']),
   ...overrides
 })
 
@@ -58,7 +58,7 @@ const validDraft = (overrides = {}) => ({
   name: '销售服务包',
   description: '串联客户查询与订单导出，完成销售服务闭环。',
   targetAudience: '企业销售运营',
-  ownerId: 'admin',
+  ownerId: 'pm-owner',
   steps: [
     createPinnedScenarioStep(publishedSkill(), { id: 'customer', required: true }),
     createPinnedScenarioStep(secondPublishedSkill(), {
@@ -330,7 +330,7 @@ test('requires a non-empty actor and matching non-empty owner for submission', (
     [validDraft({ ownerId: '   ' }), actor()],
     [validDraft(), actor({ id: '' })],
     [validDraft(), actor({ id: 'other-owner' })],
-    [validDraft({ ownerId: ' admin ' }), actor({ id: 'admin' })]
+    [validDraft({ ownerId: ' pm-owner ' }), actor({ id: 'pm-owner' })]
   ]) {
     const result = evaluatePackageForPublish(draft, currentActor)
     assert.equal(result.ok, false)

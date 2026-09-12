@@ -5,6 +5,7 @@ import { createPinia, setActivePinia } from 'pinia'
 import { nextTick } from 'vue'
 import { evaluateScenarioTrialForSubmit } from '../src/domain/scenarioSkillPackages.js'
 import { runScenarioSimulation } from '../src/domain/scenarioPackageTesting.js'
+import { scenarioPmActor, scenarioPmPermissions } from './helpers/scenarioActors.mjs'
 
 const previousStorage = globalThis.localStorage
 globalThis.localStorage = { getItem() { return null }, setItem() {}, removeItem() {} }
@@ -20,17 +21,18 @@ after(async () => {
   else globalThis.localStorage = previousStorage
 })
 const copy = value => JSON.parse(JSON.stringify(value))
-const actor = id => ({ id, permissions: ['*'] })
+const actor = (id, store) => scenarioPmActor(id, [...store.selectableSkills, ...store.packages.flatMap(item => item.steps)], store.packages.map(item => item.id))
+const reviewer = { id: 'independent-reviewer', permissions: ['scenario-package:review'] }
 
 function fixture(username = 'seed-test-user') {
   setActivePinia(createPinia())
   const account = useAppStore()
   account.user = username
-  account.permissions = ['*']
+  account.permissions = scenarioPmPermissions([])
   const hub = useSkillHubStore()
   const beforeSkills = copy(hub.items)
   const store = useScenarioSkillPackagesStore()
-  return { account, hub, beforeSkills, store, current: actor(username) }
+  return { account, hub, beforeSkills, store, current: actor(username, store) }
 }
 
 function matches(item, state) {
@@ -65,7 +67,7 @@ test('initial data demonstrates every existing package state without changing th
 })
 
 for (const username of ['admin', 'zhangrui', 'pm-li']) {
-  test(`${username} gets editable own examples and independent review examples without a fixed-admin ownership shortcut`, () => {
+  test(`${username} with explicit PM permissions gets own author examples without a username role shortcut`, () => {
     const { store, current } = fixture(username)
     for (const state of ['draft', 'rejected', 'published', 'disabled']) {
       const own = findState(store, state, username)
@@ -78,10 +80,11 @@ for (const username of ['admin', 'zhangrui', 'pm-li']) {
     assert.deepEqual(store.actionsFor(ownReview.id, current), ['view'])
     assert.equal(store.editableDraft(ownReview.id, current), null)
     assert.throws(() => store.approvePackage(ownReview.id, current), /本人|其他管理员/)
-    const otherReview = store.packages.find(item => item.status === 'review' && item.ownerId !== username && item.submittedBy !== username)
+    const otherReview = store.packages.find(item => item.status === 'review' && item.ownerId !== reviewer.id && item.submittedBy !== reviewer.id)
     assert.ok(otherReview, 'a distinct owner must provide the administrator review example')
-    assert.ok(store.actionsFor(otherReview.id, current).includes('approve'))
-    assert.ok(store.actionsFor(otherReview.id, current).includes('reject'))
+    assert.ok(!store.actionsFor(otherReview.id, current).includes('approve'))
+    assert.ok(store.actionsFor(otherReview.id, reviewer).includes('approve'))
+    assert.ok(store.actionsFor(otherReview.id, reviewer).includes('reject'))
     assert.deepEqual(store.actionsFor(otherReview.id, { id: username, permissions: [] }), ['view'])
     assert.equal(store.withdrawPackage, undefined)
   })
@@ -101,7 +104,7 @@ test('review examples carry current successful trials and immutable independent 
   }
   const other = store.packages.find(item => item.status === 'review' && item.ownerId !== current.id)
   assert.ok(other)
-  assert.equal(store.approvePackage(other.id, current, '', other.updatedAt).status, 'published')
+  assert.equal(store.approvePackage(other.id, reviewer, '', other.updatedAt).status, 'published')
 })
 
 test('published and disabled examples have distinct approval evidence and use the reviewed snapshot at runtime', () => {
@@ -119,8 +122,9 @@ test('published and disabled examples have distinct approval evidence and use th
   }
   assert.equal(store.prepareRunPlan(healthy.id, current).status, 'ready')
   assert.equal(store.prepareRunPlan(disabled.id, current).status, 'blocked')
-  assert.ok(store.actionsFor(healthy.id, current).includes('disable'))
-  assert.ok(store.actionsFor(disabled.id, current).includes('enable'))
+  assert.ok(!store.actionsFor(healthy.id, current).includes('disable'))
+  assert.ok(store.actionsFor(healthy.id, reviewer).includes('disable'))
+  assert.ok(store.actionsFor(disabled.id, reviewer).includes('enable'))
 })
 
 test('degraded and paused examples reference existing disabled Skills and remain stable through health refreshes', () => {
@@ -149,7 +153,7 @@ test('late login and switching accounts add the correct own examples without ove
   const { account, store } = fixture(null)
   account.user = 'late-user-a'
   await nextTick()
-  const current = actor('late-user-a')
+  const current = actor('late-user-a', store)
   const ownDraft = findState(store, 'draft', current.id)
   const realDraft = {
     ...store.editableDraft(ownDraft.id, current), id: 'user-created-package-outside-seeds',
@@ -157,7 +161,7 @@ test('late login and switching accounts add the correct own examples without ove
   }
   const real = store.submitDraft(withTrial(realDraft, store, current), current)
   const ownPublished = findState(store, 'published', current.id)
-  assert.equal(store.disablePackage(ownPublished.id, current).ok, true)
+  assert.equal(store.disablePackage(ownPublished.id, reviewer).ok, true)
   const changedExample = copy(store.findPackage(ownPublished.id))
   const realBefore = copy(store.findPackage(real.id))
   account.user = null
@@ -212,7 +216,7 @@ test('switching accounts after a core Skill is disabled creates own examples wit
     assert.equal(item.health.status, 'paused')
     if (item.publishedSnapshot) {
       assert.equal(item.publishedSnapshot.health.status, 'paused')
-      assert.equal(store.prepareRunPlan(item.id, actor(account.user)).status, 'blocked')
+      assert.equal(store.prepareRunPlan(item.id, actor(account.user, store)).status, 'blocked')
     }
   }
   assert.deepEqual(copy(hub.items), disabledCatalog)

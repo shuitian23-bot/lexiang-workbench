@@ -28,6 +28,7 @@
             <small>从业务场景定义新能力、参数、输入输出和审批规则。</small>
           </button>
           <button
+            v-if="canCreateScenarioPackage"
             type="button"
             class="account-hub-card account-hub-card-create primary"
             @click="$emit('open-scenario-package-create')"
@@ -59,6 +60,10 @@
 
 <script setup>
 defineProps({
+  canCreateScenarioPackage: {
+    type: Boolean,
+    default: false
+  },
   user: {
     type: String,
     default: ''

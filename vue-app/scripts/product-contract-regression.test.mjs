@@ -298,7 +298,7 @@ test('submitting a package resets stale filters and selects pending review befor
   assert.ok(resetIndex >= 0 && resetIndex < reviewFilterIndex && reviewFilterIndex < routeIndex, 'stale filters reset and pending review is selected before returning to the package table')
   assert.ok(routeIndex < renderIndex && renderIndex < rowIndex, 'row lookup waits for the pending-review table render')
   assert.ok(rowIndex < scrollIndex && scrollIndex < focusIndex, 'submitted row is scrolled into view and then focused')
-  assert.match(submit, /已提交审核，等待其他管理员处理/)
+  assert.match(submit, /已提交审核，等待管理员处理/)
 })
 
 test('package details own a complete modal keyboard lifecycle without changing the Skill modal', async () => {

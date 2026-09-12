@@ -3,11 +3,11 @@ import test, { after } from 'node:test'
 import { createServer } from 'vite'
 import * as domain from '../src/domain/scenarioSkillPackages.js'
 import { runScenarioSimulation } from '../src/domain/scenarioPackageTesting.js'
+import { scenarioPmActor } from './helpers/scenarioActors.mjs'
 
 const previousStorage = globalThis.localStorage
 globalThis.localStorage = { getItem() { return null }, setItem() {}, removeItem() {} }
 
-const actor = { id: 'admin', permissions: ['*'] }
 const reviewer = { id: 'reviewer', permissions: ['scenario-package:review'] }
 const pendingReview = draft => ({ ...draft, status: 'review', submittedBy: draft.ownerId, submittedAt: at, auditEvents: [{ type: 'submitted', actorId: draft.ownerId, at }] })
 const at = '2026-09-07T10:00:00.000Z'
@@ -16,6 +16,7 @@ const catalog = ['a', 'b', 'c'].map(id => ({
   status: 'published', onlineStatus: 'published',
   permissions: { menu: [`menu:${id}`], skill: [`skill:${id}`], data: [`data:${id}`], action: [`action:${id}`] }
 }))
+const actor = scenarioPmActor('pm-owner', catalog, ['graph-package'])
 const step = (id, predecessorId, overrides = {}) => ({
   ...domain.createPinnedScenarioStep(catalog.find(skill => skill.id === id), { id }),
   ...(predecessorId === undefined ? {} : { predecessorId }),
@@ -24,7 +25,7 @@ const step = (id, predecessorId, overrides = {}) => ({
 const draft = steps => ({
   id: 'graph-package', name: '图编排场景', description: '连接多个菜单的已发布 Skill。',
   targetAudience: '运营人员',
-  ownerId: 'admin', steps
+  ownerId: 'pm-owner', steps
 })
 const runtimePackage = steps => ({
   ...draft(steps), status: 'published',
@@ -145,6 +146,7 @@ test('store evaluates and publishes connected order with isolated canvas snapsho
   setActivePinia(createPinia())
   const store = module.useScenarioSkillPackagesStore()
   const skills = ['employee-certification-insight', 'workplace-segment-operations'].map(id => store.selectableSkills.find(skill => skill.id === id))
+  const actor = scenarioPmActor('pm-owner', skills, ['graph-package'])
   const a = { ...domain.createPinnedScenarioStep(skills[0], { id: 'a' }), predecessorId: null, position: { x: 24, y: 48 } }
   const b = { ...domain.createPinnedScenarioStep(skills[1], { id: 'b' }), predecessorId: 'a', position: { x: 300, y: 48 } }
   const input = draft([b, a])

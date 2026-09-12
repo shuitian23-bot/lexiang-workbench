@@ -3,15 +3,16 @@ import test, { after } from 'node:test'
 import { createServer } from 'vite'
 import * as domain from '../src/domain/scenarioSkillPackages.js'
 import { runScenarioSimulation } from '../src/domain/scenarioPackageTesting.js'
+import { scenarioPmActor, scenarioPmPermissions } from './helpers/scenarioActors.mjs'
 
 const previousStorage = globalThis.localStorage
 globalThis.localStorage = { getItem() { return null }, setItem() {}, removeItem() {} }
 
 const at = '2026-09-09T10:00:00.000Z'
-const owner = { id: 'creator', permissions: ['*'] }
 const reviewer = { id: 'reviewer', permissions: ['scenario-package:review'] }
 const skill = id => ({ id, name: id, menu: id, version: 'v1', online: 'v1', status: 'published', onlineStatus: 'published', permissions: { menu: [`menu:${id}`], skill: [`skill:${id}`], data: [`data:${id}`], action: [`action:${id}`] } })
 const catalog = [skill('a'), skill('b')]
+const owner = scenarioPmActor('creator', catalog, ['review-package'])
 const draft = (skills = catalog) => ({ id: 'review-package', name: '独立审核包', description: '跨菜单经营任务', targetAudience: '运营人员', ownerId: owner.id, steps: skills.slice(0, 2).map((s, i) => domain.createPinnedScenarioStep(s, { predecessorId: i ? skills[0].id : null, task: `使用${s.name}分析本次运营对象并汇总结果`, expectedOutput: '' })) })
 const submitted = () => ({ ...draft(), status: 'review', submittedAt: at, submittedBy: owner.id, auditEvents: [{ type: 'submitted', actorId: owner.id, at }] })
 
@@ -28,7 +29,7 @@ function withTrial(draft, skills, actor) {
 }
 
 test('domain rejects owner self-approval even with wildcard permission', () => {
-  assert.throws(() => domain.publishScenarioPackage(submitted(), owner, at, catalog), /本人|自己|其他管理员|自审/)
+  assert.throws(() => domain.publishScenarioPackage(submitted(), { ...owner, permissions: ['*'] }, at, catalog), /本人|自己|其他管理员|自审/)
 })
 
 test('domain rejects publication that bypasses submitted review state', () => {
@@ -52,6 +53,7 @@ async function fixture() {
   }
   modules.pinia.setActivePinia(modules.pinia.createPinia())
   const store = modules.scenario.useScenarioSkillPackagesStore()
+  owner.permissions = scenarioPmPermissions([...catalog, ...store.selectableSkills], ['review-package'])
   const currentDraft = draft(store.selectableSkills.filter(s => ['employee-certification-insight', 'workplace-segment-operations'].includes(s.id)))
   return { store, hub: modules.hub.useSkillHubStore(), draft: withTrial(currentDraft, store.selectableSkills, owner) }
 }

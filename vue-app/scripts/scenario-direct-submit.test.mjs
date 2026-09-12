@@ -1,3 +1,4 @@
+import { scenarioPmPermissions } from './helpers/scenarioActors.mjs'
 import assert from 'node:assert/strict'
 import test, { after, afterEach } from 'node:test'
 import { createServer as createHttpServer } from 'node:http'
@@ -21,7 +22,7 @@ export function seedScenarioPackagesForTest(store, seeds) {
   scenarioPackageTestSeeds = seeds
   try { store.resetToInitialMock() } finally { scenarioPackageTestSeeds = undefined }
 }
-${source.replaceAll("createSeedScenarioPackages(selectableSkills.value, skillHub.items, app.user || '')", "(scenarioPackageTestSeeds || createSeedScenarioPackages(selectableSkills.value, skillHub.items, app.user || ''))")}`
+${source.replaceAll("createSeedScenarioPackages(selectableSkills.value, skillHub.items, currentAuthorId())", "(scenarioPackageTestSeeds || createSeedScenarioPackages(selectableSkills.value, skillHub.items, currentAuthorId()))").replaceAll("createSeedScenarioPackages(selectableSkills.value, skillHub.items, ownerId)", "(scenarioPackageTestSeeds || createSeedScenarioPackages(selectableSkills.value, skillHub.items, ownerId))")}`
   },
 }
 const server = await createServer({ root, plugins: [seedPlugin], logLevel: 'error', server: { middlewareMode: true, hmr: { server: httpHost } }, appType: 'custom' })
@@ -50,8 +51,10 @@ function scope() {
   setActivePinia(pinia)
   const account = useAppStore()
   account.user = 'direct-submit-creator'
-  account.permissions = ['*']
-  return { pinia, account, store: useScenarioSkillPackagesStore() }
+  account.permissions = scenarioPmPermissions([])
+  const store = useScenarioSkillPackagesStore()
+  account.permissions = scenarioPmPermissions(store.selectableSkills)
+  return { pinia, account, store }
 }
 
 function mount(component, props, pinia, emit = () => {}) {

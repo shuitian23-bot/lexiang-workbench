@@ -5,6 +5,7 @@ import { createPinia, setActivePinia } from 'pinia'
 import { nextTick } from 'vue'
 import * as domain from '../src/domain/scenarioSkillPackages.js'
 import { runScenarioSimulation } from '../src/domain/scenarioPackageTesting.js'
+import { scenarioPmActor, scenarioPmPermissions } from './helpers/scenarioActors.mjs'
 
 const key = 'leai_scenario_skill_packages_v1'
 const previousStorage = globalThis.localStorage
@@ -20,16 +21,17 @@ const [{ useScenarioSkillPackagesStore }, { useSkillHubStore }, { useAppStore }]
   server.ssrLoadModule('/src/stores/scenarioSkillPackages.ts'), server.ssrLoadModule('/src/stores/skillHub.ts'), server.ssrLoadModule('/src/stores/app.ts')
 ])
 after(async () => { await server.close(); if (previousStorage === undefined) delete globalThis.localStorage; else globalThis.localStorage = previousStorage })
-const owner = { id: 'draft-owner', permissions: ['*'] }
+const owner = scenarioPmActor('draft-owner', [])
 const reviewer = { id: 'draft-reviewer', permissions: ['scenario-package:review'] }
 const copy = value => JSON.parse(JSON.stringify(value))
 
 function fixture(reset = true, username = owner.id) {
   if (reset) { data.clear(); failWrite = false }
   setActivePinia(createPinia())
-  const app = useAppStore(); app.user = username
+  const app = useAppStore(); app.user = username; app.permissions = username === reviewer.id ? reviewer.permissions : owner.permissions
   const hub = useSkillHubStore()
   const store = useScenarioSkillPackagesStore()
+  owner.permissions = scenarioPmPermissions([...store.selectableSkills, ...store.packages.flatMap(item => item.steps)], ['saved-package', ...store.packages.map(item => item.id)])
   const skills = store.selectableSkills.filter(item => ['employee-certification-insight', 'workplace-segment-operations'].includes(item.id))
   const steps = skills.map((skill, index) => domain.createPinnedScenarioStep(skill, { id: skill.id, predecessorId: index ? skills[index - 1].id : null, task: '分析授权业务对象' }))
   const draft = { id: 'saved-package', name: '保存中的场景', description: '跨菜单分析业务情况', targetAudience: '业务运营', ownerId: owner.id, steps }
@@ -73,7 +75,7 @@ test('save rejects blank names, foreign owners, missing capabilities and obsolet
   const editing = store.editableDraft(draft.id, owner)
   store.saveDraft({ ...editing, name: '首次保存' }, owner)
   for (const baseUpdatedAt of [undefined, editing.baseUpdatedAt]) assert.throws(() => store.saveDraft({ ...editing, baseUpdatedAt }, owner), /已更新|编辑版本/)
-  assert.throws(() => store.saveDraft({ ...editing, ownerId: 'other' }, { id: 'other', permissions: ['*'] }), /所有者|本人/)
+  assert.throws(() => store.saveDraft({ ...editing, ownerId: 'other' }, scenarioPmActor('other', draft.steps)), /所有者|本人/)
   assert.equal(store.findPackage(draft.id).name, '首次保存')
 })
 

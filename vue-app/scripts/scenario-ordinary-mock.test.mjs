@@ -1,3 +1,4 @@
+import { scenarioPmPermissions } from './helpers/scenarioActors.mjs'
 import assert from 'node:assert/strict'
 import test, { after, afterEach } from 'node:test'
 import { createServer as createHttpServer } from 'node:http'
@@ -51,8 +52,9 @@ async function flow() {
   setActivePinia(pinia)
   const account = useAppStore()
   account.user = 'ordinary-mock-creator'
-  account.permissions = ['*']
+  account.permissions = scenarioPmPermissions([])
   const store = useScenarioSkillPackagesStore()
+  account.permissions = scenarioPmPermissions(store.selectableSkills)
   const events = []
   const trialEvents = []
   const { state: create } = mount(Create, reactive({}), pinia, (...event) => events.push(event))
@@ -198,7 +200,7 @@ test('repairing the failed output contract retains guidance, requires rerun, and
   assert.equal(store.reviewDecision(submitted.id, reviewer).ok, true)
   const published = store.approvePackage(submitted.id, reviewer)
   assert.equal(published.status, 'published')
-  const runPlan = store.prepareRunPlan(published.id, create.actor.value)
+  const runPlan = store.prepareRunPlan(published.id, { ...create.actor.value, permissions: scenarioPmPermissions(store.selectableSkills, [published.id]) })
   assert.notEqual(runPlan.status, 'blocked')
   assert.deepEqual(runPlan.steps.map(step => step.task), expectedTasks, 'published execution must retain the exact effective tasks used during trial')
 })
@@ -291,7 +293,7 @@ test('an unchanged second trial can submit the tested effective tasks for indepe
   assert.throws(() => store.approvePackage(submitted.id, create.actor.value), /本人|自己|其他管理员/)
   assert.equal(store.reviewDecision(submitted.id, reviewer).ok, true)
   const published = store.approvePackage(submitted.id, reviewer)
-  const plan = store.prepareRunPlan(published.id, create.actor.value)
+  const plan = store.prepareRunPlan(published.id, { ...create.actor.value, permissions: scenarioPmPermissions(store.selectableSkills, [published.id]) })
   assert.notEqual(plan.status, 'blocked')
   assert.deepEqual(plan.steps.map(step => step.task), effectiveTasks)
 })

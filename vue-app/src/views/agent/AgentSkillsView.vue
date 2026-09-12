@@ -1,7 +1,7 @@
 <template>
   <ScenarioSkillPackageCreateView
     v-if="isPackageCreate"
-    :key="editingPackage?.id || 'new-package'"
+    :key="editingPackage?.id || `new-package-${newPackageSessionOwner}`"
     :draft="editingPackage"
     @cancel="closePackageCreate"
     @saved="handlePackageSaved"
@@ -20,7 +20,7 @@
     <ContentPageHeader title="Skill Hub" :description="pageDesc">
       <template #actions>
         <div class="agent-skill-page-actions">
-          <button ref="activeCreateButton" class="btn btn-primary" type="button" @click="openActiveCreate">
+          <button v-if="activeHubTab !== 'packages' || canCreatePackage" ref="activeCreateButton" class="btn btn-primary" type="button" @click="openActiveCreate">
             {{ activeHubTab === 'packages' ? '创建场景技能包' : '创建 Skill' }}
           </button>
           <button class="btn btn-secondary" type="button" @click="goPortalHome">返回工作台</button>
@@ -606,6 +606,7 @@ import ScenarioSkillPackageCreateView from '@/views/agent/ScenarioSkillPackageCr
 import ScenarioNodeContractSummary from '@/views/agent/ScenarioNodeContractSummary.vue'
 import ScenarioTestReportSummary from '@/views/agent/ScenarioTestReportSummary.vue'
 import { isScenarioSimulationCurrent } from '@/domain/scenarioPackageTesting.js'
+import { scenarioPackageRole } from '@/domain/scenarioSkillPackages.js'
 import {
   useScenarioSkillPackagesStore,
   type ScenarioPackageAction,
@@ -640,19 +641,31 @@ const hubTabs: Array<{ id: HubTabId; label: string }> = [
 const hubTabElements = new Map<HubTabId, HTMLButtonElement>()
 const packageRowElements = new Map<string, HTMLElement>()
 const activeHubTab = computed<HubTabId>(() => route.query.tab === 'packages' || route.query.tab === 'review' ? 'packages' : 'skills')
-const packageEditId = computed(() => route.path === '/agent/skills' && activeHubTab.value === 'packages'
-  && route.query.mode === 'create' && typeof route.query.edit === 'string' ? route.query.edit : '')
+const packageRole = computed(() => scenarioPackageRole({ id: user.value || '', permissions: permissions.value }))
+const canCreatePackage = computed(() => Boolean(user.value) && packageRole.value === 'pm')
+const packageCreateRoute = computed(() => route.path === '/agent/skills' && activeHubTab.value === 'packages' && route.query.mode === 'create')
+const packageEditId = computed(() => packageCreateRoute.value && typeof route.query.edit === 'string' ? route.query.edit : '')
 const editingPackage = ref<ScenarioSkillPackageDraft>()
-watch([packageEditId, user, permissions], ([id, ownerId]) => {
-  if (!id || !ownerId) {
+const newPackageSessionOwner = ref('')
+watch([packageCreateRoute, packageEditId, user, permissions], ([creating, id, ownerId]) => {
+  if (!creating || !ownerId) {
     editingPackage.value = undefined
+    newPackageSessionOwner.value = ''
     return
   }
+  if (newPackageSessionOwner.value !== ownerId) newPackageSessionOwner.value = ''
+  if (!id) {
+    editingPackage.value = undefined
+    if (canCreatePackage.value) newPackageSessionOwner.value = ownerId
+    return
+  }
+  newPackageSessionOwner.value = ''
   // Keep the opened copy when storage or permissions change; the editor locks stale writes.
   if (editingPackage.value?.id === id && editingPackage.value.ownerId === ownerId) return
   editingPackage.value = scenarioStore.editableDraft(id, { id: ownerId, permissions: permissions.value }) || undefined
 }, { immediate: true, flush: 'sync' })
-const isPackageCreate = computed(() => activeHubTab.value === 'packages' && route.query.mode === 'create' && (!route.query.edit || editingPackage.value))
+const isPackageCreate = computed(() => packageCreateRoute.value && (packageEditId.value
+  ? Boolean(editingPackage.value) : Boolean(user.value && newPackageSessionOwner.value === user.value)))
 
 const keyword = ref('')
 const creatorKeyword = ref('')
@@ -733,7 +746,11 @@ const role = computed(() => permissions.value.includes('*') ? 'admin' : 'pm')
 const actor = computed(() => ({ role: role.value, user: user.value || 'admin' }) as const)
 const pageDesc = computed(() => {
   if (activeHubTab.value === 'packages') {
-    return '管理场景技能包的审核、固定版本链路和依赖健康；提交后由其他管理员审核，通过后发布。'
+    return packageRole.value === 'admin'
+      ? '审批或驳回 PM 提交的场景技能包，管理已审核版本的启用、禁用与依赖状态。'
+      : packageRole.value === 'pm'
+        ? '创建和维护本人的场景技能包，编排、试运行后提交管理员审核。'
+        : '查看场景技能包的配置、审核状态与依赖情况。'
   }
   return role.value === 'admin'
     ? '管理员可查看草稿，并审批、驳回、发布、启用或禁用 Skill；草稿可返回需求澄清继续编辑。'
@@ -830,7 +847,7 @@ function packageHealthHint(packageItem: ScenarioSkillPackage) {
     ? `；已审核版本 ${packageItem.publishedSnapshot.version} ${onlineState}`
     : ''
   if (packageItem.status === 'draft') return `本人可编辑、试运行后提交审核${onlineHint}`
-  if (packageItem.status === 'review') return `等待其他管理员审核${onlineHint || '，尚未发布'}`
+  if (packageItem.status === 'review') return `等待管理员审核${onlineHint || '，尚未发布'}`
   if (packageItem.status === 'rejected') return `${packageItem.reviewNote || '按审核意见修改后重新提交'}${onlineHint}`
   if (packageItem.status === 'disabled') return '已审核版本暂停调用，启用后恢复'
   if (packageItem.health.status === 'upgrade_required') {
@@ -873,7 +890,7 @@ const packageSummaryItems = computed(() => {
   )
   return [
     { key: 'all', label: '全部技能包', value: listedScenarioPackages.value.length, desc: '跨菜单固定版本链路', tone: 'is-primary', filter: 'all' as const },
-    { key: 'review', label: '待审核', value: count('review'), desc: '等待其他管理员审核', tone: 'is-warning', filter: 'review' as const },
+    { key: 'review', label: '待审核', value: count('review'), desc: '等待管理员审核', tone: 'is-warning', filter: 'review' as const },
     { key: 'published', label: '已发布', value: count('published'), desc: '已有已审核发布版本', tone: 'is-success', filter: 'published' as const },
     { key: 'upgrade', label: '待升级', value: count('upgrade_required'), desc: '有新版，仍使用固定版本', tone: 'is-warning', filter: 'upgrade_required' as const },
     { key: 'degraded', label: '降级运行', value: count('degraded'), desc: '条件分支部分关闭', tone: 'is-warning', filter: 'degraded' as const },
@@ -1345,6 +1362,7 @@ async function focusPackageCreator() {
 }
 
 async function openPackageCreate() {
+  if (!canCreatePackage.value) return
   await router.replace({ path: '/agent/skills', query: { tab: 'packages', mode: 'create' } })
   await focusPackageCreator()
 }
@@ -1368,7 +1386,7 @@ async function handlePackageSubmitted(packageItem: ScenarioSkillPackage) {
   await nextTick()
   packageRowElements.get(packageItem.id)?.scrollIntoView({ block: 'nearest' })
   packageRowElements.get(packageItem.id)?.focus()
-  toast(`${packageItem.name}：已提交审核，等待其他管理员处理`)
+  toast(`${packageItem.name}：已提交审核，等待管理员处理`)
 }
 
 async function handlePackageSaved(packageItem: ScenarioSkillPackage) {

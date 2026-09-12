@@ -5,6 +5,7 @@ import { createServer } from 'vite'
 import { createPinia, setActivePinia } from 'pinia'
 import { createRenderer, createSSRApp, h, nextTick, reactive, ssrContextKey } from 'vue'
 import { renderToString } from 'vue/server-renderer'
+import { scenarioPmPermissions } from './helpers/scenarioActors.mjs'
 
 const previousStorage = globalThis.localStorage
 globalThis.localStorage = { getItem() { return null }, setItem() {}, removeItem() {} }
@@ -31,8 +32,10 @@ function scope() {
   setActivePinia(pinia)
   const account = useAppStore()
   account.user = 'draft-ui-owner'
-  account.permissions = ['*']
-  return { pinia, account, store: useScenarioSkillPackagesStore() }
+  account.permissions = scenarioPmPermissions([])
+  const store = useScenarioSkillPackagesStore()
+  account.permissions = scenarioPmPermissions(store.selectableSkills)
+  return { pinia, account, store }
 }
 
 function mount(current, props = {}) {

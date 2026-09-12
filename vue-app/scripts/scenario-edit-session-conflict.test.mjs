@@ -6,6 +6,7 @@ import { createPinia, setActivePinia } from 'pinia'
 import { createRenderer, createSSRApp, h, nextTick, reactive, shallowRef, ssrContextKey } from 'vue'
 import { renderToString } from 'vue/server-renderer'
 import { createMemoryHistory, createRouter, matchedRouteKey } from 'vue-router'
+import { scenarioPmActor, scenarioPmPermissions } from './helpers/scenarioActors.mjs'
 
 const previousStorage = globalThis.localStorage
 const data = new Map()
@@ -20,7 +21,7 @@ const [{ default: View }, { default: Create }, { useAppStore }, { useScenarioSki
 ])
 const renderer = createRenderer({ createElement: () => ({}), createText: () => ({}), createComment: () => ({}), insert() {}, remove() {}, setText() {}, setElementText() {}, patchProp() {}, parentNode: () => null, nextSibling: () => null })
 const mounted = []
-const actor = { id: 'session-owner', permissions: ['*'] }
+const actor = scenarioPmActor('session-owner', [])
 const packageId = 'cross-page-edit-session'
 beforeEach(() => data.clear())
 afterEach(() => { for (const app of mounted.splice(0).reverse()) app.unmount() })
@@ -33,7 +34,10 @@ after(async () => {
 function scope() {
   const pinia = createPinia(); setActivePinia(pinia)
   const account = useAppStore(); account.user = actor.id; account.permissions = [...actor.permissions]
-  return { pinia, account, store: useScenarioSkillPackagesStore() }
+  const store = useScenarioSkillPackagesStore()
+  actor.permissions = scenarioPmPermissions(store.selectableSkills, [packageId])
+  account.permissions = [...actor.permissions]
+  return { pinia, account, store }
 }
 
 async function openedEditor() {
@@ -133,7 +137,7 @@ test('permission loss locks the existing session and switching accounts clears i
   assert.equal(Boolean(current.view.isPackageCreate.value), true)
   assert.equal(current.editor.canEditDraft.value, false)
   assert.equal(current.editor.form.value.name, '权限变化前的本页修改')
-  current.account.user = 'another-owner'; current.account.permissions = ['*']
+  current.account.user = 'another-owner'; current.account.permissions = scenarioPmPermissions(current.store.selectableSkills, [packageId])
   await nextTick()
   assert.equal(current.view.editingPackage.value, undefined)
   assert.equal(Boolean(current.view.isPackageCreate.value), false)

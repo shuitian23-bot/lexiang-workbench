@@ -2,8 +2,8 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import { createPinnedScenarioStep, evaluateScenarioTrialForSubmit, getScenarioTestFingerprint, normalizeScenarioSimulationRequest, submitScenarioPackage } from '../src/domain/scenarioSkillPackages.js'
 import { createScenarioSimulationRequest, runScenarioSimulation } from '../src/domain/scenarioPackageTesting.js'
+import { scenarioPmActor } from './helpers/scenarioActors.mjs'
 
-const actor = { id: 'creator', permissions: ['*'] }
 const catalog = [
   ['product-knowledge', 'v1.0.7', '产品知识问答'],
   ['employee-certification-insight', 'v1.0.0', '职场认证状态查询'],
@@ -12,6 +12,7 @@ const catalog = [
   ['workplace-segment-operations', 'v1.2.0', '职场人群经营分析'],
   ['enterprise-customer-followup', 'v1.0.0', '企业客户跟进建议']
 ].map(([id, version, name]) => ({ id, version, name, menu: name, online: version, status: 'published', onlineStatus: 'published', permissions: { menu: [`menu:${id}`], skill: [`skill:${id}`], data: [`data:${id}`], action: [`action:${id}`] } }))
+const actor = scenarioPmActor('creator', catalog)
 
 function fixture(selected = catalog.slice(0, 2)) {
   const steps = selected.map((skill, index) => createPinnedScenarioStep(skill, { id: `n${index}`, predecessorId: index ? `n${index - 1}` : null, task: `使用 ${skill.name} 完成本节点任务。`, expectedOutput: '' }))
@@ -145,7 +146,7 @@ test('missing task, permissions, ownership and unavailable fixture remain author
   const taskReport = run(emptyTask)
   assert.deepEqual(taskReport.nodes.map(node => node.status), ['blocked', 'blocked'])
   assert.equal(taskReport.nodes[1].output, '')
-  for (const currentActor of [{ id: actor.id, permissions: [] }, { id: 'another', permissions: ['*'] }]) {
+  for (const currentActor of [{ id: actor.id, permissions: [] }, scenarioPmActor('another', catalog)]) {
     const report = run(fixture(), currentActor)
     assert.deepEqual(report.nodes.map(node => node.status), ['blocked', 'blocked'])
     assert.ok(report.nodes.every(node => !node.output && node.outputSource === 'none'))

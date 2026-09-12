@@ -1,3 +1,4 @@
+import { scenarioPmPermissions } from './helpers/scenarioActors.mjs'
 import assert from 'node:assert/strict'
 import test, { after, afterEach } from 'node:test'
 import { createServer as createHttpServer } from 'node:http'
@@ -36,8 +37,10 @@ function scope() {
   setActivePinia(pinia)
   const account = useAppStore()
   account.user = 'trial-example-creator'
-  account.permissions = ['*']
-  return { pinia, account, store: useScenarioSkillPackagesStore() }
+  account.permissions = scenarioPmPermissions([])
+  const store = useScenarioSkillPackagesStore()
+  account.permissions = scenarioPmPermissions(store.selectableSkills)
+  return { pinia, account, store }
 }
 
 function mount(component, props, pinia, emit = () => {}) {

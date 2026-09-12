@@ -12,6 +12,7 @@ import {
   rejectScenarioPackage,
   evaluateScenarioPackageReview,
   scenarioPackageActions,
+  scenarioPackageRole,
   editableScenarioPackageDraft,
   saveScenarioPackageDraft,
   transitionScenarioPackage,
@@ -22,8 +23,8 @@ import {
 import { useSkillHubStore, type SkillHubItem } from './skillHub'
 import { useAppStore } from './app'
 import { buildScenarioRunPlan } from '../domain/scenarioRunPlan.js'
-import { runScenarioSimulation, type ScenarioSimulationReport, type ScenarioSimulationRequest } from '../domain/scenarioPackageTesting.js'
-import { readScenarioPackageState, writeScenarioPackageState } from '../services/scenarioPackageStorage'
+import { getScenarioTestFingerprint, runScenarioSimulation, type ScenarioSimulationReport, type ScenarioSimulationRequest } from '../domain/scenarioPackageTesting.js'
+import { readScenarioPackageState, writeScenarioPackageState, type ScenarioPackageStoredState } from '../services/scenarioPackageStorage'
 
 export type ScenarioDependencyState = 'available' | 'expired' | 'unavailable' | 'emergency_disabled' | 'update_available'
 export type ScenarioStepKind = 'required' | 'conditional'
@@ -240,7 +241,11 @@ export function createSelectableScenarioSkills(items: SkillHubItem[]): ScenarioS
     })
 }
 
-function createSeedScenarioPackages(selectableSkills: ScenarioSelectableSkill[], catalog: SkillHubItem[], ownerId: string): ScenarioSkillPackage[] {
+function createSeedScenarioPackages(selectableSkills: ScenarioSelectableSkill[], catalog: SkillHubItem[], currentOwnerId: string): ScenarioSkillPackage[] {
+  const authorFor = (id: string): ScenarioPackageActor => ({ id, permissions: [
+    'scenario-package:create', 'scenario-package:compose:cross-menu',
+    ...catalog.flatMap(item => [`skill:${item.name}:metadata:read`, `skill:${item.name}:reference`, ...Object.values(permissionSnapshotFor(item)).flat()])
+  ] })
   const findSelectableSkill = (id: string) => {
     const skill = selectableSkills.find((item) => item.id === id)
     if (!skill) throw new Error(`场景技能包缺少 POC Skill：${id}`)
@@ -326,13 +331,14 @@ function createSeedScenarioPackages(selectableSkills: ScenarioSelectableSkill[],
     }
     return {
       ...packageItem, onlineStatus: 'unpublished', testRequest,
-      testReport: runScenarioSimulation(packageItem, selectableSkills, testRequest, { id: packageItem.ownerId, permissions: ['*'] }, publishedAt)
+      testReport: runScenarioSimulation(packageItem, selectableSkills, testRequest, authorFor(packageItem.ownerId), publishedAt)
     }
   })
 
   const submittedAt = '2026-09-03T08:00:00.000Z'
   const changedAt = '2026-09-10T08:00:00.000Z'
-  const reviewerFor = (creator: string) => ({ id: creator === 'admin' ? 'zhangrui' : 'admin', permissions: ['*'] })
+  // The fallback identity only prevents self-review when a PM account happens to be named admin.
+  const reviewerFor = (creator: string) => ({ id: creator === 'admin' ? 'zhangrui' : 'admin', permissions: ['scenario-package:review'] })
   const createDraftExample = (id: string, name: string, creator: string, exampleSteps: ScenarioPinnedStep[] = reviewSteps): ScenarioSkillPackage => ({
     id, name, ownerId: creator, version: 'v1.0.0', status: 'draft', onlineStatus: 'unpublished',
     description: '当运营人员需要分析指定职场人群的认证状态、经营表现并准备客户跟进建议时使用；仅处理授权范围内的数据，不修改认证结果或发送客户消息。',
@@ -342,7 +348,7 @@ function createSeedScenarioPackages(selectableSkills: ScenarioSelectableSkill[],
     updatedAt: submittedAt, auditEvents: []
   })
   const createReviewExample = (draft: ScenarioSkillPackage, skills = selectableSkills): ScenarioSkillPackage => {
-    const creator = { id: draft.ownerId, permissions: ['*'] }
+    const creator = authorFor(draft.ownerId)
     const testRequest: ScenarioSimulationRequest = {
       input: '按场景配置检查节点执行与结果传递。', expectedOutput: '输出节点分析结果与客户跟进建议。',
       activeOptionalStepIds: draft.steps.filter(step => !step.required).map(step => step.id),
@@ -396,7 +402,7 @@ function createSeedScenarioPackages(selectableSkills: ScenarioSelectableSkill[],
   })
 
   const ownExamples: ScenarioSkillPackage[] = []
-  if (ownerId) {
+  for (const ownerId of new Set(['pm-li', ...(currentOwnerId ? [currentOwnerId] : [])])) {
     const id = `seed-scenario-own-${encodeURIComponent(ownerId)}`
     ownExamples.push(createDraftExample(`${id}-draft`, '职场人群认证分析（草稿）', ownerId))
     ownExamples.push(createReviewExample(createDraftExample(`${id}-review`, '职场人群经营协作（待审核）', ownerId)))
@@ -411,11 +417,42 @@ function createSeedScenarioPackages(selectableSkills: ScenarioSelectableSkill[],
     ) as ScenarioPackageMutationResult
     if (!disabled.ok || !disabled.package) throw new Error('无法初始化已禁用的场景包示例')
     ownExamples.push(disabled.package)
-    if (ownerId === 'pm-li') {
-      ownExamples.push(createReviewExample(createDraftExample('seed-scenario-review-by-zhangrui', '职场客户协同（待审核）', 'zhangrui')))
-    }
   }
   return cloneScenarioTestSnapshot([...originalExamples, ...dependencyExamples, ...ownExamples])
+}
+
+const sortedRecord = (value: unknown): unknown => Array.isArray(value) ? value.map(sortedRecord)
+  : value && typeof value === 'object'
+    ? Object.fromEntries(Object.entries(value).sort(([left], [right]) => left.localeCompare(right)).map(([key, item]) => [key, sortedRecord(item)]))
+    : value
+
+/** Reconstruct the complete released V1 record; an ID alone never establishes seed provenance. */
+function isUnchangedLegacyAuthorSeed(item: ScenarioSkillPackage, defaults: ScenarioSkillPackage[], skills: ScenarioSelectableSkill[]): boolean {
+  const specialReview = item.id === 'seed-scenario-review-by-zhangrui' && item.ownerId === 'zhangrui'
+  const prefix = `seed-scenario-own-${encodeURIComponent(item.ownerId)}-`
+  const state = specialReview ? 'review' : item.id.startsWith(prefix) ? item.id.slice(prefix.length) : ''
+  if (!['draft', 'review', 'rejected', 'published', 'disabled'].includes(state)) return false
+  const template = defaults.find(record => record.id === `seed-scenario-own-pm-li-${state}`)
+  if (!template || item.id === template.id) return false
+  const expected = cloneScenarioTestSnapshot(template) as ScenarioSkillPackage
+  // This is the historical V1 review identity, not a role inferred from a username.
+  const reviewerId = item.ownerId === 'admin' ? 'zhangrui' : 'admin'
+  const restoreLegacyIdentity = (record: ScenarioSkillPackage) => {
+    record.id = item.id
+    record.ownerId = item.ownerId
+    if (specialReview) record.name = '职场客户协同（待审核）'
+    if (record.submittedBy) record.submittedBy = item.ownerId
+    if (record.reviewedBy) record.reviewedBy = reviewerId
+    record.auditEvents?.forEach(event => { event.actorId = event.type === 'submitted' ? item.ownerId : reviewerId })
+    if (record.testReport) {
+      record.testReport.testerId = item.ownerId
+      record.testReport.fingerprint = getScenarioTestFingerprint(record, skills, record.testReport.request)
+      record.testReport.id = `simulation-${record.testReport.createdAt}-${record.testReport.fingerprint.slice(-16)}`
+    }
+  }
+  restoreLegacyIdentity(expected)
+  if (expected.publishedSnapshot) restoreLegacyIdentity(expected.publishedSnapshot)
+  return JSON.stringify(sortedRecord(item)) === JSON.stringify(sortedRecord(expected))
 }
 
 export const useScenarioSkillPackagesStore = defineStore('scenarioSkillPackages', () => {
@@ -424,22 +461,40 @@ export const useScenarioSkillPackagesStore = defineStore('scenarioSkillPackages'
   const selectableSkills = computed(() => createSelectableScenarioSkills(skillHub.items))
   const initialSeedCatalog = cloneScenarioTestSnapshot(skillHub.items)
   const initialSeedSkills = createSelectableScenarioSkills(initialSeedCatalog)
-  const storedPackages = ref<ScenarioSkillPackage[]>(createSeedScenarioPackages(selectableSkills.value, skillHub.items, app.user || ''))
-  const seededOwners = new Set(app.user ? [app.user] : [])
-  const persisted = readScenarioPackageState()
+  const currentAuthorId = () => scenarioPackageRole({ id: app.user || '', permissions: app.permissions }) === 'pm' ? app.user || '' : ''
+  const defaultSeeds = createSeedScenarioPackages(initialSeedSkills, initialSeedCatalog, '')
+  const storedPackages = ref<ScenarioSkillPackage[]>(createSeedScenarioPackages(selectableSkills.value, skillHub.items, currentAuthorId()))
+  const seededOwners = new Set(['pm-li', ...(currentAuthorId() ? [currentAuthorId()] : [])])
+  function migrateLegacyState(state: ScenarioPackageStoredState): ScenarioPackageStoredState {
+    if (state.schemaVersion !== 1) return state
+    const packages = state.packages.filter(item => !isUnchangedLegacyAuthorSeed(item, defaultSeeds, initialSeedSkills))
+    const ids = new Set(packages.map(item => item.id))
+    return { schemaVersion: 2, packages: [...packages, ...defaultSeeds.filter(item => !ids.has(item.id))], seededOwners: ['pm-li'] }
+  }
+  function readLatestState() {
+    const state = readScenarioPackageState()
+    return state ? migrateLegacyState(state) : null
+  }
+  let persisted = readScenarioPackageState()
+  if (persisted?.schemaVersion === 1) {
+    const migrated = migrateLegacyState(persisted)
+    try { writeScenarioPackageState(migrated); persisted = migrated }
+    catch { /* Preserve the original state if upgrading storage fails; explicit writes still report failure. */ }
+  }
   let persistedIds = new Set(persisted?.packages.map(item => item.id) || [])
   if (persisted) {
     const restoredIds = new Set(persisted.packages.map(item => item.id))
     storedPackages.value = [...persisted.packages, ...storedPackages.value.filter(item => !restoredIds.has(item.id))]
-    persisted.seededOwners.forEach(ownerId => seededOwners.add(ownerId))
+    if (persisted.schemaVersion === 2) persisted.seededOwners.forEach(ownerId => seededOwners.add(ownerId))
   }
   // Login can finish after store creation. Add new-account examples once; preserve all existing edits and submissions.
-  watch(() => app.user, ownerId => {
+  watch([() => app.user, () => app.permissions], () => {
+    const ownerId = currentAuthorId()
     if (!ownerId || seededOwners.has(ownerId)) return
     const existingIds = new Set(storedPackages.value.map(item => item.id))
     storedPackages.value.push(...createSeedScenarioPackages(initialSeedSkills, initialSeedCatalog, ownerId).filter(item => !existingIds.has(item.id)))
     seededOwners.add(ownerId)
-  })
+  }, { deep: true })
 
   function clonePackage(packageItem: ScenarioSkillPackage): ScenarioSkillPackage {
     return {
@@ -515,7 +570,7 @@ export const useScenarioSkillPackagesStore = defineStore('scenarioSkillPackages'
   }
 
   function commitPackage(next: ScenarioSkillPackage) {
-    const latest = readScenarioPackageState()
+    const latest = readLatestState()
     let currentPackages = storedPackages.value
     if (latest) {
       const current = currentPackages.find(item => item.id === next.id)
@@ -661,9 +716,11 @@ export const useScenarioSkillPackagesStore = defineStore('scenarioSkillPackages'
   }
 
   function resetToInitialMock() {
-    commitPackages(createSeedScenarioPackages(selectableSkills.value, skillHub.items, app.user || ''), app.user ? [app.user] : [])
+    const ownerId = currentAuthorId()
+    commitPackages(createSeedScenarioPackages(selectableSkills.value, skillHub.items, ownerId), ['pm-li', ...(ownerId ? [ownerId] : [])])
     seededOwners.clear()
-    if (app.user) seededOwners.add(app.user)
+    seededOwners.add('pm-li')
+    if (ownerId) seededOwners.add(ownerId)
   }
 
   function prepareRunPlan(

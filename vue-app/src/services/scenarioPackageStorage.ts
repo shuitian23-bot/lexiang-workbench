@@ -1,9 +1,10 @@
 import type { ScenarioSkillPackage } from '../stores/scenarioSkillPackages'
 
 const STORAGE_KEY = 'leai_scenario_skill_packages_v1'
-const SCHEMA_VERSION = 1
+const SCHEMA_VERSION = 2
 
 export interface ScenarioPackageStoredState {
+  schemaVersion?: 1 | 2
   packages: ScenarioSkillPackage[]
   seededOwners: string[]
 }
@@ -63,10 +64,10 @@ export function readScenarioPackageState(): ScenarioPackageStoredState | null {
     const raw = globalThis.localStorage?.getItem(STORAGE_KEY)
     if (!raw) return null
     const value: unknown = JSON.parse(raw)
-    if (!isObject(value) || value.schemaVersion !== SCHEMA_VERSION || !Array.isArray(value.packages)
+    if (!isObject(value) || (value.schemaVersion !== 1 && value.schemaVersion !== SCHEMA_VERSION) || !Array.isArray(value.packages)
       || !value.packages.every(item => validPackage(item)) || !strings(value.seededOwners)) return null
     if (new Set(value.packages.map(item => item.id)).size !== value.packages.length) return null
-    return { packages: value.packages, seededOwners: value.seededOwners }
+    return { schemaVersion: value.schemaVersion as 1 | 2, packages: value.packages, seededOwners: value.seededOwners }
   } catch {
     return null
   }
@@ -76,7 +77,7 @@ export function readScenarioPackageState(): ScenarioPackageStoredState | null {
 export function writeScenarioPackageState(state: ScenarioPackageStoredState): void {
   try {
     if (!globalThis.localStorage) throw new Error('Storage unavailable')
-    globalThis.localStorage.setItem(STORAGE_KEY, JSON.stringify({ schemaVersion: SCHEMA_VERSION, ...state }))
+    globalThis.localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...state, schemaVersion: SCHEMA_VERSION }))
   } catch {
     throw new Error('场景技能包保存失败，请检查浏览器本地存储空间或访问权限后重试；本次修改未保存')
   }

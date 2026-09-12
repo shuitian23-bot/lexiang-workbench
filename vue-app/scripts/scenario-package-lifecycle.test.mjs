@@ -4,11 +4,12 @@ import { createServer } from 'vite'
 import { createPinia, setActivePinia } from 'pinia'
 import { runScenarioSimulation } from '../src/domain/scenarioPackageTesting.js'
 import * as domain from '../src/domain/scenarioSkillPackages.js'
+import { scenarioPmActor, scenarioPmPermissions } from './helpers/scenarioActors.mjs'
 
 const previousStorage = globalThis.localStorage
 globalThis.localStorage = { getItem() { return null }, setItem() {}, removeItem() {} }
 
-const owner = { id: 'lifecycle-owner', permissions: ['*'] }
+const owner = scenarioPmActor('lifecycle-owner', ['employee-certification-insight', 'workplace-segment-operations'], ['lifecycle-package'])
 const reviewer = { id: 'independent-reviewer', permissions: ['scenario-package:review'] }
 const stranger = { id: 'stranger', permissions: ['scenario-package:create', 'scenario-package:compose:cross-menu'] }
 const copy = value => JSON.parse(JSON.stringify(value))
@@ -41,6 +42,7 @@ function fixture() {
       id: item.id, predecessorId: index ? skills[index - 1].id : null,
       task: `分析${item.name}的当前业务信息`
     }))
+  owner.permissions = scenarioPmPermissions(steps, ['lifecycle-package'])
   const draft = withTrial({ id: 'lifecycle-package', ownerId: owner.id, name: '原版场景', description: '分析当前授权对象的情况', targetAudience: '运营人员', steps }, store.selectableSkills)
   return { store, hub, draft }
 }
@@ -61,7 +63,7 @@ test('lifecycle actions follow owner permissions and independent review, not adm
   assert.deepEqual(store.actionsFor(draft.id, stranger), ['view'])
   assert.equal(store.editableDraft(draft.id, owner), null)
   store.approvePackage(draft.id, reviewer)
-  assert.deepEqual(store.actionsFor(draft.id, owner), ['view', 'edit', 'disable'])
+  assert.deepEqual(store.actionsFor(draft.id, owner), ['view', 'edit'])
   assert.deepEqual(store.actionsFor(draft.id, reviewer), ['view', 'disable'])
   assert.deepEqual(store.actionsFor(draft.id, { ...owner, permissions: [] }), ['view'])
   assert.equal(store.editableDraft(draft.id, stranger), null)

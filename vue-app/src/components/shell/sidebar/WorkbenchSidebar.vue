@@ -35,6 +35,7 @@
       :role="role"
       :user-initial="userInitial"
       :user-menu-visible="userMenuVisible"
+      :can-create-scenario-package="canCreateScenarioPackage"
       @toggle-user-menu="toggleUserMenu"
       @close-user-menu="closeUserMenu"
       @logout="doLogout"
@@ -126,12 +127,15 @@ import { loadPocReleaseLedger } from '@/services/pocReleaseLedger'
 import SidebarHeader from '@/components/sidebar/SidebarHeader.vue'
 import SidebarNavGroup from '@/components/sidebar/SidebarNavGroup.vue'
 import SidebarFooter from '@/components/sidebar/SidebarFooter.vue'
+import { scenarioPackageRole } from '@/domain/scenarioSkillPackages.js'
 
 const router   = useRouter()
 const route    = useRoute()
 const appStore = useAppStore()
 
 const { user, role, userInitial, sidebarCollapsed, filteredMenuTree } = storeToRefs(appStore)
+const canCreateScenarioPackage = computed(() => Boolean(user.value)
+  && scenarioPackageRole({ id: user.value || '', permissions: appStore.permissions }) === 'pm')
 
 // 当前 pageId（从路由 meta 读取，对应原 STATE.currentPage）
 const currentPageId = computed(() => route.meta?.pageId || '')
@@ -147,11 +151,11 @@ const pocReleaseLedger = ref({ records: {} })
 
 const basePocLogRecords = [
   {
-    time: '2026-09-11 16:54',
+    time: '2026-09-11 18:00',
     releaseKey: 'workbench-ui-0908-compatible-20260911',
     title: '工作台样式与场景技能包管理更新',
-    changePoint: '统一内容区留白与列表间距，补齐场景包八种状态和对应操作。配置可保存草稿并稍后继续；补清版本升级步骤、依赖恢复与库存及天气节点的试运行样例。待审核时本人仍仅可查看详情。',
-    detail: '参考 0908 样式规范，保留最新场景技能包、试运行、独立审批、创建人搜索、权限管理及 AI 巡检功能。移除场景包创建页重复留白，统一筛选与列表之间的间距；标题区在内容变窄时自然换行。空画布只保留拖入 Skill 的提示，去掉额外的试运行示例按钮和说明，正常节点试运行与返回修改流程保持不变。场景包按审核状态、提交人和管理权限展示操作；本人修改后重新试运行并提交其他管理员审核，旧的已审核版本在修订期间保持原运行状态，禁用不会因重新审批而自动解除。补齐草稿、待审核、已驳回、已发布、待升级、降级运行、已暂停、已禁用的初始示例；当前账号可查看自己的提交与编辑状态，降级和暂停分别对应已禁用的可选与核心 Skill 节点。未用旧示例覆盖现有业务代码，发布环境、人员、时间和版本分别以实际发布记录为准。',
+    changePoint: '统一内容区留白与列表间距，补齐场景包八种状态和对应操作。配置可保存草稿并稍后继续；补清版本升级步骤、依赖恢复与库存及天气节点的试运行样例。PM 创建和维护本人内容，admin 审核并管理启停；待审核时 PM 仅可查看详情。',
+    detail: '参考 0908 样式规范，保留最新场景技能包、试运行、独立审批、创建人搜索、权限管理及 AI 巡检功能。移除场景包创建页重复留白，统一筛选与列表之间的间距；标题区在内容变窄时自然换行。空画布只保留拖入 Skill 的提示，去掉额外的试运行示例按钮和说明，正常节点试运行与返回修改流程保持不变。场景包按审核状态、提交人和管理权限展示操作；本人修改后重新试运行并提交其他管理员审核，旧的已审核版本在修订期间保持原运行状态，禁用不会因重新审批而自动解除。补齐草稿、待审核、已驳回、已发布、待升级、降级运行、已暂停、已禁用的初始示例；PM 可查看自己的提交与编辑状态，admin 可处理 PM 的待审核记录；管理员不再提供创建和编辑入口。角色按已有权限区分，审核权限优先为管理员，保留不得自审。仅修正可确认未经修改的旧角色示例，保留用户已修改记录与审核历史。降级和暂停分别对应已禁用的可选与核心 Skill 节点。未用旧示例覆盖现有业务代码，发布环境、人员、时间和版本分别以实际发布记录为准。',
     deployTargets: [],
     status: '发布状态以环境记录为准'
   },
@@ -855,6 +859,7 @@ function openSkillCreatePage() {
   router.push('/agent/skill-create')
 }
 function openScenarioPackageCreatePage() {
+  if (!canCreateScenarioPackage.value) return
   closeUserMenu()
   appStore.ensureStaticTab('agent.skills')
   appStore.setActiveStaticTab('agent.skills')
