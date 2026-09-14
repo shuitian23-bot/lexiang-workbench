@@ -18270,6 +18270,7 @@ async function openEduZone() {
             return "https://api.map.baidu.com/direction?" + params.toString();
           }
 
+          // store-appointment-navigation-v70: success navigation restores the route surface.
           function openNavigation(store) {
             document.body.classList.remove("lx-appointment-map-only");
             showSingleStoreScenario(store);
