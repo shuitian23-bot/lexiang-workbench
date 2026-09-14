@@ -5,6 +5,7 @@ import { createServer } from 'vite'
 import { createSSRApp, h } from 'vue'
 import { renderToString } from 'vue/server-renderer'
 import { fileURLToPath } from 'node:url'
+import { scenarioPmActor } from './helpers/scenarioActors.mjs'
 
 const root = fileURLToPath(new URL('../', import.meta.url))
 const host = createHttpServer()
@@ -14,7 +15,7 @@ const { default: Panel } = await server.ssrLoadModule('/src/views/agent/Scenario
 const { createPinnedScenarioStep } = await server.ssrLoadModule('/src/domain/scenarioSkillPackages.js')
 const { createScenarioSimulationRequest, runScenarioSimulation, getScenarioTestFingerprint } = await server.ssrLoadModule('/src/domain/scenarioPackageTesting.js')
 const skills = [['employee-certification-insight', 'v1.0.0'], ['workplace-segment-operations', 'v1.2.0']].map(([id, version]) => ({ id, version, name: id, menu: id, status: 'published', onlineStatus: 'published', online: version, permissions: { menu: [id], skill: [id], data: [id], action: [id] } }))
-const actor = { id: 'creator', permissions: ['*'] }
+const actor = scenarioPmActor('creator', skills)
 function props(options = {}) {
   const steps = skills.map((skill, index) => createPinnedScenarioStep(skill, { id: `n${index}`, task: `执行节点 ${index} 的查询分析任务`, expectedOutput: `输出节点 ${index} 的查询结果与分析建议`, predecessorId: index ? 'n0' : null, requiresConfirmation: index === 1 && !options.conditional, kind: index === 1 && options.conditional ? 'conditional' : 'required', condition: index === 1 && options.conditional ? '需要分析时' : '', required: !options.conditional || index === 0 }))
   const draft = { id: 'run-actions', name: '场景', description: '查询后分析', targetAudience: '运营', ownerId: actor.id, steps }

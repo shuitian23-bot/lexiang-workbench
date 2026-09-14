@@ -3,10 +3,11 @@ import test from 'node:test'
 import { createPinnedScenarioStep, rebuildDraftFromCatalog, publishScenarioPackage, submitScenarioPackage } from '../src/domain/scenarioSkillPackages.js'
 import { getScenarioNodeContract, getScenarioNodeInputs } from '../src/domain/scenarioNodeContracts.js'
 import { runScenarioSimulation } from '../src/domain/scenarioPackageTesting.js'
+import { scenarioPmActor } from './helpers/scenarioActors.mjs'
 
 const skill = (id, menu = id) => ({ id, name: id, menu, version: 'v1', online: 'v1', status: 'published', onlineStatus: 'published', description: `处理${id}任务`, inputDescription: `${id}输入`, outputDescription: `${id}结果`, permissions: { menu: [`menu:${menu}`], skill: [`skill:${id}`], data: [`data:${id}`], action: [`action:${id}`] } })
 const catalog = [skill('a'), skill('b')]
-const draft = steps => ({ id: 'contract-package', name: '经营管理', description: '串联查询分析', targetAudience: '运营', ownerId: 'admin', steps })
+const draft = steps => ({ id: 'contract-package', name: '经营管理', description: '串联查询分析', targetAudience: '运营', ownerId: 'pm-owner', steps })
 
 function withTrial(draft, skills, actor) {
   const testRequest = {
@@ -32,7 +33,7 @@ test('overrides including explicit empty strings survive catalog rebuild and pub
   const steps = [createPinnedScenarioStep(catalog[0], { predecessorId: null, task: '当前场景任务', fixedRequirements: '只汇总有依据的结果', expectedOutput: '' }), createPinnedScenarioStep(catalog[1], { predecessorId: 'a' })]
   const current = catalog.map(s => ({ ...s, description: '后来的说明', outputDescription: '后来的结果' }))
   const rebuilt = rebuildDraftFromCatalog(draft(steps), current)
-  const owner = { id: 'admin', permissions: ['*'] }
+  const owner = scenarioPmActor('pm-owner', current)
   const published = publishScenarioPackage(submitScenarioPackage(withTrial(rebuilt.draft, current, owner), owner, '2026-09-09T00:00:00Z', current), { id: 'reviewer', permissions: ['scenario-package:review'] }, '2026-09-09T00:00:00Z', current)
   assert.equal(published.steps[0].task, '当前场景任务')
   assert.equal(published.steps[0].fixedRequirements, '只汇总有依据的结果')

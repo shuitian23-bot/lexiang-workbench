@@ -194,7 +194,7 @@ html[data-product="leaibot"] .page-content {
 
 html[data-product="leaibot"] .page-header {
   align-items: center;
-  margin-bottom: 14px;
+  margin-bottom: 16px;
 }
 
 html[data-product="leaibot"] .page-title {
@@ -3502,8 +3502,8 @@ html[data-product="leaibot"] .page-content {
   container-type: inline-size;
   width: 100%;
   min-width: 0;
-  padding-left: clamp(16px, 1.2vw, 24px);
-  padding-right: clamp(16px, 1.2vw, 24px);
+  padding-left: var(--content-padding);
+  padding-right: var(--content-padding);
 }
 
 @container workbench-content (max-width: 1000px) {
@@ -3558,13 +3558,6 @@ html[data-product="leaibot"] .page-content .geo-placeholder {
   max-width: 100%;
 }
 
-@media (min-width: 1800px) {
-  html[data-product="leaibot"] .page-content {
-    padding-left: 28px;
-    padding-right: 28px;
-  }
-}
-
 @media (max-width: 1480px) {
   html[data-product="leaibot"] .page-content .kpi-grid,
   html[data-product="leaibot"] .page-content .employee-kpi-grid,
@@ -3576,11 +3569,6 @@ html[data-product="leaibot"] .page-content .geo-placeholder {
 }
 
 @media (max-width: 1280px) {
-  html[data-product="leaibot"] .page-content {
-    padding-left: 16px;
-    padding-right: 16px;
-  }
-
   html[data-product="leaibot"] .page-content .grid-3,
   html[data-product="leaibot"] .page-content .ops-grid-3,
   html[data-product="leaibot"] .page-content .employee-method-grid,
@@ -7453,7 +7441,7 @@ html[data-product="leaibot"] .ai-edge-collapse {
 }
 
 html[data-product="leaibot"] .page-content > .page-header {
-  margin-bottom: var(--page-section-gap) !important;
+  margin-bottom: 16px !important;
 }
 
 html[data-product="leaibot"] .page-content > :is(.kpi-grid,.geo-kpi-grid,.prd-stat-grid,.employee-cert-tabs,.filter-bar,.dash-filter-bar,.ops-time-filter) + :is(.card,.ops-card,.rpt-card,.prd-panel,.geo-dark,.employee-cert-card,.employee-method-card,.table-wrap,.prd-table-wrap,.employee-table-wrap) {

@@ -1,4 +1,4 @@
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { defineStore } from 'pinia'
 import {
   createPinnedScenarioStep,
@@ -11,11 +11,20 @@ import {
   submitScenarioPackage,
   rejectScenarioPackage,
   evaluateScenarioPackageReview,
+  scenarioPackageActions,
+  scenarioPackageRole,
+  editableScenarioPackageDraft,
+  saveScenarioPackageDraft,
+  transitionScenarioPackage,
+  scenarioPublishedSnapshot,
+  getScenarioRuntimePackage,
   resolveScenarioChain
 } from '../domain/scenarioSkillPackages.js'
 import { useSkillHubStore, type SkillHubItem } from './skillHub'
+import { useAppStore } from './app'
 import { buildScenarioRunPlan } from '../domain/scenarioRunPlan.js'
-import type { ScenarioSimulationReport, ScenarioSimulationRequest } from '../domain/scenarioPackageTesting.js'
+import { getScenarioTestFingerprint, runScenarioSimulation, type ScenarioSimulationReport, type ScenarioSimulationRequest } from '../domain/scenarioPackageTesting.js'
+import { readScenarioPackageState, writeScenarioPackageState, type ScenarioPackageStoredState } from '../services/scenarioPackageStorage'
 
 export type ScenarioDependencyState = 'available' | 'expired' | 'unavailable' | 'emergency_disabled' | 'update_available'
 export type ScenarioStepKind = 'required' | 'conditional'
@@ -72,7 +81,7 @@ export interface ScenarioPackageHealth {
 }
 
 export interface ScenarioPackageAuditEvent {
-  type: 'submitted' | 'approved' | 'published' | 'rejected'
+  type: 'submitted' | 'approved' | 'published' | 'rejected' | 'withdrawn' | 'disabled' | 'enabled'
   actorId: string
   at: string
   note?: string
@@ -86,6 +95,8 @@ export interface ScenarioSkillPackage {
   ownerId: string
   version: string
   status: 'draft' | 'review' | 'rejected' | 'published' | 'disabled'
+  onlineStatus?: 'unpublished' | 'published' | 'disabled'
+  publishedSnapshot?: ScenarioSkillPackage
   steps: ScenarioPinnedStep[]
   health: ScenarioPackageHealth
   updatedAt: string
@@ -108,6 +119,9 @@ export interface ScenarioSkillPackageDraft {
   description: string
   targetAudience: string
   ownerId: string
+  version?: string
+  status?: ScenarioSkillPackage['status']
+  baseUpdatedAt?: string
   steps: ScenarioPinnedStep[]
   testReport?: ScenarioSimulationReport
   testRequest?: ScenarioSimulationRequest
@@ -116,6 +130,13 @@ export interface ScenarioSkillPackageDraft {
 export interface ScenarioPackageActor {
   id: string
   permissions: string[] | (Partial<ScenarioSkillPermissionSnapshot> & { policy?: string[] })
+}
+
+export type ScenarioPackageAction = 'view' | 'edit' | 'approve' | 'reject' | 'disable' | 'enable'
+export interface ScenarioPackageMutationResult {
+  ok: boolean
+  reasons: string[]
+  package?: ScenarioSkillPackage
 }
 
 export interface ScenarioPackagePolicyEvaluation {
@@ -220,7 +241,11 @@ export function createSelectableScenarioSkills(items: SkillHubItem[]): ScenarioS
     })
 }
 
-function createSeedScenarioPackages(selectableSkills: ScenarioSelectableSkill[]): ScenarioSkillPackage[] {
+function createSeedScenarioPackages(selectableSkills: ScenarioSelectableSkill[], catalog: SkillHubItem[], currentOwnerId: string): ScenarioSkillPackage[] {
+  const authorFor = (id: string): ScenarioPackageActor => ({ id, permissions: [
+    'scenario-package:create', 'scenario-package:compose:cross-menu',
+    ...catalog.flatMap(item => [`skill:${item.name}:metadata:read`, `skill:${item.name}:reference`, ...Object.values(permissionSnapshotFor(item)).flat()])
+  ] })
   const findSelectableSkill = (id: string) => {
     const skill = selectableSkills.find((item) => item.id === id)
     if (!skill) throw new Error(`场景技能包缺少 POC Skill：${id}`)
@@ -253,10 +278,10 @@ function createSeedScenarioPackages(selectableSkills: ScenarioSelectableSkill[])
     certification,
     createPinnedScenarioStep(findSelectableSkill('workplace-segment-operations'), { id: operations.id, required: true }) as ScenarioPinnedStep,
     enterpriseFollowup
-  ].map(step => ({ ...step, permissions: clonePermissions(step.permissions) }))
+  ].map(step => ({ ...step, task: step.task || `使用${step.name}分析当前授权对象并汇总结果`, permissions: clonePermissions(step.permissions) }))
   const publishedAt = '2026-09-04T09:30:00.000Z'
 
-  return [{
+  const seededPackages: ScenarioSkillPackage[] = [{
     id: 'seed-workplace-certification-operations',
     name: '职场人群认证经营管理',
     description: '当运营人员需要了解指定职场人群的认证状态、分析经营机会并准备企业客户跟进建议时使用；仅分析当前授权范围内的数据，不修改认证结果或直接联系客户。',
@@ -293,16 +318,188 @@ function createSeedScenarioPackages(selectableSkills: ScenarioSelectableSkill[])
     submittedBy: 'pm-li',
     auditEvents: [{ type: 'submitted', actorId: 'pm-li', at: publishedAt }]
   }]
+  const originalExamples = seededPackages.map((packageItem): ScenarioSkillPackage => {
+    if (packageItem.status === 'published') {
+      return { ...packageItem, onlineStatus: 'published', publishedSnapshot: scenarioPublishedSnapshot(packageItem) as ScenarioSkillPackage }
+    }
+    const testRequest: ScenarioSimulationRequest = {
+      input: '模拟查询职场人群认证情况并分析经营机会。',
+      expectedOutput: '输出认证状态、经营建议与客户跟进要点。',
+      activeOptionalStepIds: packageItem.steps.filter(step => !step.required).map(step => step.id),
+      confirmedStepIds: [], approvedStepIds: [],
+      sampleOutputs: Object.fromEntries(packageItem.steps.map(step => [step.id, `${step.name}的模拟分析结果。`]))
+    }
+    return {
+      ...packageItem, onlineStatus: 'unpublished', testRequest,
+      testReport: runScenarioSimulation(packageItem, selectableSkills, testRequest, authorFor(packageItem.ownerId), publishedAt)
+    }
+  })
+
+  const submittedAt = '2026-09-03T08:00:00.000Z'
+  const changedAt = '2026-09-10T08:00:00.000Z'
+  // The fallback identity only prevents self-review when a PM account happens to be named admin.
+  const reviewerFor = (creator: string) => ({ id: creator === 'admin' ? 'zhangrui' : 'admin', permissions: ['scenario-package:review'] })
+  const createDraftExample = (id: string, name: string, creator: string, exampleSteps: ScenarioPinnedStep[] = reviewSteps): ScenarioSkillPackage => ({
+    id, name, ownerId: creator, version: 'v1.0.0', status: 'draft', onlineStatus: 'unpublished',
+    description: '当运营人员需要分析指定职场人群的认证状态、经营表现并准备客户跟进建议时使用；仅处理授权范围内的数据，不修改认证结果或发送客户消息。',
+    targetAudience: '认证运营与企业客户运营人员',
+    steps: cloneScenarioTestSnapshot(exampleSteps),
+    health: evaluatePackageHealth(exampleSteps) as ScenarioPackageHealth,
+    updatedAt: submittedAt, auditEvents: []
+  })
+  const createReviewExample = (draft: ScenarioSkillPackage, skills = selectableSkills): ScenarioSkillPackage => {
+    const creator = authorFor(draft.ownerId)
+    const testRequest: ScenarioSimulationRequest = {
+      input: '按场景配置检查节点执行与结果传递。', expectedOutput: '输出节点分析结果与客户跟进建议。',
+      activeOptionalStepIds: draft.steps.filter(step => !step.required).map(step => step.id),
+      confirmedStepIds: [], approvedStepIds: [],
+      sampleOutputs: Object.fromEntries(draft.steps.map(step => [step.id, `${step.name}的模拟分析结果。`]))
+    }
+    const tested = { ...draft, testRequest, testReport: runScenarioSimulation(draft, skills, testRequest, creator, submittedAt) }
+    return submitScenarioPackage(tested, creator, submittedAt, skills) as ScenarioSkillPackage
+  }
+  const createPublishedExample = (draft: ScenarioSkillPackage, skills = selectableSkills): ScenarioSkillPackage => (
+    publishScenarioPackage(createReviewExample(draft, skills), reviewerFor(draft.ownerId), publishedAt, skills) as ScenarioSkillPackage
+  )
+
+  // These dependencies were published before they were disabled in the existing Skill catalog.
+  // Reconstruct their historical snapshots locally, without making them selectable again.
+  const createHistoricalSkill = (id: string): ScenarioSelectableSkill => {
+    const item = catalog.find(skill => skill.name === id)
+    if (!item || item.online === '未发布') throw new Error(`缺少场景包历史 Skill：${id}`)
+    return {
+      id, name: item.cnName || item.name, menu: item.category, version: item.online,
+      status: 'published', onlineStatus: 'published', online: item.online,
+      description: item.desc, inputDescription: '本次场景的查询范围', outputDescription: `${item.cnName}结果`,
+      permissions: permissionSnapshotFor(item)
+    }
+  }
+  const historicalWeather = createHistoricalSkill('weather-query')
+  const historicalInventory = createHistoricalSkill('legacy-inventory-alert')
+  const historicalCatalog = [...selectableSkills, historicalWeather, historicalInventory]
+  const degradedDraft = createDraftExample('seed-scenario-degraded', '职场活动运营分析', 'pm-li', [
+    ...reviewSteps.slice(0, 2),
+    createPinnedScenarioStep(historicalWeather, {
+      id: 'activity-weather', kind: 'conditional', condition: '需要安排线下职场活动时', required: false
+    }) as ScenarioPinnedStep
+  ])
+  degradedDraft.description = '当需要分析职场认证人群与经营表现、制定线下运营活动计划时使用；天气查询为可选分支，不可用时仍可输出核心人群分析。'
+  const pausedDraft = createDraftExample('seed-scenario-paused', '企业客户库存预警协同', 'pm-li', [
+    createPinnedScenarioStep(findSelectableSkill('enterprise-customer-followup'), { id: 'customer-followup', required: true }) as ScenarioPinnedStep,
+    createPinnedScenarioStep(historicalInventory, { id: 'inventory-alert', required: true }) as ScenarioPinnedStep
+  ])
+  pausedDraft.description = '当需要结合企业客户跟进目标与库存预警制定供货建议时使用；库存预警属于核心链路，依赖不可用时暂停整个技能包。'
+  const dependencyExamples = [degradedDraft, pausedDraft].map(draft => {
+    const published = createPublishedExample(draft, historicalCatalog)
+    const currentSteps = published.steps.map(step => ({
+      ...step,
+      dependencyState: [historicalWeather.id, historicalInventory.id].includes(step.skillId)
+        ? 'emergency_disabled' as const : step.dependencyState
+    }))
+    const current = { ...published, steps: currentSteps, health: evaluatePackageHealth(currentSteps) as ScenarioPackageHealth, updatedAt: changedAt }
+    delete current.publishedSnapshot
+    return { ...current, publishedSnapshot: scenarioPublishedSnapshot(current) as ScenarioSkillPackage }
+  })
+
+  const ownExamples: ScenarioSkillPackage[] = []
+  for (const ownerId of new Set(['pm-li', ...(currentOwnerId ? [currentOwnerId] : [])])) {
+    const id = `seed-scenario-own-${encodeURIComponent(ownerId)}`
+    ownExamples.push(createDraftExample(`${id}-draft`, '职场人群认证分析（草稿）', ownerId))
+    ownExamples.push(createReviewExample(createDraftExample(`${id}-review`, '职场人群经营协作（待审核）', ownerId)))
+    ownExamples.push(rejectScenarioPackage(
+      createReviewExample(createDraftExample(`${id}-rejected`, '企业客户跟进分析（已驳回）', ownerId)),
+      reviewerFor(ownerId), '请在场景描述中补充适用的客户范围，以及不适用的情况。', publishedAt
+    ) as ScenarioSkillPackage)
+    ownExamples.push(createPublishedExample(createDraftExample(`${id}-published`, '职场人群经营分析（已发布）', ownerId)))
+    const disabled = transitionScenarioPackage(
+      createPublishedExample(createDraftExample(`${id}-disabled`, '职场运营综合分析（已禁用）', ownerId)),
+      reviewerFor(ownerId), 'disable', changedAt
+    ) as ScenarioPackageMutationResult
+    if (!disabled.ok || !disabled.package) throw new Error('无法初始化已禁用的场景包示例')
+    ownExamples.push(disabled.package)
+  }
+  return cloneScenarioTestSnapshot([...originalExamples, ...dependencyExamples, ...ownExamples])
+}
+
+const sortedRecord = (value: unknown): unknown => Array.isArray(value) ? value.map(sortedRecord)
+  : value && typeof value === 'object'
+    ? Object.fromEntries(Object.entries(value).sort(([left], [right]) => left.localeCompare(right)).map(([key, item]) => [key, sortedRecord(item)]))
+    : value
+
+/** Reconstruct the complete released V1 record; an ID alone never establishes seed provenance. */
+function isUnchangedLegacyAuthorSeed(item: ScenarioSkillPackage, defaults: ScenarioSkillPackage[], skills: ScenarioSelectableSkill[]): boolean {
+  const specialReview = item.id === 'seed-scenario-review-by-zhangrui' && item.ownerId === 'zhangrui'
+  const prefix = `seed-scenario-own-${encodeURIComponent(item.ownerId)}-`
+  const state = specialReview ? 'review' : item.id.startsWith(prefix) ? item.id.slice(prefix.length) : ''
+  if (!['draft', 'review', 'rejected', 'published', 'disabled'].includes(state)) return false
+  const template = defaults.find(record => record.id === `seed-scenario-own-pm-li-${state}`)
+  if (!template || item.id === template.id) return false
+  const expected = cloneScenarioTestSnapshot(template) as ScenarioSkillPackage
+  // This is the historical V1 review identity, not a role inferred from a username.
+  const reviewerId = item.ownerId === 'admin' ? 'zhangrui' : 'admin'
+  const restoreLegacyIdentity = (record: ScenarioSkillPackage) => {
+    record.id = item.id
+    record.ownerId = item.ownerId
+    if (specialReview) record.name = '职场客户协同（待审核）'
+    if (record.submittedBy) record.submittedBy = item.ownerId
+    if (record.reviewedBy) record.reviewedBy = reviewerId
+    record.auditEvents?.forEach(event => { event.actorId = event.type === 'submitted' ? item.ownerId : reviewerId })
+    if (record.testReport) {
+      record.testReport.testerId = item.ownerId
+      record.testReport.fingerprint = getScenarioTestFingerprint(record, skills, record.testReport.request)
+      record.testReport.id = `simulation-${record.testReport.createdAt}-${record.testReport.fingerprint.slice(-16)}`
+    }
+  }
+  restoreLegacyIdentity(expected)
+  if (expected.publishedSnapshot) restoreLegacyIdentity(expected.publishedSnapshot)
+  return JSON.stringify(sortedRecord(item)) === JSON.stringify(sortedRecord(expected))
 }
 
 export const useScenarioSkillPackagesStore = defineStore('scenarioSkillPackages', () => {
+  const app = useAppStore()
   const skillHub = useSkillHubStore()
   const selectableSkills = computed(() => createSelectableScenarioSkills(skillHub.items))
-  const storedPackages = ref<ScenarioSkillPackage[]>(createSeedScenarioPackages(selectableSkills.value))
+  const initialSeedCatalog = cloneScenarioTestSnapshot(skillHub.items)
+  const initialSeedSkills = createSelectableScenarioSkills(initialSeedCatalog)
+  const currentAuthorId = () => scenarioPackageRole({ id: app.user || '', permissions: app.permissions }) === 'pm' ? app.user || '' : ''
+  const defaultSeeds = createSeedScenarioPackages(initialSeedSkills, initialSeedCatalog, '')
+  const storedPackages = ref<ScenarioSkillPackage[]>(createSeedScenarioPackages(selectableSkills.value, skillHub.items, currentAuthorId()))
+  const seededOwners = new Set(['pm-li', ...(currentAuthorId() ? [currentAuthorId()] : [])])
+  function migrateLegacyState(state: ScenarioPackageStoredState): ScenarioPackageStoredState {
+    if (state.schemaVersion !== 1) return state
+    const packages = state.packages.filter(item => !isUnchangedLegacyAuthorSeed(item, defaultSeeds, initialSeedSkills))
+    const ids = new Set(packages.map(item => item.id))
+    return { schemaVersion: 2, packages: [...packages, ...defaultSeeds.filter(item => !ids.has(item.id))], seededOwners: ['pm-li'] }
+  }
+  function readLatestState() {
+    const state = readScenarioPackageState()
+    return state ? migrateLegacyState(state) : null
+  }
+  let persisted = readScenarioPackageState()
+  if (persisted?.schemaVersion === 1) {
+    const migrated = migrateLegacyState(persisted)
+    try { writeScenarioPackageState(migrated); persisted = migrated }
+    catch { /* Preserve the original state if upgrading storage fails; explicit writes still report failure. */ }
+  }
+  let persistedIds = new Set(persisted?.packages.map(item => item.id) || [])
+  if (persisted) {
+    const restoredIds = new Set(persisted.packages.map(item => item.id))
+    storedPackages.value = [...persisted.packages, ...storedPackages.value.filter(item => !restoredIds.has(item.id))]
+    if (persisted.schemaVersion === 2) persisted.seededOwners.forEach(ownerId => seededOwners.add(ownerId))
+  }
+  // Login can finish after store creation. Add new-account examples once; preserve all existing edits and submissions.
+  watch([() => app.user, () => app.permissions], () => {
+    const ownerId = currentAuthorId()
+    if (!ownerId || seededOwners.has(ownerId)) return
+    const existingIds = new Set(storedPackages.value.map(item => item.id))
+    storedPackages.value.push(...createSeedScenarioPackages(initialSeedSkills, initialSeedCatalog, ownerId).filter(item => !existingIds.has(item.id)))
+    seededOwners.add(ownerId)
+  }, { deep: true })
 
   function clonePackage(packageItem: ScenarioSkillPackage): ScenarioSkillPackage {
     return {
       ...packageItem,
+      publishedSnapshot: packageItem.publishedSnapshot ? clonePackage(packageItem.publishedSnapshot) : undefined,
       testReport: cloneScenarioTestSnapshot(packageItem.testReport),
       testRequest: cloneScenarioTestSnapshot(packageItem.testRequest),
       steps: packageItem.steps.map((step) => ({
@@ -325,21 +522,23 @@ export const useScenarioSkillPackagesStore = defineStore('scenarioSkillPackages'
   function refreshStep(step: ScenarioPinnedStep): ScenarioPinnedStep {
     const currentSkill = skillHub.items.find((item) => item.name === step.skillId)
     const isOnline = currentSkill?.onlineStatus === 'published' && currentSkill.online !== '未发布'
-    const preservedUnavailableState = ['expired', 'unavailable', 'emergency_disabled'].includes(step.dependencyState)
+    const preservedExpiredState = step.dependencyState === 'expired'
 
     if (!currentSkill || !isOnline) {
       return {
         ...step,
-        dependencyState: currentSkill?.onlineStatus === 'disabled' ? 'emergency_disabled' : 'unavailable',
+        dependencyState: preservedExpiredState ? 'expired' : currentSkill?.onlineStatus === 'disabled' ? 'emergency_disabled' : 'unavailable',
         permissions: clonePermissions(step.permissions)
       }
     }
 
     const currentPublishedVersion = currentSkill.online
+    const preservedUnavailableState = ['unavailable', 'emergency_disabled'].includes(step.dependencyState)
+      && currentPublishedVersion !== step.pinnedVersion
     return {
       ...step,
       currentPublishedVersion,
-      dependencyState: preservedUnavailableState
+      dependencyState: preservedExpiredState || preservedUnavailableState
         ? step.dependencyState
         : currentPublishedVersion === step.pinnedVersion
           ? 'available'
@@ -353,11 +552,70 @@ export const useScenarioSkillPackagesStore = defineStore('scenarioSkillPackages'
     return clonePackage({
       ...packageItem,
       steps,
+      publishedSnapshot: packageItem.publishedSnapshot ? refreshPackage(packageItem.publishedSnapshot) : undefined,
       health: evaluatePackageHealth(steps) as ScenarioPackageHealth
     })
   }
 
   const packages = computed(() => storedPackages.value.map(refreshPackage))
+
+  function nextWriteTime(current?: ScenarioSkillPackage) {
+    return new Date(Math.max(Date.now(), (Date.parse(current?.updatedAt || '') || 0) + 1)).toISOString()
+  }
+
+  function commitPackages(next: ScenarioSkillPackage[], owners = [...seededOwners]) {
+    writeScenarioPackageState({ packages: next, seededOwners: owners })
+    storedPackages.value = next
+    persistedIds = new Set(next.map(item => item.id))
+  }
+
+  function commitPackage(next: ScenarioSkillPackage) {
+    const latest = readLatestState()
+    let currentPackages = storedPackages.value
+    if (latest) {
+      const current = currentPackages.find(item => item.id === next.id)
+      const saved = latest.packages.find(item => item.id === next.id)
+      const latestIds = new Set(latest.packages.map(item => item.id))
+      currentPackages = [...latest.packages, ...currentPackages.filter(item => !latestIds.has(item.id) && !persistedIds.has(item.id))]
+      if ((saved && saved.updatedAt !== current?.updatedAt) || (!saved && persistedIds.has(next.id))) {
+        // Refresh the local view so reopening edits reads the version that actually reached storage.
+        storedPackages.value = currentPackages
+        persistedIds = latestIds
+        throw new Error('场景技能包已在其他页面更新，请重新打开当前版本后操作')
+      }
+    }
+    const packages = currentPackages.some(item => item.id === next.id)
+      ? currentPackages.map(item => item.id === next.id ? clonePackage(next) : item)
+      : [clonePackage(next), ...currentPackages]
+    const owners = [...new Set([...seededOwners, ...(latest?.seededOwners || [])])]
+    commitPackages(packages, owners)
+    owners.forEach(ownerId => seededOwners.add(ownerId))
+  }
+
+  function actionsFor(id: string, actor: ScenarioPackageActor): ScenarioPackageAction[] {
+    return scenarioPackageActions(storedPackages.value.find(item => item.id === id), actor) as ScenarioPackageAction[]
+  }
+
+  function editableDraft(id: string, actor: ScenarioPackageActor): (ScenarioSkillPackageDraft & { baseUpdatedAt: string }) | null {
+    return editableScenarioPackageDraft(findPackage(id), actor) as (ScenarioSkillPackageDraft & { baseUpdatedAt: string }) | null
+  }
+
+  function changeLifecycle(id: string, actor: ScenarioPackageActor, action: 'disable' | 'enable'): ScenarioPackageMutationResult {
+    const current = storedPackages.value.find(item => item.id === id)
+    if (!current) return { ok: false, reasons: ['场景技能包不存在'] }
+    const result = transitionScenarioPackage(current, actor, action, nextWriteTime(current)) as ScenarioPackageMutationResult
+    if (!result.ok || !result.package) return result
+    const next = result.package
+    try {
+      commitPackage(next)
+    } catch (error) {
+      return { ok: false, reasons: [error instanceof Error ? error.message : '场景技能包保存失败'] }
+    }
+    return { ok: true, reasons: [], package: clonePackage(next) }
+  }
+
+  const disablePackage = (id: string, actor: ScenarioPackageActor) => changeLifecycle(id, actor, 'disable')
+  const enablePackage = (id: string, actor: ScenarioPackageActor) => changeLifecycle(id, actor, 'enable')
 
   function evaluateDraft(draft: ScenarioSkillPackageDraft, actor: ScenarioPackageActor): ScenarioDraftEvaluation {
     const rebuilt = rebuildDraftFromCatalog(draft, selectableSkills.value) as {
@@ -385,17 +643,23 @@ export const useScenarioSkillPackagesStore = defineStore('scenarioSkillPackages'
     }
   }
 
+  function saveDraft(draft: ScenarioSkillPackageDraft, actor: ScenarioPackageActor): ScenarioSkillPackage {
+    const current = storedPackages.value.find(item => item.id === draft.id)
+    const saved = saveScenarioPackageDraft(draft, actor, nextWriteTime(current), current) as ScenarioSkillPackage
+    commitPackage(saved)
+    return clonePackage(saved)
+  }
+
   function submitDraft(draft: ScenarioSkillPackageDraft, actor: ScenarioPackageActor): ScenarioSkillPackage {
-    if (storedPackages.value.some((item) => item.id === draft.id)) {
-      throw new Error(`场景技能包 ID 已存在：${draft.id}`)
-    }
+    const current = storedPackages.value.find(item => item.id === draft.id)
     const submitted = submitScenarioPackage(
       draft,
       actor,
-      new Date().toISOString(),
-      selectableSkills.value
+      nextWriteTime(current),
+      selectableSkills.value,
+      current
     ) as ScenarioSkillPackage
-    storedPackages.value.unshift(clonePackage(submitted))
+    commitPackage(submitted)
     return clonePackage(submitted)
   }
 
@@ -404,28 +668,28 @@ export const useScenarioSkillPackagesStore = defineStore('scenarioSkillPackages'
     return current ? evaluateScenarioPackageReview(current, actor) : { ok: false, reasons: ['场景技能包不存在'] }
   }
 
-  function approvePackage(id: string, actor: ScenarioPackageActor, note = ''): ScenarioSkillPackage {
+  function approvePackage(id: string, actor: ScenarioPackageActor, note = '', expectedUpdatedAt?: string): ScenarioSkillPackage {
     const current = storedPackages.value.find(item => item.id === id)
     if (!current) throw new Error(`场景技能包不存在：${id}`)
-    const published = publishScenarioPackage(current, actor, new Date().toISOString(), selectableSkills.value, note) as ScenarioSkillPackage
-    storedPackages.value = storedPackages.value.map(item => item.id === id ? clonePackage(published) : item)
+    if (expectedUpdatedAt !== undefined && expectedUpdatedAt !== current.updatedAt) throw new Error('场景技能包已更新，请重新打开当前提交版本后审核')
+    const published = publishScenarioPackage(current, actor, nextWriteTime(current), selectableSkills.value, note) as ScenarioSkillPackage
+    commitPackage(published)
     return clonePackage(published)
   }
 
-  function rejectPackage(id: string, actor: ScenarioPackageActor, reason: string): ScenarioSkillPackage {
+  function rejectPackage(id: string, actor: ScenarioPackageActor, reason: string, expectedUpdatedAt?: string): ScenarioSkillPackage {
     const current = storedPackages.value.find(item => item.id === id)
     if (!current) throw new Error(`场景技能包不存在：${id}`)
-    const rejected = rejectScenarioPackage(current, actor, reason, new Date().toISOString()) as ScenarioSkillPackage
-    storedPackages.value = storedPackages.value.map(item => item.id === id ? clonePackage(rejected) : item)
+    if (expectedUpdatedAt !== undefined && expectedUpdatedAt !== current.updatedAt) throw new Error('场景技能包已更新，请重新打开当前提交版本后审核')
+    const rejected = rejectScenarioPackage(current, actor, reason, nextWriteTime(current)) as ScenarioSkillPackage
+    commitPackage(rejected)
     return clonePackage(rejected)
   }
 
   function resubmitDraft(draft: ScenarioSkillPackageDraft, actor: ScenarioPackageActor): ScenarioSkillPackage {
     const current = storedPackages.value.find(item => item.id === draft.id)
-    if (!current) throw new Error('仅已驳回的原场景技能包可以重新提交')
-    const submitted = submitScenarioPackage(draft, actor, new Date().toISOString(), selectableSkills.value, current) as ScenarioSkillPackage
-    storedPackages.value = storedPackages.value.map(item => item.id === draft.id ? clonePackage(submitted) : item)
-    return clonePackage(submitted)
+    if (!current || current.status !== 'rejected') throw new Error('仅已驳回的原场景技能包可以重新提交')
+    return submitDraft(draft, actor)
   }
 
   function findPackage(id: string) {
@@ -452,7 +716,11 @@ export const useScenarioSkillPackagesStore = defineStore('scenarioSkillPackages'
   }
 
   function resetToInitialMock() {
-    storedPackages.value = createSeedScenarioPackages(selectableSkills.value)
+    const ownerId = currentAuthorId()
+    commitPackages(createSeedScenarioPackages(selectableSkills.value, skillHub.items, ownerId), ['pm-li', ...(ownerId ? [ownerId] : [])])
+    seededOwners.clear()
+    seededOwners.add('pm-li')
+    if (ownerId) seededOwners.add(ownerId)
   }
 
   function prepareRunPlan(
@@ -462,13 +730,18 @@ export const useScenarioSkillPackagesStore = defineStore('scenarioSkillPackages'
   ) {
     const packageItem = findPackage(packageId)
     if (!packageItem) throw new Error(`场景技能包不存在：${packageId}`)
-    return buildScenarioRunPlan(packageItem, caller, request)
+    return buildScenarioRunPlan(getScenarioRuntimePackage(packageItem), caller, request)
   }
 
   return {
     packages,
     selectableSkills,
+    actionsFor,
+    editableDraft,
+    disablePackage,
+    enablePackage,
     evaluateDraft,
+    saveDraft,
     submitDraft,
     reviewDecision,
     approvePackage,

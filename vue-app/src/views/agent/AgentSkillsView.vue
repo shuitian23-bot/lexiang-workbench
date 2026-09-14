@@ -1,9 +1,10 @@
 <template>
   <ScenarioSkillPackageCreateView
     v-if="isPackageCreate"
-    :key="editingPackage?.id || 'new-package'"
+    :key="editingPackage?.id || `new-package-${newPackageSessionOwner}`"
     :draft="editingPackage"
     @cancel="closePackageCreate"
+    @saved="handlePackageSaved"
     @submitted="handlePackageSubmitted"
   />
 
@@ -19,7 +20,7 @@
     <ContentPageHeader title="Skill Hub" :description="pageDesc">
       <template #actions>
         <div class="agent-skill-page-actions">
-          <button ref="activeCreateButton" class="btn btn-primary" type="button" @click="openActiveCreate">
+          <button v-if="activeHubTab !== 'packages' || canCreatePackage" ref="activeCreateButton" class="btn btn-primary" type="button" @click="openActiveCreate">
             {{ activeHubTab === 'packages' ? '创建场景技能包' : '创建 Skill' }}
           </button>
           <button class="btn btn-secondary" type="button" @click="goPortalHome">返回工作台</button>
@@ -72,102 +73,104 @@
         </button>
       </div>
 
-      <div class="skill-hub-toolbar">
-        <input v-model="keyword" aria-label="搜索 Skill" placeholder="搜索技能名称、中文名或描述">
-        <input v-model="creatorKeyword" type="search" aria-label="搜索创建人" placeholder="搜索创建人">
-        <select v-model="statusFilter" aria-label="Skill 状态">
-          <option value="all">状态</option>
-          <option v-for="status in statusOptions" :key="status" :value="status">{{ skillHubStatusLabel(status) }}</option>
-        </select>
-        <select v-model="categoryFilter" aria-label="Skill 分类">
-          <option value="all">分类</option>
-          <option v-for="category in categories" :key="category" :value="category">{{ category }}</option>
-        </select>
-        <div class="skill-hub-filter-actions">
-          <label class="skill-hub-update-toggle">
-            <span>只看有更新</span>
-            <input v-model="onlyCapabilityUpdates" type="checkbox">
-            <i aria-hidden="true"></i>
-          </label>
-          <button class="btn btn-primary" type="button">搜索</button>
+      <div class="skill-hub-list-workspace" data-page-block="list-workspace">
+        <div class="skill-hub-toolbar">
+          <input v-model="keyword" aria-label="搜索 Skill" placeholder="搜索技能名称、中文名或描述">
+          <input v-model="creatorKeyword" type="search" aria-label="搜索创建人" placeholder="搜索创建人">
+          <select v-model="statusFilter" aria-label="Skill 状态">
+            <option value="all">状态</option>
+            <option v-for="status in statusOptions" :key="status" :value="status">{{ skillHubStatusLabel(status) }}</option>
+          </select>
+          <select v-model="categoryFilter" aria-label="Skill 分类">
+            <option value="all">分类</option>
+            <option v-for="category in categories" :key="category" :value="category">{{ category }}</option>
+          </select>
+          <div class="skill-hub-filter-actions">
+            <label class="skill-hub-update-toggle">
+              <span>只看有更新</span>
+              <input v-model="onlyCapabilityUpdates" type="checkbox">
+              <i aria-hidden="true"></i>
+            </label>
+            <button class="btn btn-primary" type="button">搜索</button>
+          </div>
         </div>
-      </div>
 
-      <div class="skill-hub-table-card">
-        <table class="skill-hub-table">
-          <thead>
-            <tr>
-              <th>名称</th>
-              <th>中文名</th>
-              <th>绑定平台</th>
-              <th>创建人</th>
-              <th>描述</th>
-              <th>版本</th>
-              <th>上线版本</th>
-              <th>状态</th>
-              <th>更新时间</th>
-              <th>操作</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr
-              v-for="item in filteredItems"
-              :key="item.name"
-              class="skill-hub-row"
-              :data-status="item.workflowStatus"
-              :data-category="item.category"
-            >
-              <td>
-                <div class="skill-hub-name">
-                  <span class="skill-hub-doc-icon">▤</span>
-                  <strong>{{ item.name }}</strong>
-                </div>
-              </td>
-              <td><div class="skill-hub-cn">{{ item.cnName || '-' }}</div></td>
-              <td>{{ item.platform }}</td>
-              <td class="skill-hub-creator">{{ item.owner || '-' }}</td>
-              <td>
-                <div class="skill-hub-desc">{{ item.desc }}</div>
-                <div v-if="shouldShowCapabilityChangeSummary(item.capabilityUpdate)" class="skill-hub-change-summary">
-                  <b>{{ decisionCapabilityUpdate(item)?.summary }}</b>
-                  <span>{{ decisionCapabilityUpdate(item)?.detectedAt }} 检测</span>
-                </div>
-              </td>
-              <td>
-                <span class="skill-hub-version">{{ item.editVersion || item.version }}</span>
-                <small v-if="item.editVersion" class="skill-hub-edit-version">编辑版本</small>
-              </td>
-              <td><span class="skill-hub-online" :class="{ empty: item.onlineStatus === 'unpublished' }">{{ item.online }}</span></td>
-              <td>
-                <div class="skill-hub-status-stack">
-                  <span class="skill-hub-status" :class="`status-${rowPresentation(item).mainStatus}`">{{ rowPresentation(item).mainStatusLabel }}</span>
-                  <span v-if="rowPresentation(item).updateStatusLabel" class="skill-hub-update-status" :class="`is-${rowPresentation(item).updateStatus}`">
-                    {{ rowPresentation(item).updateStatusLabel }}
-                  </span>
-                </div>
-              </td>
-              <td>{{ item.updated }}</td>
-              <td>
-                <div class="skill-hub-actions">
-                  <button
-                    v-for="action in allowedActionsFor(item)"
-                    :key="action.code"
-                    class="skill-hub-action"
-                    :class="actionTone(action.code)"
-                    type="button"
-                    :disabled="!action.enabled"
-                    @click="handleAction(item, action.code)"
-                  >
-                    {{ actionLabel(action.code) }}
-                  </button>
-                </div>
-              </td>
-            </tr>
-            <tr v-if="!filteredItems.length">
-              <td colspan="10" class="skill-hub-detail-empty">当前筛选下暂无 Skill</td>
-            </tr>
-          </tbody>
-        </table>
+        <div class="skill-hub-table-card">
+          <table class="skill-hub-table">
+            <thead>
+              <tr>
+                <th>名称</th>
+                <th>中文名</th>
+                <th>绑定平台</th>
+                <th>创建人</th>
+                <th>描述</th>
+                <th>版本</th>
+                <th>上线版本</th>
+                <th>状态</th>
+                <th>更新时间</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                v-for="item in filteredItems"
+                :key="item.name"
+                class="skill-hub-row"
+                :data-status="item.workflowStatus"
+                :data-category="item.category"
+              >
+                <td>
+                  <div class="skill-hub-name">
+                    <span class="skill-hub-doc-icon">▤</span>
+                    <strong>{{ item.name }}</strong>
+                  </div>
+                </td>
+                <td><div class="skill-hub-cn">{{ item.cnName || '-' }}</div></td>
+                <td>{{ item.platform }}</td>
+                <td class="skill-hub-creator">{{ item.owner || '-' }}</td>
+                <td>
+                  <div class="skill-hub-desc">{{ item.desc }}</div>
+                  <div v-if="shouldShowCapabilityChangeSummary(item.capabilityUpdate)" class="skill-hub-change-summary">
+                    <b>{{ decisionCapabilityUpdate(item)?.summary }}</b>
+                    <span>{{ decisionCapabilityUpdate(item)?.detectedAt }} 检测</span>
+                  </div>
+                </td>
+                <td>
+                  <span class="skill-hub-version">{{ item.editVersion || item.version }}</span>
+                  <small v-if="item.editVersion" class="skill-hub-edit-version">编辑版本</small>
+                </td>
+                <td><span class="skill-hub-online" :class="{ empty: item.onlineStatus === 'unpublished' }">{{ item.online }}</span></td>
+                <td>
+                  <div class="skill-hub-status-stack">
+                    <span class="skill-hub-status" :class="`status-${rowPresentation(item).mainStatus}`">{{ rowPresentation(item).mainStatusLabel }}</span>
+                    <span v-if="rowPresentation(item).updateStatusLabel" class="skill-hub-update-status" :class="`is-${rowPresentation(item).updateStatus}`">
+                      {{ rowPresentation(item).updateStatusLabel }}
+                    </span>
+                  </div>
+                </td>
+                <td>{{ item.updated }}</td>
+                <td>
+                  <div class="skill-hub-actions">
+                    <button
+                      v-for="action in allowedActionsFor(item)"
+                      :key="action.code"
+                      class="skill-hub-action"
+                      :class="actionTone(action.code)"
+                      type="button"
+                      :disabled="!action.enabled"
+                      @click="handleAction(item, action.code)"
+                    >
+                      {{ actionLabel(action.code) }}
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              <tr v-if="!filteredItems.length">
+                <td colspan="10" class="skill-hub-detail-empty">当前筛选下暂无 Skill</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </section>
 
@@ -201,6 +204,7 @@
           <input v-model="packageKeyword" type="search" aria-label="搜索场景技能包" placeholder="搜索名称、场景描述或主责任人">
           <select v-model="packageStatusFilter" aria-label="场景技能包状态" @change="packageSummaryFilter = 'all'">
             <option value="all">全部状态</option>
+            <option value="draft">草稿</option>
             <option value="review">待审核</option>
             <option value="rejected">已驳回</option>
             <option value="published">已发布</option>
@@ -259,10 +263,13 @@
                   <td>
                     <div class="scenario-package-actions">
                       <button class="skill-hub-action" type="button" @click="openPackageDetail(packageItem, $event)">详情</button>
+                      <button v-if="hasPackageAction(packageItem, 'edit')" class="skill-hub-action" type="button" @click="editPackage(packageItem)">编辑</button>
                       <template v-if="canReviewPackage(packageItem)">
                         <button class="skill-hub-action" type="button" @click="openPackageDetail(packageItem, $event, 'approve')">审批</button>
                         <button class="skill-hub-action" type="button" @click="openPackageDetail(packageItem, $event, 'reject')">驳回</button>
                       </template>
+                      <button v-if="hasPackageAction(packageItem, 'disable')" class="skill-hub-action" type="button" @click="openPackageDetail(packageItem, $event, 'disable')">禁用</button>
+                      <button v-if="hasPackageAction(packageItem, 'enable')" class="skill-hub-action" type="button" @click="openPackageDetail(packageItem, $event, 'enable')">启用</button>
                     </div>
                   </td>
                 </tr>
@@ -377,17 +384,19 @@
       >
         <div class="skill-hub-detail-head">
           <div>
-            <h3 id="scenario-package-detail-title">{{ packageReviewMode === 'approve' ? '审批场景技能包 · ' : packageReviewMode === 'reject' ? '驳回场景技能包 · ' : '' }}{{ packageDetailItem.name }}</h3>
+            <h3 id="scenario-package-detail-title">{{ packageModeTitle }}{{ packageDetailItem.name }}</h3>
             <p>{{ packageDetailItem.description }}</p>
           </div>
           <button ref="packageDetailClose" type="button" class="skill-hub-detail-close" aria-label="关闭场景技能包详情" @click="closePackageDetail">×</button>
         </div>
         <div class="skill-hub-detail-body scenario-package-detail-body">
+          <p v-if="packageActionStale" class="scenario-package-review-error" role="alert">技能包已更新，请关闭后重新查看并操作。</p>
           <dl class="scenario-package-detail-summary">
             <div><dt>目标人群</dt><dd>{{ packageDetailItem.targetAudience }}</dd></div>
             <div><dt>主责任人</dt><dd>{{ packageDetailItem.ownerId }}</dd></div>
             <div><dt>技能包版本</dt><dd><code>{{ packageDetailItem.version }}</code></dd></div>
             <div><dt>状态</dt><dd>{{ packageStatusLabel(packageDetailItem) }}</dd></div>
+            <div v-if="packageDetailItem.publishedSnapshot"><dt>已审核版本</dt><dd><code>{{ packageDetailItem.publishedSnapshot.version }}</code> · {{ packageDetailItem.onlineStatus === 'disabled' ? '已禁用' : '已发布' }}</dd></div>
             <div v-if="packageDetailItem.submittedAt"><dt>提交时间</dt><dd>{{ formatPackageUpdatedAt(packageDetailItem.submittedAt) }}</dd></div>
             <div v-if="packageDetailItem.reviewedBy"><dt>审核人</dt><dd>{{ packageDetailItem.reviewedBy }}</dd></div>
             <div v-if="packageDetailItem.reviewedAt"><dt>审核时间</dt><dd>{{ formatPackageUpdatedAt(packageDetailItem.reviewedAt) }}</dd></div>
@@ -455,10 +464,10 @@
             </ol>
             <p v-else>暂无审计事件。</p>
           </section>
-          <section v-if="packageReviewMode !== 'detail' && packageDetailItem.status === 'review'" class="scenario-package-detail-section scenario-package-review-section">
+          <section v-if="(packageReviewMode === 'approve' || packageReviewMode === 'reject') && packageDetailItem.status === 'review'" class="scenario-package-detail-section scenario-package-review-section">
             <h4>{{ packageReviewMode === 'reject' ? '驳回原因' : '管理员审批' }}</h4>
             <template v-if="packageReviewDecision.ok">
-              <p>{{ packageReviewMode === 'reject' ? '请说明需要修改的内容，创建人可修改后重新提交。' : '审批通过后将发布当前固定版本链路。' }}</p>
+              <p>{{ packageReviewMode === 'reject' ? '请说明需要修改的内容，创建人可修改后重新提交。' : packageDetailItem.onlineStatus === 'disabled' ? '审批通过后更新已审核版本，技能包仍保持禁用。' : '审批通过后将发布当前固定版本链路。' }}</p>
               <label class="scenario-package-review-field">
                 <span>{{ packageReviewMode === 'reject' ? '驳回原因（必填）' : '审批意见（选填）' }}</span>
                 <textarea ref="packageReviewInput" v-model="packageReviewNote" rows="3" :required="packageReviewMode === 'reject'" :placeholder="packageReviewMode === 'reject' ? '例如：请补充条件步骤的触发范围和预期输出。' : '可填写本次审批的补充说明。'" :aria-invalid="packageReviewError ? 'true' : undefined" :aria-describedby="packageReviewError ? 'scenario-review-error' : undefined"></textarea>
@@ -467,14 +476,21 @@
             <p v-else>{{ packageReviewDecision.reasons.join('；') }}</p>
             <p v-if="packageReviewError" id="scenario-review-error" class="scenario-package-review-error" role="alert">{{ packageReviewError }}</p>
           </section>
+          <section v-if="packageManagementMode" class="scenario-package-detail-section scenario-package-review-section">
+            <h4>{{ packageManagementLabels[packageManagementMode] }}</h4>
+            <p>{{ packageManagementDescriptions[packageManagementMode] }}</p>
+            <p v-if="!hasPackageAction(packageDetailItem, packageManagementMode)" class="scenario-package-review-error" role="alert">状态或操作权限已变更，请关闭后重新查看。</p>
+            <p v-if="packageReviewError" class="scenario-package-review-error" role="alert">{{ packageReviewError }}</p>
+          </section>
         </div>
         <div class="skill-hub-detail-foot">
           <button class="btn btn-secondary" type="button" @click="closePackageDetail">关闭</button>
-          <button v-if="canEditRejectedPackage" class="btn btn-primary" type="button" @click="editRejectedPackage">修改后重新提交</button>
-          <template v-if="packageReviewDecision.ok && packageReviewMode !== 'detail'">
+          <button v-if="packageReviewMode === 'detail' && hasPackageAction(packageDetailItem, 'edit')" class="btn btn-primary" type="button" @click="editPackage(packageDetailItem)">编辑</button>
+          <template v-if="!packageActionStale && packageReviewDecision.ok && (packageReviewMode === 'approve' || packageReviewMode === 'reject')">
             <button v-if="packageReviewMode === 'reject'" class="btn btn-primary" type="button" :disabled="packageReviewBusy" @click="reviewPackage('reject')">确认驳回</button>
-            <button v-else class="btn btn-primary" type="button" :disabled="packageReviewBusy" @click="reviewPackage('approve')">审批通过并发布</button>
+            <button v-else class="btn btn-primary" type="button" :disabled="packageReviewBusy" @click="reviewPackage('approve')">{{ packageDetailItem.onlineStatus === 'disabled' ? '审批通过' : '审批通过并发布' }}</button>
           </template>
+          <button v-if="!packageActionStale && packageManagementMode && hasPackageAction(packageDetailItem, packageManagementMode)" class="btn btn-primary" type="button" :disabled="packageReviewBusy" @click="managePackage(packageManagementMode)">{{ packageManagementLabels[packageManagementMode] }}</button>
         </div>
       </div>
     </div>
@@ -590,9 +606,12 @@ import ScenarioSkillPackageCreateView from '@/views/agent/ScenarioSkillPackageCr
 import ScenarioNodeContractSummary from '@/views/agent/ScenarioNodeContractSummary.vue'
 import ScenarioTestReportSummary from '@/views/agent/ScenarioTestReportSummary.vue'
 import { isScenarioSimulationCurrent } from '@/domain/scenarioPackageTesting.js'
+import { scenarioPackageRole } from '@/domain/scenarioSkillPackages.js'
 import {
   useScenarioSkillPackagesStore,
-  type ScenarioSkillPackage
+  type ScenarioPackageAction,
+  type ScenarioSkillPackage,
+  type ScenarioSkillPackageDraft
 } from '@/stores/scenarioSkillPackages'
 import {
   capabilityDecisionUpdate,
@@ -601,7 +620,9 @@ import {
 } from '@/services/skillCapabilityChanges'
 
 type HubTabId = 'skills' | 'packages'
-type PackageListFilter = 'all' | 'review' | 'rejected' | 'published' | 'upgrade_required' | 'degraded' | 'paused' | 'disabled'
+type PackageListFilter = 'all' | 'draft' | 'review' | 'rejected' | 'published' | 'upgrade_required' | 'degraded' | 'paused' | 'disabled'
+type PackageManagementMode = 'disable' | 'enable'
+type PackageDetailMode = 'detail' | 'approve' | 'reject' | PackageManagementMode
 
 const route = useRoute()
 const router = useRouter()
@@ -620,11 +641,31 @@ const hubTabs: Array<{ id: HubTabId; label: string }> = [
 const hubTabElements = new Map<HubTabId, HTMLButtonElement>()
 const packageRowElements = new Map<string, HTMLElement>()
 const activeHubTab = computed<HubTabId>(() => route.query.tab === 'packages' || route.query.tab === 'review' ? 'packages' : 'skills')
-const editingPackage = computed(() => {
-  const item = typeof route.query.edit === 'string' ? scenarioStore.findPackage(route.query.edit) : undefined
-  return item?.status === 'rejected' && item.ownerId === user.value ? item : undefined
-})
-const isPackageCreate = computed(() => activeHubTab.value === 'packages' && route.query.mode === 'create' && (!route.query.edit || editingPackage.value))
+const packageRole = computed(() => scenarioPackageRole({ id: user.value || '', permissions: permissions.value }))
+const canCreatePackage = computed(() => Boolean(user.value) && packageRole.value === 'pm')
+const packageCreateRoute = computed(() => route.path === '/agent/skills' && activeHubTab.value === 'packages' && route.query.mode === 'create')
+const packageEditId = computed(() => packageCreateRoute.value && typeof route.query.edit === 'string' ? route.query.edit : '')
+const editingPackage = ref<ScenarioSkillPackageDraft>()
+const newPackageSessionOwner = ref('')
+watch([packageCreateRoute, packageEditId, user, permissions], ([creating, id, ownerId]) => {
+  if (!creating || !ownerId) {
+    editingPackage.value = undefined
+    newPackageSessionOwner.value = ''
+    return
+  }
+  if (newPackageSessionOwner.value !== ownerId) newPackageSessionOwner.value = ''
+  if (!id) {
+    editingPackage.value = undefined
+    if (canCreatePackage.value) newPackageSessionOwner.value = ownerId
+    return
+  }
+  newPackageSessionOwner.value = ''
+  // Keep the opened copy when storage or permissions change; the editor locks stale writes.
+  if (editingPackage.value?.id === id && editingPackage.value.ownerId === ownerId) return
+  editingPackage.value = scenarioStore.editableDraft(id, { id: ownerId, permissions: permissions.value }) || undefined
+}, { immediate: true, flush: 'sync' })
+const isPackageCreate = computed(() => packageCreateRoute.value && (packageEditId.value
+  ? Boolean(editingPackage.value) : Boolean(user.value && newPackageSessionOwner.value === user.value)))
 
 const keyword = ref('')
 const creatorKeyword = ref('')
@@ -651,12 +692,27 @@ const packageSummaryFilter = ref<PackageListFilter>('all')
 const packageReviewNote = ref('')
 const packageReviewError = ref('')
 const packageReviewBusy = ref(false)
-const packageReviewMode = ref<'detail' | 'approve' | 'reject'>('detail')
+const packageReviewMode = ref<PackageDetailMode>('detail')
+const packageManagementLabels = { disable: '确认禁用', enable: '确认启用' }
+const packageManagementDescriptions = {
+  disable: '禁用后，当前已审核版本将停止被调用。正在编辑或审核的内容会保留，后续审批通过也不会自动启用。',
+  enable: '启用后恢复当前已审核版本的调用；运行时仍检查依赖和调用权限。正在编辑或审核的内容不会提前生效。'
+}
+const packageManagementMode = computed<PackageManagementMode | null>(() =>
+  ['disable', 'enable'].includes(packageReviewMode.value) ? packageReviewMode.value as PackageManagementMode : null
+)
+const packageModeTitle = computed(() => ({
+  detail: '', approve: '审批场景技能包 · ', reject: '驳回场景技能包 · ',
+  disable: '禁用场景技能包 · ', enable: '启用场景技能包 · '
+})[packageReviewMode.value])
 const packageReviewInput = ref<HTMLTextAreaElement | null>(null)
 const packageDetailId = ref('')
+const packageOpenedUpdatedAt = ref('')
 const packageDetailItem = computed(() => packageDetailId.value
   ? scenarioStore.findPackage(packageDetailId.value) || null
   : null)
+const packageActionStale = computed(() => packageReviewMode.value !== 'detail'
+  && packageDetailItem.value?.updatedAt !== packageOpenedUpdatedAt.value)
 const packageActor = computed(() => ({ id: user.value || '', permissions: permissions.value }))
 const packageTestIsStale = computed(() => {
   const item = packageDetailItem.value
@@ -667,7 +723,6 @@ const packageTestIsStale = computed(() => {
 const packageReviewDecision = computed(() => packageDetailItem.value?.status === 'review'
   ? scenarioStore.reviewDecision(packageDetailItem.value.id, packageActor.value)
   : { ok: false, reasons: [] as string[] })
-const canEditRejectedPackage = computed(() => packageDetailItem.value?.status === 'rejected' && packageDetailItem.value.ownerId === user.value)
 const packageRunPlan = computed(() => packageDetailItem.value
   ? scenarioStore.prepareRunPlan(packageDetailItem.value.id, { id: user.value || '', permissions: permissions.value })
   : null)
@@ -691,7 +746,11 @@ const role = computed(() => permissions.value.includes('*') ? 'admin' : 'pm')
 const actor = computed(() => ({ role: role.value, user: user.value || 'admin' }) as const)
 const pageDesc = computed(() => {
   if (activeHubTab.value === 'packages') {
-    return '管理场景技能包的审核、固定版本链路和依赖健康；提交后由其他管理员审核，通过后发布。'
+    return packageRole.value === 'admin'
+      ? '审批或驳回 PM 提交的场景技能包，管理已审核版本的启用、禁用与依赖状态。'
+      : packageRole.value === 'pm'
+        ? '创建和维护本人的场景技能包，编排、试运行后提交管理员审核。'
+        : '查看场景技能包的配置、审核状态与依赖情况。'
   }
   return role.value === 'admin'
     ? '管理员可查看草稿，并审批、驳回、发布、启用或禁用 Skill；草稿可返回需求澄清继续编辑。'
@@ -779,9 +838,18 @@ function packageMenus(packageItem: ScenarioSkillPackage) {
 }
 
 function packageHealthHint(packageItem: ScenarioSkillPackage) {
-  if (packageItem.status === 'review') return '等待其他管理员审核，尚未发布'
-  if (packageItem.status === 'rejected') return packageItem.reviewNote || '按审核意见修改后重新提交'
-  if (packageItem.status === 'disabled') return '主责任人已停止调用'
+  const onlineHealth = packageItem.publishedSnapshot?.health || packageItem.health
+  const onlineState = packageItem.onlineStatus === 'disabled' ? '保持禁用'
+    : onlineHealth.status === 'paused' ? '因依赖异常暂停'
+      : onlineHealth.status === 'degraded' ? '部分分支降级'
+        : '保持已发布'
+  const onlineHint = packageItem.publishedSnapshot
+    ? `；已审核版本 ${packageItem.publishedSnapshot.version} ${onlineState}`
+    : ''
+  if (packageItem.status === 'draft') return `本人可编辑、试运行后提交审核${onlineHint}`
+  if (packageItem.status === 'review') return `等待管理员审核${onlineHint || '，尚未发布'}`
+  if (packageItem.status === 'rejected') return `${packageItem.reviewNote || '按审核意见修改后重新提交'}${onlineHint}`
+  if (packageItem.status === 'disabled') return '已审核版本暂停调用，启用后恢复'
   if (packageItem.health.status === 'upgrade_required') {
     return packageItem.health.explanations[0] || '存在新版 Skill，继续使用当前固定版本'
   }
@@ -790,7 +858,15 @@ function packageHealthHint(packageItem: ScenarioSkillPackage) {
   return '固定版本依赖均可用'
 }
 
-const listedScenarioPackages = computed(() => packages.value.filter(packageItem => packageItem.status !== 'draft'))
+const listedScenarioPackages = computed(() => packages.value)
+
+function matchesPackageStatus(packageItem: ScenarioSkillPackage, filter: PackageListFilter) {
+  if (filter === 'all') return true
+  if (['draft', 'review', 'rejected'].includes(filter)) return packageItem.status === filter
+  const onlineStatus = packageItem.onlineStatus || packageItem.status
+  if (filter === 'published' || filter === 'disabled') return onlineStatus === filter
+  return onlineStatus === 'published' && (packageItem.publishedSnapshot?.health || packageItem.health).status === filter
+}
 
 const filteredScenarioPackages = computed(() => {
   const query = packageKeyword.value.trim().toLowerCase()
@@ -803,19 +879,19 @@ const filteredScenarioPackages = computed(() => {
       packageItem.description,
       packageItem.ownerId
     ].some(value => value.toLowerCase().includes(query))
-    const matchesStatus = selectedFilter === 'all' || packageStatusKey(packageItem) === selectedFilter
+    const matchesStatus = matchesPackageStatus(packageItem, selectedFilter)
     return matchesKeyword && matchesStatus
   })
 })
 
 const packageSummaryItems = computed(() => {
   const count = (filter: Exclude<PackageListFilter, 'all'>) => (
-    listedScenarioPackages.value.filter(packageItem => packageStatusKey(packageItem) === filter).length
+    listedScenarioPackages.value.filter(packageItem => matchesPackageStatus(packageItem, filter)).length
   )
   return [
     { key: 'all', label: '全部技能包', value: listedScenarioPackages.value.length, desc: '跨菜单固定版本链路', tone: 'is-primary', filter: 'all' as const },
-    { key: 'review', label: '待审核', value: count('review'), desc: '等待其他管理员审核', tone: 'is-warning', filter: 'review' as const },
-    { key: 'published', label: '已发布', value: count('published'), desc: '依赖健康，可正常调用', tone: 'is-success', filter: 'published' as const },
+    { key: 'review', label: '待审核', value: count('review'), desc: '等待管理员审核', tone: 'is-warning', filter: 'review' as const },
+    { key: 'published', label: '已发布', value: count('published'), desc: '已有已审核发布版本', tone: 'is-success', filter: 'published' as const },
     { key: 'upgrade', label: '待升级', value: count('upgrade_required'), desc: '有新版，仍使用固定版本', tone: 'is-warning', filter: 'upgrade_required' as const },
     { key: 'degraded', label: '降级运行', value: count('degraded'), desc: '条件分支部分关闭', tone: 'is-warning', filter: 'degraded' as const },
     { key: 'paused', label: '已暂停', value: count('paused'), desc: '必需步骤当前不可用', tone: 'is-danger', filter: 'paused' as const }
@@ -1087,16 +1163,21 @@ function handleHubTabKeydown(event: KeyboardEvent, tab: HubTabId) {
 }
 
 function canReviewPackage(packageItem: ScenarioSkillPackage) {
-  return packageItem.status === 'review' && scenarioStore.reviewDecision(packageItem.id, packageActor.value).ok
+  return hasPackageAction(packageItem, 'approve') && hasPackageAction(packageItem, 'reject')
 }
 
-function openPackageDetail(packageItem: ScenarioSkillPackage, event?: MouseEvent, mode: 'detail' | 'approve' | 'reject' = 'detail') {
-  if (packageReviewBusy.value || (mode !== 'detail' && !canReviewPackage(packageItem))) return
+function hasPackageAction(packageItem: ScenarioSkillPackage, action: ScenarioPackageAction) {
+  return scenarioStore.actionsFor(packageItem.id, packageActor.value).includes(action)
+}
+
+function openPackageDetail(packageItem: ScenarioSkillPackage, event?: MouseEvent, mode: PackageDetailMode = 'detail') {
+  if (packageReviewBusy.value || (mode !== 'detail' && !hasPackageAction(packageItem, mode))) return
   packageDetailTrigger = typeof HTMLButtonElement !== 'undefined' && event?.currentTarget instanceof HTMLButtonElement ? event.currentTarget : null
   packageReviewMode.value = mode
   packageReviewNote.value = ''
   packageReviewError.value = ''
   packageDetailId.value = packageItem.id
+  packageOpenedUpdatedAt.value = packageItem.updatedAt
   syncPackageDocumentKeydown()
   void nextTick(() => packageDetailClose.value?.focus())
 }
@@ -1128,23 +1209,23 @@ function clearPackageDetailWithoutFocus() {
 }
 
 function packageAuditLabel(type: string) {
-  return ({ submitted: '提交审核', approved: '审核通过', rejected: '审核驳回', published: '发布完成' } as Record<string, string>)[type] || type
+  return ({ submitted: '提交审核', approved: '审核通过', rejected: '审核驳回', published: '发布完成', withdrawn: '撤回审核', disabled: '禁用', enabled: '启用' } as Record<string, string>)[type] || type
 }
 
 async function reviewPackage(action: 'approve' | 'reject') {
   const item = packageDetailItem.value
-  if (!item || packageReviewBusy.value || packageReviewMode.value !== action) return
+  if (!item || packageActionStale.value || packageReviewBusy.value || packageReviewMode.value !== action) return
   packageReviewError.value = ''
   packageReviewBusy.value = true
   try {
     const note = packageReviewNote.value.trim()
     if (action === 'reject') {
       if (!note) throw new Error('请填写驳回原因，说明需要修改的内容。')
-      scenarioStore.rejectPackage(item.id, packageActor.value, note)
+      scenarioStore.rejectPackage(item.id, packageActor.value, note, packageOpenedUpdatedAt.value)
       toast(`${item.name}：已驳回，等待创建人修改后重新提交`)
     } else {
-      scenarioStore.approvePackage(item.id, packageActor.value, note)
-      toast(`${item.name}：审核通过并已发布`)
+      const approved = scenarioStore.approvePackage(item.id, packageActor.value, note, packageOpenedUpdatedAt.value)
+      toast(`${item.name}：${approved.onlineStatus === 'disabled' ? '审核通过，保持禁用' : '审核通过并已发布'}`)
     }
     packageReviewNote.value = ''
     packageReviewMode.value = 'detail'
@@ -1159,12 +1240,34 @@ async function reviewPackage(action: 'approve' | 'reject') {
   }
 }
 
-async function editRejectedPackage() {
-  const item = packageDetailItem.value
-  if (!item || !canEditRejectedPackage.value) return
+async function editPackage(item: ScenarioSkillPackage) {
+  if (!hasPackageAction(item, 'edit') || packageReviewBusy.value) return
+  const draft = scenarioStore.editableDraft(item.id, { id: user.value || '', permissions: permissions.value })
+  if (!draft) return
+  editingPackage.value = draft
   clearPackageDetailWithoutFocus()
   await router.replace({ path: '/agent/skills', query: { tab: 'packages', mode: 'create', edit: item.id } })
   await focusPackageCreator()
+}
+
+async function managePackage(action: PackageManagementMode) {
+  const item = packageDetailItem.value
+  if (!item || packageActionStale.value || packageReviewBusy.value || packageReviewMode.value !== action) return
+  packageReviewBusy.value = true
+  packageReviewError.value = ''
+  try {
+    const result = action === 'disable' ? scenarioStore.disablePackage(item.id, packageActor.value)
+        : scenarioStore.enablePackage(item.id, packageActor.value)
+    if (!result.ok) throw new Error(result.reasons.join('；'))
+    toast(`${item.name}：${{ disable: '已禁用', enable: '已启用已审核版本' }[action]}`)
+    packageReviewMode.value = 'detail'
+    await nextTick()
+    packageDetailClose.value?.focus()
+  } catch (error) {
+    packageReviewError.value = error instanceof Error ? error.message : '操作失败，请重试。'
+  } finally {
+    packageReviewBusy.value = false
+  }
 }
 
 function handlePackageDetailKeydown(event: KeyboardEvent) {
@@ -1259,6 +1362,7 @@ async function focusPackageCreator() {
 }
 
 async function openPackageCreate() {
+  if (!canCreatePackage.value) return
   await router.replace({ path: '/agent/skills', query: { tab: 'packages', mode: 'create' } })
   await focusPackageCreator()
 }
@@ -1282,7 +1386,18 @@ async function handlePackageSubmitted(packageItem: ScenarioSkillPackage) {
   await nextTick()
   packageRowElements.get(packageItem.id)?.scrollIntoView({ block: 'nearest' })
   packageRowElements.get(packageItem.id)?.focus()
-  toast(`${packageItem.name}：已提交审核，等待其他管理员处理`)
+  toast(`${packageItem.name}：已提交审核，等待管理员处理`)
+}
+
+async function handlePackageSaved(packageItem: ScenarioSkillPackage) {
+  resetPackageFilters()
+  packageStatusFilter.value = 'draft'
+  highlightedPackageId.value = packageItem.id
+  await router.replace({ path: '/agent/skills', query: { tab: 'packages' } })
+  await nextTick()
+  packageRowElements.get(packageItem.id)?.scrollIntoView({ block: 'nearest' })
+  packageRowElements.get(packageItem.id)?.focus()
+  toast(`${packageItem.name}：草稿已保存，可稍后继续编辑`)
 }
 
 function goPortalHome() {
@@ -1309,7 +1424,6 @@ onMounted(() => {
   if (navigation && navigation.type === 'reload') {
     sessionStorage.removeItem('leai.skillCreateDraft')
     skillHubStore.resetToInitialMock()
-    scenarioStore.resetToInitialMock()
   }
   appStore.ensureStaticTab('agent.skills')
   appStore.setActiveStaticTab('agent.skills')
@@ -1462,10 +1576,15 @@ onBeforeUnmount(() => {
   line-height: 1.35;
 }
 
+.skill-hub-list-workspace,
 .scenario-package-list-workspace {
   display: grid;
   min-width: 0;
   gap: 12px;
+}
+
+.skill-hub-list-workspace > * {
+  margin-block: 0;
 }
 
 .scenario-package-toolbar {
@@ -1537,8 +1656,8 @@ onBeforeUnmount(() => {
 .scenario-package-table th:nth-child(5) { width: 10%; }
 .scenario-package-table th:nth-child(6) { width: 14%; }
 .scenario-package-table th:nth-child(7) { width: 10%; }
-.scenario-package-table th:last-child { width: 184px; }
-.scenario-package-actions { display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; }
+.scenario-package-table th:last-child { width: 216px; }
+.scenario-package-actions { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 8px; }
 
 .scenario-package-table tbody tr:last-child td {
   border-bottom: 0;

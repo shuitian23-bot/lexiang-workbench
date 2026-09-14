@@ -1,3 +1,4 @@
+import { scenarioPmPermissions } from './helpers/scenarioActors.mjs'
 import assert from 'node:assert/strict'
 import test, { after, afterEach } from 'node:test'
 import { createServer as createHttpServer } from 'node:http'
@@ -22,7 +23,7 @@ const [{ default: Create }, { default: Composer }, { default: Trial }, { useAppS
 const renderer = createRenderer({ createElement: () => ({}), createText: () => ({}), createComment: () => ({}), insert() {}, remove() {}, setText() {}, setElementText() {}, patchProp() {}, parentNode: () => null, nextSibling: () => null })
 const mounted = []
 const copy = value => JSON.parse(JSON.stringify(value))
-const exampleIds = ['employee-certification-insight', 'workplace-segment-operations']
+const skillIds = ['employee-certification-insight', 'workplace-segment-operations']
 afterEach(() => { for (const host of mounted.splice(0).reverse()) host.unmount() })
 after(async () => {
   await server.close()
@@ -36,8 +37,10 @@ function scope() {
   setActivePinia(pinia)
   const account = useAppStore()
   account.user = 'trial-example-creator'
-  account.permissions = ['*']
-  return { pinia, account, store: useScenarioSkillPackagesStore() }
+  account.permissions = scenarioPmPermissions([])
+  const store = useScenarioSkillPackagesStore()
+  account.permissions = scenarioPmPermissions(store.selectableSkills)
+  return { pinia, account, store }
 }
 
 function mount(component, props, pinia, emit = () => {}) {
@@ -54,10 +57,10 @@ function mount(component, props, pinia, emit = () => {}) {
   return { state, exposed }
 }
 
-function standalone({ allowTrialExample = true, skills, modelValue = [] } = {}) {
+function standalone() {
   const current = scope()
   const events = []
-  const props = reactive({ allowTrialExample, skills: skills || current.store.selectableSkills, modelValue })
+  const props = reactive({ skills: current.store.selectableSkills, modelValue: [] })
   const { state: composer } = mount(Composer, props, current.pinia, (event, value) => {
     events.push([event, value])
     if (event === 'update:modelValue') props.modelValue = value
@@ -65,37 +68,30 @@ function standalone({ allowTrialExample = true, skills, modelValue = [] } = {}) 
   return { ...current, composer, props, events }
 }
 
-async function renderComposer(props, pinia) {
-  const app = createSSRApp(Composer, props)
-  app.use(pinia)
-  return renderToString(app)
-}
-
-for (const context of ['new', 'existing rejected draft', 'logged out', 'running trial', 'submitting']) {
-  test(`the actual creation view restricts the example entry for ${context}`, async () => {
+for (const context of ['new', 'existing rejected draft']) {
+  test(`the ${context} creation canvas keeps drag guidance without a trial example entry`, async () => {
     const current = scope()
     const props = context === 'existing rejected draft' ? { draft: {
       id: 'existing-empty-rejected-draft', name: '保留的场景包', description: '用户已保存的适用场景',
       targetAudience: '企业运营', ownerId: 'trial-example-creator', status: 'rejected', steps: [],
     } } : {}
-    if (context === 'logged out') current.account.user = ''
     const PreparedCreate = { ...Create, setup(componentProps, setupContext) {
       const state = Create.setup(componentProps, setupContext)
       state.activeStep.value = 2
-      state.trialRunning.value = context === 'running trial'
-      state.submitting.value = context === 'submitting'
       return state
     } }
     const app = createSSRApp(PreparedCreate, props)
     app.use(current.pinia)
     const html = await renderToString(app)
-    assert.equal(/<button\b[^>]*>\s*使用试运行示例\s*<\/button>/.test(html), context === 'new')
+    assert.match(html, /将 Skill 拖到这里/)
+    assert.match(html, /自由摆放节点，连接端口建立执行顺序。/)
+    assert.doesNotMatch(html, /使用试运行示例|两个节点，体验报错提示与修改后重试。/)
   })
 }
 
-function assertExampleSteps(steps) {
+function assertLinkedSteps(steps) {
   assert.equal(steps.length, 2)
-  assert.deepEqual(steps.map(step => step.skillId), exampleIds)
+  assert.deepEqual(steps.map(step => step.skillId), skillIds)
   assert.deepEqual(steps.map(step => step.pinnedVersion), ['v1.0.0', 'v1.2.0'])
   assert.equal(steps[0].predecessorId, null)
   assert.equal(steps[1].predecessorId, steps[0].id)
@@ -109,72 +105,21 @@ function assertExampleSteps(steps) {
   assert.ok(steps.every(step => Number.isFinite(step.position?.x) && Number.isFinite(step.position?.y)))
 }
 
-test('an empty new canvas offers a trial example and loads two linked published snapshots', async () => {
-  const { composer, props, pinia, events } = standalone()
-  assert.equal(composer.canLoadTrialExample?.value, true)
-  const html = await renderComposer(props, pinia)
-  assert.match(html, /<button\b[^>]*>\s*使用试运行示例\s*<\/button>/)
-  composer.loadTrialExample()
-  await nextTick()
-  assert.equal(events.length, 1)
-  assert.equal(events[0][0], 'update:modelValue')
-  assertExampleSteps(props.modelValue)
-  assert.equal(composer.canLoadTrialExample.value, false)
-  assert.doesNotMatch(await renderComposer(props, pinia), /<button\b[^>]*>\s*使用试运行示例\s*<\/button>/)
-  const before = copy(props.modelValue)
-  composer.loadTrialExample()
-  await nextTick()
-  assert.equal(events.length, 1, 'repeated calls must not replace a populated canvas')
-  assert.deepEqual(copy(props.modelValue), before)
-  const sourcePermissions = props.skills.find(skill => skill.id === exampleIds[0]).permissions
-  props.modelValue[0].permissions.menu.push('example-only-mutation')
-  assert.equal(sourcePermissions.menu.includes('example-only-mutation'), false, 'a node must snapshot catalog permissions')
-})
-
-for (const invalid of ['missing skill', 'disabled skill', 'wrong version', 'missing published status']) {
-  test(`the example is unavailable for a catalog with ${invalid}`, async () => {
-    const current = scope()
-    let skills = copy(current.store.selectableSkills)
-    const second = skills.find(skill => skill.id === exampleIds[1])
-    if (invalid === 'missing skill') skills = skills.filter(skill => skill.id !== exampleIds[1])
-    if (invalid === 'disabled skill') Object.assign(second, { status: 'disabled', onlineStatus: 'disabled' })
-    if (invalid === 'wrong version') Object.assign(second, { online: 'v9.0.0', version: 'v9.0.0' })
-    if (invalid === 'missing published status') second.onlineStatus = undefined
-    const { composer, props, pinia, events } = standalone({ skills })
-    assert.equal(composer.canLoadTrialExample?.value, false)
-    assert.doesNotMatch(await renderComposer(props, pinia), /<button\b[^>]*>\s*使用试运行示例\s*<\/button>/)
-    composer.loadTrialExample()
-    assert.equal(events.length, 0)
-    assert.deepEqual(props.modelValue, [])
-  })
-}
-
-for (const allowTrialExample of [false, undefined]) {
-  test(`an existing draft or unspecified example permission cannot load an example (${allowTrialExample})`, async () => {
-    const { composer, props, pinia, events } = standalone()
-    props.allowTrialExample = allowTrialExample
-    await nextTick()
-    assert.equal(composer.canLoadTrialExample?.value, false)
-    assert.doesNotMatch(await renderComposer(props, pinia), /<button\b[^>]*>\s*使用试运行示例\s*<\/button>/)
-    composer.loadTrialExample()
-    assert.equal(events.length, 0)
-    assert.deepEqual(props.modelValue, [])
-  })
-}
-
-test('ordinary drag additions keep empty tasks and an existing canvas cannot be overwritten by the example', async () => {
+test('ordinary additions keep empty inputs, snapshot permissions, and preserve existing nodes', async () => {
   const { composer, props, events } = standalone()
-  composer.addSkill(exampleIds[0], { x: 100, y: 140 })
+  composer.addSkill(skillIds[0], { x: 100, y: 140 })
   await nextTick()
   assert.equal(props.modelValue.length, 1)
   assert.equal(props.modelValue[0].task, '')
   assert.equal(props.modelValue[0].expectedOutput, '')
   const before = copy(props.modelValue)
-  assert.equal(composer.canLoadTrialExample?.value, false)
-  composer.loadTrialExample()
+  composer.addSkill(skillIds[0], { x: 200, y: 240 })
   await nextTick()
   assert.equal(events.length, 1)
   assert.deepEqual(copy(props.modelValue), before)
+  const sourcePermissions = props.skills.find(skill => skill.id === skillIds[0]).permissions
+  props.modelValue[0].permissions.menu.push('test-only-mutation')
+  assert.equal(sourcePermissions.menu.includes('test-only-mutation'), false, 'a node must snapshot catalog permissions')
 })
 
 function flow() {
@@ -182,7 +127,6 @@ function flow() {
   const events = []
   const { state: create } = mount(Create, reactive({}), current.pinia, (...event) => events.push(event))
   const { state: composer, exposed } = mount(Composer, reactive({
-    allowTrialExample: true,
     get skills() { return create.publishedSkills.value },
     get modelValue() { return create.chain.value },
     get trialErrors() { return create.trialErrors.value },
@@ -206,10 +150,21 @@ function flow() {
   return { ...current, create, composer, trial, events }
 }
 
-async function startExample(current) {
-  current.composer.loadTrialExample()
+async function startLinkedTrial(current) {
+  const { composer, create } = current
+  for (const [index, id] of skillIds.entries()) {
+    composer.addSkill(id, { x: 48 + index * 376, y: 96 })
+    await nextTick()
+  }
+  assert.equal(composer.connectNodes(create.chain.value[0].id, create.chain.value[1].id), true)
   await nextTick()
-  assertExampleSteps(current.create.chain.value)
+  composer.selectStep(create.chain.value[0].id)
+  composer.updateSelectedStep({
+    task: '查询职场 A 本周员工认证状态，汇总已认证和待补充材料的人数。',
+    expectedOutput: '输出已认证和待补充材料的人数，供下一节点分析。',
+  })
+  await nextTick()
+  assertLinkedSteps(current.create.chain.value)
   current.create.goNext()
   current.create.goNext()
   assert.equal(current.create.activeStep.value, 3)
@@ -217,10 +172,10 @@ async function startExample(current) {
   await nextTick()
 }
 
-test('the example fails one node, retains repair guidance while editing, and uses complete feedback on retry', async () => {
+test('linked nodes retain repair guidance while editing and use complete feedback on retry', async () => {
   const current = flow()
   const { create, composer, trial, store, events } = current
-  await startExample(current)
+  await startLinkedTrial(current)
   const report = copy(create.testReport.value)
   assert.deepEqual(report.nodes.map(node => node.status), ['completed', 'blocked'])
   assert.equal(report.executionPerformed, false)
@@ -271,15 +226,15 @@ test('the example fails one node, retains repair guidance while editing, and use
   assert.equal(store.reviewDecision(events[0][1].id, create.actor.value).ok, false)
 
   const fresh = flow()
-  await startExample(fresh)
+  await startLinkedTrial(fresh)
   assert.deepEqual(fresh.create.testReport.value.nodes.map(node => node.status), ['completed', 'blocked'], 'a fresh creation must repeat the same failure and repair experience')
   assert.equal(fresh.create.chain.value[1].task, '')
 })
 
-test('the example can retry unchanged with complete data, and a fresh example restores the initial mixed fixture', async () => {
+test('linked nodes can retry unchanged with complete data and a fresh creation restores the initial mixed fixture', async () => {
   const current = flow()
   const { create, trial } = current
-  await startExample(current)
+  await startLinkedTrial(current)
   const originalChain = copy(create.chain.value)
   const failedOutput = create.testReport.value.nodes[1].output
   await trial.runTrial()
@@ -290,7 +245,7 @@ test('the example can retry unchanged with complete data, and a fresh example re
   assert.deepEqual(copy(create.chain.value), originalChain)
   assert.notEqual(create.testReport.value.nodes[1].output, failedOutput)
   const fresh = flow()
-  await startExample(fresh)
+  await startLinkedTrial(fresh)
   assert.equal(fresh.create.testRequest.value.mockDataPhase, undefined)
   assert.deepEqual(fresh.create.testReport.value.nodes.map(node => node.status), ['completed', 'blocked'])
 })

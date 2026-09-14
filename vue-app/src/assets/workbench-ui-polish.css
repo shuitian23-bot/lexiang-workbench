@@ -423,7 +423,7 @@ html[data-product="leaibot"] .ai-toggle.active {
 }
 
 html[data-product="leaibot"] .page-content {
-  padding: 20px var(--content-padding) 24px;
+  padding: 20px var(--content-padding);
   background: var(--color-bg);
 }
 

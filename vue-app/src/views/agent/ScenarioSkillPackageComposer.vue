@@ -5,7 +5,7 @@ import { createPinnedScenarioStep, resolveScenarioChain } from '../../domain/sce
 import { getScenarioNodeContract } from '../../domain/scenarioNodeContracts.js'
 import type { ScenarioPinnedStep, ScenarioSelectableSkill, ScenarioStepKind } from '../../stores/scenarioSkillPackages'
 
-const props = defineProps<{ skills: ScenarioSelectableSkill[]; modelValue: ScenarioPinnedStep[]; allowTrialExample?: boolean; trialErrors?: Record<string, string[]>; trialSuggestions?: Record<string, string[]>; trialStale?: boolean }>()
+const props = defineProps<{ skills: ScenarioSelectableSkill[]; modelValue: ScenarioPinnedStep[]; trialErrors?: Record<string, string[]>; trialSuggestions?: Record<string, string[]>; trialStale?: boolean }>()
 const emit = defineEmits<{ 'update:modelValue': [steps: ScenarioPinnedStep[]] }>()
 type Point = { x: number; y: number }
 type CanvasStep = ScenarioPinnedStep & { predecessorId?: string | null; position?: Point }
@@ -37,15 +37,6 @@ const markerId = `scenario-canvas-arrow-${getCurrentInstance()?.uid ?? 'local'}`
 let ignorePortClickUntil = 0
 
 const catalog = computed(() => new Map(props.skills.map(skill => [skill.id, skill])))
-const trialExampleSkills = [
-  { id: 'employee-certification-insight', version: 'v1.0.0' },
-  { id: 'workplace-segment-operations', version: 'v1.2.0' }
-]
-const canLoadTrialExample = computed(() => Boolean(props.allowTrialExample && !props.modelValue.length
-  && trialExampleSkills.every(({ id, version }) => {
-    const skill = catalog.value.get(id)
-    return skill?.status === 'published' && skill.onlineStatus === 'published' && skill.online === version
-  })))
 const selectedSkillIds = computed(() => new Set(props.modelValue.map(step => step.skillId)))
 const menuCount = computed(() => new Set(props.modelValue.map(step => step.menu)).size)
 const displaySteps = computed(editableSteps)
@@ -238,20 +229,6 @@ function addSkill(skillId: string, point?: Point) {
 function updateSelectedStep(patch: StepConfiguration) {
   if (!selectedStepId.value) return
   emit('update:modelValue', editableSteps().map(step => step.id === selectedStepId.value ? { ...step, ...patch } : step))
-}
-function loadTrialExample() {
-  if (!canLoadTrialExample.value) return
-  const steps = trialExampleSkills.map(({ id }, index) => createPinnedScenarioStep(catalog.value.get(id)!, {
-    required: true,
-    predecessorId: index ? trialExampleSkills[0].id : null,
-    task: index ? '' : '查询职场 A 本周员工认证状态，汇总已认证和待补充材料的人数。',
-    expectedOutput: index ? '' : '输出已认证和待补充材料的人数，供下一节点分析。',
-    position: { x: 48 + index * 376, y: 96 }
-  })) as CanvasStep[]
-  emit('update:modelValue', steps)
-  selectStep(steps[0].id, true)
-  void nextTick(fitCanvas)
-  tell('已载入试运行示例。到下一步运行，查看第二个节点的报错，再按建议返回修改并重试。')
 }
 function setSelectedKind(kind: ScenarioStepKind) {
   if (!selectedStepId.value || !['required', 'conditional'].includes(kind)) return
@@ -527,10 +504,6 @@ function hasVersionChange(step: CanvasStep) { return Boolean(catalog.value.get(s
           </div>
           <div v-if="!modelValue.length" class="composer-canvas-empty">
             <span class="composer-empty-symbol" aria-hidden="true">＋</span><strong>将 Skill 拖到这里</strong><p>自由摆放节点，连接端口建立执行顺序。</p>
-            <template v-if="canLoadTrialExample">
-              <button type="button" class="btn btn-secondary composer-trial-example" @click="loadTrialExample">使用试运行示例</button>
-              <p>两个节点，体验报错提示与修改后重试。</p>
-            </template>
           </div>
         </div>
         <footer class="composer-canvas-footer"><span>拖动节点调整位置 · 拖拽输出端口 → 输入端口连线</span><span>方向键移动选中节点</span></footer>
@@ -691,7 +664,6 @@ function hasVersionChange(step: CanvasStep) { return Boolean(catalog.value.get(s
 .composer-port.is-connected > span { background: var(--color-primary); }
 .composer-port:hover > span, .composer-port.is-armed > span, .composer-port.is-target > span { box-shadow: 0 0 0 4px var(--color-primary-border); }
 .composer-canvas-empty { position: absolute; top: 140px; left: 24px; right: 24px; display: grid; justify-items: center; gap: 12px; min-width: 0; color: var(--color-text); text-align: center; pointer-events: none; }
-.composer-trial-example { pointer-events: auto; }
 .composer-empty-symbol { display: flex; align-items: center; justify-content: center; width: 48px; height: 48px; border: 1px dashed var(--color-primary-border); border-radius: var(--radius-md); background: var(--color-surface); color: var(--color-primary); font-size: 24px; }
 .composer-canvas-empty strong { font-size: 14px; font-weight: 500; }
 .composer-canvas-empty p { margin: 0; color: var(--color-text-secondary); font-size: 13px; line-height: 1.6; overflow-wrap: anywhere; }

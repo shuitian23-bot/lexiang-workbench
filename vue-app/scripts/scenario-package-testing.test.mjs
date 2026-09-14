@@ -2,13 +2,16 @@ import assert from 'node:assert/strict'
 import test, { after } from 'node:test'
 import { createServer } from 'vite'
 import * as domain from '../src/domain/scenarioSkillPackages.js'
+import { scenarioPmActor } from './helpers/scenarioActors.mjs'
+
+const previousStorage = globalThis.localStorage
+globalThis.localStorage = { getItem() { return null }, setItem() {}, removeItem() {} }
 
 const sim = await import('../src/domain/scenarioPackageTesting.js').catch(error => {
   if (error.code !== 'ERR_MODULE_NOT_FOUND') throw error
   return {}
 })
 const now = '2026-09-10T01:00:00.000Z'
-const actor = { id: 'creator', permissions: ['*'] }
 const reviewer = { id: 'reviewer', permissions: ['scenario-package:review'] }
 const sampleSkill = (id, version, menu) => ({ id, name: id, menu, version, online: version, status: 'published', onlineStatus: 'published', permissions: { menu: [`menu:${menu}`], skill: [`skill:${id}`], data: [`data:${id}`], action: [`action:${id}`] } })
 const catalog = [
@@ -16,6 +19,7 @@ const catalog = [
   sampleSkill('workplace-segment-operations', 'v1.2.0', '人群经营'),
   sampleSkill('enterprise-customer-followup', 'v1.0.0', '企业客户')
 ]
+const actor = scenarioPmActor('creator', catalog, ['simulation-package'])
 const draftOf = (skills = catalog.slice(0, 2)) => ({
   id: 'simulation-package', name: '职场经营场景', description: '了解认证情况并分析经营机会，仅生成建议。', targetAudience: '运营人员', ownerId: actor.id,
   steps: skills.map((skill, index) => domain.createPinnedScenarioStep(skill, { id: String.fromCharCode(97 + index), predecessorId: index ? String.fromCharCode(96 + index) : null, task: `任务${index}`, expectedOutput: `预期${index}` }))
@@ -177,6 +181,7 @@ test('all six known published versions have labelled local samples, never their 
     sampleSkill('voucher-recommend', 'v0.1.3', '权益'),
     sampleSkill('gmv-daily-summary', 'v1.2.0', 'GMV')
   ]
+  const actor = scenarioPmActor('creator', skills)
   for (const skill of skills) {
     const other = skills.find(candidate => candidate.id !== skill.id)
     const draft = draftOf([skill, other])
@@ -359,7 +364,7 @@ test('unavailable fixtures and global gates offer cause-specific repair paths wi
     [draftOf(), [{ ...catalog[0], onlineStatus: 'disabled' }, catalog[1]], actor, /返回编排.*不可用.*已发布/],
     [draftOf(), [{ ...catalog[0], online: 'v2.0.0' }, catalog[1]], actor, /返回编排.*线上版本/],
     [{ ...draftOf(), steps: draftOf().steps.map(step => ({ ...step, predecessorId: null })) }, catalog, actor, /返回编排.*连接/],
-    [draftOf(), catalog, { id: 'not-owner', permissions: ['*'] }, /所有者.*账号/],
+    [draftOf(), catalog, scenarioPmActor('not-owner', catalog), /所有者.*账号/],
     [draftOf(), [{ ...catalog[0], permissions: { ...catalog[0].permissions, data: [] } }, catalog[1]], actor, /权限快照.*重新选择/],
   ]
   for (const [draft, skills, currentActor, repair] of cases) {
@@ -378,7 +383,7 @@ test('blank input blocks while the optional test expectation can remain empty', 
 
 test('simulation respects creation, topology, catalog and version gates without mutating its inputs', () => {
   const cases = [
-    [draftOf(), catalog, { id: 'someone-else', permissions: ['*'] }],
+    [draftOf(), catalog, scenarioPmActor('someone-else', catalog)],
     [draftOf(), catalog, { id: actor.id, permissions: [] }],
     [{ ...draftOf(), steps: draftOf().steps.map(s => ({ ...s, predecessorId: null })) }, catalog, actor],
     [draftOf(), [{ ...catalog[0], onlineStatus: 'disabled' }, catalog[1]], actor],
@@ -481,7 +486,11 @@ test('request edits invalidate reports and stored snapshots never alias later us
 })
 
 let server
-after(async () => { await server?.close() })
+after(async () => {
+  await server?.close()
+  if (previousStorage === undefined) delete globalThis.localStorage
+  else globalThis.localStorage = previousStorage
+})
 test('reports remain isolated and only a successful current retrial allows submission or resubmission', async () => {
   server = await createServer({ root: new URL('..', import.meta.url).pathname, logLevel: 'silent', server: { middlewareMode: true } })
   const [{ createPinia, setActivePinia }, module] = await Promise.all([import('pinia'), server.ssrLoadModule('/src/stores/scenarioSkillPackages.ts')])
@@ -511,7 +520,7 @@ test('reports remain isolated and only a successful current retrial allows submi
   const rejected = store.rejectPackage(draft.id, reviewer, '补充场景说明')
   rejected.testReport.request.sampleOutputs.a = 'external sample'
   assert.equal(store.findPackage(draft.id).testReport.request.sampleOutputs.a, undefined)
-  const revision = store.findPackage(draft.id)
+  const revision = store.editableDraft(draft.id, actor)
   revision.description += '新场景'
   revision.testRequest.input = '改过的试运行输入'
   const rejectedSnapshot = clone(store.findPackage(draft.id))
@@ -532,7 +541,7 @@ test('reports remain isolated and only a successful current retrial allows submi
   assert.equal(sim.isScenarioSimulationCurrent(published.testReport, published, skills, published.testRequest), true)
   const snapshot = clone(store.findPackage(draft.id))
   assert.throws(() => store.resubmitDraft({ ...published, testReport: undefined }, actor), /驳回/)
-  assert.throws(() => store.submitDraft({ ...published, testReport: undefined }, actor), /已存在/)
+  assert.throws(() => store.submitDraft({ ...published, testReport: undefined }, actor), /编辑版本|已更新/)
   assert.deepEqual(clone(store.findPackage(draft.id)), snapshot)
   const blockedReport = sim.runScenarioSimulation({ ...draft, id: 'other' }, skills, requestOf({ input: '' }), actor, now)
   assert.throws(() => store.submitDraft({ ...draft, id: 'other', testRequest: blockedReport.request, testReport: blockedReport }, actor), /试运行/)

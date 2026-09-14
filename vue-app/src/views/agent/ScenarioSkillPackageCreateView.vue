@@ -20,7 +20,7 @@
         :aria-label="step.label"
         :aria-current="activeStep === step.id ? 'step' : undefined"
         :tabindex="activeStep === step.id ? 0 : -1"
-        :disabled="submitting || trialRunning || !canEditDraft || step.id > maxVisitedStep"
+        :disabled="submitting || savingDraft || trialRunning || !canEditDraft || step.id > maxVisitedStep"
         @click="goToStep(step.id)"
         @keydown="handleTabKeydown($event, step.id)"
       >
@@ -49,7 +49,7 @@
         <SectionHeader
           class="scenario-package-definition-heading"
           title="场景定义"
-          :description="draft ? '根据审核意见完善适用场景与使用边界，确认后重新提交。' : '说明技能包的适用场景与使用边界，便于匹配用户需求。预填示例可修改。'"
+          :description="draft ? '修改后需重新试运行、提交审核。已有已审核版本保持当前状态，新内容通过审核后生效。' : '说明技能包的适用场景与使用边界，便于匹配用户需求。预填示例可修改。'"
         />
 
         <div class="scenario-package-form-grid">
@@ -69,7 +69,7 @@
           <dl class="scenario-package-field scenario-package-static-field">
             <dt>主责任人</dt>
             <dd>{{ ownerId }}</dd>
-            <dd><small>主责任人为当前账号，提交后由其他管理员审核。</small></dd>
+            <dd><small>主责任人为当前 PM 账号，提交后由管理员审核。</small></dd>
           </dl>
         </div>
       </section>
@@ -84,7 +84,10 @@
         aria-labelledby="scenario-package-tab-2"
         tabindex="-1"
       >
-        <ScenarioSkillPackageComposer v-model="chain" :skills="publishedSkills" ref="composer" :allow-trial-example="!draft && canEditDraft && !trialRunning && !submitting" :trial-errors="trialErrors" :trial-suggestions="trialSuggestions" :trial-stale="!!testReport && !isTestCurrent" />
+        <p v-if="hasDependencyUpgrade" class="scenario-package-version-note" role="status">
+          如需使用新版本，请移除对应旧节点，从左侧重新加入该 Skill，重新连接并核对节点配置，再试运行、提交其他管理员审核。旧审核版本在此期间保持原状态。
+        </p>
+        <ScenarioSkillPackageComposer v-model="chain" :skills="publishedSkills" ref="composer" :trial-errors="trialErrors" :trial-suggestions="trialSuggestions" :trial-stale="!!testReport && !isTestCurrent" />
       </section>
 
       <section
@@ -167,7 +170,7 @@
               </table>
             </div>
             <p class="scenario-package-version-note">
-              检测到新版本时继续固定使用当前快照，需确认升级后才切换；必需步骤依赖过期或不可用时暂停技能包，可选步骤则降级跳过。
+              已审核版本继续使用原固定版本。升级需返回编排，移除旧节点并重新加入当前已发布 Skill，重新连线和核对配置，通过试运行与独立审核后切换。必需依赖过期或不可用时暂停，可选步骤则降级跳过。
             </p>
           </div>
         </details>
@@ -225,15 +228,16 @@
     </main>
 
     <footer class="scenario-package-actions">
-      <button class="btn btn-secondary" type="button" :disabled="submitting || trialRunning" @click="emit('cancel')">取消</button>
+      <button class="btn btn-secondary" type="button" :disabled="submitting || savingDraft || trialRunning" @click="emit('cancel')">取消</button>
       <div>
-        <button v-if="activeStep > 1" class="btn btn-secondary" type="button" :disabled="submitting || trialRunning" @click="goPrevious">上一步</button>
-        <button v-if="activeStep < 4" class="btn btn-primary" type="button" :disabled="submitting || trialRunning || !canEditDraft || (activeStep === 3 && !trialGate.ok)" @click="goNext">下一步</button>
+        <button class="btn btn-secondary" type="button" :disabled="submitting || savingDraft || trialRunning || !canEditDraft" @click="savePackageDraft">{{ savingDraft ? '正在保存…' : '保存草稿' }}</button>
+        <button v-if="activeStep > 1" class="btn btn-secondary" type="button" :disabled="submitting || savingDraft || trialRunning" @click="goPrevious">上一步</button>
+        <button v-if="activeStep < 4" class="btn btn-primary" type="button" :disabled="submitting || savingDraft || trialRunning || !canEditDraft || (activeStep === 3 && !trialGate.ok)" @click="goNext">下一步</button>
         <button
           v-else
           class="btn btn-primary"
           type="button"
-          :disabled="submitting || trialRunning || !trialGate.ok || !canEditDraft || !submissionEvaluation.ok || dependencyHealth.status === 'paused'"
+          :disabled="submitting || savingDraft || trialRunning || !trialGate.ok || !canEditDraft || !submissionEvaluation.ok || dependencyHealth.status === 'paused'"
           @click="submitPackage"
         >{{ submitting ? '正在提交…' : draft ? '重新提交审核' : '提交审核' }}</button>
       </div>
@@ -262,6 +266,8 @@ import {
 } from '@/stores/scenarioSkillPackages'
 import {
   evaluatePackageForPublish,
+  scenarioPackageActions,
+  scenarioPackageRole,
   resolveScenarioChain
 } from '@/domain/scenarioSkillPackages.js'
 
@@ -279,9 +285,10 @@ type EvaluationCard = {
 
 const emit = defineEmits<{
   cancel: []
+  saved: [item: ScenarioSkillPackage]
   submitted: [item: ScenarioSkillPackage]
 }>()
-const props = defineProps<{ draft?: ScenarioSkillPackage }>()
+const props = defineProps<{ draft?: ScenarioSkillPackageDraft }>()
 
 const appStore = useAppStore()
 const scenarioStore = useScenarioSkillPackagesStore()
@@ -316,6 +323,7 @@ const trialSuggestions = computed<Record<string, string[]>>(() => Object.fromEnt
   (testReport.value?.nodes || []).filter(node => node.status === 'blocked').map(node => [node.id, node.suggestions || []])
 ))
 const submitting = ref(false)
+const savingDraft = ref(false)
 const submitError = ref('')
 const validationErrors = ref<string[]>([])
 const tabElements = new Map<StepId, HTMLButtonElement>()
@@ -326,6 +334,7 @@ const testingSection = ref<HTMLElement | null>(null)
 const composer = ref<InstanceType<typeof ScenarioSkillPackageComposer> | null>(null)
 const submissionSection = ref<HTMLElement | null>(null)
 const draftId = props.draft?.id || `scenario-package-${Date.now().toString(36)}`
+const draftBaseUpdatedAt = props.draft?.baseUpdatedAt
 
 const emptyPolicyEvaluation = (): PolicyEvaluation => ({ ok: false, canSelfApprove: false, reasons: [] })
 const emptyHealthEvaluation = (): ScenarioPackageHealth => ({
@@ -346,12 +355,19 @@ const ownerId = computed(() => appStore.user || '')
 const actor = computed(() => ({ id: ownerId.value, permissions: appStore.permissions }))
 const editAccessError = computed(() => {
   if (!ownerId.value) return '请登录后创建或编辑场景技能包。'
-  if (!props.draft) return ''
-  if (props.draft.ownerId !== ownerId.value) return '仅原创建人可以编辑被驳回的场景技能包。'
-  if (props.draft.status !== 'rejected') return '仅被驳回的场景技能包可以编辑并重新提交。'
+  if (scenarioPackageRole(actor.value) === 'admin') return '管理员负责审核与启停，场景技能包内容由 PM 创建和编辑。'
+  if (!props.draft) return scenarioPackageActions({ ownerId: ownerId.value, status: 'draft' }, actor.value).includes('edit')
+    ? '' : '缺少创建技能包或跨菜单编排权限。'
+  if (props.draft.ownerId !== ownerId.value) return '仅原创建人可以编辑场景技能包。'
+  if (!scenarioStore.actionsFor(draftId, actor.value).includes('edit')) return '当前状态或权限不允许编辑，待审核内容暂不可编辑。'
+  if (scenarioStore.findPackage(draftId)?.updatedAt !== draftBaseUpdatedAt) return '技能包状态已更新，请返回列表后重新打开编辑。'
   return ''
 })
 const canEditDraft = computed(() => !editAccessError.value)
+const hasDependencyUpgrade = computed(() => chain.value.some(step => {
+  const current = scenarioStore.selectableSkills.find(skill => skill.id === step.skillId)
+  return current && current.online !== step.pinnedVersion
+}))
 const displayedValidationErrors = computed(() => [...new Set([
   ...(editAccessError.value ? [editAccessError.value] : []),
   ...validationErrors.value
@@ -446,6 +462,7 @@ function executionSteps(): ScenarioPinnedStep[] {
 function currentDraft(): ScenarioSkillPackageDraft {
   return {
     id: draftId,
+    ...(draftBaseUpdatedAt ? { baseUpdatedAt: draftBaseUpdatedAt } : {}),
     name: form.value.name.trim(),
     description: form.value.description.trim(),
     targetAudience: form.value.targetAudience.trim(),
@@ -544,7 +561,7 @@ function validateStep(step: StepId) {
 }
 
 function goNext() {
-  if (submitting.value || trialRunning.value) return
+  if (submitting.value || savingDraft.value || trialRunning.value) return
   if (activeStep.value === 3) recomputeEvaluation()
   if (!validateStep(activeStep.value)) return
   const next = Math.min(4, activeStep.value + 1) as StepId
@@ -555,7 +572,7 @@ function goNext() {
 }
 
 function goPrevious() {
-  if (trialRunning.value) return
+  if (submitting.value || savingDraft.value || trialRunning.value) return
   validationErrors.value = []
   const previous = Math.max(1, activeStep.value - 1) as StepId
   activeStep.value = previous
@@ -563,7 +580,7 @@ function goPrevious() {
 }
 
 function goToStep(step: StepId) {
-  if (submitting.value || trialRunning.value || !canEditDraft.value || step > maxVisitedStep.value) return
+  if (submitting.value || savingDraft.value || trialRunning.value || !canEditDraft.value || step > maxVisitedStep.value) return
   validationErrors.value = []
   if (step >= 3) recomputeEvaluation()
   if (step === 4 && !validateStep(3)) return
@@ -613,21 +630,36 @@ function dependencyStateLabel(state: ScenarioDependencyState) {
 }
 
 async function submitPackage() {
-  if (submitting.value || trialRunning.value || !validateStep(1)) return
+  if (submitting.value || savingDraft.value || trialRunning.value || !validateStep(1)) return
   submitError.value = ''
   recomputeEvaluation()
   if (!validateStep(2) || !validateStep(3)) return
   submitting.value = true
   try {
-    const submitted = props.draft
-      ? scenarioStore.resubmitDraft(currentDraft(), actor.value)
-      : scenarioStore.submitDraft(currentDraft(), actor.value)
+    const submitted = scenarioStore.submitDraft(currentDraft(), actor.value)
     emit('submitted', submitted)
   } catch (error) {
     submitError.value = error instanceof Error ? error.message : '提交失败，请检查自动评估后重试。'
     showValidation([submitError.value], 4)
   } finally {
     submitting.value = false
+  }
+}
+
+async function savePackageDraft() {
+  if (submitting.value || savingDraft.value || trialRunning.value || !canEditDraft.value) return
+  if (!form.value.name.trim()) return showValidation(['请填写技能包名称后保存草稿'], 1)
+  savingDraft.value = true
+  submitError.value = ''
+  validationErrors.value = []
+  try {
+    const saved = scenarioStore.saveDraft({ ...currentDraft(), steps: cloneSteps(chain.value) }, actor.value)
+    emit('saved', saved)
+  } catch (error) {
+    const message = error instanceof Error ? error.message : '保存失败，请重试。'
+    showValidation([message], activeStep.value)
+  } finally {
+    savingDraft.value = false
   }
 }
 
@@ -661,7 +693,7 @@ watch([form, chain, ownerId, testReport, testRequest], () => {
   height: 100%;
   min-width: 0;
   min-height: 0;
-  padding: 20px 24px 0;
+  padding: 0;
   overflow: hidden;
   color: var(--color-text);
   container-type: inline-size;
@@ -932,11 +964,17 @@ watch([form, chain, ownerId, testReport, testRequest], () => {
 
 .scenario-package-composition-panel {
   display: flex;
+  flex-direction: column;
   flex: 1 1 auto;
   min-height: 0;
   padding: 0;
   border: 0;
   background: transparent;
+}
+
+.scenario-package-composition-panel > .scenario-package-version-note {
+  flex: 0 0 auto;
+  margin: 0 0 12px;
 }
 
 .is-composition .scenario-package-body {
@@ -1114,6 +1152,7 @@ watch([form, chain, ownerId, testReport, testRequest], () => {
   z-index: 2;
   bottom: 0;
   display: flex;
+  flex-wrap: wrap;
   flex: 0 0 auto;
   align-items: center;
   justify-content: flex-end;
@@ -1133,6 +1172,8 @@ watch([form, chain, ownerId, testReport, testRequest], () => {
 
 .scenario-package-actions > div {
   display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
   gap: 8px;
 }
 

@@ -3,12 +3,16 @@ import test, { after } from 'node:test'
 import { createServer } from 'vite'
 import * as domain from '../src/domain/scenarioSkillPackages.js'
 import { runScenarioSimulation } from '../src/domain/scenarioPackageTesting.js'
+import { scenarioPmActor, scenarioPmPermissions } from './helpers/scenarioActors.mjs'
+
+const previousStorage = globalThis.localStorage
+globalThis.localStorage = { getItem() { return null }, setItem() {}, removeItem() {} }
 
 const at = '2026-09-09T10:00:00.000Z'
-const owner = { id: 'creator', permissions: ['*'] }
 const reviewer = { id: 'reviewer', permissions: ['scenario-package:review'] }
 const skill = id => ({ id, name: id, menu: id, version: 'v1', online: 'v1', status: 'published', onlineStatus: 'published', permissions: { menu: [`menu:${id}`], skill: [`skill:${id}`], data: [`data:${id}`], action: [`action:${id}`] } })
 const catalog = [skill('a'), skill('b')]
+const owner = scenarioPmActor('creator', catalog, ['review-package'])
 const draft = (skills = catalog) => ({ id: 'review-package', name: '独立审核包', description: '跨菜单经营任务', targetAudience: '运营人员', ownerId: owner.id, steps: skills.slice(0, 2).map((s, i) => domain.createPinnedScenarioStep(s, { predecessorId: i ? skills[0].id : null, task: `使用${s.name}分析本次运营对象并汇总结果`, expectedOutput: '' })) })
 const submitted = () => ({ ...draft(), status: 'review', submittedAt: at, submittedBy: owner.id, auditEvents: [{ type: 'submitted', actorId: owner.id, at }] })
 
@@ -25,7 +29,7 @@ function withTrial(draft, skills, actor) {
 }
 
 test('domain rejects owner self-approval even with wildcard permission', () => {
-  assert.throws(() => domain.publishScenarioPackage(submitted(), owner, at, catalog), /本人|自己|其他管理员|自审/)
+  assert.throws(() => domain.publishScenarioPackage(submitted(), { ...owner, permissions: ['*'] }, at, catalog), /本人|自己|其他管理员|自审/)
 })
 
 test('domain rejects publication that bypasses submitted review state', () => {
@@ -49,10 +53,15 @@ async function fixture() {
   }
   modules.pinia.setActivePinia(modules.pinia.createPinia())
   const store = modules.scenario.useScenarioSkillPackagesStore()
+  owner.permissions = scenarioPmPermissions([...catalog, ...store.selectableSkills], ['review-package'])
   const currentDraft = draft(store.selectableSkills.filter(s => ['employee-certification-insight', 'workplace-segment-operations'].includes(s.id)))
   return { store, hub: modules.hub.useSkillHubStore(), draft: withTrial(currentDraft, store.selectableSkills, owner) }
 }
-after(async () => { await server?.close() })
+after(async () => {
+  await server?.close()
+  if (previousStorage === undefined) delete globalThis.localStorage
+  else globalThis.localStorage = previousStorage
+})
 
 test('submission requires creation permissions but never self-approval permission or publication evidence', async () => {
   const { store, draft } = await fixture()
@@ -80,7 +89,7 @@ test('store rejects own review, unprivileged review, forged owner, duplicate sub
     assert.throws(() => store.approvePackage(draft.id, actor))
     assert.throws(() => store.rejectPackage(draft.id, actor, '补充目标'))
   }
-  assert.throws(() => store.submitDraft(draft, owner), /已存在/)
+  assert.throws(() => store.submitDraft(draft, owner), /状态|审核/)
   assert.ok(!store.publishDraft || (() => { assert.throws(() => store.publishDraft({ ...draft, id: 'bypass' }, owner)); return true })())
   assert.equal(store.findPackage(draft.id).status, 'review')
 })
@@ -116,7 +125,7 @@ test('reject requires a reason; only the original owner can resubmit and prior a
   assert.equal(store.prepareRunPlan(draft.id, owner).status, 'blocked')
   assert.throws(() => store.resubmitDraft({ ...draft, ownerId: reviewer.id }, reviewer), /所有者|主责任人/)
   assert.throws(() => store.resubmitDraft({ ...draft, ownerId: reviewer.id }, owner), /所有者|主责任人/)
-  const revised = withTrial({ ...draft, description: '当需要跨菜单分析经营情况时使用', auditEvents: [] }, store.selectableSkills, owner)
+  const revised = withTrial({ ...store.editableDraft(draft.id, owner), description: '当需要跨菜单分析经营情况时使用', auditEvents: [] }, store.selectableSkills, owner)
   const again = store.resubmitDraft(revised, owner)
   assert.equal(again.status, 'review')
   assert.equal(again.reviewedBy, undefined)
@@ -166,7 +175,7 @@ test('pending review seed identifies an example owner and can be approved agains
 
 test('independent reviewers may hold wildcard or structured policy review permission', () => {
   for (const permissions of [['*'], { policy: ['scenario-package:review'] }]) {
-    const published = domain.publishScenarioPackage(submitted(), { id: reviewer.id, permissions }, at, catalog)
+    const published = domain.publishScenarioPackage(withTrial(submitted(), catalog, owner), { id: reviewer.id, permissions }, at, catalog)
     assert.equal(published.status, 'published')
   }
 })
@@ -190,7 +199,7 @@ test('a scenario description without retired fields survives submit, reject, rev
   const rejected = store.rejectPackage(draft.id, reviewer, '补充任务边界')
   assert.equal(rejected.description, description)
   const revisedDescription = `${description}信息不足时列出待补充项。`
-  const revised = store.resubmitDraft(withTrial({ ...draft, description: revisedDescription }, store.selectableSkills, owner), owner)
+  const revised = store.resubmitDraft(withTrial({ ...store.editableDraft(draft.id, owner), description: revisedDescription }, store.selectableSkills, owner), owner)
   assert.equal(revised.description, revisedDescription)
   const published = store.approvePackage(draft.id, reviewer)
   assert.equal(published.description, revisedDescription)
@@ -204,7 +213,7 @@ test('retired fields are discarded by submitted, rebuilt, published and rejected
   const outputs = [
     domain.submitScenarioPackage(withTrial(legacy, catalog, owner), owner, at, catalog),
     domain.rebuildDraftFromCatalog(legacy, catalog).draft,
-    domain.publishScenarioPackage(legacy, reviewer, at, catalog),
+    domain.publishScenarioPackage(withTrial(legacy, catalog, owner), reviewer, at, catalog),
     domain.rejectScenarioPackage(legacy, reviewer, '补充适用场景', at)
   ]
   for (const output of outputs) {

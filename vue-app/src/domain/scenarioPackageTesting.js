@@ -22,7 +22,9 @@ const VERSION_SAMPLES = {
   'gmv-daily-summary': { version: 'v1.2.0', input: '模拟汇总指定日期的订单量、GMV 与渠道贡献。', output: '模拟样例：样例日期共有 3 笔订单、GMV 900 元，其中渠道 A 贡献 600 元。' },
   'employee-certification-insight': { version: 'v1.0.0', input: '模拟查询职场 A 最近两周的员工认证情况。', output: '模拟样例：职场 A 共有 3 名员工，已认证 2 名、待补充材料 1 名。' },
   'workplace-segment-operations': { version: 'v1.2.0', input: '模拟分析职场 A 已认证人群的经营机会。', output: '模拟样例：已认证人群中 1 人完成购买，建议向待补充材料人群提供认证指引。' },
-  'enterprise-customer-followup': { version: 'v1.0.0', input: '模拟为企业客户 A 准备首次跟进计划。', output: '模拟样例：建议先确认企业客户 A 的采购人数与预算，再准备沟通提纲；未发送消息。' }
+  'enterprise-customer-followup': { version: 'v1.0.0', input: '模拟为企业客户 A 准备首次跟进计划。', output: '模拟样例：建议先确认企业客户 A 的采购人数与预算，再准备沟通提纲；未发送消息。' },
+  'legacy-inventory-alert': { version: 'v0.9.0', input: '模拟检查企业客户 A 相关机型的库存与历史预警阈值。', output: '模拟样例：机型 A 可用库存 3 台，预警阈值 5 台，触发低库存预警；建议核实供货时间后再确认交付。未调整库存、创建补货单或发送通知。' },
+  'weather-query': { version: 'v1.0.0', input: '模拟查询活动地点 A 的天气与降水风险。', output: '模拟样例：活动地点 A 天气多云，气温 22℃，降水概率 20%；建议保留室内活动备选安排。未查询真实天气或调整活动计划。' }
 }
 
 const text = value => typeof value === 'string' ? value : ''

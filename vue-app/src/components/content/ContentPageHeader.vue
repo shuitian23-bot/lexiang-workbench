@@ -79,7 +79,12 @@ defineProps<{
     align-items: stretch;
   }
 
+  .content-page-header__heading {
+    flex-basis: auto;
+  }
+
   .content-page-header__actions {
+    flex-wrap: wrap;
     justify-content: flex-start;
   }
 }
@@ -90,7 +95,12 @@ defineProps<{
     align-items: stretch;
   }
 
+  .content-page-header__heading {
+    flex-basis: auto;
+  }
+
   .content-page-header__actions {
+    flex-wrap: wrap;
     justify-content: flex-start;
   }
 }

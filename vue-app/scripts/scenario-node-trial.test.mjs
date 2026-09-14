@@ -2,13 +2,14 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import { createPinnedScenarioStep, evaluateScenarioTrialForSubmit, submitScenarioPackage } from '../src/domain/scenarioSkillPackages.js'
 import { runScenarioSimulation, isScenarioSimulationCurrent } from '../src/domain/scenarioPackageTesting.js'
+import { scenarioPmActor } from './helpers/scenarioActors.mjs'
 
-const actor = { id: 'creator', permissions: ['*'] }
 const catalog = [
   ['employee-certification-insight', 'v1.0.0', '认证查询'],
   ['workplace-segment-operations', 'v1.2.0', '人群分析'],
   ['enterprise-customer-followup', 'v1.0.0', '跟进建议']
 ].map(([id, version, name]) => ({ id, version, name, menu: name, online: version, status: 'published', onlineStatus: 'published', permissions: { menu: [`menu:${id}`], skill: [`skill:${id}`], data: [`data:${id}`], action: [`action:${id}`] } }))
+const actor = scenarioPmActor('creator', catalog)
 function trial({ conditional = false, blocked = false, manual = true, legacy = false } = {}) {
   const steps = catalog.map((skill, index) => createPinnedScenarioStep(skill, { id: `n${index}`, predecessorId: index ? `n${index - 1}` : null, task: skill.name, expectedOutput: `预期：${skill.name}` }))
   if (conditional) Object.assign(steps[1], { kind: 'conditional', required: false, condition: '需要深入分析时' })

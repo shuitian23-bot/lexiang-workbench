@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import test, { after } from 'node:test'
 import { createServer } from 'vite'
 import { runScenarioSimulation } from '../src/domain/scenarioPackageTesting.js'
+import { scenarioPmActor } from './helpers/scenarioActors.mjs'
 
 import {
   createPinnedScenarioStep,
@@ -12,9 +13,11 @@ import {
   publishScenarioPackage
 } from '../src/domain/scenarioSkillPackages.js'
 
+const previousStorage = globalThis.localStorage
+globalThis.localStorage = { getItem() { return null }, setItem() {}, removeItem() {} }
+
 const actor = (overrides = {}) => ({
-  id: 'admin',
-  permissions: ['*'],
+  ...scenarioPmActor('pm-owner', ['skill-customer-query', 'skill-order-export', 'employee-certification-insight', 'workplace-segment-operations', 'enterprise-customer-followup']),
   ...overrides
 })
 
@@ -55,7 +58,7 @@ const validDraft = (overrides = {}) => ({
   name: '销售服务包',
   description: '串联客户查询与订单导出，完成销售服务闭环。',
   targetAudience: '企业销售运营',
-  ownerId: 'admin',
+  ownerId: 'pm-owner',
   steps: [
     createPinnedScenarioStep(publishedSkill(), { id: 'customer', required: true }),
     createPinnedScenarioStep(secondPublishedSkill(), {
@@ -138,6 +141,8 @@ async function loadScenarioStoreModules() {
 
 after(async () => {
   await scenarioStoreServer?.close()
+  if (previousStorage === undefined) delete globalThis.localStorage
+  else globalThis.localStorage = previousStorage
 })
 
 async function createScenarioStores() {
@@ -325,7 +330,7 @@ test('requires a non-empty actor and matching non-empty owner for submission', (
     [validDraft({ ownerId: '   ' }), actor()],
     [validDraft(), actor({ id: '' })],
     [validDraft(), actor({ id: 'other-owner' })],
-    [validDraft({ ownerId: ' admin ' }), actor({ id: 'admin' })]
+    [validDraft({ ownerId: ' pm-owner ' }), actor({ id: 'pm-owner' })]
   ]) {
     const result = evaluatePackageForPublish(draft, currentActor)
     assert.equal(result.ok, false)
@@ -369,7 +374,7 @@ test('allows owner submission but never self-approval after automated gates pass
 
 test('publishing creates distinct approved and published audit events', () => {
   const published = publishScenarioPackage(
-    pendingReview(validDraft()),
+    pendingReview(withTrial(validDraft(), authoritativeCatalog(), actor())),
     reviewer(),
     '2026-09-04T00:00:00.000Z',
     authoritativeCatalog()
@@ -399,7 +404,7 @@ test('publication rebuilds step identity and permissions from the authoritative 
   })
 
   const published = publishScenarioPackage(
-    pendingReview(draft),
+    pendingReview(withTrial(draft, authoritativeCatalog(), actor())),
     reviewer(),
     '2026-09-04T00:00:00.000Z',
     authoritativeCatalog()
@@ -914,7 +919,7 @@ test('seed package is a published auditable demo with an explicit package versio
 
 test('publication adds the initial package version and uses the write time as updated time', () => {
   const published = publishScenarioPackage(
-    pendingReview(validDraft()),
+    pendingReview(withTrial(validDraft(), authoritativeCatalog(), actor())),
     reviewer(),
     '2026-09-04T00:00:00.000Z',
     authoritativeCatalog()

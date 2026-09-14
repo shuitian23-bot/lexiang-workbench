@@ -201,91 +201,94 @@ onMounted(() => {
       <p class="ai-summary__suggest">{{ aiSummary.suggestion }}</p>
     </div>
 
-    <!-- 筛选条 -->
-    <div class="ai-filterbar">
-      <select v-model="filters.status" class="ai-select">
-        <option v-for="opt in statusOptions" :key="opt" :value="opt">{{ opt }}</option>
-      </select>
-      <select v-model="filters.level" class="ai-select">
-        <option v-for="opt in levelOptions" :key="opt" :value="opt">{{ opt }}</option>
-      </select>
-      <select v-model="filters.page" class="ai-select">
-        <option v-for="opt in pageOptions" :key="opt" :value="opt">{{ opt }}</option>
-      </select>
-      <select v-model="filters.dimension" class="ai-select">
-        <option v-for="opt in dimensionOptions" :key="opt" :value="opt">{{ opt }}</option>
-      </select>
-      <button class="btn btn-sm btn-secondary" type="button" @click="resetFilters">重置筛选</button>
-      <span class="ai-filter-count">
-        {{ filteredOrders.length ? `共 ${filteredOrders.length} 条问题` : '无匹配问题' }}
-      </span>
+    <div class="inspect-list-workspace">
+      <!-- 筛选条 -->
+      <div class="ai-filterbar">
+        <select v-model="filters.status" class="ai-select">
+          <option v-for="opt in statusOptions" :key="opt" :value="opt">{{ opt }}</option>
+        </select>
+        <select v-model="filters.level" class="ai-select">
+          <option v-for="opt in levelOptions" :key="opt" :value="opt">{{ opt }}</option>
+        </select>
+        <select v-model="filters.page" class="ai-select">
+          <option v-for="opt in pageOptions" :key="opt" :value="opt">{{ opt }}</option>
+        </select>
+        <select v-model="filters.dimension" class="ai-select">
+          <option v-for="opt in dimensionOptions" :key="opt" :value="opt">{{ opt }}</option>
+        </select>
+        <button class="btn btn-sm btn-secondary" type="button" @click="resetFilters">重置筛选</button>
+        <span class="ai-filter-count">
+          {{ filteredOrders.length ? `共 ${filteredOrders.length} 条问题` : '无匹配问题' }}
+        </span>
 
-      <div v-if="selectedIds.length" class="ai-batch">
-        <span class="ai-batch__count">已选 {{ selectedIds.length }} 项</span>
-        <button class="btn btn-sm btn-secondary" type="button" @click="batchRecheck">批量复检</button>
-        <button class="btn btn-sm btn-secondary" type="button" @click="batchClose">批量关闭</button>
+        <div v-if="selectedIds.length" class="ai-batch">
+          <span class="ai-batch__count">已选 {{ selectedIds.length }} 项</span>
+          <button class="btn btn-sm btn-secondary" type="button" @click="batchRecheck">批量复检</button>
+          <button class="btn btn-sm btn-secondary" type="button" @click="batchClose">批量关闭</button>
+        </div>
       </div>
-    </div>
 
-    <!-- 工单列表 -->
-    <div class="inspect-surface">
-      <div class="ai-table-scroll" role="region" aria-label="巡检数据表格" tabindex="0">
-        <table class="ai-table">
-          <thead>
-            <tr>
-              <th class="ai-col-check"><input type="checkbox" :checked="allSelected" @change="toggleAll" aria-label="全选" /></th>
-              <th>问题</th>
-              <th>页面 / 位置</th>
-              <th>等级</th>
-              <th>问题项</th>
-              <th>负责人</th>
-              <th>状态</th>
-              <th>存在时长</th>
-              <th>上次复检</th>
-              <th class="ai-col-actions">操作</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="o in filteredOrders" :key="o.id">
-              <td class="ai-col-check"><input type="checkbox" :checked="selectedIds.includes(o.id)" @change="toggleOne(o.id)" :aria-label="`选择 ${o.id}`" /></td>
-              <td class="ai-mono">{{ o.id }}</td>
-              <td>
-                <div class="ai-cell-strong">{{ o.page }}</div>
-                <div class="ai-cell-sub">{{ o.location }}</div>
-              </td>
-              <td><AiBadge :tone="levelColorTone(o.level)" :label="o.level" /></td>
-              <td>
-                <div>{{ o.issueSummary }}</div>
-                <div class="ai-cell-sub" v-if="o.issueCount > 1">+{{ o.issueCount - 1 }} 项</div>
-              </td>
-              <td>
-                <AiBadge v-if="o.owner" tone="green" :label="o.owner" />
-                <span v-else class="ai-unassigned">未指派</span>
-              </td>
-              <td><AiBadge :tone="statusColorTone(o.status)" :label="o.status" dot /></td>
-              <td :class="durationTone(o.durationMin) === 'orange' ? 'ai-duration-warn' : 'ai-duration-gray'">{{ formatDuration(o.durationMin) }}</td>
-              <td>
-                <template v-if="o.lastRecheck">
-                  <div class="ai-cell-sub">{{ o.lastRecheck.time }}</div>
-                  <AiBadge
-                    :tone="o.lastRecheck.result === '通过' ? 'green' : o.lastRecheck.result === '未通过' ? 'orange' : 'red'"
-                    :label="o.lastRecheck.result"
-                  />
-                </template>
-                <span v-else class="ai-cell-sub">—</span>
-              </td>
-              <td class="ai-col-actions">
-                <button class="btn btn-sm btn-secondary" type="button" @click="recheck(o)">复检</button>
-                <button v-if="o.status !== '已解决'" class="btn btn-sm btn-secondary" type="button" @click="markResolved(o)">已解决</button>
-                <button class="btn btn-sm btn-primary" type="button" @click="openDetail(o)">查看</button>
-              </td>
-            </tr>
-            <tr v-if="!filteredOrders.length">
-              <td colspan="10" class="ai-empty">无匹配问题</td>
-            </tr>
-          </tbody>
-        </table>
+      <!-- 工单列表 -->
+      <div class="inspect-surface">
+        <div class="ai-table-scroll" role="region" aria-label="巡检数据表格" tabindex="0">
+          <table class="ai-table">
+            <thead>
+              <tr>
+                <th class="ai-col-check"><input type="checkbox" :checked="allSelected" @change="toggleAll" aria-label="全选" /></th>
+                <th>问题</th>
+                <th>页面 / 位置</th>
+                <th>等级</th>
+                <th>问题项</th>
+                <th>负责人</th>
+                <th>状态</th>
+                <th>存在时长</th>
+                <th>上次复检</th>
+                <th class="ai-col-actions">操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="o in filteredOrders" :key="o.id">
+                <td class="ai-col-check"><input type="checkbox" :checked="selectedIds.includes(o.id)" @change="toggleOne(o.id)" :aria-label="`选择 ${o.id}`" /></td>
+                <td class="ai-mono">{{ o.id }}</td>
+                <td>
+                  <div class="ai-cell-strong">{{ o.page }}</div>
+                  <div class="ai-cell-sub">{{ o.location }}</div>
+                </td>
+                <td><AiBadge :tone="levelColorTone(o.level)" :label="o.level" /></td>
+                <td>
+                  <div>{{ o.issueSummary }}</div>
+                  <div class="ai-cell-sub" v-if="o.issueCount > 1">+{{ o.issueCount - 1 }} 项</div>
+                </td>
+                <td>
+                  <AiBadge v-if="o.owner" tone="green" :label="o.owner" />
+                  <span v-else class="ai-unassigned">未指派</span>
+                </td>
+                <td><AiBadge :tone="statusColorTone(o.status)" :label="o.status" dot /></td>
+                <td :class="durationTone(o.durationMin) === 'orange' ? 'ai-duration-warn' : 'ai-duration-gray'">{{ formatDuration(o.durationMin) }}</td>
+                <td>
+                  <template v-if="o.lastRecheck">
+                    <div class="ai-cell-sub">{{ o.lastRecheck.time }}</div>
+                    <AiBadge
+                      :tone="o.lastRecheck.result === '通过' ? 'green' : o.lastRecheck.result === '未通过' ? 'orange' : 'red'"
+                      :label="o.lastRecheck.result"
+                    />
+                  </template>
+                  <span v-else class="ai-cell-sub">—</span>
+                </td>
+                <td class="ai-col-actions">
+                  <button class="btn btn-sm btn-secondary" type="button" @click="recheck(o)">复检</button>
+                  <button v-if="o.status !== '已解决'" class="btn btn-sm btn-secondary" type="button" @click="markResolved(o)">已解决</button>
+                  <button class="btn btn-sm btn-primary" type="button" @click="openDetail(o)">查看</button>
+                </td>
+              </tr>
+              <tr v-if="!filteredOrders.length">
+                <td colspan="10" class="ai-empty">无匹配问题</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
+
     </div>
 
     <!-- 工单详情弹窗 -->
@@ -369,6 +372,8 @@ onMounted(() => {
 <style scoped>
 .ai-issues { display: flex; flex-direction: column; gap: 16px; width: 100%; min-width: 0; container-type: inline-size; container-name: ai-inspect-page; }
 .ai-issues > * { min-width: 0; }
+.inspect-list-workspace { display: grid; gap: 12px; min-width: 0; }
+.inspect-list-workspace > * { margin-block: 0; }
 .inspect-surface { background: var(--color-surface); border: 1px solid var(--color-border-subtle); border-radius: var(--radius-lg); padding: 16px 20px; min-width: 0; }
 .ai-table-scroll { width: 100%; max-width: 100%; overflow-x: auto; overscroll-behavior-x: contain; }
 .ai-table-scroll:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }

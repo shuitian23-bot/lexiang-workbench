@@ -272,7 +272,7 @@ test('Skill Hub package view has independent filters, compact rows, details, and
   assert.match(view, /packageDetailTrigger\?\.isConnected\) packageDetailTrigger\.focus\(\)/)
   assert.match(view, /query:\s*\{\s*tab:\s*'packages',\s*mode:\s*'create'\s*\}/s)
   assert.match(view, /query:\s*\{\s*tab:\s*'packages'\s*\}/s)
-  assert.match(view, /scenarioStore\.resetToInitialMock\(\)/)
+  assert.doesNotMatch(view, /scenarioStore\.resetToInitialMock\(\)/, 'page reload must preserve saved scenario packages')
 })
 
 test('submitting a package resets stale filters and selects pending review before revealing and focusing its row', async () => {
@@ -298,7 +298,7 @@ test('submitting a package resets stale filters and selects pending review befor
   assert.ok(resetIndex >= 0 && resetIndex < reviewFilterIndex && reviewFilterIndex < routeIndex, 'stale filters reset and pending review is selected before returning to the package table')
   assert.ok(routeIndex < renderIndex && renderIndex < rowIndex, 'row lookup waits for the pending-review table render')
   assert.ok(rowIndex < scrollIndex && scrollIndex < focusIndex, 'submitted row is scrolled into view and then focused')
-  assert.match(submit, /已提交审核，等待其他管理员处理/)
+  assert.match(submit, /已提交审核，等待管理员处理/)
 })
 
 test('package details own a complete modal keyboard lifecycle without changing the Skill modal', async () => {
@@ -622,12 +622,12 @@ test('scenario Skill packages use the four-step submission workspace with a requ
     assert.match(view, new RegExp(section))
   }
   assert.match(view, /scenarioStore\.submitDraft\(/)
-  assert.match(view, /scenarioStore\.resubmitDraft\(/)
+  assert.match(view, /baseUpdatedAt: draftBaseUpdatedAt/)
   assert.match(view, /scenarioStore\.evaluateDraft\(/)
   assert.doesNotMatch(view, /packages\.value\.(?:push|unshift|splice)\(/)
   assert.equal(view.match(/@click="submitPackage"/g)?.length, 1)
   assert.match(view, /submitting \? '正在提交…' : draft \? '重新提交审核' : '提交审核'/)
-  assert.match(view, /:disabled="submitting \|\| trialRunning \|\| !trialGate\.ok \|\| !canEditDraft \|\| !submissionEvaluation\.ok \|\| dependencyHealth\.status === 'paused'"/)
+  assert.match(view, /:disabled="submitting \|\| savingDraft \|\| trialRunning \|\| !trialGate\.ok \|\| !canEditDraft \|\| !submissionEvaluation\.ok \|\| dependencyHealth\.status === 'paused'"/)
   assert.match(view, /submitted: \[item: ScenarioSkillPackage\]/)
   assert.match(view, /emit\('submitted', submitted\)/)
   assert.match(view, /提交后由其他管理员审核，审核通过后发布/)

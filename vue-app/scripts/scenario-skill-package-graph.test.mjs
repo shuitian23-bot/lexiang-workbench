@@ -3,8 +3,11 @@ import test, { after } from 'node:test'
 import { createServer } from 'vite'
 import * as domain from '../src/domain/scenarioSkillPackages.js'
 import { runScenarioSimulation } from '../src/domain/scenarioPackageTesting.js'
+import { scenarioPmActor } from './helpers/scenarioActors.mjs'
 
-const actor = { id: 'admin', permissions: ['*'] }
+const previousStorage = globalThis.localStorage
+globalThis.localStorage = { getItem() { return null }, setItem() {}, removeItem() {} }
+
 const reviewer = { id: 'reviewer', permissions: ['scenario-package:review'] }
 const pendingReview = draft => ({ ...draft, status: 'review', submittedBy: draft.ownerId, submittedAt: at, auditEvents: [{ type: 'submitted', actorId: draft.ownerId, at }] })
 const at = '2026-09-07T10:00:00.000Z'
@@ -13,6 +16,7 @@ const catalog = ['a', 'b', 'c'].map(id => ({
   status: 'published', onlineStatus: 'published',
   permissions: { menu: [`menu:${id}`], skill: [`skill:${id}`], data: [`data:${id}`], action: [`action:${id}`] }
 }))
+const actor = scenarioPmActor('pm-owner', catalog, ['graph-package'])
 const step = (id, predecessorId, overrides = {}) => ({
   ...domain.createPinnedScenarioStep(catalog.find(skill => skill.id === id), { id }),
   ...(predecessorId === undefined ? {} : { predecessorId }),
@@ -21,7 +25,7 @@ const step = (id, predecessorId, overrides = {}) => ({
 const draft = steps => ({
   id: 'graph-package', name: '图编排场景', description: '连接多个菜单的已发布 Skill。',
   targetAudience: '运营人员',
-  ownerId: 'admin', steps
+  ownerId: 'pm-owner', steps
 })
 const runtimePackage = steps => ({
   ...draft(steps), status: 'published',
@@ -86,7 +90,7 @@ for (const [name, fixture, reasonPattern] of invalidGraphs) {
 
 test('publication stores connected order and runtime follows connections while skipping inactive conditions', () => {
   const steps = [step('c', 'b'), step('a', null), step('b', 'a', { kind: 'conditional', required: false, condition: '需要跟进时' })]
-  const published = domain.publishScenarioPackage(pendingReview(draft(steps)), reviewer, at, catalog)
+  const published = domain.publishScenarioPackage(pendingReview(withTrial(draft(steps), catalog, actor)), reviewer, at, catalog)
   assert.deepEqual(ids(published.steps), ['a', 'b', 'c'])
   const active = domain.evaluateRuntimeAccess(runtimePackage(steps), actor, ['b'])
   assert.equal(active.status, 'ready')
@@ -105,7 +109,7 @@ test('constructor, catalog rebuild, resolver and publication isolate position sn
   const input = draft([created, step('b', 'a', { position: { x: 200, y: 48 } })])
   const rebuilt = domain.rebuildDraftFromCatalog(input, catalog)
   const resolved = domain.resolveScenarioChain(input.steps)
-  const published = domain.publishScenarioPackage(pendingReview(input), reviewer, at, catalog)
+  const published = domain.publishScenarioPackage(pendingReview(withTrial(input, catalog, actor)), reviewer, at, catalog)
   const runtime = domain.evaluateRuntimeAccess(runtimePackage(input.steps), actor)
   for (const resultSteps of [rebuilt.draft.steps, resolved.steps, published.steps, runtime.effectiveSteps]) {
     assert.equal(resultSteps[1].predecessorId, 'a')
@@ -121,14 +125,18 @@ test('malformed canvas coordinates are discarded without changing executable con
     const created = domain.createPinnedScenarioStep(catalog[0], { id: 'a', predecessorId: null, position })
     assert.equal(created.position, undefined)
     const input = draft([step('a', null, { position }), step('b', 'a')])
-    const published = domain.publishScenarioPackage(pendingReview(input), reviewer, at, catalog)
+    const published = domain.publishScenarioPackage(pendingReview(withTrial(input, catalog, actor)), reviewer, at, catalog)
     assert.deepEqual(ids(published.steps), ['a', 'b'])
     assert.equal(published.steps[0].position, undefined)
   }
 })
 
 let server
-after(async () => server?.close())
+after(async () => {
+  await server?.close()
+  if (previousStorage === undefined) delete globalThis.localStorage
+  else globalThis.localStorage = previousStorage
+})
 
 test('store evaluates and publishes connected order with isolated canvas snapshots', async () => {
   server = await createServer({ root: new URL('..', import.meta.url).pathname, logLevel: 'silent', server: { middlewareMode: true } })
@@ -138,6 +146,7 @@ test('store evaluates and publishes connected order with isolated canvas snapsho
   setActivePinia(createPinia())
   const store = module.useScenarioSkillPackagesStore()
   const skills = ['employee-certification-insight', 'workplace-segment-operations'].map(id => store.selectableSkills.find(skill => skill.id === id))
+  const actor = scenarioPmActor('pm-owner', skills, ['graph-package'])
   const a = { ...domain.createPinnedScenarioStep(skills[0], { id: 'a' }), predecessorId: null, position: { x: 24, y: 48 } }
   const b = { ...domain.createPinnedScenarioStep(skills[1], { id: 'b' }), predecessorId: 'a', position: { x: 300, y: 48 } }
   const input = draft([b, a])
