@@ -6,6 +6,30 @@
   const scopes = new Map();
   const states = new Set(), pending = new Set(), timers = new Map(), requests = new Set();
   const buttons = '#lxfdSend,.assistant-panel .send-btn,.hero-send-btn';
+  const inputs = '.composer textarea,.lxfd-composer textarea,.hero-composer textarea';
+  // Only actual suggested queries are sendable. Instructional placeholders stay empty.
+  const defaultQueries = new Set([
+    '推荐一款适合我的笔记本电脑', '推荐笔记本电脑',
+    '公司要配办公电脑，帮我推荐', '我们单位要采购信创设备，帮我推荐'
+  ]);
+  const composing = new WeakSet();
+  function queryFor(input) {
+    if (!input || input.disabled || input.readOnly) return '';
+    const value = input.value || '';
+    const placeholder = input.placeholder.trim();
+    return value.trim() || (!value && defaultQueries.has(placeholder) ? placeholder : '');
+  }
+  function inputFor(button) {
+    return button.closest('form,.composer,.hero-composer')?.querySelector('textarea');
+  }
+  function materializeDefault(input) {
+    if (!input || input.value || composing.has(input)) return;
+    const query = queryFor(input);
+    if (!query) return;
+    input.value = query;
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    sync();
+  }
   const markers = '.lx-p0-messages .loading-line,.lx-p0-messages .typing-cursor,.lx-p0-messages .streaming,.lxfd-thread .loading-line,.lxfd-thread .typing-cursor,.lxfd-thread .streaming';
   const abortError = () => new DOMException('已停止生成', 'AbortError');
   const current = token => token === epoch;
@@ -19,10 +43,11 @@
       const label = running ? '停止生成' : button.dataset.lxSendLabel;
       if (button.getAttribute('aria-label') !== label) button.setAttribute('aria-label', label);
       if (button.title !== label) button.title = label;
-      const input = button.closest('form,.composer,.hero-composer')?.querySelector('textarea');
-      const disabled = !running && !input?.value.trim();
+      const ready = !running && !!queryFor(inputFor(button));
+      const disabled = !running && !ready;
       if (button.disabled !== disabled) button.disabled = disabled;
-      if (running && button.classList.contains('idle')) button.classList.remove('idle');
+      button.classList.toggle('lx-send-ready', ready);
+      button.classList.toggle('idle', disabled);
     });
   }
   function register(state, scope) {
@@ -105,12 +130,35 @@
   const style=document.createElement('style');style.id='lx-stop-generation-style';
   const stopSelector='html body #lxfdSend.lx-stop-generation,html body .assistant-panel button.send-btn.lx-stop-generation,html body .hero-send-btn.lx-stop-generation';
   style.textContent=`:is(${stopSelector}){position:relative!important;opacity:1!important;cursor:pointer!important;background:linear-gradient(90deg,#4d144a 11.9%,#b8252e 100%)!important;border-radius:50%!important}:is(${stopSelector})>*{visibility:hidden!important}:is(${stopSelector})::after{content:""!important;display:block!important;visibility:visible!important;opacity:1!important;position:absolute;left:50%;top:50%;width:12px;height:12px;transform:translate(-50%,-50%);border-radius:2px;background:#FFFFFF}:is(${stopSelector}):focus-visible{outline:2px solid #4d144a;outline-offset:3px}:is(${stopSelector}):active{transform:scale(.96)}[data-lx-generation-stopped]{color:#979797;font-size:12px;line-height:1.6}`;
+  const readySelector='html body #lxfdSend.lx-send-ready,html body .assistant-panel button.send-btn.lx-send-ready,html body .hero-send-btn.lx-send-ready';
+  style.textContent += `:is(${readySelector}){opacity:1!important;cursor:pointer!important;background:linear-gradient(90deg,#4d144a 11.9%,#b8252e 100%)!important}:is(${readySelector}) .icon{opacity:1!important}:is(${readySelector}):focus-visible{outline:2px solid #4d144a;outline-offset:3px}`;
   style.textContent += ":is(.ai-body,.lxfd-ai-body):has([data-lx-generation-stopped]) .lx-skill-trace-item{animation:none!important;background:none!important;-webkit-text-fill-color:#979797!important;color:#979797!important;font-weight:400!important}:is(.ai-body,.lxfd-ai-body):has([data-lx-generation-stopped]) .lx-skill-trace-item::after{animation:none!important;content:none!important}";
   (document.head||document.documentElement).append(style);
-  window.addEventListener('click',event=>{if(event.target.closest?.(buttons)&&busy()){event.preventDefault();event.stopImmediatePropagation();stop();}},true);
-  window.addEventListener('submit',event=>{if(event.target.matches?.('.composer,.lxfd-composer,.hero-composer')&&busy()){event.preventDefault();event.stopImmediatePropagation();}},true);
-  window.addEventListener('keydown',event=>{if(event.key==='Enter'&&!event.shiftKey&&!event.isComposing&&event.target.matches?.('.composer textarea,.lxfd-composer textarea,.hero-composer textarea')&&busy()){event.preventDefault();event.stopImmediatePropagation();}},true);
+  window.addEventListener('click', event => {
+    const button = event.target.closest?.(buttons);
+    if (!button) return;
+    if (busy()) { event.preventDefault(); event.stopImmediatePropagation(); stop(); return; }
+    materializeDefault(inputFor(button));
+  }, true);
+  window.addEventListener('submit', event => {
+    if (!event.target.matches?.('.composer,.lxfd-composer,.hero-composer')) return;
+    if (busy()) { event.preventDefault(); event.stopImmediatePropagation(); return; }
+    materializeDefault(event.target.querySelector('textarea'));
+  }, true);
+  window.addEventListener('compositionstart', event => {
+    if (event.target.matches?.(inputs)) composing.add(event.target);
+  }, true);
+  window.addEventListener('compositionend', event => composing.delete(event.target), true);
+  window.addEventListener('keydown', event => {
+    if (event.key !== 'Enter' || event.shiftKey || !event.target.matches?.(inputs)) return;
+    // IME confirmation must reach the browser but not legacy Enter-to-send handlers.
+    if (event.isComposing || event.keyCode === 229 || composing.has(event.target)) {
+      event.stopImmediatePropagation(); return;
+    }
+    if (event.repeat || busy()) { event.preventDefault(); event.stopImmediatePropagation(); return; }
+    materializeDefault(event.target);
+  }, true);
   let queued=false;
-  new MutationObserver(()=>{if(!queued){queued=true;queueMicrotask(()=>{queued=false;sync();});}}).observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['disabled','class']});
+  new MutationObserver(()=>{if(!queued){queued=true;queueMicrotask(()=>{queued=false;sync();});}}).observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['disabled','class','placeholder','readonly']});
   document.addEventListener('input',sync);
 })();
