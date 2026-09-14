@@ -2,7 +2,7 @@
 ;/* public/leaip0/assets/frontend/js/core/arrival-notice-flow-v1.js */
 // POC only: no phone number is transmitted or persisted.
 window.__lxInstallArrivalNotice = function(api) {
-const {d,j,I,N,O,z,ot,nt,Qe,xe,ye,ke,Ne,Uo,qe,xn,bindDialog} = api;
+const {d,j,I,N,O,z,ot,nt,Qe,xe,ye,ke,Ne,Uo,qe,bindDialog} = api;
 function lxIsArrivalQuery(query) {
   return /^(?:请)?(?:为)?(?:联想)?天逸\s*510\s*Pro(?:开启|设置|订阅)?到货通知[。！!]?$/i.test(String(query || '').trim());
 }
@@ -79,17 +79,13 @@ async function lxArrivalNoticeQuery(query) {
   }
 }
 // Window capture runs before the existing document-level purchase handler.
-let arrivalClickPending = false;
 window.addEventListener('click', event => {
   const button = event.target.closest?.('.product-detail .detail-actions .detail-primary');
   if (!button || button.textContent.trim() !== '到货通知') return;
   const title = button.closest('.product-detail').querySelector('[data-detail-title], .detail-title');
   if (!/^(?:联想)?天逸510Pro$/i.test(String(title?.textContent || '').replace(/\s+/g, ''))) return;
   event.preventDefault(); event.stopImmediatePropagation();
-  if (!d.sending && !arrivalClickPending) {
-    arrivalClickPending = true;
-    Promise.resolve(xn('联想天逸 510 Pro到货通知')).finally(() => { arrivalClickPending = false; });
-  }
+  z('arrival-notice', '1056661');
 }, true);
 window.__lxArrivalNotice = {matches:lxIsArrivalQuery, run:lxArrivalNoticeQuery};
 };
