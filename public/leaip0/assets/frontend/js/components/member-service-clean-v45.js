@@ -684,7 +684,7 @@
       return;
     }
     if (event.target.closest("[data-education-recommend]")) {
-      submitComposerQuery(educationRecommendationQuery, { type: "education-products", source: "教育认证已通过" });
+      openRightView("education-products");
       return;
     }
     var selectionOpen = event.target.closest("[data-selection-open]");
@@ -2292,6 +2292,7 @@
     if (!view) return "";
     if (view.indexOf("asset:") === 0 || view === "profile" || view === "devices" || view === "ledou") return "member";
     if (view.indexOf("coupon-products:") === 0) return "asset:coupons";
+    if (view === "education-products") return "member";
     if (view.indexOf("device:") === 0) return "devices";
     if (view.indexOf("ledou-product:exchange-") === 0) return "asset:points";
     if (view.indexOf("ledou-product:") === 0) return state.ledouProductOrigin === "member" ? "member" : "ledou";
@@ -2348,6 +2349,7 @@
       return product ? product.name : "好物详情";
     }
     if (view.indexOf("coupon-products:") === 0) return "可用商品";
+    if (view === "education-products") return "教育优惠推荐";
     if (view.indexOf("selection:") === 0) return view.split(":")[1] === "device" ? "选择设备" : "选择地区";
     return { member: "会员中心", profile: "个人信息", devices: "我的设备", ledou: "乐豆好物", service: "服务商品推荐", orders: "我的订单", "appointment-code": "预约服务" }[view] || "页面";
   }
@@ -2359,6 +2361,7 @@
     else if (view.indexOf("service-detail:") === 0) html = serviceDetailPage(view.split(":")[1]);
     else if (view.indexOf("ledou-product:") === 0) html = ledouProductPage(view.split(":")[1]);
     else if (view.indexOf("coupon-products:") === 0) html = couponProductsPage(view.split(":")[1]);
+    else if (view === "education-products") html = educationProductsPage();
     else if (view.indexOf("selection:") === 0) html = selectionPage(view.split(":")[1]);
     else if (view === "member") html = memberPage();
     else if (view === "profile") html = memberProfilePage();
@@ -2623,6 +2626,15 @@
     }).join("");
     return '<section class="leai-page" data-coupon-products-page="' + escapeHtml(coupon.id) + '" aria-labelledby="leaiCouponProductsTitle"><header class="leai-page-header"><div><div class="leai-page-title-row"><button class="leai-page-back" type="button" data-secondary-back="asset:coupons" aria-label="返回优惠券"><img src="' + icons.next + '" alt=""></button><h1 class="leai-page-title" id="leaiCouponProductsTitle">可用商品</h1></div><p class="leai-page-desc">以下商品可使用“' + escapeHtml(coupon.title) + '”，实际优惠以结算页为准。</p></div></header><div class="leai-coupon-product-list">' + rows + '</div><p class="leai-member-disclaimer">当前商品与优惠关系为 Mock 演示，价格、库存、适用范围与最终优惠以商城结算结果为准。</p></section>';
   }
+
+  function educationProductsPage() {
+    var products = ["EDU-XIAOXIN-5499", "EDU-YOGA-6999", "EDU-THINKPLUS-399"].map(function (sku) { return couponProductCatalog[sku]; }).filter(Boolean);
+    var cards = products.map(function (product) {
+      return '<article class="leai-education-product" data-education-product="' + escapeHtml(product.sku) + '"><span class="leai-education-product-image"><img src="' + product.image_url + '" alt=""></span><div class="leai-education-product-copy"><small>教育认证专享</small><h2>' + escapeHtml(product.name) + '</h2><p>' + escapeHtml(product.description) + '</p><strong>¥' + product.price.toLocaleString() + '</strong></div><div class="leai-education-product-actions"><button class="lx-p0-btn" type="button" data-coupon-product-open="' + escapeHtml(product.sku) + '">查看详情</button><button class="lx-p0-btn primary" type="button" data-coupon-product-buy="' + escapeHtml(product.sku) + '">立即购买</button></div></article>';
+    }).join("");
+    return '<section class="leai-page leai-education-products-page" data-education-products-page aria-labelledby="leaiEducationProductsTitle"><header class="leai-page-header"><div><h1 class="leai-page-title" id="leaiEducationProductsTitle">教育优惠推荐</h1><p class="leai-page-desc">教育认证已通过，以下商品可享专属优惠，实际价格以结算页为准。</p></div></header><div class="leai-education-product-grid">' + cards + '</div><p class="leai-member-disclaimer">商品、价格、库存及教育优惠范围以商城实时页面与结算结果为准。</p></section>';
+  }
+
 
   function memberPage() {
     return '<section class="leai-page leai-member-page" aria-labelledby="leaiMemberTitle">' +

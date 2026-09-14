@@ -1,0 +1,184 @@
+/* Verified education members land on products directly instead of a status dialog. */
+html body .leai-education-product-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 20px;
+}
+
+html body .leai-education-product {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--ms-line-soft);
+  border-radius: 16px;
+  background: var(--ms-surface);
+  box-shadow: var(--ms-card-shadow);
+}
+
+html body .leai-education-product-image {
+  height: 160px;
+  display: grid;
+  place-items: center;
+  padding: 14px;
+  background: linear-gradient(135deg, #fff7fb, #eef1ff);
+}
+
+html body .leai-education-product-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+html body .leai-education-product-copy {
+  flex: 1;
+  padding: 16px 16px 10px;
+}
+
+html body .leai-education-product-copy small,
+html body .leai-education-product-copy h2,
+html body .leai-education-product-copy p,
+html body .leai-education-product-copy strong {
+  display: block;
+  margin: 0;
+}
+
+html body .leai-education-product-copy small,
+html body .leai-education-product-copy strong {
+  color: var(--ms-brand);
+}
+
+html body .leai-education-product-copy h2 {
+  margin-top: 6px;
+  color: var(--ms-text);
+  font-size: 16px;
+  line-height: 23px;
+}
+
+html body .leai-education-product-copy p {
+  min-height: 36px;
+  margin-top: 7px;
+  color: var(--ms-text-soft);
+  font-size: 12px;
+  line-height: 18px;
+}
+
+html body .leai-education-product-copy strong {
+  margin-top: 12px;
+  font-size: 20px;
+}
+
+html body .leai-education-product-actions {
+  display: flex;
+  gap: 8px;
+  padding: 10px 16px 16px;
+}
+
+html body .leai-education-product-actions .lx-p0-btn {
+  flex: 1;
+}
+
+@media (max-width: 1100px) {
+  html body .leai-education-product-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  html body .leai-education-product-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Education offers follow the member center's compact list language. */
+html body .lx-member-component-host .leai-education-products-page .leai-education-product-grid {
+  display:grid!important;
+  grid-template-columns:1fr!important;
+  gap:0!important;
+  margin-top:18px!important;
+  border-top:1px solid var(--ms-line-soft)!important;
+}
+html body .lx-member-component-host .leai-education-products-page .leai-education-product {
+  min-height:142px!important;
+  display:grid!important;
+  grid-template-columns:124px minmax(0,1fr) 228px!important;
+  align-items:center!important;
+  gap:20px!important;
+  padding:14px 16px!important;
+  border:0!important;
+  border-bottom:1px solid var(--ms-line-soft)!important;
+  border-radius:0!important;
+  background:#fff!important;
+  box-shadow:none!important;
+  overflow:visible!important;
+}
+html body .lx-member-component-host .leai-education-products-page .leai-education-product:hover {
+  background:var(--ms-page)!important;
+}
+html body .lx-member-component-host .leai-education-products-page .leai-education-product-image {
+  width:124px!important;
+  height:112px!important;
+  display:grid!important;
+  place-items:center!important;
+  padding:8px!important;
+  border:1px solid var(--ms-line-soft)!important;
+  border-radius:12px!important;
+  background:var(--ms-surface)!important;
+}
+html body .lx-member-component-host .leai-education-products-page .leai-education-product-image img {
+  width:100%!important;
+  height:100%!important;
+  object-fit:contain!important;
+}
+html body .lx-member-component-host .leai-education-products-page .leai-education-product-copy {
+  min-width:0!important;
+  padding:0!important;
+}
+html body .lx-member-component-host .leai-education-products-page .leai-education-product-copy small {
+  color:var(--ms-brand)!important;
+  font-size:12px!important;
+  line-height:18px!important;
+  font-weight:600!important;
+}
+html body .lx-member-component-host .leai-education-products-page .leai-education-product-copy h2 {
+  margin-top:5px!important;
+  overflow:hidden!important;
+  color:var(--ms-text)!important;
+  font-size:17px!important;
+  line-height:24px!important;
+  text-overflow:ellipsis!important;
+  white-space:nowrap!important;
+}
+html body .lx-member-component-host .leai-education-products-page .leai-education-product-copy p {
+  min-height:0!important;
+  margin-top:5px!important;
+  color:var(--ms-text-soft)!important;
+  font-size:12px!important;
+  line-height:18px!important;
+}
+html body .lx-member-component-host .leai-education-products-page .leai-education-product-copy strong {
+  margin-top:9px!important;
+  color:var(--ms-danger)!important;
+  font-size:19px!important;
+  line-height:26px!important;
+}
+html body .lx-member-component-host .leai-education-products-page .leai-education-product-actions {
+  display:grid!important;
+  grid-template-columns:1fr 1fr!important;
+  gap:10px!important;
+  padding:0!important;
+}
+html body .lx-member-component-host .leai-education-products-page .leai-education-product-actions .lx-p0-btn {
+  width:100%!important;
+  height:40px!important;
+  min-height:40px!important;
+  border-radius:10px!important;
+  font-size:13px!important;
+  box-shadow:none!important;
+}
+@media(max-width:900px){
+  html body .lx-member-component-host .leai-education-products-page .leai-education-product{grid-template-columns:104px minmax(0,1fr)!important;gap:14px!important}
+  html body .lx-member-component-host .leai-education-products-page .leai-education-product-image{width:104px!important;height:96px!important}
+  html body .lx-member-component-host .leai-education-products-page .leai-education-product-actions{grid-column:2!important;width:min(228px,100%)!important}
+}
