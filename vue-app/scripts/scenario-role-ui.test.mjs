@@ -48,7 +48,7 @@ async function renderRole(permissions, query = {}, username = 'same-account') {
   return { html: await renderToString(app), state, router }
 }
 
-for (const [name, permissions] of [['wildcard administrator', ['*']], ['review administrator', ['scenario-package:review', ...pmPermissions]], ['read-only account', []], ['incomplete author permissions', ['scenario-package:create']]]) {
+for (const [name, permissions] of [['review-only administrator', ['scenario-package:review']], ['read-only account', []], ['incomplete author permissions', ['scenario-package:create']]]) {
   test(`${name} has no package-create entry and cannot open the direct create route`, async () => {
     const list = await renderRole(permissions)
     assert.doesNotMatch(list.html, />创建场景技能包</)
@@ -60,15 +60,17 @@ for (const [name, permissions] of [['wildcard administrator', ['*']], ['review a
   })
 }
 
-test('PM author permissions show creation and permit the direct route regardless of account name', async () => {
-  const list = await renderRole(pmPermissions, {}, 'admin')
-  assert.match(list.html, />创建场景技能包</)
-  await list.state.openPackageCreate()
-  assert.equal(list.router.currentRoute.value.query.mode, 'create')
-  const direct = await renderRole(pmPermissions, { mode: 'create' })
-  assert.equal(Boolean(direct.state.isPackageCreate.value), true)
-  assert.match(direct.html, /data-role-create-form/)
-})
+for (const [name, permissions] of [['PM author', pmPermissions], ['wildcard administrator', ['*']], ['administrator with author permissions', ['scenario-package:review', ...pmPermissions]]]) {
+  test(`${name} can open package creation from the list and direct route`, async () => {
+    const list = await renderRole(permissions, {}, 'admin')
+    assert.match(list.html, />创建场景技能包</)
+    await list.state.openPackageCreate()
+    assert.equal(list.router.currentRoute.value.query.mode, 'create')
+    const direct = await renderRole(permissions, { mode: 'create' })
+    assert.equal(Boolean(direct.state.isPackageCreate.value), true)
+    assert.match(direct.html, /data-role-create-form/)
+  })
+}
 
 test('the account menu hides only package creation when author access is absent', async () => {
   for (const allowed of [false, true]) {

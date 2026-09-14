@@ -127,7 +127,7 @@ import { loadPocReleaseLedger } from '@/services/pocReleaseLedger'
 import SidebarHeader from '@/components/sidebar/SidebarHeader.vue'
 import SidebarNavGroup from '@/components/sidebar/SidebarNavGroup.vue'
 import SidebarFooter from '@/components/sidebar/SidebarFooter.vue'
-import { scenarioPackageRole } from '@/domain/scenarioSkillPackages.js'
+import { canAuthorScenarioPackage } from '@/domain/scenarioSkillPackages.js'
 
 const router   = useRouter()
 const route    = useRoute()
@@ -135,7 +135,7 @@ const appStore = useAppStore()
 
 const { user, role, userInitial, sidebarCollapsed, filteredMenuTree } = storeToRefs(appStore)
 const canCreateScenarioPackage = computed(() => Boolean(user.value)
-  && scenarioPackageRole({ id: user.value || '', permissions: appStore.permissions }) === 'pm')
+  && canAuthorScenarioPackage({ id: user.value || '', permissions: appStore.permissions }))
 
 // 当前 pageId（从路由 meta 读取，对应原 STATE.currentPage）
 const currentPageId = computed(() => route.meta?.pageId || '')
@@ -150,6 +150,15 @@ const pocLogVisible = ref(false)
 const pocReleaseLedger = ref({ records: {} })
 
 const basePocLogRecords = [
+  {
+    time: '2026-09-14',
+    releaseKey: 'scenario-admin-authoring-20260914',
+    title: '场景技能包管理员创建能力恢复',
+    changePoint: '恢复有创建权限的管理员创建场景技能包和编辑本人内容的入口，沿用场景定义、链路编排、试运行和提交审核四步。',
+    detail: '创建与审核能力分别按已授予权限判断，审核权限不再抵消创建和跨菜单编排权限。管理员可保存、重新编辑和提交本人的场景技能包；待审核内容保持只读，本人创建或提交的内容仍由其他管理员审核。仅具备审核权限的账号不能创建，普通 PM 不因此获得审核能力；保留既有试运行、版本、引用权限、启停校验及 PM 示例归属。其他工作台功能保持原样。',
+    deployTargets: [],
+    status: '发布状态以环境记录为准'
+  },
   {
     time: '2026-09-11 18:00',
     releaseKey: 'workbench-ui-0908-compatible-20260911',

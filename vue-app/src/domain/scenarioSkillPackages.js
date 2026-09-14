@@ -25,9 +25,21 @@ const hasPolicyPermission = (actor, permission) => {
   return values.includes('*') || values.includes(permission)
 }
 
+const hasActorId = actor => typeof actor?.id === 'string' && Boolean(actor.id.trim())
+
 /**
- * Authoring and governance are separate responsibilities, determined by granted policy permissions.
- * A reviewer never becomes an author through a wildcard or an additional creation permission.
+ * Authoring capability is independent of review responsibility and requires both authoring grants.
+ * @param {ScenarioActor} actor
+ * @returns {boolean}
+ */
+export function canAuthorScenarioPackage(actor) {
+  return hasActorId(actor)
+    && hasPolicyPermission(actor, 'scenario-package:create')
+    && hasPolicyPermission(actor, 'scenario-package:compose:cross-menu')
+}
+
+/**
+ * Governance roles follow policy permissions; an admin can separately hold authoring capability.
  * @param {ScenarioActor} actor
  * @returns {'admin'|'pm'|'viewer'}
  */
@@ -432,14 +444,13 @@ function packageDefinitionReasons(draft) {
 export function evaluatePackageForPublish(draft, actor) {
   const reasons = packageDefinitionReasons(draft)
   const skillIds = (draft?.steps || []).map(step => step.skillId).filter(Boolean)
-  if (scenarioPackageRole(actor) === 'admin') {
-    reasons.push('管理员负责审核与启停，不能创建或提交场景技能包，请由 PM 创建人操作')
-  }
-  if (!hasPolicyPermission(actor, 'scenario-package:create')) {
-    reasons.push('缺少场景技能包创建技能包权限')
-  }
-  if (!hasPolicyPermission(actor, 'scenario-package:compose:cross-menu')) {
-    reasons.push('缺少跨菜单编排权限')
+  if (!canAuthorScenarioPackage(actor)) {
+    if (!hasPolicyPermission(actor, 'scenario-package:create')) {
+      reasons.push('缺少场景技能包创建技能包权限')
+    }
+    if (!hasPolicyPermission(actor, 'scenario-package:compose:cross-menu')) {
+      reasons.push('缺少跨菜单编排权限')
+    }
   }
 
   for (const skillId of new Set(skillIds)) {
@@ -743,12 +754,12 @@ function hasIndependentPublishedEvidence(packageItem) {
 export function scenarioPackageActions(packageItem, actor) {
   if (!packageItem) return []
   const actions = ['view']
-  const isOwner = Boolean(actor?.id?.trim() && actor.id === packageItem.ownerId)
+  const isOwner = hasActorId(actor) && actor.id === packageItem.ownerId
   if (isOwner && packageItem.status === 'review') return actions
   if (isOwner && ['draft', 'rejected', 'published', 'disabled'].includes(packageItem.status)
-    && scenarioPackageRole(actor) === 'pm') actions.push('edit')
+    && canAuthorScenarioPackage(actor)) actions.push('edit')
   if (evaluateScenarioPackageReview(packageItem, actor).ok) actions.push('approve', 'reject')
-  if (actor?.id?.trim() && scenarioPackageRole(actor) === 'admin' && hasIndependentPublishedEvidence(packageItem)) {
+  if (hasActorId(actor) && scenarioPackageRole(actor) === 'admin' && hasIndependentPublishedEvidence(packageItem)) {
     const onlineStatus = packageItem.onlineStatus || packageItem.status
     if (onlineStatus === 'published') actions.push('disable')
     if (onlineStatus === 'disabled') actions.push('enable')
@@ -784,13 +795,10 @@ export function editableScenarioPackageDraft(packageItem, actor) {
  * @param {ScenarioPackageDraft} [previous]
  */
 export function saveScenarioPackageDraft(draft, actor, now, previous) {
-  if (!actor?.id?.trim() || draft?.ownerId !== actor.id || (previous && previous.ownerId !== actor.id)) {
+  if (!hasActorId(actor) || draft?.ownerId !== actor.id || (previous && previous.ownerId !== actor.id)) {
     throw new Error('仅原包所有者可以保存场景技能包草稿')
   }
-  if (scenarioPackageRole(actor) === 'admin') {
-    throw new Error('管理员负责审核与启停，不能保存场景技能包草稿，请由 PM 创建人操作')
-  }
-  if (!hasPolicyPermission(actor, 'scenario-package:create') || !hasPolicyPermission(actor, 'scenario-package:compose:cross-menu')) {
+  if (!canAuthorScenarioPackage(actor)) {
     throw new Error('保存草稿需要创建技能包和跨菜单编排权限')
   }
   if (typeof draft.id !== 'string' || !draft.id.trim()) throw new Error('技能包 ID 不能为空')
