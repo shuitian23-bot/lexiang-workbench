@@ -606,7 +606,7 @@ import ScenarioSkillPackageCreateView from '@/views/agent/ScenarioSkillPackageCr
 import ScenarioNodeContractSummary from '@/views/agent/ScenarioNodeContractSummary.vue'
 import ScenarioTestReportSummary from '@/views/agent/ScenarioTestReportSummary.vue'
 import { isScenarioSimulationCurrent } from '@/domain/scenarioPackageTesting.js'
-import { scenarioPackageRole } from '@/domain/scenarioSkillPackages.js'
+import { canAuthorScenarioPackage, scenarioPackageRole } from '@/domain/scenarioSkillPackages.js'
 import {
   useScenarioSkillPackagesStore,
   type ScenarioPackageAction,
@@ -642,7 +642,8 @@ const hubTabElements = new Map<HubTabId, HTMLButtonElement>()
 const packageRowElements = new Map<string, HTMLElement>()
 const activeHubTab = computed<HubTabId>(() => route.query.tab === 'packages' || route.query.tab === 'review' ? 'packages' : 'skills')
 const packageRole = computed(() => scenarioPackageRole({ id: user.value || '', permissions: permissions.value }))
-const canCreatePackage = computed(() => Boolean(user.value) && packageRole.value === 'pm')
+const canCreatePackage = computed(() => Boolean(user.value)
+  && canAuthorScenarioPackage({ id: user.value || '', permissions: permissions.value }))
 const packageCreateRoute = computed(() => route.path === '/agent/skills' && activeHubTab.value === 'packages' && route.query.mode === 'create')
 const packageEditId = computed(() => packageCreateRoute.value && typeof route.query.edit === 'string' ? route.query.edit : '')
 const editingPackage = ref<ScenarioSkillPackageDraft>()
@@ -747,7 +748,9 @@ const actor = computed(() => ({ role: role.value, user: user.value || 'admin' })
 const pageDesc = computed(() => {
   if (activeHubTab.value === 'packages') {
     return packageRole.value === 'admin'
-      ? '审批或驳回 PM 提交的场景技能包，管理已审核版本的启用、禁用与依赖状态。'
+      ? canCreatePackage.value
+        ? '创建和维护本人的场景技能包，审核他人的提交，管理已审核版本的启停与依赖状态。'
+        : '审核他人提交的场景技能包，管理已审核版本的启用、禁用与依赖状态。'
       : packageRole.value === 'pm'
         ? '创建和维护本人的场景技能包，编排、试运行后提交管理员审核。'
         : '查看场景技能包的配置、审核状态与依赖情况。'

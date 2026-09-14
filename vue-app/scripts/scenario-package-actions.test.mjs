@@ -285,13 +285,21 @@ for (const status of ['draft', 'review', 'rejected', 'published', 'disabled']) {
     assert.deepEqual(rowActions(html, record.id), status === 'review' ? ['详情'] : ['详情', '编辑'])
   })
 
-  test(`an owner with administrator permissions cannot edit a historical ${status} package`, async () => {
-    const { html, record, state } = await fixture({ actor: 'pm-li', permissions: ['*'], status })
+  test(`an administrator can edit their own ${status} package only outside pending review`, async () => {
+    const { html, record, state, store } = await fixture({ actor: 'pm-li', permissions: ['*'], status })
+    const before = copy(store.findPackage(record.id))
     const actions = { published: ['禁用'], disabled: ['启用'] }[status] || []
-    assert.deepEqual(rowActions(html, record.id), ['详情', ...actions])
-    await state.editPackage(record)
-    assert.equal(state.isPackageCreate.value, false)
-    assert.equal(state.editingPackage.value, undefined)
+    assert.deepEqual(rowActions(html, record.id), status === 'review' ? ['详情'] : ['详情', '编辑', ...actions])
+    await editWithNoDom(state, record)
+    assert.equal(state.isPackageCreate.value, status !== 'review')
+    if (status === 'review') {
+      assert.equal(state.editingPackage.value, undefined)
+    } else {
+      assert.equal(state.editingPackage.value.id, record.id)
+      assert.equal(state.editingPackage.value.baseUpdatedAt, record.updatedAt)
+      state.editingPackage.value.description = '管理员修订本人内容。'
+    }
+    assert.deepEqual(copy(store.findPackage(record.id)), before, 'opening a revision must not mutate the stored record')
   })
 
   test(`an unrelated account cannot manage a ${status} package through an administrator role label alone`, async () => {
@@ -349,7 +357,8 @@ for (const audience of [
   { label: 'a pending owner', actor: 'pm-li', status: 'review', permissions: creationPermissions },
   { label: 'a different owner', status: 'published' },
   { label: 'an owner without creation permission', actor: 'pm-li', status: 'published', permissions: [] },
-  { label: 'an administrator who owns a historical package', actor: 'pm-li', status: 'published', permissions: ['*'] },
+  { label: 'an administrator who owns a pending package', actor: 'pm-li', status: 'review', permissions: ['*'] },
+  { label: 'an administrator who does not own the package', actor: 'different-admin', status: 'published', permissions: ['*'] },
 ]) {
   test(`the edit route cannot bypass ownership, permissions or review state for ${audience.label}`, async () => {
     const { state } = await fixture({ ...audience, query: { mode: 'create', edit: 'seed-scenario-pending-review' } })
@@ -357,6 +366,17 @@ for (const audience of [
     assert.equal(state.editingPackage.value, undefined)
   })
 }
+
+test('the edit route opens an administrator-owned published package as an isolated revision', async () => {
+  const { state, store, record } = await fixture({ actor: 'pm-li', permissions: ['*'], status: 'published', query: { mode: 'create', edit: 'seed-scenario-pending-review' } })
+  const before = copy(store.findPackage(record.id))
+  assert.equal(state.isPackageCreate.value, true)
+  assert.equal(state.editingPackage.value.id, record.id)
+  assert.equal(state.editingPackage.value.version, 'v1.0.1')
+  assert.equal(state.editingPackage.value.baseUpdatedAt, record.updatedAt)
+  state.editingPackage.value.description = '管理员直接进入编辑后的修改。'
+  assert.deepEqual(copy(store.findPackage(record.id)), before)
+})
 
 const managementCases = [
   { action: 'disable', label: '禁用', status: 'published', afterStatus: 'disabled' },

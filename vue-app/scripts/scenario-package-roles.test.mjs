@@ -70,35 +70,99 @@ test('package responsibilities follow policy permissions rather than usernames o
   for (const [actor, expected] of cases) assert.equal(domain.scenarioPackageRole(actor), expected, JSON.stringify(actor))
 })
 
-test('the PM can save unfinished work but missing either authoring permission denies save, edit and submission', () => {
+test('authoring capability requires a valid actor and both policy permissions independently of review responsibility', () => {
+  assert.equal(typeof domain.canAuthorScenarioPackage, 'function')
+  for (const permissions of [authorPermissions, ['*'], [...authorPermissions, 'scenario-package:review'], { policy: ['*'] }, { policy: authorPermissions }]) {
+    assert.equal(domain.canAuthorScenarioPackage({ id: 'current-author', permissions }), true)
+    for (const id of [undefined, null, '', '   ', 123]) {
+      assert.equal(domain.canAuthorScenarioPackage({ id, permissions }), false)
+    }
+  }
+  for (const permissions of [[], ['scenario-package:review'], ['scenario-package:create'], ['scenario-package:compose:cross-menu'], { menu: ['*'], skill: ['*'], data: ['*'], action: ['*'] }]) {
+    assert.equal(domain.canAuthorScenarioPackage({ id: 'admin', permissions, role: 'admin' }), false)
+  }
+  assert.equal(domain.canAuthorScenarioPackage(undefined), false)
+})
+
+test('the PM can save unfinished work but missing either authoring permission denies PM and admin save, edit and submission', () => {
   const incomplete = { ...draft(), description: '', targetAudience: '', steps: [] }
   const saved = domain.saveScenarioPackageDraft(incomplete, pm, at)
   assert.equal(saved.status, 'draft'); assert.equal(saved.ownerId, pm.id)
-  for (const missing of authorPermissions) {
-    const actor = copy(pm); actor.permissions.policy = actor.permissions.policy.filter(permission => permission !== missing)
-    assert.equal(domain.scenarioPackageActions(saved, actor).includes('edit'), false)
-    assert.equal(domain.editableScenarioPackageDraft(saved, actor), null)
-    assert.throws(() => domain.saveScenarioPackageDraft(incomplete, actor, at), /权限|PM/)
-    assert.equal(domain.evaluatePackageForPublish(draft(), actor).ok, false)
-    assert.throws(() => domain.submitScenarioPackage(tested(), actor, at, catalog), /权限|PM/)
+  for (const reviewPermissions of [[], ['scenario-package:review']]) {
+    for (const missing of authorPermissions) {
+      const actor = copy(pm); actor.permissions.policy = [...actor.permissions.policy.filter(permission => permission !== missing), ...reviewPermissions]
+      assert.equal(domain.scenarioPackageActions(saved, actor).includes('edit'), false)
+      assert.equal(domain.editableScenarioPackageDraft(saved, actor), null)
+      assert.throws(() => domain.saveScenarioPackageDraft(incomplete, actor, at), /权限|PM/)
+      assert.equal(domain.evaluatePackageForPublish(draft(), actor).ok, false)
+      assert.throws(() => domain.submitScenarioPackage(tested(), actor, at, catalog), /权限|PM/)
+    }
   }
 })
 
-test('administrators cannot author even with wildcard or combined create and review permissions', () => {
-  const ready = tested()
-  const approved = published()
-  for (const permissions of [['*'], [...authorPermissions, 'scenario-package:review', ...pm.permissions.policy], { policy: ['*'] }]) {
-    const admin = { id: pm.id, permissions }
-    assert.equal(domain.evaluatePackageForPublish(draft(), admin).ok, false)
-    assert.throws(() => domain.saveScenarioPackageDraft(draft(), admin, at), /管理员|PM|职责/)
-    assert.throws(() => domain.submitScenarioPackage(ready, admin, at, catalog), /管理员|PM|职责/)
+test('administrators with wildcard or combined permissions can save, edit and submit their own content for independent review', () => {
+  for (const permissions of [
+    ['*'],
+    [...Object.values(pm.permissions).flat(), 'scenario-package:review'],
+    { ...pm.permissions, policy: ['*'] },
+    { ...pm.permissions, policy: [...pm.permissions.policy, 'scenario-package:review'] }
+  ]) {
+    const admin = { id: 'author-admin', permissions }
+    const ownDraft = { ...draft(), ownerId: admin.id }
+    assert.equal(domain.scenarioPackageRole(admin), 'admin', 'authoring does not remove governance capability')
+    assert.equal(domain.evaluatePackageForPublish(ownDraft, admin).ok, true)
+    const saved = domain.saveScenarioPackageDraft({ ...ownDraft, description: '', targetAudience: '', steps: [] }, admin, at)
+    assert.equal(saved.status, 'draft'); assert.equal(saved.ownerId, admin.id)
+    const reopened = domain.editableScenarioPackageDraft(saved, admin)
+    assert.equal(reopened.id, saved.id); assert.equal(reopened.baseUpdatedAt, saved.updatedAt)
+    const review = domain.submitScenarioPackage(tested({ ...reopened, ...ownDraft }, admin), admin, later, catalog, saved)
+    assert.equal(review.status, 'review'); assert.equal(review.submittedBy, admin.id)
+    assert.deepEqual(domain.scenarioPackageActions(review, admin), ['view'])
+    assert.equal(domain.editableScenarioPackageDraft(review, admin), null)
+    assert.throws(() => domain.saveScenarioPackageDraft({ ...ownDraft, baseUpdatedAt: review.updatedAt }, admin, later, review), /待审核|状态/)
+    assert.throws(() => domain.submitScenarioPackage(tested({ ...ownDraft, baseUpdatedAt: review.updatedAt }, admin), admin, later, catalog, review), /待审核|状态/)
+    assert.throws(() => domain.publishScenarioPackage(review, admin, later, catalog), /本人|其他管理员/)
+    assert.throws(() => domain.rejectScenarioPackage(review, admin, '需完善', later), /本人|其他管理员/)
+    const approved = domain.publishScenarioPackage(review, reviewer, later, catalog)
+    assert.equal(approved.reviewedBy, reviewer.id)
     for (const status of ['draft', 'rejected', 'published', 'disabled']) {
       const record = { ...approved, status }
-      assert.equal(domain.scenarioPackageActions(record, admin).includes('edit'), false, status)
-      assert.equal(domain.editableScenarioPackageDraft(record, admin), null, status)
-      assert.throws(() => domain.saveScenarioPackageDraft({ ...draft(), baseUpdatedAt: record.updatedAt }, admin, later, record), /管理员|PM|职责/)
+      assert.equal(domain.scenarioPackageActions(record, admin).includes('edit'), true, status)
+      const before = structuredClone(record)
+      const editing = domain.editableScenarioPackageDraft(record, admin)
+      assert.equal(editing.ownerId, admin.id); assert.equal(editing.baseUpdatedAt, record.updatedAt)
+      const revised = domain.saveScenarioPackageDraft({ ...editing, name: '本人修订' }, admin, later, record)
+      assert.equal(revised.name, '本人修订'); assert.equal(revised.status, 'draft')
+      assert.deepEqual(record, before, 'editing must not mutate the trusted record')
+      if (['published', 'disabled'].includes(status)) {
+        assert.equal(revised.version, 'v1.0.1')
+        assert.equal(revised.publishedSnapshot.name, record.name)
+      }
     }
   }
+})
+
+test('admin authoring retains other-owner, reference, current-trial, version and edit-conflict checks', () => {
+  const admin = { ...copy(pm), id: 'author-admin' }
+  admin.permissions.policy.push('scenario-package:review')
+  const ownDraft = { ...draft(), ownerId: admin.id }
+  const savedByPm = domain.saveScenarioPackageDraft(draft(), pm, at)
+  assert.deepEqual(domain.scenarioPackageActions(savedByPm, admin), ['view'])
+  assert.equal(domain.editableScenarioPackageDraft(savedByPm, admin), null)
+  assert.throws(() => domain.saveScenarioPackageDraft({ ...ownDraft, baseUpdatedAt: savedByPm.updatedAt }, admin, later, savedByPm), /所有者/)
+  assert.throws(() => domain.submitScenarioPackage(tested(ownDraft, admin), admin, later, catalog, savedByPm), /所有者/)
+  const noReference = copy(admin)
+  noReference.permissions.policy = noReference.permissions.policy.filter(permission => permission !== 'skill:customer-query:reference')
+  assert.equal(domain.evaluatePackageForPublish(ownDraft, noReference).ok, false)
+  assert.throws(() => domain.submitScenarioPackage(tested(ownDraft, admin), noReference, at, catalog), /引用权限/)
+  assert.throws(() => domain.submitScenarioPackage(ownDraft, admin, at, catalog), /试运行/)
+  const ready = tested(ownDraft, admin)
+  assert.throws(() => domain.submitScenarioPackage({ ...ready, description: '试运行后修改了场景' }, admin, at, catalog), /试运行/)
+  assert.throws(() => domain.submitScenarioPackage(ready, admin, at, catalog.map(skill => ({ ...skill, online: 'v1.0.1' }))), /版本|试运行/)
+  const saved = domain.saveScenarioPackageDraft(ownDraft, admin, at)
+  const editing = domain.editableScenarioPackageDraft(saved, admin)
+  assert.throws(() => domain.saveScenarioPackageDraft({ ...editing, baseUpdatedAt: 'stale' }, admin, later, saved), /已更新|编辑版本/)
+  assert.throws(() => domain.submitScenarioPackage(tested({ ...editing, baseUpdatedAt: 'stale' }, admin), admin, later, catalog, saved), /已更新|编辑版本/)
 })
 
 test('PM authoring capability never grants review or lifecycle management', () => {

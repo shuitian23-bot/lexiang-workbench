@@ -69,7 +69,7 @@
           <dl class="scenario-package-field scenario-package-static-field">
             <dt>主责任人</dt>
             <dd>{{ ownerId }}</dd>
-            <dd><small>主责任人为当前 PM 账号，提交后由管理员审核。</small></dd>
+            <dd><small>主责任人为当前创建账号，提交后由其他管理员审核。</small></dd>
           </dl>
         </div>
       </section>
@@ -267,7 +267,6 @@ import {
 import {
   evaluatePackageForPublish,
   scenarioPackageActions,
-  scenarioPackageRole,
   resolveScenarioChain
 } from '@/domain/scenarioSkillPackages.js'
 
@@ -355,7 +354,6 @@ const ownerId = computed(() => appStore.user || '')
 const actor = computed(() => ({ id: ownerId.value, permissions: appStore.permissions }))
 const editAccessError = computed(() => {
   if (!ownerId.value) return '请登录后创建或编辑场景技能包。'
-  if (scenarioPackageRole(actor.value) === 'admin') return '管理员负责审核与启停，场景技能包内容由 PM 创建和编辑。'
   if (!props.draft) return scenarioPackageActions({ ownerId: ownerId.value, status: 'draft' }, actor.value).includes('edit')
     ? '' : '缺少创建技能包或跨菜单编排权限。'
   if (props.draft.ownerId !== ownerId.value) return '仅原创建人可以编辑场景技能包。'
