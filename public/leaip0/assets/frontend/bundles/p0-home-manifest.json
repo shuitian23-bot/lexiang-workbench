@@ -3096,6 +3096,56 @@
       "file": "public/leaip0/brand/index.html",
       "source": "public/leaip0/assets/frontend/js/core/recruitment-v1.js",
       "url": "/assets/frontend/js/core/recruitment-v1.js?p0v=177ee9fe5b2d4e25"
+    },
+    {
+      "file": "public/leaip0/index.html",
+      "source": "public/leaip0/assets/frontend/css/core/education-auth-original-v1.css",
+      "url": "/assets/frontend/css/core/education-auth-original-v1.css"
+    },
+    {
+      "file": "public/leaip0/index.html",
+      "source": "public/leaip0/assets/frontend/js/core/education-auth-accessibility-v1.js",
+      "url": "/assets/frontend/js/core/education-auth-accessibility-v1.js"
+    },
+    {
+      "file": "public/leaip0/shop-chat/index.html",
+      "source": "public/leaip0/assets/frontend/css/core/education-auth-original-v1.css",
+      "url": "/assets/frontend/css/core/education-auth-original-v1.css"
+    },
+    {
+      "file": "public/leaip0/shop-chat/index.html",
+      "source": "public/leaip0/assets/frontend/js/core/education-auth-accessibility-v1.js",
+      "url": "/assets/frontend/js/core/education-auth-accessibility-v1.js"
+    },
+    {
+      "file": "public/leaip0/b-chat/index.html",
+      "source": "public/leaip0/assets/frontend/css/core/education-auth-original-v1.css",
+      "url": "/assets/frontend/css/core/education-auth-original-v1.css"
+    },
+    {
+      "file": "public/leaip0/b-chat/index.html",
+      "source": "public/leaip0/assets/frontend/js/core/education-auth-accessibility-v1.js",
+      "url": "/assets/frontend/js/core/education-auth-accessibility-v1.js"
+    },
+    {
+      "file": "public/leaip0/biz-chat/index.html",
+      "source": "public/leaip0/assets/frontend/css/core/education-auth-original-v1.css",
+      "url": "/assets/frontend/css/core/education-auth-original-v1.css"
+    },
+    {
+      "file": "public/leaip0/biz-chat/index.html",
+      "source": "public/leaip0/assets/frontend/js/core/education-auth-accessibility-v1.js",
+      "url": "/assets/frontend/js/core/education-auth-accessibility-v1.js"
+    },
+    {
+      "file": "public/leaip0/brand/index.html",
+      "source": "public/leaip0/assets/frontend/css/core/education-auth-original-v1.css",
+      "url": "/assets/frontend/css/core/education-auth-original-v1.css"
+    },
+    {
+      "file": "public/leaip0/brand/index.html",
+      "source": "public/leaip0/assets/frontend/js/core/education-auth-accessibility-v1.js",
+      "url": "/assets/frontend/js/core/education-auth-accessibility-v1.js"
     }
   ],
   "inlineSources": [
