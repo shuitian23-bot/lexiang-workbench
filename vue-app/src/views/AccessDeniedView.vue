@@ -23,7 +23,7 @@
           <article v-for="(owner, index) in submittedApplication.businessOwners" :key="owner">
             <span>{{ index + 2 }}</span>
             <b>业务负责人</b>
-            <small>{{ owner }}</small>
+            <small>{{ businessApproverLabel(owner) }}</small>
           </article>
           <article>
             <span>{{ submittedApplication.businessOwners.length + 2 }}</span>
@@ -89,6 +89,11 @@
                 <span>邮箱 <em class="optional">选填</em></span>
                 <input v-model.trim="form.email" type="email" placeholder="name@lenovo.com">
               </label>
+              <BusinessApproverField
+                v-model="form.businessApprover"
+                :error="errors.businessApprover"
+                @update:model-value="errors.businessApprover = ''"
+              />
               <label class="full">
                 <span>申请原因 <em class="optional">选填</em></span>
                 <textarea v-model.trim="form.reason" rows="4" placeholder="可补充需要访问工作台的业务场景"></textarea>
@@ -133,7 +138,7 @@
               <article v-for="(owner, index) in businessOwners" :key="owner">
                 <span>{{ index + 2 }}</span>
                 <b>业务负责人</b>
-                <small>{{ owner }}</small>
+                <small>{{ businessApproverLabel(owner) }}</small>
               </article>
               <article>
                 <span>{{ businessOwners.length + 2 }}</span>
@@ -146,7 +151,7 @@
               <p>{{ allSelectedRoles.length }} 个角色、{{ selectedFunctionIds.length }} 项功能权限、{{ selectedDataIds.length }} 项数据权限、{{ form.tenant.length }} 个所属租户。</p>
             </div>
             <div class="submit-note">
-              <b>全部业务负责人必须审批通过</b>
+              <b>所选业务负责人审批通过后统一生效</b>
               <p>审批完成前不会提前开通部分权限；整张申请通过后，系统一次性生效。</p>
             </div>
           </section>
@@ -211,6 +216,8 @@
 import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAppStore } from '@/stores/app'
+import BusinessApproverField from '@/components/permissions/BusinessApproverField.vue'
+import { businessApproverError, businessApproverLabel } from '@/components/permissions/businessApprovers.js'
 import PermissionCopyRoleModal from '@/components/permissions/PermissionCopyRoleModal.vue'
 import PermissionDataPickerModal from '@/components/permissions/PermissionDataPickerModal.vue'
 import PermissionScopeEditor from '@/components/permissions/PermissionScopeEditor.vue'
@@ -274,10 +281,11 @@ const form = reactive({
   manager: 'sunll1',
   mobile: '',
   email: '',
+  businessApprover: '',
   reason: '',
   tenant: [] as string[]
 })
-const errors = reactive({ tenant: '' })
+const errors = reactive({ tenant: '', businessApprover: '' })
 const selectedRoles = computed(() => roles.filter((role) => selectedRoleIds.value.includes(role.id)))
 const copiedRoles = computed(() => roles.filter((role) => copiedRoleIds.value.includes(role.id)))
 const allSelectedRoles = computed(() => [...selectedRoles.value, ...copiedRoles.value.filter((role) => !selectedRoleIds.value.includes(role.id))])
@@ -289,7 +297,7 @@ const copiedDataPermissions = computed(() => dataPermissions.filter((permission)
 const manualDataPermissions = computed(() => dataPermissions.filter((permission) => manualDataIds.value.includes(permission.id)))
 const selectedFunctionIds = computed(() => [...new Set([...selectedRoleFunctionIds.value, ...copiedRoles.value.flatMap((role) => role.functionIds)])])
 const selectedDataIds = computed(() => [...new Set([...selectedRoleDataIds.value, ...copiedDataIds.value, ...manualDataIds.value])])
-const businessOwners = computed(() => [...new Set(allSelectedRoles.value.map((role) => role.owner))])
+const businessOwners = computed(() => businessApproverError(form.businessApprover) ? [] : [form.businessApprover])
 const filteredRoles = computed(() => {
   const keyword = roleModal.keyword.trim().toLowerCase()
   return roles.filter((role) => {
@@ -312,7 +320,8 @@ const dataPermissionDirectories = computed(() => groupDataPermissionsByDirectory
 
 
 function validateBasic() {
-  return true
+  errors.businessApprover = businessApproverError(form.businessApprover)
+  return !errors.businessApprover
 }
 
 function roleConflictMessage(conflicts: ReturnType<typeof detectCustomDataRoleConflicts>) {
@@ -510,7 +519,11 @@ function applicationNumber() {
 }
 
 function submitApplication() {
-  if (!validateBasic() || !validateScope()) {
+  if (!validateBasic()) {
+    currentStep.value = 0
+    return
+  }
+  if (!validateScope()) {
     currentStep.value = 1
     return
   }
@@ -535,7 +548,7 @@ function submitApplication() {
       personType: 'internal',
       applicantManager: form.manager,
       targetManager: form.manager,
-      businessApprover: businessOwners.value.join('、'),
+      businessApprover: form.businessApprover,
       businessOwners: businessOwners.value,
       approverItcode: form.manager,
       handlers: [form.manager],
@@ -549,6 +562,7 @@ function submitApplication() {
       email: form.email || `${itcode.value}@lenovo.com`,
       businessInfo: { tenant: [...form.tenant], organizations: [] },
       permissionSnapshot: {
+        businessApprover: form.businessApprover,
         selectedRoleIds: [...selectedRoleIds.value],
         copiedFromItcode: copiedFromItcode.value,
         copiedRoleIds: [...copiedRoleIds.value],

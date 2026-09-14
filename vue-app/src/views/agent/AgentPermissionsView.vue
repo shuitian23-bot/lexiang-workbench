@@ -3470,6 +3470,12 @@ const organizationMemberModal = reactive({
 const permissionReleaseLedger = ref({ records: {} })
 const records = ref([
   {
+    time: '2026-09-14',
+    title: '首次登录权限申请业务负责人恢复',
+    detail: '补齐首次登录申请的业务负责人选择、必填校验与审批快照；经理审批后流转给所选负责人，保留旧申请及其他权限逻辑。',
+    releaseKey: 'first-access-business-approver-20260914'
+  },
+  {
     time: '2026-09-11',
     title: '权限管理选择性合并',
     detail: '合入权限组件的控件高度、字号、间距和颜色规范；保留业务负责人选择、数据源分组与搜索、角色冲突拦截、授权校验、弹窗独立滚动、菜单层级标识及发布记录。场景包和其他模块保持不变。',
