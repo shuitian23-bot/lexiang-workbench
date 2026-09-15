@@ -30,6 +30,7 @@ export interface TaskDecision {
   conversationId: string
   selections: Array<{ requestId: string; revision: number }>
   decision: 'approve' | 'reject'
+  scope?: 'skill-execution'
 }
 
 const terminalStatuses = new Set<RequestStatus>(['succeeded', 'failed', 'rejected', 'expired'])
@@ -51,8 +52,13 @@ export function applyTaskDecision(task: AiTaskBlock, decision: TaskDecision, cur
   if (decision.decision !== 'approve' && decision.decision !== 'reject') {
     return reject('无法识别本次确认操作。')
   }
+  if (decision.scope !== undefined && decision.scope !== 'skill-execution') {
+    return reject('无法识别本次授权范围，请重新核对任务。')
+  }
   if (!Array.isArray(decision.selections) || !decision.selections.length) {
-    return reject('请先选择需要处理的步骤。')
+    return reject(decision.scope === 'skill-execution'
+      ? '本次 Skill 执行没有待授权步骤，请重新核对任务。'
+      : '请先选择需要处理的步骤。')
   }
   if (!Array.isArray(task.requests) || task.requests.some(request => !request.id.trim() || !validRevision(request.revision))
     || new Set(task.requests.map(request => request.id)).size !== task.requests.length) {
@@ -72,7 +78,12 @@ export function applyTaskDecision(task: AiTaskBlock, decision: TaskDecision, cur
     selected.push(request)
   }
 
-  if (decision.decision === 'approve' && selected.length > 1) {
+  if (decision.scope === 'skill-execution') {
+    const pending = task.requests.filter(request => request.status === 'pending')
+    if (selected.length !== pending.length || pending.some(request => !selectedIds.has(request.id))) {
+      return reject('本次 Skill 执行的步骤清单已变化，请核对全部步骤后重新确认。')
+    }
+  } else if (decision.decision === 'approve' && selected.length > 1) {
     const group = selected[0].approvalGroup
     if (!group.trim() || selected.some(request => request.kind !== 'read'
       || request.batchable !== true || request.approvalGroup !== group)) {

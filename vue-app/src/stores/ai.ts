@@ -756,7 +756,8 @@ export const useAIStore = defineStore('ai', () => {
     _replaceAuthorizationTask({ ...result.task, notice: result.error })
     if (result.error || !result.acceptedIds.length) return
     _recordTaskLog('auth', `${decision.decision === 'approve' ? '确认' : '拒绝'}示例任务中的 ${result.acceptedIds.length} 项操作`, pageId || 'portal.home')
-    const acceptedSelections = decision.selections.filter(item => result.acceptedIds.includes(item.requestId)).map(item => ({ ...item }))
+    const acceptedSelections = result.task.requests.filter(item => result.acceptedIds.includes(item.id))
+      .map(item => ({ requestId: item.id, revision: item.revision }))
     for (const { requestId: id, revision } of acceptedSelections) {
       const current = messages.value.find(item => item.task?.id === decision.taskId)?.task
       const request = current?.requests.find(item => item.id === id)
@@ -775,7 +776,7 @@ export const useAIStore = defineStore('ai', () => {
       const query = request.command ? pendingQueryableSkillAuth.get(request.command) : undefined
       const isPreviewTask = previewAuthorizationTasks.has(current.id)
       if (!isPreviewTask && (!query || query.conversationId !== current.conversationId)) {
-        _replaceAuthorizationTask({ ...current, notice: '已记录本项选择；该操作尚未接入执行，没有运行命令或修改数据。' })
+        _replaceAuthorizationTask({ ...current, notice: '已记录本次授权；该操作尚未接入执行，没有运行命令或修改数据。' })
         continue
       }
       _replaceAuthorizationTask(updateTaskRequest(current, id, revision, 'running', '正在处理示例数据。'))
@@ -807,7 +808,7 @@ export const useAIStore = defineStore('ai', () => {
         { label: '查询合作伙伴列表', kind: 'read', impact: '读取示例合作伙伴基本信息。' },
         { label: '查询合作状态', kind: 'read', impact: '读取同一批示例合作伙伴的合作状态。' },
         { label: '汇总业务数据', kind: 'read', impact: '汇总当前范围内的示例统计结果。' },
-        { label: '导出结果文件', kind: 'export', impact: '单独确认导出范围；本示例不会生成真实文件。' }
+        { label: '导出结果文件', kind: 'export', impact: '导出本次查询结果，示例不生成真实文件。' }
       ].map((item, index) => ({ ...item, kind: item.kind as TaskRequest['kind'], id: `${id}:${index + 1}`, revision: 1, scope, approvalGroup: id, batchable: item.kind === 'read', status: 'pending' as const }))
     }
   }
@@ -947,7 +948,7 @@ export const useAIStore = defineStore('ai', () => {
     const text = payload.text || payload.userMsg || ''
     if (/批量授权.*(?:演示|示例)|(?:演示|示例).*批量授权/.test(text)) {
       _recordMessage('user', payload.userMsg)
-      _recordMessage('assistant', '我把本次操作整理在一个任务中。你可以勾选需要继续的只读项目，一次确认；导出项目单独确认。', {
+      _recordMessage('assistant', '授权后将继续执行本次 Skill，完成查询、汇总和结果导出。', {
         task: _createPreviewAuthorizationTask(payload.pageId)
       })
       return true
@@ -975,7 +976,7 @@ export const useAIStore = defineStore('ai', () => {
         `我会按「${pageLabel}」上下文串联展示完整 Agent 对话流。`,
         '',
         '本次使用示例数据演示任务授权、报告展开和待办清单。',
-        '勾选本次需要的操作后确认，进度和结果会在同一任务中更新。'
+        '点击授权后继续本次 Skill 的全部步骤，进度和结果在同一任务中更新。'
       ].join('\n'), {
         renderMode: 'typewriter',
         activityItems: _snapshotActivities(),
@@ -1158,7 +1159,7 @@ export const useAIStore = defineStore('ai', () => {
       _createActivity('confirm', 'blocked', '等待用户授权', '本次为只读查询授权确认。')
     ])
     _recordTaskLog('auth', `请求查询授权：${scenario.skillLabel}`, scenario.pageId)
-    _recordMessage('assistant', `我可以继续调用「${scenario.skillLabel}」完成这次查询。继续前，请确认本次只读授权范围。`, {
+    _recordMessage('assistant', '请授权本次 Skill 执行，完成后会返回查询结果。', {
       activityItems: _snapshotActivities(),
       authRequest: {
         title: '确认查询授权',
@@ -1169,9 +1170,9 @@ export const useAIStore = defineStore('ai', () => {
         risk: '只读查询确认',
         summary: scenario.summary,
         scope: scenario.scope,
-        impact: '仅读取当前 POC 数据和页面上下文，不会写入、发布、导出、修改配置或变更权限。',
+        impact: '读取本次示例数据，生成查询结果与分析报告。',
         steps: scenario.steps,
-        detail: '授权后继续执行查询并返回结论、数据摘要和可展开报告卡片。拒绝后任务停止，当前会话不受影响。',
+        detail: '授权后继续完成本次 Skill 的查询与报告步骤。',
         approveHint: '本次授权仅限下方列明的操作和数据范围。',
         approveLabel: '授权',
         batchApproveLabel: '批量授权',

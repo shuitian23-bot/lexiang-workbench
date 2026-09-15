@@ -34,6 +34,43 @@ function decision(task, ids, action = 'approve') {
   return { type: 'auth_task_decide', label: '任务授权', decision: { taskId: task.id, conversationId: task.conversationId, decision: action, selections: ids.map(id => ({ requestId: id, revision: task.requests.find(request => request.id === id).revision })) } }
 }
 
+function skillDecision(task, action = 'approve') {
+  const result = decision(task, task.requests.filter(item => item.status === 'pending').map(item => item.id), action)
+  result.decision.scope = 'skill-execution'
+  return result
+}
+
+test('one Skill approval runs all listed steps including export only in that execution', async () => {
+  const store = useAiStore()
+  const earlier = await query(store, '批量授权演示')
+  const later = await query(store, '批量授权演示')
+  await store.runTaskAction(skillDecision(earlier.task), 'dashboard.geo')
+  assert.deepEqual(store.messages.find(item => item.id === earlier.id).task.requests.map(item => item.status), ['succeeded', 'succeeded', 'succeeded', 'succeeded'])
+  assert.ok(store.messages.find(item => item.id === later.id).task.requests.every(item => item.status === 'pending'))
+  assert.equal(store.messages.filter(item => item.task).length, 2)
+})
+
+test('one Skill rejection refuses its entire pending execution without appending results', async () => {
+  const store = useAiStore()
+  const message = await query(store, '批量授权演示')
+  const count = store.messages.length
+  await store.runTaskAction(skillDecision(message.task, 'reject'), 'dashboard.geo')
+  assert.ok(store.messages.find(item => item.id === message.id).task.requests.every(item => item.status === 'rejected'))
+  assert.equal(store.messages.length, count)
+})
+
+test('whole Skill approval preserves execution order even if the submitted IDs are reordered', async () => {
+  const store = useAiStore()
+  const message = await query(store, '批量授权演示')
+  const action = skillDecision(message.task)
+  action.decision.selections.reverse()
+  const completion = store.runTaskAction(action, 'dashboard.geo')
+  const statuses = store.messages.find(item => item.id === message.id).task.requests.map(item => item.status)
+  await completion
+  assert.deepEqual(statuses, ['running', 'approved', 'approved', 'approved'])
+  assert.ok(store.messages.find(item => item.id === message.id).task.requests.every(item => item.status === 'succeeded'))
+})
+
 test('approving the earlier of two queries only resolves that query', async () => {
   const store = useAiStore()
   const a = await query(store, '查询 GEO 信源数据')
