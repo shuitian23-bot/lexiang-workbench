@@ -2090,7 +2090,7 @@
     {
       "file": "public/leaip0/b-chat/index.html",
       "source": "public/leaip0/assets/components/smb-hero-reference-v1/channel-home-hero-unified-v161.css",
-      "url": "/assets/components/smb-hero-reference-v1/channel-home-hero-unified-v161.css"
+      "url": "/assets/components/smb-hero-reference-v1/channel-home-hero-unified-v161.css?p0v=8292f0ac21dec76f"
     },
     {
       "file": "public/leaip0/b-chat/index.html",
@@ -2350,7 +2350,7 @@
     {
       "file": "public/leaip0/biz-chat/index.html",
       "source": "public/leaip0/assets/components/smb-hero-reference-v1/channel-home-hero-unified-v161.css",
-      "url": "/assets/components/smb-hero-reference-v1/channel-home-hero-unified-v161.css"
+      "url": "/assets/components/smb-hero-reference-v1/channel-home-hero-unified-v161.css?p0v=8292f0ac21dec76f"
     },
     {
       "file": "public/leaip0/biz-chat/index.html",
@@ -3216,6 +3216,16 @@
       "file": "public/leaip0/brand/index.html",
       "source": "public/leaip0/assets/frontend/css/pages/brand/brand-news-covers-v1.css",
       "url": "/assets/frontend/css/pages/brand/brand-news-covers-v1.css?p0v=1a538874331bb201"
+    },
+    {
+      "file": "public/leaip0/b-chat/index.html",
+      "source": "public/leaip0/assets/frontend/js/core/channel-home-hero-height-v1.js",
+      "url": "/assets/frontend/js/core/channel-home-hero-height-v1.js?p0v=3ff26218b4cda204"
+    },
+    {
+      "file": "public/leaip0/biz-chat/index.html",
+      "source": "public/leaip0/assets/frontend/js/core/channel-home-hero-height-v1.js",
+      "url": "/assets/frontend/js/core/channel-home-hero-height-v1.js?p0v=3ff26218b4cda204"
     }
   ],
   "inlineSources": [
