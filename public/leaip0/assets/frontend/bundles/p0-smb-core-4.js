@@ -403,7 +403,14 @@ async function lxPageCommandV150(text,context={}){
 }
 window.__lxPageCommandV150=lxPageCommandV150;
 window.__lxInstallArrivalNotice({d,j,I,N,O,z,ot,nt,Qe,xe,ye,ke,Ne,Uo,qe,xn,bindDialog:(focus,handler)=>{B=focus;if(D)document.removeEventListener("keydown",D,true);D=handler;document.addEventListener("keydown",D,true);}});
-async function xn(t){const __lxGenerationToken=window.__lxGeneration.capture();try{const e=(t||h(".composer textarea")?.value||"").trim();if(!e||d.sending)return;if(await window.__lxGeneration.wait(__lxGenerationToken,(lxPageCommandV150(e))))return;if(!re())return;try{localStorage.removeItem("lexiang.newChatEmpty.v1")}catch(t){if(!window.__lxGeneration.current(__lxGenerationToken))throw new DOMException('已停止生成','AbortError');}"function"==typeof window.__lxSetConversationQuery&&window.__lxSetConversationQuery(e);const n=d.conversationNonce;let a=0,o=[];const s=h(".composer textarea");if(s)s.value="";to();d.lastUserText=e;Ee();ye("user",e);if(window.__lxQueryResults?.matches(e))return await window.__lxGeneration.wait(__lxGenerationToken,window.__lxQueryResults.run({
+async function xn(t){const __lxGenerationToken=window.__lxGeneration.capture();try{const e=(t||h(".composer textarea")?.value||"").trim();if(!e||d.sending)return;if(await window.__lxGeneration.wait(__lxGenerationToken,(lxPageCommandV150(e))))return;if(!re())return;try{localStorage.removeItem("lexiang.newChatEmpty.v1")}catch(t){if(!window.__lxGeneration.current(__lxGenerationToken))throw new DOMException('已停止生成','AbortError');}"function"==typeof window.__lxSetConversationQuery&&window.__lxSetConversationQuery(e);const n=d.conversationNonce;let a=0,o=[];const s=h(".composer textarea");if(s)s.value="";to();d.lastUserText=e;Ee();ye("user",e);if(window.__lxCustomerServiceQuery?.matches(e))return await window.__lxGeneration.wait(__lxGenerationToken,window.__lxCustomerServiceQuery.run({
+  token:__lxGenerationToken,
+  busy:value=>{d.sending=value;ot();nt();},
+  answer:async text=>{const reply=ye('assistant',text);if(reply?._typingDone)await reply._typingDone;return reply;},
+  card:(reply,html)=>Ie(reply,html),
+  save:()=>{d.queryHistory.push(e);Qe();window.__lxSaveConversationNow?.();}
+}));
+if(window.__lxQueryResults?.matches(e))return await window.__lxGeneration.wait(__lxGenerationToken,window.__lxQueryResults.run({
   query:e,token:__lxGenerationToken,
   busy:value=>{d.sending=value;ot();nt();},
   create:skill=>ye('ai loading','',ke(['正在调用 Skill('+skill+')'],{collapsed:false,skillCount:0})),
@@ -2318,6 +2325,21 @@ if(!p&&l.length>=2&&l.every(t=>"solution"!==t.type)&&c){
 
     if (window.__lxCouponCenter?.matches(value)) {
       await window.__lxGeneration.wait(__lxGenerationToken, lxfdRunMemberCouponCenter(value));
+      return;
+    }
+
+    if (window.__lxCustomerServiceQuery?.matches(value)) {
+      await window.__lxGeneration.wait(__lxGenerationToken, window.__lxCustomerServiceQuery.run({
+        token:__lxGenerationToken,
+        busy:active=>{chatState.sending=active;syncSend();},
+        answer:async text=>{
+          const ai=document.createElement('div');ai.className='lxfd-msg-ai lx-chat-skin';
+          ai._loadingStarted=Date.now()-5000;ai.innerHTML='<div class="lxfd-ai-body"></div>';
+          thread?.appendChild(ai);await lxfdAnimateFinal(ai,text);return ai;
+        },
+        card:(ai,html)=>{ai.querySelector('.lxfd-ai-body')?.insertAdjacentHTML('beforeend',html);ai.scrollIntoView({behavior:reduceMotion?'auto':'smooth',block:'end'});},
+        save:()=>lxfdPersistCurrent()
+      }));
       return;
     }
 

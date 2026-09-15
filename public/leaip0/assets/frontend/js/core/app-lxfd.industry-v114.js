@@ -1715,6 +1715,21 @@
     // 发出提问就先存一次（含 lxfd key + 同步子站 key），AI 答完再存完整——避免答得慢时切站啥都没存
     try { lxfdPersistCurrent(); } catch (_e) {if(!window.__lxGeneration.current(__lxGenerationToken))throw new DOMException('已停止生成','AbortError');}
 
+    if (window.__lxCustomerServiceQuery?.matches(value)) {
+      await window.__lxGeneration.wait(__lxGenerationToken, window.__lxCustomerServiceQuery.run({
+        token:__lxGenerationToken,
+        busy:active=>{chatState.sending=active;syncSend();},
+        answer:async text=>{
+          const ai=document.createElement('div');ai.className='lxfd-msg-ai lx-chat-skin';
+          ai._loadingStarted=Date.now()-5000;ai.innerHTML='<div class="lxfd-ai-body"></div>';
+          thread?.appendChild(ai);await lxfdAnimateFinal(ai,text);return ai;
+        },
+        card:(ai,html)=>{ai.querySelector('.lxfd-ai-body')?.insertAdjacentHTML('beforeend',html);ai.scrollIntoView({behavior:reduceMotion?'auto':'smooth',block:'end'});},
+        save:()=>lxfdPersistCurrent()
+      }));
+      return;
+    }
+
     if (window.__lxQueryResults?.matches(value)) {
       await window.__lxGeneration.wait(__lxGenerationToken,window.__lxQueryResults.run({
         query:value,token:__lxGenerationToken,

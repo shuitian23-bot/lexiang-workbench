@@ -284,7 +284,14 @@ async function oe(t){const e=function(){let t=document.querySelector(".compare-p
 }
 window.__lxPageCommandV150=lxPageCommandV150;
 window.__lxInstallArrivalNotice({d,j,I,N,O,z,ot,nt,Qe,xe,ye,ke,Ne,Uo,qe,xn,bindDialog:(focus,handler)=>{B=focus;if(D)document.removeEventListener("keydown",D,true);D=handler;document.addEventListener("keydown",D,true);}});
-async function xn(t){const __lxGenerationToken=window.__lxGeneration.capture();try{const e=(t||h(".composer textarea")?.value||"").trim();if(!e||d.sending)return;if(await window.__lxGeneration.wait(__lxGenerationToken,(lxPageCommandV150(e))))return;if(!re())return;try{localStorage.removeItem("lexiang.newChatEmpty.v1")}catch(t){if(!window.__lxGeneration.current(__lxGenerationToken))throw new DOMException('已停止生成','AbortError');}"function"==typeof window.__lxSetConversationQuery&&window.__lxSetConversationQuery(e);const n=d.conversationNonce;let a=0,o=[];const s=h(".composer textarea");if(s)s.value="";to();d.lastUserText=e;Ee();ye("user",e);if(window.__lxQueryResults?.matches(e))return await window.__lxGeneration.wait(__lxGenerationToken,window.__lxQueryResults.run({
+async function xn(t){const __lxGenerationToken=window.__lxGeneration.capture();try{const e=(t||h(".composer textarea")?.value||"").trim();if(!e||d.sending)return;if(await window.__lxGeneration.wait(__lxGenerationToken,(lxPageCommandV150(e))))return;if(!re())return;try{localStorage.removeItem("lexiang.newChatEmpty.v1")}catch(t){if(!window.__lxGeneration.current(__lxGenerationToken))throw new DOMException('已停止生成','AbortError');}"function"==typeof window.__lxSetConversationQuery&&window.__lxSetConversationQuery(e);const n=d.conversationNonce;let a=0,o=[];const s=h(".composer textarea");if(s)s.value="";to();d.lastUserText=e;Ee();ye("user",e);if(window.__lxCustomerServiceQuery?.matches(e))return await window.__lxGeneration.wait(__lxGenerationToken,window.__lxCustomerServiceQuery.run({
+  token:__lxGenerationToken,
+  busy:value=>{d.sending=value;ot();nt();},
+  answer:async text=>{const reply=ye('assistant',text);if(reply?._typingDone)await reply._typingDone;return reply;},
+  card:(reply,html)=>Ie(reply,html),
+  save:()=>{d.queryHistory.push(e);Qe();window.__lxSaveConversationNow?.();}
+}));
+if(window.__lxQueryResults?.matches(e))return await window.__lxGeneration.wait(__lxGenerationToken,window.__lxQueryResults.run({
   query:e,token:__lxGenerationToken,
   busy:value=>{d.sending=value;ot();nt();},
   create:skill=>ye('ai loading','',ke(['正在调用 Skill('+skill+')'],{collapsed:false,skillCount:0})),
