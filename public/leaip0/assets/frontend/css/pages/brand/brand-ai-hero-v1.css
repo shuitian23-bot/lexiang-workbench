@@ -24,58 +24,50 @@
   content: ""; position: absolute; inset: auto 0 0; height: 180px;
   background: linear-gradient(180deg, transparent, rgba(24,14,31,.24));
 }
-.lxbrand-ai-hero .lxbrand-ai-hero__inner {
-  position: relative; z-index: 2;
-  padding: clamp(48px, calc(var(--lxbrand-hero-height) * .22), 240px) 0 clamp(32px, calc(var(--lxbrand-hero-height) * .08), 96px);
-  width: 80%; max-width: 680px; margin: 0 0 0 10%;
-}
-.lxbrand-ai-hero .lxbrand-ai-hero__title {
-  font-family: inherit; font-size: 76px; line-height: .96; letter-spacing: -3.8px;
-  margin: 28px 0 14px; padding: 0; font-weight: 700; color: #fff;
-}
-.lxbrand-ai-hero .lxbrand-ai-hero__cn {
-  font-size: 47px; line-height: 1.16; font-weight: 650; letter-spacing: -1px; margin: 0 0 22px; color: #fff;
-}
-.lxbrand-ai-hero .lxbrand-ai-hero__copy {
-  font-size: 17px; line-height: 1.8; max-width: 590px; margin: 0; color: rgba(255,255,255,.86);
-}
-.lxbrand-ai-hero[data-width="medium"] .lxbrand-ai-hero__title { font-size: 62px; }
-.lxbrand-ai-hero[data-width="medium"] .lxbrand-ai-hero__cn { font-size: 40px; }
-.lxbrand-ai-hero[data-width="small"] { background-position: 60% center; }
-.lxbrand-ai-hero[data-width="small"] .lxbrand-ai-hero__inner {
-  padding-top: clamp(48px, calc(var(--lxbrand-hero-height) * .16), 160px);
-  width: calc(100% - 28px); margin-left: 14px; margin-right: 14px;
-}
-.lxbrand-ai-hero[data-width="small"] .lxbrand-ai-hero__title { font-size: 48px; letter-spacing: -2.4px; }
-.lxbrand-ai-hero[data-width="small"] .lxbrand-ai-hero__cn { font-size: 31px; }
-.lxbrand-ai-hero[data-width="small"] .lxbrand-ai-hero__copy { font-size: 15px; }
-.lxbrand-ai-hero[data-short="true"] .lxbrand-ai-hero__inner {
-  padding-top: clamp(20px, calc(var(--lxbrand-hero-height) * .08), 44px); padding-bottom: 24px;
-}
-.lxbrand-ai-hero[data-short="true"] .lxbrand-ai-hero__title {
-  font-size: clamp(36px, calc(var(--lxbrand-hero-height) * .12), 64px); letter-spacing: -.05em; margin-top: 0;
-}
-.lxbrand-ai-hero[data-short="true"] .lxbrand-ai-hero__cn {
-  font-size: clamp(24px, calc(var(--lxbrand-hero-height) * .08), 40px); margin-bottom: 16px;
-}
-.lxbrand-ai-hero[data-short="true"] .lxbrand-ai-hero__copy { font-size: 15px; }
-
-/* Compact hero: keep the existing type scale without padding expanding its height. */
+/* Continuous type scaling follows the actual content pane, with a height cap
+   that keeps all three lines of content inside the existing 40% hero. */
 .lxbrand-ai-hero {
   height: calc(var(--lxbrand-hero-height) * .40);
   display: flex;
   align-items: center;
+  container-type: inline-size;
 }
-.lxbrand-ai-hero[data-width] .lxbrand-ai-hero__inner {
-  padding-top: 0;
-  padding-bottom: 0;
+.lxbrand-ai-hero .lxbrand-ai-hero__inner {
+  position: relative;
+  z-index: 2;
+  padding: 0;
+  width: 80%;
+  max-width: none;
+  margin: 0 0 0 10%;
 }
-
-.lxbrand-ai-hero[data-width="large"] .lxbrand-ai-hero__title {
-  margin-top: clamp(0px, calc((var(--lxbrand-hero-height) - 600px) * .7), 28px);
+.lxbrand-ai-hero .lxbrand-ai-hero__title {
+  font-family: inherit;
+  font-size: clamp(24px, min(6.5cqi, calc(var(--lxbrand-hero-height) * .125)), 112px);
+  line-height: .96;
+  letter-spacing: -.05em;
+  margin: 0 0 clamp(4px, 1.25cqi, calc(var(--lxbrand-hero-height) * .018));
+  padding: 0;
+  font-weight: 700;
+  color: #fff;
 }
-.lxbrand-ai-hero[data-short="true"] .lxbrand-ai-hero__title,
-.lxbrand-ai-hero[data-short="true"] .lxbrand-ai-hero__cn {
-  margin-bottom: clamp(0px, calc(var(--lxbrand-hero-height) * .04 - 12px), 14px);
+.lxbrand-ai-hero .lxbrand-ai-hero__cn {
+  font-size: clamp(16px, min(4.1cqi, calc(var(--lxbrand-hero-height) * .078)), 70px);
+  line-height: 1.16;
+  font-weight: 650;
+  letter-spacing: -.02em;
+  margin: 0 0 clamp(6px, 2cqi, calc(var(--lxbrand-hero-height) * .03));
+  color: #fff;
 }
-.lxbrand-ai-hero[data-short="true"] .lxbrand-ai-hero__title { margin-top: 0; }
+.lxbrand-ai-hero .lxbrand-ai-hero__copy {
+  font-size: clamp(12px, min(1.7cqi, calc(var(--lxbrand-hero-height) * .027)), 24px);
+  line-height: 1.8;
+  max-width: min(100%, 42em);
+  margin: 0;
+  color: rgba(255,255,255,.86);
+}
+.lxbrand-ai-hero[data-width="small"] { background-position: 60% center; }
+.lxbrand-ai-hero[data-width="small"] .lxbrand-ai-hero__inner {
+  width: calc(100% - 28px);
+  margin-left: 14px;
+  margin-right: 14px;
+}
