@@ -1,0 +1,7 @@
+/* Preserve each editorial cover composition at every brand-pane width. */
+.lx-brand-home #lxbrand-news .lxbrand-card > img {
+  height: auto;
+  aspect-ratio: 2 / 1;
+  object-fit: contain;
+  background: #e7e9ec;
+}

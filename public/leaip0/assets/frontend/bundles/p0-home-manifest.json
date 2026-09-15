@@ -3211,6 +3211,11 @@
       "file": "public/leaip0/brand/index.html",
       "source": "public/leaip0/assets/frontend/css/pages/brand/brand-about-layout-v1.css",
       "url": "/assets/frontend/css/pages/brand/brand-about-layout-v1.css?p0v=617f2f32f4980785"
+    },
+    {
+      "file": "public/leaip0/brand/index.html",
+      "source": "public/leaip0/assets/frontend/css/pages/brand/brand-news-covers-v1.css",
+      "url": "/assets/frontend/css/pages/brand/brand-news-covers-v1.css?p0v=1a538874331bb201"
     }
   ],
   "inlineSources": [
