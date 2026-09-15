@@ -1,15 +1,18 @@
 <template>
   <section ref="cardEl" class="agent-task-card" data-agent-task-card :aria-label="task.title">
     <div class="task-summary">
-      <h3 ref="summaryEl" class="task-title" tabindex="-1">{{ task.title }}</h3>
-      <span class="task-progress" role="status" aria-live="polite" aria-atomic="true">{{ progress.label }} · 已完成 {{ progress.done }}/{{ progress.total }} 项</span>
+      <div class="task-title-row">
+        <span class="task-batch-label">批量授权</span>
+        <h3 ref="summaryEl" class="task-title" tabindex="-1">{{ task.title }}</h3>
+      </div>
+      <span class="task-progress" role="status" aria-live="polite" aria-atomic="true">{{ progress.label }} · 已完成 {{ progress.done }}/{{ progress.total }} 项操作</span>
     </div>
     <p class="task-preview-notice">使用示例数据，不会执行真实查询、导出或修改。</p>
     <dl v-if="displayTask.requests.length" class="task-scope-summary">
       <div><dt>授权范围</dt><dd>{{ scopeSummary }}</dd></div>
       <div><dt>影响说明</dt><dd>{{ impactSummary }}</dd></div>
     </dl>
-    <p v-if="pendingRequests.length > 1" class="task-execution-summary">授权本次 Skill 执行的 {{ pendingRequests.length }} 项操作。</p>
+    <p v-if="pendingRequests.length" class="task-execution-summary">一次授权，执行本次 Skill 的全部 {{ pendingStepCount }} 个步骤。</p>
     <p v-if="task.notice" class="task-notice" role="status">{{ task.notice }}</p>
     <details v-if="displayTask.requests.length" class="task-details" :open="expanded" @toggle="onDetailsToggle">
       <summary>执行详情</summary>
@@ -24,6 +27,9 @@
               <div v-if="scopeValues.length > 1"><dt>授权范围</dt><dd>{{ request.scope }}</dd></div>
               <div v-if="impactValues.length > 1"><dt>影响说明</dt><dd>{{ request.impact }}</dd></div>
             </dl>
+            <ol v-if="request.steps?.length" class="task-step-descriptions" aria-label="本次操作的步骤说明">
+              <li v-for="(step, stepIndex) in request.steps" :key="stepIndex">{{ step }}</li>
+            </ol>
             <p v-if="request.detail" class="task-request-detail">{{ request.detail }}</p>
             <pre v-if="request.command" class="task-technical-details"><code>{{ request.command }}</code></pre>
           </li>
@@ -53,6 +59,7 @@ const expired = computed(() => (!Number.isFinite(props.task.expiresAt) || now.va
 const displayTask = computed(() => expired.value ? expireTask(props.task) : props.task)
 const progress = computed(() => taskProgress(displayTask.value))
 const pendingRequests = computed(() => displayTask.value.requests.filter(request => request.status === 'pending'))
+const pendingStepCount = computed(() => pendingRequests.value.reduce((count, request) => count + (request.steps?.length || 1), 0))
 const scopeValues = computed(() => [...new Set(displayTask.value.requests.map(request => request.scope).filter(Boolean))])
 const impactValues = computed(() => [...new Set(displayTask.value.requests.map(request => request.impact).filter(Boolean))])
 const scopeSummary = computed(() => scopeValues.value.join('；') || '当前 Skill 的本次执行')
@@ -108,6 +115,8 @@ function requestStatus(status: RequestStatus) {
 <style scoped>
 .agent-task-card { min-width: 0; max-width: 100%; margin-top: 12px; padding: 12px; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); color: var(--color-text); }
 .task-summary { display: grid; gap: 4px; min-width: 0; }
+.task-title-row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; min-width: 0; }
+.task-batch-label { display: inline-flex; align-items: center; flex: 0 0 auto; min-height: 24px; padding: 0 8px; border-radius: var(--radius-sm); background: var(--color-primary-subtle); color: var(--color-primary); font-size: 12px; font-weight: 500; line-height: 1.5; white-space: nowrap; }
 .agent-task-card .task-title { margin: 0; font-size: 14px; font-weight: 600; line-height: 1.5; overflow-wrap: anywhere; }
 .task-progress { font-size: 12px; color: var(--color-text-secondary); line-height: 1.5; overflow-wrap: anywhere; }
 .agent-task-card p.task-preview-notice, .agent-task-card p.task-notice, .agent-task-card p.task-execution-summary, .agent-task-card p.task-empty { margin: 8px 0 0; font-size: 12px; line-height: 1.5; color: var(--color-text-secondary); overflow-wrap: anywhere; }
@@ -121,6 +130,8 @@ function requestStatus(status: RequestStatus) {
 .task-request-scroll { min-width: 0; max-height: min(16rem, 32dvh); overflow-y: auto; overscroll-behavior: contain; padding: 8px 0; }
 .agent-task-card ol.task-request-list { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
 .agent-task-card li.task-request { min-width: 0; margin: 0; padding-top: 8px; border-top: 1px solid var(--color-border-subtle); }
+.agent-task-card ol.task-step-descriptions { display: grid; gap: 4px; margin: 8px 0 0; padding-left: 20px; color: var(--color-text-secondary); font-size: 12px; line-height: 1.5; }
+.agent-task-card .task-step-descriptions > li { margin: 0; overflow-wrap: anywhere; }
 .task-request-heading { display: flex; align-items: flex-start; flex-wrap: wrap; justify-content: space-between; gap: 8px; }
 .task-request-heading strong { font-size: 13px; font-weight: 600; line-height: 1.5; overflow-wrap: anywhere; }
 .task-request-status { max-width: 100%; color: var(--color-text-secondary); font-size: 12px; line-height: 1.5; overflow-wrap: anywhere; }

@@ -146,6 +146,8 @@ test('one Skill execution has only Authorize and Reject, with no repeated single
   assert.doesNotMatch(html, /type="checkbox"|全选|已选|选中项|单独授权|单独确认/)
   assert.equal((html.match(/>核对本月统计<\//g) || []).length, 1)
   assert.match(html, /使用示例数据/)
+  assert.match(html, /批量授权/)
+  assert.match(html, /一次授权，执行本次 Skill 的全部 1 个步骤。/)
 })
 
 test('multiple operations have one finite execution summary and closed steps while scopes and impacts stay visible', async () => {
@@ -153,7 +155,7 @@ test('multiple operations have one finite execution summary and closed steps whi
   task.requests[0].command = '<script>alert(1)</script> --long-parameter'
   const view = await openComponent('/src/components/agent/AgentTaskCard.vue', { task })
   const html = await view.html()
-  assert.match(html, /授权本次 Skill 执行的 4 项操作/)
+  assert.match(html, /一次授权，执行本次 Skill 的全部 4 个步骤。/)
   assert.doesNotMatch(html, /<details[^>]*\bopen(?:[ =>])/)
   const visibleSummary = html.slice(0, html.indexOf('<details'))
   assert.match(visibleSummary, /本月当前组织/)
@@ -164,6 +166,52 @@ test('multiple operations have one finite execution summary and closed steps whi
   assert.equal((visibleSummary.match(/本月当前组织/g) || []).length, 1)
   assert.match(html, /&lt;script&gt;/)
   assert.doesNotMatch(html, /<script>/)
+})
+
+test('a single executable request with three described steps makes batch authorization explicit without splitting the decision or progress', async () => {
+  const task = sampleTask()
+  const steps = ['读取当前合作伙伴', '核对当前合作状态', '汇总本次结果']
+  task.requests = [{ ...task.requests[0], steps }]
+  const view = await openComponent('/src/components/agent/AgentTaskCard.vue', { task })
+  const html = await view.html()
+  const visibleSummary = html.slice(0, html.indexOf('<details'))
+  assert.match(visibleSummary, /批量授权/)
+  assert.match(visibleSummary, /一次授权，执行本次 Skill 的全部 3 个步骤。/)
+  assert.match(visibleSummary, /已完成 0\/1 项操作/)
+  assert.doesNotMatch(html, /<details[^>]*\bopen(?:[ =>])/)
+  for (const step of steps) {
+    assert.doesNotMatch(visibleSummary, new RegExp(step))
+    assert.match(html, new RegExp(`<li[^>]*>${step}<\\/li>`))
+  }
+  view.state.setExpanded(true)
+  assert.match(await view.html(), /<details[^>]*\bopen(?:[ =>])/)
+  await view.state.decide('approve')
+  assert.deepEqual(view.events, [['decision', {
+    scope: 'skill-execution', taskId: 'task-A', conversationId: 'conversation-A', decision: 'approve',
+    selections: [{ requestId: 'read-A', revision: 2 }]
+  }]])
+  view.props.task.requests[0].status = 'succeeded'
+  await nextTick()
+  assert.match(await view.html(), /已完成 1\/1 项操作/)
+  assert.doesNotMatch(await view.html(), /一次授权，执行本次 Skill/)
+})
+
+test('the batch step count includes only pending requests and treats missing or empty step descriptions as one', async () => {
+  const task = sampleTask()
+  task.requests = [
+    { ...task.requests[0], steps: ['步骤一', '步骤二'] },
+    { ...task.requests[1], steps: [] },
+    task.requests[2],
+    { ...task.requests[3], steps: ['已完成的一', '已完成的二'], status: 'succeeded' }
+  ]
+  const view = await openComponent('/src/components/agent/AgentTaskCard.vue', { task })
+  assert.match(await view.html(), /一次授权，执行本次 Skill 的全部 4 个步骤。/)
+  assert.equal(view.state.progress.value.done, 1)
+  assert.equal(view.state.progress.value.total, 4)
+  await view.state.decide('approve')
+  assert.deepEqual(view.events[0][1].selections, [
+    { requestId: 'read-A', revision: 2 }, { requestId: 'read-B', revision: 3 }, { requestId: 'export-A', revision: 1 }
+  ])
 })
 
 test('Authorize emits all current pending IDs and revisions as this Skill execution, including different operation kinds', async () => {

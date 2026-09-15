@@ -40,6 +40,25 @@ function skillDecision(task, action = 'approve') {
   return result
 }
 
+test('ordinary GMV query preserves every declared step and one approval completes the whole Skill once', async () => {
+  const store = useAiStore()
+  const message = await query(store, '查询客单价')
+  const request = message.task.requests[0]
+  assert.equal(message.task.title, 'GMV 分析查询')
+  assert.deepEqual(request.steps, ['读取 GMV、购买人数和客单价', '识别转化变化与爆款商品', '生成交易结论和可展开报告'])
+  assert.notEqual(request.steps, message.authRequest.steps, 'the task must retain its own declared step snapshot')
+  const action = skillDecision(message.task)
+  await store.runTaskAction(action, 'dashboard.geo')
+  const completed = store.messages.find(item => item.id === message.id).task
+  assert.ok(completed.requests.every(item => item.status === 'succeeded'))
+  assert.deepEqual(completed.requests[0].steps, request.steps)
+  assert.equal(store.messages.filter(item => item.artifacts?.length).length, 1)
+  const messageCount = store.messages.length
+  await store.runTaskAction(action, 'dashboard.geo')
+  assert.equal(store.messages.length, messageCount, 'one approval must not duplicate the report or append another authorization')
+  assert.equal(store.messages.filter(item => item.task).length, 1)
+})
+
 test('one Skill approval runs all listed steps including export only in that execution', async () => {
   const store = useAiStore()
   const earlier = await query(store, '批量授权演示')

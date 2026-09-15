@@ -10,6 +10,7 @@ export interface TaskRequest {
   batchable: boolean
   approvalGroup: string
   status: RequestStatus
+  steps?: string[]
   detail?: string
   command?: string
 }

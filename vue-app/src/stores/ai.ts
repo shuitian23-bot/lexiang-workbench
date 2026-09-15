@@ -727,6 +727,7 @@ export const useAIStore = defineStore('ai', () => {
         id: `${id}:request`, revision: 1, label: request.taskTitle || request.summary || request.title,
         scope: request.scope || '当前页面、本次任务', impact: request.impact || request.detail,
         kind, batchable: kind === 'read', approvalGroup: id, status: 'pending',
+        ...(request.steps?.length ? { steps: [...request.steps] } : {}),
         command: request.command, detail: request.detail
       }]
     }
