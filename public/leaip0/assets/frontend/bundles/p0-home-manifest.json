@@ -3206,6 +3206,11 @@
       "file": "public/leaip0/brand/index.html",
       "source": "public/leaip0/assets/frontend/js/core/brand-ai-hero-v1.js",
       "url": "/assets/frontend/js/core/brand-ai-hero-v1.js?p0v=8d33f720fb06477b"
+    },
+    {
+      "file": "public/leaip0/brand/index.html",
+      "source": "public/leaip0/assets/frontend/css/pages/brand/brand-about-layout-v1.css",
+      "url": "/assets/frontend/css/pages/brand/brand-about-layout-v1.css?p0v=eaf8ec9ec36a393b"
     }
   ],
   "inlineSources": [
