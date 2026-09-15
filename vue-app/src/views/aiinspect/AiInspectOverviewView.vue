@@ -66,7 +66,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="ai-overview">
+  <div class="ai-overview" data-page-flow="ai-inspect-overview">
     <ContentPageHeader class="inspect-page-header" title="数据总览" description="AI 巡检核心指标与风险动态 · 数据更新于 2026-08-26 15:00">
       <template #actions><AiInspectReleaseRecord /></template>
     </ContentPageHeader>
@@ -208,8 +208,8 @@ onMounted(() => {
 
 <style scoped>
 .ai-overview { display: flex; flex-direction: column; gap: 16px; width: 100%; min-width: 0; container-type: inline-size; container-name: ai-inspect-page; }
-.ai-overview > * { min-width: 0; }
-.inspect-surface { background: var(--color-surface); border: 1px solid var(--color-border-subtle); border-radius: var(--radius-lg); padding: 16px 20px; min-width: 0; }
+.ai-overview > * { min-width: 0; margin-block: 0; }
+.inspect-surface { background: var(--color-surface); border: 1px solid var(--color-border-subtle); border-radius: var(--radius-lg); padding: 20px; min-width: 0; }
 .ai-table-scroll { width: 100%; max-width: 100%; overflow-x: auto; overscroll-behavior-x: contain; }
 .ai-table-scroll:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
 
@@ -221,15 +221,15 @@ onMounted(() => {
 .ai-kpi-card {
   background: var(--color-surface);
   border: 1px solid var(--color-border-subtle);
-  border-radius: var(--radius-lg);
-  padding: 16px 20px;
+  border-radius: var(--radius-md);
+  padding: 20px;
   box-shadow: var(--shadow);
 }
 .ai-kpi-card.clickable { cursor: pointer; transition: box-shadow 0.15s ease, transform 0.15s ease; }
-.ai-kpi-card.clickable:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+.ai-kpi-card.clickable:hover { box-shadow: var(--focus-ring); }
 .ai-kpi-head { display: flex; align-items: center; min-width: 0; }
 .ai-kpi-card:focus-visible, .ai-rank__row:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
-.inspect-surface > .content-section-header { margin-bottom: 12px; }
+.inspect-surface > .content-section-header { margin-bottom: 16px; }
 .ai-kpi-label { font-size: 13px; color: var(--color-text-secondary); font-weight: 500; }
 .ai-kpi-value { font-size: 30px; font-weight: 700; color: var(--color-text); margin: 8px 0 4px; }
 .ai-kpi-compare { font-size: 12px; font-weight: 500; }
@@ -285,7 +285,7 @@ onMounted(() => {
 .ai-table td { padding: 12px; border-bottom: 1px solid var(--color-border-subtle); color: var(--color-text); vertical-align: middle; }
 .ai-table__row { cursor: pointer; transition: background 0.12s ease; }
 .ai-table__row:hover { background: var(--color-primary-subtle); }
-.ai-mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--color-text-secondary); font-size: 12px; }
+.ai-mono { font-family: var(--font-mono); color: var(--color-text-secondary); font-size: 12px; }
 .ai-cell-strong { font-weight: 500; }
 .ai-cell-sub { font-size: 12px; color: var(--color-text-tertiary); margin-top: 4px; }
 .ai-duration-warn { color: var(--color-warning); font-weight: 600; }
@@ -298,9 +298,12 @@ onMounted(() => {
 @container ai-inspect-page (max-width: 719px) {
   .ai-kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
-@container ai-inspect-page (max-width: 719px) {
-  .inspect-page-header { flex-direction: column; align-items: stretch; }
-  .inspect-page-header :deep(.content-page-header__heading) { flex-basis: auto; }
-  .inspect-page-header :deep(.content-page-header__actions) { justify-content: flex-start; }
-}
+
+
+.ai-table th { height: 40px; box-sizing: border-box; color: var(--color-text-secondary); background: var(--color-bg-subtle); font-size: var(--text-sm); }
+.ai-table td { height: 48px; box-sizing: border-box; }
+.ai-table tbody tr:hover { background: var(--color-primary-subtle); }
+.ai-select:focus-visible { outline: none; border-color: var(--color-primary); box-shadow: var(--focus-ring); }
+.ai-grid-2 + .ai-grid-2 { margin-top: 8px; }
+@container ai-inspect-page (max-width: 479px) { .ai-kpi-grid { grid-template-columns: minmax(0, 1fr); } }
 </style>

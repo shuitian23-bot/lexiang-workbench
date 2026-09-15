@@ -199,7 +199,7 @@
         </button>
       </div>
 
-      <div class="scenario-package-list-workspace">
+      <div class="scenario-package-list-workspace" data-flow-role="list-workspace">
         <div class="scenario-package-toolbar">
           <input v-model="packageKeyword" type="search" aria-label="搜索场景技能包" placeholder="搜索名称、场景描述或主责任人">
           <select v-model="packageStatusFilter" aria-label="场景技能包状态" @change="packageSummaryFilter = 'all'">
@@ -1465,47 +1465,46 @@ onBeforeUnmount(() => {
 }
 
 .skill-hub-page[data-page-flow="skill-hub"] {
-  --scenario-package-summary-gap: 14px;
+  --scenario-package-summary-gap: 16px;
   min-width: 0;
   container-type: inline-size;
 }
 
 .skill-hub-view-tabs {
-  display: flex;
-  min-height: 40px;
-  border-bottom: 1px solid var(--color-border-subtle);
+  display: inline-flex;
+  align-self: flex-start;
+  justify-self: start;
+  width: fit-content;
+  max-width: 100%;
+  gap: 4px;
+  padding: 4px;
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
 }
 
 .skill-hub-view-tabs button {
-  position: relative;
-  min-width: 96px;
+  min-width: 120px;
   min-height: 40px;
-  padding: 0 16px;
-  border: 0;
-  background: transparent;
+  padding: 0 20px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
   color: var(--color-text-secondary);
   font: inherit;
-  font-size: 13px;
+  font-size: 14px;
+  font-weight: 600;
   cursor: pointer;
 }
 
-.skill-hub-view-tabs button::after {
-  position: absolute;
-  right: 12px;
-  bottom: -1px;
-  left: 12px;
-  height: 2px;
-  background: transparent;
-  content: '';
+.skill-hub-view-tabs button:hover {
+  background: var(--color-surface);
+  color: var(--color-primary);
 }
 
 .skill-hub-view-tabs button.is-active {
+  border-color: var(--color-primary);
+  background: var(--color-primary-subtle);
   color: var(--color-primary);
-  font-weight: 600;
-}
-
-.skill-hub-view-tabs button.is-active::after {
-  background: var(--color-primary);
 }
 
 .skill-hub-view-tabs button:focus-visible,
@@ -1925,4 +1924,14 @@ onBeforeUnmount(() => {
     flex-direction: column;
   }
 }
+
+.skill-hub-detail-panel.scenario-package-detail-panel,
+.skill-hub-detail-panel.skill-capability-change-panel { width: min(720px, calc(100vw - 48px)); max-height: calc(100vh - 48px); border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); }
+.skill-hub-detail-panel:is(.scenario-package-detail-panel, .skill-capability-change-panel) .skill-hub-detail-head { flex: 0 0 auto; justify-content: flex-start; align-items: flex-start; padding: 20px 24px; text-align: left; border-bottom: 1px solid var(--color-border-subtle); }
+.skill-hub-detail-panel:is(.scenario-package-detail-panel, .skill-capability-change-panel) .skill-hub-detail-head h3 { font-size: 18px; font-weight: 600; line-height: 1.5; color: var(--color-text); }
+.skill-hub-detail-panel:is(.scenario-package-detail-panel, .skill-capability-change-panel) .skill-hub-detail-head p { margin: 8px 0 0; font-size: 13px; line-height: 1.6; color: var(--color-text-secondary); }
+.skill-hub-detail-panel:is(.scenario-package-detail-panel, .skill-capability-change-panel) .skill-hub-detail-close { top: 16px; right: 16px; width: 32px; height: 32px; border: 0; border-radius: var(--radius-md); }
+.skill-hub-detail-panel:is(.scenario-package-detail-panel, .skill-capability-change-panel) .skill-hub-detail-body { flex: 1 1 auto; min-height: 0; padding: 20px 24px; }
+.skill-hub-detail-panel:is(.scenario-package-detail-panel, .skill-capability-change-panel) .skill-hub-detail-foot { flex: 0 0 auto; padding: 16px 24px; border-top: 1px solid var(--color-border-subtle); }
+.skill-hub-detail-panel:is(.scenario-package-detail-panel, .skill-capability-change-panel) .skill-hub-detail-head > div { padding-right: 32px; min-width: 0; }
 </style>

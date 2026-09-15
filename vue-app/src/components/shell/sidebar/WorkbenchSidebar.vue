@@ -151,6 +151,15 @@ const pocReleaseLedger = ref({ records: {} })
 
 const basePocLogRecords = [
   {
+    time: '2026-09-15',
+    releaseKey: 'workbench-ui0914-style-20260915',
+    title: '工作台 0914 样式合并',
+    changePoint: '统一页面标题、表单、卡片、弹窗及场景技能包展示布局。',
+    detail: '以服务器最新源码为基础提取 0914 样式，保留首次登录业务负责人、管理员创建编辑本人场景包、独立审批、权限及巡检能力。附件中的旧页面、缺失日志和额外编排交互未覆盖现有实现；路由、数据、业务校验及共享运行文件保持当前版本。发布环境、人员、时间和版本分别以实际记录为准。',
+    deployTargets: [],
+    status: '发布状态以环境记录为准'
+  },
+  {
     time: '2026-09-14',
     releaseKey: 'scenario-admin-authoring-20260914',
     title: '场景技能包管理员创建能力恢复',

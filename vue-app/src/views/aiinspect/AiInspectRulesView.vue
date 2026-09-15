@@ -199,10 +199,10 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="ai-rules">
+  <div class="ai-rules" data-page-flow="ai-inspect-rules">
     <ContentPageHeader class="inspect-page-header" title="巡检规则" description="AI 巡检核心配置入口 · 一站式管理页面、模块、频率与异常通知">
       <template #actions>
-        <button class="btn btn-primary btn-sm" type="button" @click="openCreate">+ 新增规则</button>
+        <button class="btn btn-primary" type="button" @click="openCreate">+ 新增规则</button>
       </template>
     </ContentPageHeader>
 
@@ -361,8 +361,8 @@ onMounted(() => {
 
 <style scoped>
 .ai-rules { display: flex; flex-direction: column; gap: 16px; width: 100%; min-width: 0; container-type: inline-size; container-name: ai-inspect-page; }
-.ai-rules > * { min-width: 0; }
-.inspect-surface { background: var(--color-surface); border: 1px solid var(--color-border-subtle); border-radius: var(--radius-lg); padding: 16px 20px; min-width: 0; }
+.ai-rules > * { min-width: 0; margin-block: 0; }
+.inspect-surface { background: var(--color-surface); border: 1px solid var(--color-border-subtle); border-radius: var(--radius-lg); padding: 20px; min-width: 0; }
 .ai-table-scroll { width: 100%; max-width: 100%; overflow-x: auto; overscroll-behavior-x: contain; }
 .ai-table-scroll:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
 
@@ -371,7 +371,7 @@ onMounted(() => {
 .ai-table td { padding: 12px; border-bottom: 1px solid var(--color-border-subtle); color: var(--color-text); vertical-align: middle; }
 .ai-col-actions { text-align: right; white-space: nowrap; }
 .ai-col-actions .btn { margin-left: 8px; }
-.ai-mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--color-text-secondary); font-size: 12px; }
+.ai-mono { font-family: var(--font-mono); color: var(--color-text-secondary); font-size: 12px; }
 .ai-cell-strong { font-weight: 500; }
 .ai-cell-sub { font-size: 12px; color: var(--color-text-tertiary); margin-top: 4px; }
 .ai-pill { display: inline-block; margin: 0 4px 4px 0; padding: 4px 8px; border-radius: 9999px; background: var(--color-primary-subtle); color: var(--color-primary); font-size: 12px; }
@@ -421,9 +421,12 @@ textarea.inspect-input { height: auto; min-height: 72px; padding: 8px 12px !impo
 }
 
 .ai-errors { background: var(--color-danger-bg); border: 1px solid var(--color-danger); border-radius: var(--radius-md); padding: 12px 16px; font-size: 12px; color: var(--color-danger); }
-@container ai-inspect-page (max-width: 719px) {
-  .inspect-page-header { flex-direction: column; align-items: stretch; }
-  .inspect-page-header :deep(.content-page-header__heading) { flex-basis: auto; }
-  .inspect-page-header :deep(.content-page-header__actions) { justify-content: flex-start; }
-}
+
+
+.ai-table th { height: 40px; box-sizing: border-box; color: var(--color-text-secondary); background: var(--color-bg-subtle); font-size: var(--text-sm); }
+.ai-table td { height: 48px; box-sizing: border-box; }
+.ai-table tbody tr:hover { background: var(--color-primary-subtle); }
+.ai-select:focus-visible { outline: none; border-color: var(--color-primary); box-shadow: var(--focus-ring); }
+.ai-col-actions { position: sticky; right: 0; background: var(--color-surface); box-shadow: var(--shadow-surface); }
+.ai-table th.ai-col-actions { background: var(--color-bg-subtle); }
 </style>

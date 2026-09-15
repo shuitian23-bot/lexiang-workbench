@@ -1,5 +1,5 @@
 <template>
-  <section class="video-config-page">
+  <section class="video-config-page" data-page-flow="product-video">
     <div class="page-content-flow">
       <ContentPageHeader
         title="商品视频配置"
@@ -474,7 +474,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } 
 import { useRoute, useRouter } from 'vue-router'
 import { useAppStore } from '@/stores/app'
 import ContentPageHeader from '@/components/content/ContentPageHeader.vue'
-import SectionHeader from './components/ProductVideoSectionHeader.vue'
+import SectionHeader from '@/components/content/SectionHeader.vue'
 import {
   BU_OWNER_OPTIONS,
   MATERIAL_OPTIONS,
@@ -1060,11 +1060,6 @@ function confirmStatusChange() {
   min-width: 0;
   color: var(--color-text);
 }
-.video-config-page :is(h2, h3, strong, b, button, label, th, dd),
-.video-config-page label > span,
-.advanced-state {
-  font-weight: 400 !important;
-}
 .confirm-icon {
   display: inline-flex;
   align-items: center;
@@ -1105,7 +1100,7 @@ function confirmStatusChange() {
   gap: 12px;
 }
 .row-actions button:focus-visible {
-  border-radius: var(--radius);
+  border-radius: var(--radius-md);
   outline: none;
   box-shadow: var(--focus-ring);
 }
@@ -1155,7 +1150,7 @@ function confirmStatusChange() {
   width: 100%;
   height: 36px;
   border: 1px solid var(--color-border);
-  border-radius: var(--radius);
+  border-radius: var(--radius-md);
   background: var(--color-surface);
   color: var(--color-text);
   padding: 0 12px;
@@ -1183,12 +1178,12 @@ function confirmStatusChange() {
   justify-content: center;
   min-height: 36px;
   border: 1px solid var(--color-border);
-  border-radius: var(--radius);
+  border-radius: var(--radius-md);
   padding: 0 16px;
   background: var(--color-surface);
   color: var(--color-text-secondary);
   font-size: 13px;
-  font-weight: 600 !important;
+  font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
 }
@@ -1231,7 +1226,7 @@ function confirmStatusChange() {
 .list-toolbar h2 {
   margin: 0;
   font-size: 16px;
-  font-weight: 600 !important;
+  font-weight: 600;
 }
 .list-toolbar > span,
 .pagination {
@@ -1281,7 +1276,7 @@ td {
 .list-surface th {
   background: var(--color-bg-muted);
   color: var(--color-text-secondary);
-  font-weight: 400 !important;
+  font-weight: 600;
 }
 td {
   color: var(--color-text-secondary);
@@ -1292,7 +1287,7 @@ td small {
 }
 td .product-name {
   color: var(--color-text);
-  font-weight: 600 !important;
+  font-weight: 600;
 }
 td small {
   margin-top: 4px;
@@ -1355,7 +1350,7 @@ thead .sticky-action {
   background: transparent;
   color: var(--color-primary);
   font-size: 13px;
-  font-weight: 600 !important;
+  font-weight: 600;
   cursor: pointer;
   padding: 4px;
 }
@@ -1384,7 +1379,7 @@ thead .sticky-action {
 .pagination-actions select {
   height: 36px;
   border: 1px solid var(--color-border);
-  border-radius: var(--radius);
+  border-radius: var(--radius-md);
   background: var(--color-surface);
   color: var(--color-text-secondary);
   padding: 0 12px;
@@ -1401,7 +1396,6 @@ thead .sticky-action {
   place-items: center;
   padding: 24px;
   background: color-mix(in srgb, var(--color-text) 25%, transparent);
-  backdrop-filter: blur(8px);
 }
 .drawer {
   position: relative;
@@ -1417,9 +1411,10 @@ thead .sticky-action {
 }
 .config-editor-modal {
   container-type: inline-size;
+  container-name: video-editor;
   width: min(1180px, 100%);
   max-height: min(820px, calc(100vh - 48px));
-  border-radius: var(--radius);
+  border-radius: var(--radius-lg);
 }
 .drawer-header,
 .drawer-footer,
@@ -1462,7 +1457,7 @@ thead .sticky-action {
   width: 34px;
   height: 34px;
   border: 1px solid var(--color-border);
-  border-radius: var(--radius);
+  border-radius: var(--radius-md);
   background: var(--color-surface);
   color: var(--color-text-secondary);
   font-size: 20px;
@@ -1531,7 +1526,7 @@ thead .sticky-action {
 .config-editor-modal .config-form section {
   padding: 20px;
   border: 1px solid var(--color-border-subtle);
-  border-radius: var(--radius);
+  border-radius: var(--radius-md);
   background: var(--color-surface);
 }
 .config-editor-modal .drawer-footer {
@@ -1571,7 +1566,7 @@ thead .sticky-action {
   height: 36px;
   box-sizing: border-box;
   border: 1px solid var(--color-border);
-  border-radius: var(--radius);
+  border-radius: var(--radius-md);
   padding: 0 12px;
   background: var(--color-surface);
   color: var(--color-text);
@@ -1603,7 +1598,7 @@ thead .sticky-action {
   margin-top: 12px;
   overflow: hidden;
   border: 1px solid var(--color-border);
-  border-radius: var(--radius);
+  border-radius: var(--radius-md);
   background: var(--color-surface);
 }
 .material-result-caption {
@@ -1620,7 +1615,7 @@ thead .sticky-action {
 .material-result-row strong,
 .related-products-heading strong,
 .related-products-table th {
-  font-weight: 600 !important;
+  font-weight: 600;
 }
 .material-result-caption span {
   color: var(--color-text-secondary);
@@ -1697,7 +1692,7 @@ thead .sticky-action {
   margin-top: 8px;
   overflow: auto;
   border: 1px solid var(--color-border-subtle);
-  border-radius: var(--radius);
+  border-radius: var(--radius-md);
   background: var(--color-surface);
 }
 .related-products-table table {
@@ -1724,7 +1719,7 @@ thead .sticky-action {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
   border: 1px solid transparent;
-  border-radius: var(--radius);
+  border-radius: var(--radius-md);
   padding: 4px;
 }
 .choice-grid label,
@@ -1733,7 +1728,7 @@ thead .sticky-action {
   align-items: flex-start;
   gap: 12px;
   border: 1px solid var(--color-border);
-  border-radius: var(--radius);
+  border-radius: var(--radius-md);
   padding: 12px;
   cursor: pointer;
 }
@@ -1761,7 +1756,7 @@ thead .sticky-action {
 }
 .process-notice {
   margin-top: 12px;
-  border-radius: var(--radius);
+  border-radius: var(--radius-md);
   padding: 12px;
   background: var(--color-primary-subtle);
   color: var(--color-primary);
@@ -1774,7 +1769,7 @@ thead .sticky-action {
   justify-content: space-between;
   gap: 16px;
   border: 1px dashed var(--color-border);
-  border-radius: var(--radius);
+  border-radius: var(--radius-md);
   padding: 16px;
 }
 .upload-card p {
@@ -1798,7 +1793,7 @@ thead .sticky-action {
   display: grid;
   gap: 8px;
   margin-top: 12px;
-  border-radius: var(--radius);
+  border-radius: var(--radius-md);
   background: var(--color-success-subtle);
   padding: 12px;
   color: var(--color-success);
@@ -1832,7 +1827,7 @@ thead .sticky-action {
 .upload-module {
   overflow: hidden;
   border: 1px solid var(--color-border-subtle);
-  border-radius: var(--radius);
+  border-radius: var(--radius-md);
   background: var(--color-surface);
 }
 .storage-row {
@@ -1848,7 +1843,7 @@ thead .sticky-action {
   min-width: 0;
   height: 36px;
   border: 1px solid var(--color-border);
-  border-radius: var(--radius);
+  border-radius: var(--radius-md);
   padding: 0 32px 0 12px;
   background: var(--color-surface);
   color: var(--color-text);
@@ -1876,7 +1871,7 @@ thead .sticky-action {
   overflow: hidden;
   margin: 16px;
   border: 1px solid var(--color-border-subtle);
-  border-radius: var(--radius);
+  border-radius: var(--radius-md);
   background: var(--color-surface);
 }
 .uploaded-video-state.invalid {
@@ -1919,7 +1914,7 @@ thead .sticky-action {
   flex: 0 0 32px;
   align-items: center;
   justify-content: center;
-  border-radius: var(--radius);
+  border-radius: var(--radius-md);
   background: var(--color-primary-subtle);
   color: var(--color-primary);
   font-size: 12px;
@@ -1942,7 +1937,7 @@ thead .sticky-action {
   display: grid;
   gap: 4px;
   border: 1px solid var(--color-border-subtle);
-  border-radius: var(--radius);
+  border-radius: var(--radius-md);
   padding: 12px;
 }
 .validation-metrics span {
@@ -1962,7 +1957,7 @@ thead .sticky-action {
 }
 .validation-error {
   margin: 0 12px 12px;
-  border-radius: var(--radius);
+  border-radius: var(--radius-md);
   padding: 12px;
   background: var(--color-danger-subtle);
   color: var(--color-danger);
@@ -2009,7 +2004,7 @@ thead .sticky-action {
   min-width: 0;
   overflow: hidden;
   border: 1px solid var(--color-border);
-  border-radius: var(--radius);
+  border-radius: var(--radius-md);
   background: var(--color-surface);
 }
 .cover-upload.invalid {
@@ -2080,7 +2075,7 @@ thead .sticky-action {
   color: var(--color-danger);
 }
 .cover-error {
-  border-radius: var(--radius);
+  border-radius: var(--radius-md);
   padding: 8px;
   background: var(--color-danger-subtle);
   color: var(--color-danger);
@@ -2129,7 +2124,7 @@ thead .sticky-action {
   grid-template-columns: 120px minmax(0, 1fr);
   gap: 12px;
   border: 1px solid var(--color-border-subtle);
-  border-radius: var(--radius);
+  border-radius: var(--radius-md);
   padding: 12px;
 }
 .cover-thumbnail {
@@ -2139,7 +2134,7 @@ thead .sticky-action {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  border-radius: var(--radius);
+  border-radius: var(--radius-md);
   background: linear-gradient(135deg, var(--color-primary-subtle), var(--color-bg-muted));
   color: var(--color-primary);
 }
@@ -2199,7 +2194,7 @@ thead .sticky-action {
   margin-top: 20px;
 }
 .form-error {
-  border-radius: var(--radius);
+  border-radius: var(--radius-md);
   background: var(--color-danger-subtle);
   padding: 12px;
 }
@@ -2286,4 +2281,13 @@ thead .sticky-action {
     justify-self: start;
   }
 }
+
+.video-filter-panel { border-radius: var(--radius-md); }
+.video-filter-panel label > span, .field > span { font-weight: 500; }
+.list-surface td { height: 64px; box-sizing: border-box; }
+.row-actions { white-space: nowrap; }
+.primary-button:hover:not(:disabled) { background: var(--color-primary-hover); border-color: var(--color-primary-hover); }
+.secondary-button:hover:not(:disabled), .advanced-toggle:hover { color: var(--color-primary); border-color: var(--color-primary-border); background: var(--color-primary-subtle); }
+.primary-button:focus-visible, .secondary-button:focus-visible, .advanced-toggle:focus-visible, .pagination button:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+@container (max-width: 719px) { .filter-actions, .pagination-actions, .list-toolbar-actions { flex-wrap: wrap; } }
 </style>

@@ -1,33 +1,31 @@
 <template>
   <div class="dashboard-overview-page">
-    <div class="page-header">
-      <div>
-        <div class="page-title">运营总览</div>
-        <div class="page-desc">乐享全渠道数据 · {{ periodText(summary.rows) }} · 数据更新于 {{ LEAI_DATA.updated }}</div>
-      </div>
-      <div class="dashboard-overview-actions">
-        <div class="ops-time-filter">
-          <div class="dash-filter-bar">
-            <button
-              v-for="item in ranges"
-              :key="item.value"
-              class="dash-pill"
-              :class="{ active: range === item.value }"
-              type="button"
-              @click="setRange(item.value)"
-            >
-              {{ item.label }}
-            </button>
+    <ContentPageHeader class="unified-overview-header" title="运营总览" :description="`乐享全渠道数据 · ${periodText(summary.rows)} · 数据更新于 ${LEAI_DATA.updated}`">
+      <template #actions>
+        <div class="dashboard-overview-actions">
+          <div class="ops-time-filter">
+            <div class="dash-filter-bar">
+              <button
+                v-for="item in ranges"
+                :key="item.value"
+                class="dash-pill"
+                :class="{ active: range === item.value }"
+                type="button"
+                @click="setRange(item.value)"
+              >
+                {{ item.label }}
+              </button>
+            </div>
+            <span v-if="range === 'custom'" class="ops-custom-range">
+              <input v-model="customStart" type="date" class="ops-date-input" :min="dateBounds.min" :max="dateBounds.max" @change="syncCustomRange('start')">
+              <span>至</span>
+              <input v-model="customEnd" type="date" class="ops-date-input" :min="dateBounds.min" :max="dateBounds.max" @change="syncCustomRange('end')">
+            </span>
           </div>
-          <span v-if="range === 'custom'" class="ops-custom-range">
-            <input v-model="customStart" type="date" class="ops-date-input" :min="dateBounds.min" :max="dateBounds.max" @change="syncCustomRange('start')">
-            <span>至</span>
-            <input v-model="customEnd" type="date" class="ops-date-input" :min="dateBounds.min" :max="dateBounds.max" @change="syncCustomRange('end')">
-          </span>
+          <button class="btn btn-sm btn-secondary ai-insight-btn" type="button" @click="askOverview('overview')">AI 解读</button>
         </div>
-        <button class="btn btn-sm btn-secondary ai-insight-btn" type="button" @click="askOverview('overview')">AI 解读</button>
-      </div>
-    </div>
+      </template>
+    </ContentPageHeader>
 
     <div class="kpi-grid">
       <div v-for="item in kpis" :key="item.label" class="kpi-card">
@@ -190,6 +188,7 @@
 </template>
 
 <script setup lang="ts">
+import ContentPageHeader from '@/components/content/ContentPageHeader.vue'
 import { computed, defineComponent, h, onMounted, ref } from 'vue'
 import { useAppStore } from '@/stores/app'
 import { useAIStore } from '@/stores/ai'
@@ -668,4 +667,8 @@ onMounted(() => {
     animation: none;
   }
 }
+</style>
+
+<style scoped>
+.unified-overview-header { margin-bottom: 16px; }
 </style>

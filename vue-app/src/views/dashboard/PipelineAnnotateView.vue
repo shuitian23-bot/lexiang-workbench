@@ -1,24 +1,24 @@
 <template>
   <div class="pipeline-annotate-native">
-    <div class="page-header">
-      <div><div class="page-title">Query 分析</div>
-        <div class="page-desc">智能体交互数据深度分析</div></div>
-      <div style="display:flex;gap:6px;align-items:center">
-        <div style="display:flex;align-items:center;gap:4px;background:var(--bg);border:1px solid var(--border-light);border-radius:6px;padding:3px 8px;font-size:11px">
-          <span style="color:var(--text-tertiary);font-size:9px;font-family:monospace">FROM</span>
-          <input type="date" id="dateFrom" style="padding:1px 4px;border:1px solid var(--border-light);border-radius:4px;font-size:11px;font-family:monospace;cursor:pointer;outline:none;width:100px;text-align:center" @change="applyDateFilter">
+    <ContentPageHeader class="unified-overview-header" title="Query 分析" description="智能体交互数据深度分析">
+      <template #actions>
+        <div class="query-header-actions">
+          <div class="query-date-field">
+            <span style="color:var(--text-tertiary);font-size:9px;font-family:monospace">FROM</span>
+            <input type="date" id="dateFrom" aria-label="开始日期" style="padding:1px 4px;border:1px solid var(--border-light);border-radius:4px;font-size:11px;font-family:monospace;cursor:pointer;outline:none;width:140px;text-align:center" @change="applyDateFilter">
+          </div>
+          <div class="query-date-field">
+            <span style="color:var(--text-tertiary);font-size:9px;font-family:monospace">TO</span>
+            <input type="date" id="dateTo" aria-label="结束日期" style="padding:1px 4px;border:1px solid var(--border-light);border-radius:4px;font-size:11px;font-family:monospace;cursor:pointer;outline:none;width:140px;text-align:center" @change="applyDateFilter">
+          </div>
+          <button class="btn btn-primary" style="padding:3px 10px;font-size:11px;border-radius:5px" type="button" @click="applyDateFilter">筛选</button>
+          <button class="btn btn-secondary" style="padding:3px 10px;font-size:11px;border-radius:5px" type="button" @click="clearDateFilter">清除</button>
+          <button class="btn btn-secondary" style="padding:3px 10px;font-size:11px;border-radius:5px" type="button" title="刷新" @click="refreshDashboard">&#8635;</button>
+          <button class="btn btn-secondary" style="padding:3px 10px;font-size:11px;border-radius:5px" type="button" title="下载Excel" @click="downloadExcel">&#8595;</button>
+          <button class="btn btn-primary" style="padding:3px 10px;font-size:11px;border-radius:5px" type="button" @click="uploadInput?.click()">上传</button>
         </div>
-        <div style="display:flex;align-items:center;gap:4px;background:var(--bg);border:1px solid var(--border-light);border-radius:6px;padding:3px 8px;font-size:11px">
-          <span style="color:var(--text-tertiary);font-size:9px;font-family:monospace">TO</span>
-          <input type="date" id="dateTo" style="padding:1px 4px;border:1px solid var(--border-light);border-radius:4px;font-size:11px;font-family:monospace;cursor:pointer;outline:none;width:100px;text-align:center" @change="applyDateFilter">
-        </div>
-        <button class="btn btn-primary" style="padding:3px 10px;font-size:11px;border-radius:5px" type="button" @click="applyDateFilter">筛选</button>
-        <button class="btn btn-secondary" style="padding:3px 10px;font-size:11px;border-radius:5px" type="button" @click="clearDateFilter">清除</button>
-        <button class="btn btn-secondary" style="padding:3px 10px;font-size:11px;border-radius:5px" type="button" title="刷新" @click="refreshDashboard">&#8635;</button>
-        <button class="btn btn-secondary" style="padding:3px 10px;font-size:11px;border-radius:5px" type="button" title="下载Excel" @click="downloadExcel">&#8595;</button>
-        <button class="btn btn-primary" style="padding:3px 10px;font-size:11px;border-radius:5px" type="button" @click="uploadInput?.click()">上传</button>
-      </div>
-    </div>
+      </template>
+    </ContentPageHeader>
     <input
       ref="uploadInput" type="file" id="anno-upload" accept=".xlsx,.xls,.csv" style="display:none"
       @change="pipelineAnnotate"
@@ -120,6 +120,7 @@
 </template>
 
 <script setup>
+import ContentPageHeader from '@/components/content/ContentPageHeader.vue'
 import { nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAppStore } from '@/stores/app'
@@ -770,3 +771,10 @@ function inactivePillStyle(paddingX) {
   return `padding:3px ${paddingX};border-radius:4px;font-size:10px;cursor:pointer;color:var(--text-tertiary)`
 }
 </script>
+
+<style scoped>
+.unified-overview-header { margin-bottom: 16px; }
+.query-header-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.query-date-field { display: flex; align-items: center; gap: 4px; height: 28px; box-sizing: border-box; padding: 0 8px; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); }
+.query-date-field:focus-within { border-color: var(--color-primary); box-shadow: var(--focus-ring); }
+</style>

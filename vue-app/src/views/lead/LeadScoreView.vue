@@ -29,3 +29,37 @@ onMounted(async () => {
   runNativeWorkbenchPageInit(pageId)
 })
 </script>
+
+<style>
+/* Scope to the score-rule form, including its edit state. */
+html[data-product="leaibot"] #lead-modal-root .modal:has(#sr-name) {
+  width: 720px !important; max-width: calc(100vw - 32px); max-height: calc(100dvh - 48px);
+  display: flex; flex-direction: column; overflow: hidden;
+  border-radius: var(--radius-lg); box-shadow: var(--shadow-lg);
+}
+html[data-product="leaibot"] #lead-modal-root .modal:has(#sr-name) .modal-header {
+  flex: 0 0 auto; padding: 20px 24px; border-bottom: 1px solid var(--color-border-subtle);
+  text-align: left; justify-content: space-between;
+}
+html[data-product="leaibot"] #lead-modal-root .modal:has(#sr-name) .modal-header h3 { margin: 0; padding-right: 32px; font-size: 18px; font-weight: 600; line-height: 28px; color: var(--color-text); }
+html[data-product="leaibot"] #lead-modal-root .modal:has(#sr-name) .modal-close { top: 16px; right: 16px; width: 32px; height: 32px; display: grid; place-items: center; border: 0; border-radius: var(--radius-md); }
+html[data-product="leaibot"] #lead-modal-root .modal:has(#sr-name) .modal-body { flex: 1 1 auto; min-height: 0; max-height: none; overflow-y: auto; padding: 20px 24px; overscroll-behavior: contain; }
+html[data-product="leaibot"] #lead-modal-root .modal:has(#sr-name) .modal-footer { position: static; flex: 0 0 auto; padding: 16px 24px; margin: 0; display: flex; justify-content: flex-end; gap: 8px; background: var(--color-surface); border-top: 1px solid var(--color-border-subtle); box-shadow: none; }
+html[data-product="leaibot"] #lead-modal-root .modal:has(#sr-name) .modal-footer .btn { height: 36px; min-height: 36px; padding: 0 16px; min-width: 72px; font-size: 14px; }
+html[data-product="leaibot"] #lead-modal-root .modal:has(#sr-name) .modal-body > div:first-child { display: grid !important; grid-template-columns: 2fr 1fr 1fr; gap: 16px !important; }
+html[data-product="leaibot"] #lead-modal-root .modal:has(#sr-name) .lead-field { min-width: 0; margin-bottom: 20px; }
+html[data-product="leaibot"] #lead-modal-root .modal:has(#sr-name) .lead-field > label { display: block; margin-bottom: 8px; font-size: 13px; color: var(--color-text-secondary); }
+html[data-product="leaibot"] #lead-modal-root .modal:has(#sr-name) .lead-field-c { display: flex; gap: 24px; align-items: center; }
+html[data-product="leaibot"] #lead-modal-root .modal:has(#sr-name) .lead-ck { display: inline-flex; gap: 8px; align-items: center; margin: 0 !important; white-space: nowrap; }
+html[data-product="leaibot"] #lead-modal-root .modal:has(#sr-name) .lead-inp { height: 36px; min-width: 0; max-width: 100%; background: var(--color-surface); border-radius: var(--radius-md); }
+html[data-product="leaibot"] #lead-modal-root .modal:has(#sr-name) .lead-field .lead-inp { width: 100%; }
+html[data-product="leaibot"] #lead-modal-root .modal:has(#sr-name) .lead-cond-group { padding: 16px; background: var(--color-bg-subtle); border: 1px solid var(--color-border-subtle); border-radius: var(--radius-lg); }
+html[data-product="leaibot"] #lead-modal-root .modal:has(#sr-name) .lead-cond-head { margin-bottom: 12px; font-size: 14px; font-weight: 600; gap: 8px; }
+html[data-product="leaibot"] #lead-modal-root .modal:has(#sr-name) .lead-pa-row { gap: 8px; flex-wrap: wrap; }
+html[data-product="leaibot"] #lead-modal-root .modal:has(#sr-name) .lead-beh-row { padding: 12px; margin-top: 12px; background: var(--color-surface); border: 1px solid var(--color-border-subtle); border-radius: var(--radius-md); }
+html[data-product="leaibot"] #lead-modal-root .modal:has(#sr-name) .lead-behavior-time { padding: 12px; gap: 8px; flex-wrap: wrap; }
+html[data-product="leaibot"] #lead-modal-root .modal:has(#sr-name) .lead-ck input { width: 14px; height: 14px; min-height: 14px; padding: 0; margin: 0; box-shadow: none; }
+@media (max-width: 600px) {
+  html[data-product="leaibot"] #lead-modal-root .modal:has(#sr-name) .modal-body > div:first-child { grid-template-columns: minmax(0,1fr); }
+}
+</style>

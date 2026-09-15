@@ -7,6 +7,7 @@ import type { ScenarioPackageActor, ScenarioSelectableSkill, ScenarioSkillPackag
 import ScenarioTestReportSummary from './ScenarioTestReportSummary.vue'
 
 const props = defineProps<{
+  headerTarget?: string
   draft: ScenarioSkillPackageDraft
   skills: ScenarioSelectableSkill[]
   actor: ScenarioPackageActor
@@ -110,7 +111,7 @@ onBeforeUnmount(() => {
 
 <template>
   <section class="scenario-trial-panel" aria-label="场景技能包试运行">
-    <ScenarioTestReportSummary :report="report" :steps="orderedSteps" :stale="stale" :running="running" :active-node-id="activeNodeId" :heading-level="2" results-only @select-node="activeNodeId = $event">
+    <ScenarioTestReportSummary :header-target="headerTarget" :report="report" :steps="orderedSteps" :stale="stale" :running="running" :active-node-id="activeNodeId" :heading-level="2" results-only @select-node="activeNodeId = $event">
       <template #actions>
         <button class="btn btn-secondary" type="button" :disabled="locked" @click="returnToChain()">返回编排</button>
         <button class="btn btn-primary trial-run-button" data-trial-run type="button" :disabled="locked || !draft.steps.length" @click="runTrial()">{{ running ? '正在试运行…' : report ? '重新试运行' : '开始试运行' }}</button>

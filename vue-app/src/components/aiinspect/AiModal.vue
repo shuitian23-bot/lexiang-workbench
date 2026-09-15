@@ -111,9 +111,9 @@ onBeforeUnmount(restoreFocus)
   box-sizing: border-box;
   background: color-mix(in srgb, var(--color-text) 42%, transparent);
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
-  padding: 48px 16px;
+  padding: 24px;
   overflow: auto;
   overscroll-behavior: contain;
   z-index: 1000;
@@ -124,7 +124,7 @@ onBeforeUnmount(restoreFocus)
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-popover);
   max-width: 100%;
-  max-height: calc(100dvh - 128px);
+  max-height: calc(100dvh - 48px);
   min-width: 0;
   min-height: 0;
   display: flex;
@@ -139,7 +139,7 @@ onBeforeUnmount(restoreFocus)
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 16px 20px;
+  padding: 16px 24px;
   border-bottom: 1px solid var(--color-border-subtle);
 }
 .ai-modal__title {
@@ -164,7 +164,7 @@ onBeforeUnmount(restoreFocus)
 .ai-modal__close:hover { background: var(--color-bg); color: var(--color-text); }
 .ai-modal__close:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
 .ai-modal__body {
-  padding: 20px 20px;
+  padding: 20px 24px;
   overflow-y: auto;
   overscroll-behavior: contain;
   min-height: 0;
@@ -175,7 +175,7 @@ onBeforeUnmount(restoreFocus)
   flex-wrap: wrap;
   justify-content: flex-end;
   gap: 8px;
-  padding: 16px 20px;
+  padding: 16px 24px;
   border-top: 1px solid var(--color-border-subtle);
 }
 @keyframes aiModalMaskIn { from { opacity: 0; } to { opacity: 1; } }

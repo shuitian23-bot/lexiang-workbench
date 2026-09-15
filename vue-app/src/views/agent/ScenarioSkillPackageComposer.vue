@@ -434,7 +434,7 @@ function hasVersionChange(step: CanvasStep) { return Boolean(catalog.value.get(s
     <div class="scenario-composer-layout" tabindex="0" role="group" aria-label="Skill 编排区域">
       <section class="composer-panel composer-library" aria-label="已发布 Skill 分类库">
         <header class="composer-panel-head"><h3>Skill 分类库</h3><span>{{ skills.length }} 个可用</span></header>
-        <label class="composer-field composer-search"><span>搜索 Skill</span><input ref="searchInput" v-model="search" type="search" placeholder="名称、分类或版本" autocomplete="off"></label>
+        <label class="composer-field composer-search"><input aria-label="搜索 Skill" ref="searchInput" v-model="search" type="search" placeholder="搜索 Skill：名称、分类或版本" autocomplete="off"></label>
         <p class="composer-help">拖到画布任意位置，或点击“加入”。</p>
         <div v-if="groups.length" class="composer-library-groups" tabindex="0" role="group" aria-label="可滚动的 Skill 列表">
           <section v-for="group in groups" :key="group.menu" class="composer-library-group">
@@ -452,7 +452,12 @@ function hasVersionChange(step: CanvasStep) { return Boolean(catalog.value.get(s
 
       <section class="composer-panel composer-workspace" aria-label="Skill 自由编排画布">
         <header class="composer-canvas-toolbar">
-          <div class="composer-canvas-title"><h3>编排画布</h3><span>{{ connections.length }} 条连线</span></div>
+          <div class="composer-canvas-title"><h3>编排画布</h3><span>{{ connections.length }} 条连线</span><span class="composer-toolbar-state" :class="{ 'has-connection': pendingSourceId }">
+            <span v-if="pendingSourceId">请选择目标节点的输入端口，Esc 取消</span>
+            <span v-else-if="modelValue.length && chainResolution.ok">已连接为 {{ modelValue.length }} 步执行链路</span>
+            <span v-else-if="modelValue.length">将所有节点连接为一条完整链路</span>
+            <span v-else>从左侧拖入 Skill，开始连接业务链路</span>
+          </span></div>
           <div class="composer-canvas-tools" role="toolbar" aria-label="画布工具">
             <button type="button" class="composer-tool-button" aria-label="缩小画布" :disabled="zoom <= 0.4" @click="changeZoom(zoom - 0.1)">−</button>
             <button type="button" class="composer-tool-button composer-zoom" aria-label="还原画布缩放至百分之百" @click="changeZoom(1)">{{ Math.round(zoom * 100) }}%</button>
@@ -461,12 +466,6 @@ function hasVersionChange(step: CanvasStep) { return Boolean(catalog.value.get(s
             <button type="button" class="composer-tool-button" :disabled="!modelValue.length" @click="arrangeLayout">整理布局</button>
           </div>
         </header>
-        <div class="composer-canvas-state" :class="{ 'has-connection': pendingSourceId }">
-          <span v-if="pendingSourceId">请选择目标节点的输入端口，Esc 取消</span>
-          <span v-else-if="modelValue.length && chainResolution.ok">已连接为 {{ modelValue.length }} 步执行链路</span>
-          <span v-else-if="modelValue.length">将所有节点连接为一条完整链路</span>
-          <span v-else>从左侧拖入 Skill，开始连接业务链路</span>
-        </div>
         <div
           ref="viewport" class="composer-canvas-viewport" :class="{ 'is-drop-over': isDropOver, 'is-connecting': pendingSourceId }" tabindex="0" aria-label="可滚动的编排画布" data-canvas-drop
           @dragover="dragOverCanvas" @dragleave.self="isDropOver = false" @drop="dropOnCanvas" @pointermove="movePointer" @pointerup="endPointer" @pointercancel="cancelGestures" @pointerleave="cancelGestures"
@@ -530,32 +529,35 @@ function hasVersionChange(step: CanvasStep) { return Boolean(catalog.value.get(s
           </aside>
           <p v-if="isUnavailable(selectedStep)" class="composer-warning" role="alert">此 Skill 已失效，请在操作区移除后重新选择。</p>
           <div class="composer-node-contract" :data-node-contract="selectedStep.id">
-            <label class="composer-field">
+            <div class="composer-config-field-group"><label class="composer-field">
               <span>本节点任务 <b v-if="!selectedPublishedSkill?.description?.trim()">必填</b></span>
               <textarea :value="selectedNodeContract?.task || ''" rows="3" :required="!selectedPublishedSkill?.description?.trim()" :placeholder="selectedPublishedSkill?.description || `例如：${selectedNodeExamples.task}`" @input="updateSelectedStep({ task: ($event.target as HTMLTextAreaElement).value })"></textarea>
               <small v-if="selectedPublishedSkill?.description?.trim()">未填写时按当前固定版本 Skill 的任务说明执行，也可填写本场景的具体任务。</small>
               <small v-else>填写本节点要处理的对象和具体动作；当前固定版本未提供任务说明，需补充后试运行。</small>
               <small>填写示例：{{ selectedNodeExamples.task }}</small>
-            </label>
-            <label class="composer-field">
-              <span>固定要求（选填）</span>
+            </label></div>
+            <div class="composer-config-field-group"><label class="composer-field">
+              <span>固定要求 <small class="composer-optional-tag">选填</small></span>
               <textarea :value="selectedNodeContract?.fixedRequirements || ''" rows="3" :placeholder="`例如：${selectedNodeExamples.requirements}`" @input="updateSelectedStep({ fixedRequirements: ($event.target as HTMLTextAreaElement).value })"></textarea>
               <small>填写示例：{{ selectedNodeExamples.requirements }}</small>
-            </label>
-            <label class="composer-field">
+            </label></div>
+            <div class="composer-config-field-group"><label class="composer-field">
               <span>预期输出</span>
               <textarea :value="selectedNodeContract?.expectedOutput || ''" rows="3" :placeholder="selectedPublishedSkill?.outputDescription || `例如：${selectedNodeExamples.output}`" @input="updateSelectedStep({ expectedOutput: ($event.target as HTMLTextAreaElement).value })"></textarea>
               <small>可参考 Skill 的输出说明填写预期结果；提示文字不会作为已填内容保存。</small>
               <small>填写示例：{{ selectedNodeExamples.output }}</small>
-            </label>
+            </label></div>
           </div>
           <dl class="composer-field composer-static-field"><dt>固定版本</dt><dd class="composer-static-value">{{ selectedStep.pinnedVersion }}</dd><dd><small>加入时固定版本，Skill 发布新版后不会自动切换。</small></dd></dl>
-          <label class="composer-field"><span>所属链路</span><select :value="selectedStep.kind" @change="setSelectedKind(($event.target as HTMLSelectElement).value as ScenarioStepKind)"><option value="required">核心链路（必需执行）</option><option value="conditional">条件链路（满足条件执行）</option></select><small>选择示例：每次都要执行选“核心链路”；仅在特定需求下执行选“条件链路”。</small></label>
-          <div v-if="selectedStep.kind === 'conditional'" class="composer-condition-editor"><label class="composer-field"><span>判断条件 <b>必填</b></span><textarea :value="selectedStep.condition || ''" rows="3" required :placeholder="`例如：${selectedNodeExamples.condition}`" @input="updateSelectedStep({ condition: ($event.target as HTMLTextAreaElement).value })"></textarea><small>条件满足才执行此步；不满足则继续下一步。</small><small>填写示例：{{ selectedNodeExamples.condition }}</small></label><button type="button" class="composer-condition-example" @click="updateSelectedStep({ condition: selectedNodeExamples.condition })">使用此条件示例</button></div>
-          <p v-else class="composer-help">此步骤属于核心链路；依赖过期或不可用时，整个技能包暂停。</p>
-          <fieldset class="composer-evidence-options"><legend>执行要求（选填）</legend><label><input type="checkbox" :checked="selectedStep.requiresConfirmation === true" @change="updateSelectedStep({ requiresConfirmation: ($event.target as HTMLInputElement).checked })"><span>执行前需要确认</span></label></fieldset>
-          <p class="composer-help">不勾选则无需人工确认；执行时仍需校验权限。</p>
-          <p class="composer-help">选择示例：执行前需核对本次范围时勾选“执行前需要确认”；无需核对时不勾选。</p>
+          <section class="composer-execution-settings" aria-label="执行设置"><h4>执行设置</h4>
+
+            <label class="composer-field"><span>所属链路</span><select :value="selectedStep.kind" @change="setSelectedKind(($event.target as HTMLSelectElement).value as ScenarioStepKind)"><option value="required">核心链路（必需执行）</option><option value="conditional">条件链路（满足条件执行）</option></select><small>选择示例：每次都要执行选“核心链路”；仅在特定需求下执行选“条件链路”。</small></label>
+            <div v-if="selectedStep.kind === 'conditional'" class="composer-condition-editor"><label class="composer-field"><span>判断条件 <b>必填</b></span><textarea :value="selectedStep.condition || ''" rows="3" required :placeholder="`例如：${selectedNodeExamples.condition}`" @input="updateSelectedStep({ condition: ($event.target as HTMLTextAreaElement).value })"></textarea><small>条件满足才执行此步；不满足则继续下一步。</small><small>填写示例：{{ selectedNodeExamples.condition }}</small></label><button type="button" class="composer-condition-example" @click="updateSelectedStep({ condition: selectedNodeExamples.condition })">使用此条件示例</button></div>
+            <p v-else class="composer-help">此步骤属于核心链路；依赖过期或不可用时，整个技能包暂停。</p>
+            <fieldset class="composer-evidence-options"><legend>执行要求（选填）</legend><label><input type="checkbox" :checked="selectedStep.requiresConfirmation === true" @change="updateSelectedStep({ requiresConfirmation: ($event.target as HTMLInputElement).checked })"><span>执行前需要确认</span></label></fieldset>
+            <p class="composer-help">不勾选则无需人工确认；执行时仍需校验权限。</p>
+            <p class="composer-help">选择示例：执行前需核对本次范围时勾选“执行前需要确认”；无需核对时不勾选。</p>
+          </section>
           <details :key="selectedStep.id" class="composer-node-advanced">
             <summary>高级信息</summary>
             <dl><div><dt>节点 ID</dt><dd>{{ selectedStep.id }}</dd></div><div><dt>Skill ID</dt><dd>{{ selectedStep.skillId }}</dd></div></dl>
@@ -578,7 +580,7 @@ function hasVersionChange(step: CanvasStep) { return Boolean(catalog.value.get(s
 .scenario-composer { container: scenario-composer / inline-size; display: flex; flex: 1 1 auto; flex-direction: column; width: 100%; min-width: 0; min-height: 0; }
 .scenario-composer :deep(.content-section-header) { flex: 0 0 auto; }
 .scenario-composer :deep(.content-section-header__heading) { flex-basis: auto; }
-.scenario-composer-layout { display: grid; flex: 1 1 auto; grid-template-columns: minmax(180px, 0.75fr) minmax(0, 2.2fr) minmax(220px, 0.9fr); grid-template-rows: minmax(360px, 1fr); gap: 16px; min-width: 0; min-height: 0; margin-top: 16px; overflow: auto; overscroll-behavior: contain; scrollbar-gutter: stable; }
+.scenario-composer-layout { display: grid; flex: 1 1 auto; grid-template-columns: 240px minmax(0, 1fr) 288px; grid-template-rows: minmax(360px, 1fr); gap: 16px; min-width: 0; min-height: 0; margin-top: 16px; overflow: auto; overscroll-behavior: contain; scrollbar-gutter: stable; }
 .scenario-composer-layout * { box-sizing: border-box; }
 .composer-panel { display: flex; flex-direction: column; min-width: 0; min-height: 0; padding: 16px; overflow: hidden; border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-surface); }
 .composer-panel > :not(.composer-library-groups, .composer-canvas-viewport, .composer-configuration-body, .composer-empty) { flex-shrink: 0; }
@@ -606,7 +608,8 @@ function hasVersionChange(step: CanvasStep) { return Boolean(catalog.value.get(s
 .composer-library-list { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
 .composer-library-skill { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; min-width: 0; padding: 12px 8px; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); cursor: grab; }
 .composer-library-skill:hover { border-color: var(--color-primary-border); }
-.composer-library-skill.is-added { background: var(--color-primary-subtle); border-color: var(--color-primary-border); }
+.composer-library-skill.is-added { background: var(--color-warning-subtle); border-color: var(--color-warning); }
+.composer-library-skill.is-added .composer-text-button { color: var(--color-warning); font-weight: 600; }
 .composer-grip { flex: 0 0 auto; color: var(--color-text-tertiary); font-size: 18px; line-height: 1; cursor: grab; }
 .composer-skill-summary { flex: 1 1 72px; display: grid; gap: 4px; min-width: 0; }
 .composer-skill-summary strong, .composer-selected-summary strong { color: var(--color-text); font-size: 13px; font-weight: 500; overflow-wrap: anywhere; }
@@ -699,15 +702,34 @@ function hasVersionChange(step: CanvasStep) { return Boolean(catalog.value.get(s
 .composer-edge-detail > span { color: var(--color-text-secondary); font-size: 12px; }
 .composer-edge-detail strong { color: var(--color-text); font-size: 13px; font-weight: 500; overflow-wrap: anywhere; }
 .composer-delete-connection { width: fit-content; max-width: 100%; min-height: var(--control-height-md); padding: 8px 12px; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); color: var(--color-danger); font: inherit; font-size: 13px; cursor: pointer; }
-@container scenario-composer (max-width: 1039px) {
-  .scenario-composer-layout { grid-template-columns: minmax(180px, 0.7fr) minmax(0, 2fr); grid-template-rows: repeat(2, clamp(400px, 60dvh, 560px)); align-content: start; overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; }
-  .composer-configuration { grid-column: 1 / -1; }
-  .composer-configuration-body { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .composer-selected-summary, .composer-configuration-body > .composer-warning, .composer-condition-editor { grid-column: 1 / -1; }
-}
-@container scenario-composer (max-width: 719px) {
-  .scenario-composer-layout, .composer-configuration-body { grid-template-columns: minmax(0, 1fr); }
-  .scenario-composer-layout { grid-template-rows: 360px repeat(2, clamp(400px, 60dvh, 560px)); }
+/* Keep the library, canvas and inspector available together for drag and configuration. */
+@container scenario-composer (max-width: 1199px) {
+  .scenario-composer-layout { grid-template-columns: minmax(140px, 0.7fr) minmax(260px, 1.6fr) minmax(180px, 0.85fr); gap: 12px; }
   .composer-library, .composer-configuration { padding: 12px; }
+  .composer-canvas-toolbar { flex-wrap: wrap; gap: 8px; padding: 12px; }
+  .composer-canvas-tools { flex-wrap: wrap; }
 }
+@container scenario-composer (max-width: 619px) {
+  .scenario-composer-layout { grid-template-columns: 140px minmax(260px, 1fr) 180px; overflow-x: auto; }
+}
+
+.composer-field input:focus-visible, .composer-field textarea:focus-visible, .composer-field select:focus-visible { outline: none; border-color: var(--color-primary); box-shadow: var(--focus-ring); }
+.composer-tool-button, .composer-text-button { border-radius: var(--radius-md); }
+.composer-panel-head h3, .composer-canvas-title h3 { font-size: var(--text-base); font-weight: 600; line-height: 1.4; }
+.composer-canvas-title { flex-wrap: wrap; }
+.composer-toolbar-state { color: var(--color-text-secondary); font-size: 12px; font-weight: 400; }
+.composer-toolbar-state.has-connection { color: var(--color-primary); }
+.composer-canvas-footer { align-items: center; padding: 8px 12px; flex-wrap: nowrap; }
+.composer-canvas-footer > span { flex: 1; }
+.composer-canvas-footer .is-error { color: var(--color-danger); }
+.composer-workspace { container: composer-workspace / inline-size; }
+.composer-configuration .composer-selected-summary { padding: 12px; border: 1px solid var(--color-border-subtle); border-radius: var(--radius-md); background: var(--color-surface-subtle); }
+.composer-selected-summary > strong { display: block; color: var(--color-text); font-size: 14px; line-height: 1.5; font-weight: 600; }
+.composer-config-field-group { display: grid; gap: 8px; min-width: 0; }
+.composer-config-field-group .composer-field > span { font-size: 13px; font-weight: 600; color: var(--color-text); }
+.composer-config-field-group .composer-field > small { font-size: 12px; line-height: 1.6; color: var(--color-text-tertiary); }
+.composer-optional-tag { margin-left: 4px; font-weight: 400; color: var(--color-text-tertiary); }
+.composer-execution-settings { display: grid; gap: 12px; min-width: 0; margin-top: 8px; padding-top: 16px; border-top: 1px solid var(--color-border-subtle); }
+.composer-execution-settings > h4 { margin: 0; font-size: 14px; line-height: 1.5; font-weight: 600; color: var(--color-text); }
+.composer-execution-settings > .composer-help { margin: 0; font-size: 12px; color: var(--color-text-tertiary); }
 </style>

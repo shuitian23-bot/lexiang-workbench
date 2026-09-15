@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import SectionHeader from '@/components/content/SectionHeader.vue'
 import { computed, onActivated, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAppStore } from '@/stores/app'
@@ -187,15 +188,14 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="ai-issues">
+  <div class="ai-issues" data-page-flow="ai-inspect-issues">
     <ContentPageHeader class="inspect-page-header" title="问题处理" description="巡检异常集中处理入口" />
 
     <!-- AI 总览摘要 -->
     <div class="ai-summary inspect-surface">
-      <div class="ai-summary__head">
-        <span class="ai-summary__title">AI 巡检总览摘要</span>
-        <button class="btn btn-sm btn-secondary" type="button" @click="copySummary">一键复制</button>
-      </div>
+      <SectionHeader class="ai-summary__head" title="AI 巡检总览摘要">
+        <template #actions><button class="btn btn-sm btn-secondary" type="button" @click="copySummary">一键复制</button></template>
+      </SectionHeader>
       <p>{{ aiSummary.overview }}</p>
       <p>{{ aiSummary.distribution }}</p>
       <p class="ai-summary__suggest">{{ aiSummary.suggestion }}</p>
@@ -204,16 +204,16 @@ onMounted(() => {
     <div class="inspect-list-workspace">
       <!-- 筛选条 -->
       <div class="ai-filterbar">
-        <select v-model="filters.status" class="ai-select">
+        <select v-model="filters.status" class="ai-select" aria-label="问题状态">
           <option v-for="opt in statusOptions" :key="opt" :value="opt">{{ opt }}</option>
         </select>
-        <select v-model="filters.level" class="ai-select">
+        <select v-model="filters.level" class="ai-select" aria-label="异常等级">
           <option v-for="opt in levelOptions" :key="opt" :value="opt">{{ opt }}</option>
         </select>
-        <select v-model="filters.page" class="ai-select">
+        <select v-model="filters.page" class="ai-select" aria-label="巡检页面">
           <option v-for="opt in pageOptions" :key="opt" :value="opt">{{ opt }}</option>
         </select>
-        <select v-model="filters.dimension" class="ai-select">
+        <select v-model="filters.dimension" class="ai-select" aria-label="巡检维度">
           <option v-for="opt in dimensionOptions" :key="opt" :value="opt">{{ opt }}</option>
         </select>
         <button class="btn btn-sm btn-secondary" type="button" @click="resetFilters">重置筛选</button>
@@ -371,15 +371,15 @@ onMounted(() => {
 
 <style scoped>
 .ai-issues { display: flex; flex-direction: column; gap: 16px; width: 100%; min-width: 0; container-type: inline-size; container-name: ai-inspect-page; }
-.ai-issues > * { min-width: 0; }
+.ai-issues > * { min-width: 0; margin-block: 0; }
 .inspect-list-workspace { display: grid; gap: 12px; min-width: 0; }
 .inspect-list-workspace > * { margin-block: 0; }
-.inspect-surface { background: var(--color-surface); border: 1px solid var(--color-border-subtle); border-radius: var(--radius-lg); padding: 16px 20px; min-width: 0; }
+.inspect-surface { background: var(--color-surface); border: 1px solid var(--color-border-subtle); border-radius: var(--radius-lg); padding: 20px; min-width: 0; }
 .ai-table-scroll { width: 100%; max-width: 100%; overflow-x: auto; overscroll-behavior-x: contain; }
 .ai-table-scroll:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
 
 .ai-summary p { margin: 0 0 8px; font-size: 13px; color: var(--color-text); line-height: 1.7; }
-.ai-summary__head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.ai-summary__head { margin-bottom: 16px; }
 .ai-summary__title { font-size: 14px; font-weight: 600; }
 .ai-summary__suggest { color: var(--color-text-secondary); }
 
@@ -395,7 +395,7 @@ onMounted(() => {
 .ai-col-check { width: 36px; text-align: center; }
 .ai-col-actions { text-align: right; white-space: nowrap; }
 .ai-col-actions .btn { margin-left: 4px; }
-.ai-mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--color-text-secondary); font-size: 12px; }
+.ai-mono { font-family: var(--font-mono); color: var(--color-text-secondary); font-size: 12px; }
 .ai-cell-strong { font-weight: 500; }
 .ai-cell-sub { font-size: 12px; color: var(--color-text-tertiary); margin-top: 4px; }
 .ai-unassigned { font-size: 12px; color: var(--color-text-tertiary); background: var(--color-bg); padding: 4px 8px; border-radius: 9999px; }
@@ -432,9 +432,19 @@ onMounted(() => {
 @container ai-inspect-modal (max-width: 479px) {
   .ai-info-grid { grid-template-columns: 1fr; }
 }
-@container ai-inspect-page (max-width: 719px) {
-  .inspect-page-header { flex-direction: column; align-items: stretch; }
-  .inspect-page-header :deep(.content-page-header__heading) { flex-basis: auto; }
-  .inspect-page-header :deep(.content-page-header__actions) { justify-content: flex-start; }
-}
+
+
+.ai-table th { height: 40px; box-sizing: border-box; color: var(--color-text-secondary); background: var(--color-bg-subtle); font-size: var(--text-sm); }
+.ai-table td { height: 48px; box-sizing: border-box; }
+.ai-table tbody tr:hover { background: var(--color-primary-subtle); }
+.ai-select:focus-visible { outline: none; border-color: var(--color-primary); box-shadow: var(--focus-ring); }
+.ai-col-actions { position: sticky; right: 0; background: var(--color-surface); box-shadow: var(--shadow-surface); }
+.ai-table th.ai-col-actions { background: var(--color-bg-subtle); }
+.ai-filterbar { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); padding: 16px; border: 1px solid var(--color-border-subtle); border-radius: var(--radius-md); background: var(--color-surface); }
+.ai-filterbar > .ai-select { width: 100%; min-width: 0; height: var(--control-height-md); padding-block: 0; }
+.ai-filterbar > .btn { justify-self: start; }
+.ai-filter-count { grid-column: 2 / -1; align-self: center; }
+.ai-batch { grid-column: 1 / -1; box-sizing: border-box; flex-wrap: wrap; }
+@container ai-inspect-page (max-width: 1039px) { .ai-filterbar { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@container ai-inspect-page (max-width: 719px) { .ai-filterbar { grid-template-columns: minmax(0, 1fr); } .ai-filter-count { grid-column: 1; margin-left: 0; } }
 </style>

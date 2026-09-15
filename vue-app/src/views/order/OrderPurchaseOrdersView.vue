@@ -1,15 +1,13 @@
 <template>
   <section class="purchase-orders-page" :class="{ 'is-detail': isDetailMode }">
     <template v-if="selectedOrder">
-      <header class="order-detail-header">
-        <button class="text-action" type="button" @click="goList">返回列表</button>
-        <div>
-          <p class="section-kicker">协议采购单详情</p>
-          <h1>{{ selectedOrder.agreementName }}</h1>
-          <p>{{ selectedOrder.customerName }} · {{ selectedOrder.poNo }}</p>
-        </div>
-        <button class="primary-action" type="button" @click="exportSingleOrder">导出当前详情</button>
-      </header>
+      <ContentPageHeader class="order-detail-heading" title="协议采购单详情" :description="`${selectedOrder.customerName} · ${selectedOrder.poNo}`">
+        <template #status><p class="order-detail-name">{{ selectedOrder.agreementName }}</p></template>
+        <template #actions>
+          <button class="secondary-action" type="button" @click="goList">返回列表</button>
+          <button class="primary-action" type="button" @click="exportSingleOrder">导出当前详情</button>
+        </template>
+      </ContentPageHeader>
 
       <div class="order-page-flow detail-flow">
         <div class="detail-grid">
@@ -78,15 +76,9 @@
     </template>
 
     <template v-else>
-      <header class="order-page-header">
-        <div>
-          <h1 class="page-title">协议采购单管理</h1>
-          <p>当前为纯页面演示 POC，数据来自独立 mock/service 层，暂未连接真实接口。</p>
-        </div>
-        <button class="primary-action" type="button" @click="exportFilteredOrders">
-          导出当前筛选
-        </button>
-      </header>
+      <ContentPageHeader class="order-list-header" title="协议采购单管理" description="当前为纯页面演示 POC，数据来自独立 mock/service 层，暂未连接真实接口。">
+        <template #actions><button class="primary-action" type="button" @click="exportFilteredOrders">导出当前筛选</button></template>
+      </ContentPageHeader>
 
       <div class="order-page-flow order-summary-list-flow">
         <section class="order-kpi-grid" aria-label="当前筛选结果摘要">
@@ -109,7 +101,7 @@
         </section>
 
         <section class="order-list-workspace" aria-label="协议采购单列表工作区">
-          <form class="order-query-panel" aria-label="筛选条件" @submit.prevent="applyQuery">
+          <form class="order-query-panel standard-filter-controls" aria-label="筛选条件" @submit.prevent="applyQuery">
             <label>
               <span>关键词</span>
               <input
@@ -199,6 +191,7 @@
 </template>
 
 <script setup lang="ts">
+import ContentPageHeader from '@/components/content/ContentPageHeader.vue'
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAppStore, type PageId } from '@/stores/app'
@@ -335,6 +328,9 @@ function formatShortCurrency(value: number) {
   display: grid;
   min-width: 0;
 }
+
+.order-detail-heading { margin-bottom: 16px; }
+.order-detail-name { margin: 8px 0 0; color: var(--color-text); font-size: 14px; font-weight: 600; line-height: 1.5; }
 
 .order-page-flow {
   gap: 16px;
@@ -778,4 +774,5 @@ function formatShortCurrency(value: number) {
     justify-content: flex-start;
   }
 }
+.order-list-header { margin-bottom: 16px; }
 </style>

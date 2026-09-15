@@ -36,10 +36,10 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="ai-logs">
+  <div class="ai-logs" data-page-flow="ai-inspect-logs">
     <ContentPageHeader class="inspect-page-header" title="运行日志" description="系统运行记录 · 仅管理员可见">
       <template #actions>
-        <select v-model="levelFilter" class="ai-select">
+        <select v-model="levelFilter" class="ai-select" aria-label="日志级别">
           <option v-for="opt in levelOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
         </select>
       </template>
@@ -82,8 +82,8 @@ onMounted(() => {
 
 <style scoped>
 .ai-logs { display: flex; flex-direction: column; gap: 16px; width: 100%; min-width: 0; container-type: inline-size; container-name: ai-inspect-page; }
-.ai-logs > * { min-width: 0; }
-.inspect-surface { background: var(--color-surface); border: 1px solid var(--color-border-subtle); border-radius: var(--radius-lg); padding: 16px 20px; min-width: 0; }
+.ai-logs > * { min-width: 0; margin-block: 0; }
+.inspect-surface { background: var(--color-surface); border: 1px solid var(--color-border-subtle); border-radius: var(--radius-lg); padding: 20px; min-width: 0; }
 .ai-table-scroll { width: 100%; max-width: 100%; overflow-x: auto; overscroll-behavior-x: contain; }
 .ai-table-scroll:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
 .ai-select { min-height: 36px; max-width: 100%; padding: 8px 12px; border: 1px solid var(--color-border); border-radius: var(--radius-md); font-size: 13px; background: var(--color-surface); color: var(--color-text); }
@@ -93,15 +93,16 @@ onMounted(() => {
 .ai-table td { padding: 12px; border-bottom: 1px solid var(--color-border-subtle); color: var(--color-text); vertical-align: top; }
 .ai-logs__time-col { width: 184px; }
 .ai-logs__level-col { width: 92px; }
-.ai-mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--color-text-secondary); font-size: 12px; white-space: nowrap; }
+.ai-mono { font-family: var(--font-mono); color: var(--color-text-secondary); font-size: 12px; white-space: nowrap; }
 .inspect-log-message { color: var(--color-text); line-height: 1.6; overflow-wrap: anywhere; }
 
 .ai-noauth { text-align: center; padding: 48px 20px; color: var(--color-text-tertiary); }
 .ai-noauth__icon { font-size: 30px; margin-bottom: 12px; }
 .ai-noauth p { font-size: 13px; }
-@container ai-inspect-page (max-width: 719px) {
-  .inspect-page-header { flex-direction: column; align-items: stretch; }
-  .inspect-page-header :deep(.content-page-header__heading) { flex-basis: auto; }
-  .inspect-page-header :deep(.content-page-header__actions) { justify-content: flex-start; }
-}
+
+
+.ai-table th { height: 40px; box-sizing: border-box; color: var(--color-text-secondary); background: var(--color-bg-subtle); font-size: var(--text-sm); }
+.ai-table td { height: 48px; box-sizing: border-box; }
+.ai-table tbody tr:hover { background: var(--color-primary-subtle); }
+.ai-select:focus-visible { outline: none; border-color: var(--color-primary); box-shadow: var(--focus-ring); }
 </style>

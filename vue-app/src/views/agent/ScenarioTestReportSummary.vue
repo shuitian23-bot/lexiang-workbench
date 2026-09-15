@@ -6,6 +6,7 @@ import { resolveScenarioChain } from '@/domain/scenarioSkillPackages.js'
 import type { ScenarioPinnedStep } from '@/stores/scenarioSkillPackages'
 
 const props = defineProps<{
+  headerTarget?: string
   report: ScenarioSimulationReport | null
   stale?: boolean
   steps?: ScenarioPinnedStep[]
@@ -108,16 +109,18 @@ function skippedConditionNames(report: ScenarioSimulationReport) {
 </script>
 
 <template>
-  <section class="scenario-test-report" aria-label="节点试运行结果" :aria-busy="running ? 'true' : 'false'">
-    <SectionHeader title="节点试运行结果" :heading-level="headingLevel ?? 3">
-      <template #meta>
-        <span>模拟数据 · 未调用业务接口</span>
-        <span v-if="running" role="status">正在生成本轮结果…</span>
-        <span v-else-if="report" class="test-report-status" :class="`is-${report.status}`">{{ statusLabel(report.status) }}</span>
-        <span v-else>尚未试运行</span>
-      </template>
-      <template v-if="$slots.actions" #actions><slot name="actions"></slot></template>
-    </SectionHeader>
+  <section class="scenario-test-report" :class="{ 'is-results-only': resultsOnly }" aria-label="节点试运行结果" :aria-busy="running ? 'true' : 'false'">
+    <Teleport defer :to="headerTarget || 'body'" :disabled="!headerTarget">
+      <SectionHeader title="节点试运行结果" :heading-level="headingLevel ?? 3">
+        <template #meta>
+          <span>模拟数据 · 未调用业务接口</span>
+          <span v-if="running" role="status">正在生成本轮结果…</span>
+          <span v-else-if="report" class="test-report-status" :class="`is-${report.status}`">{{ statusLabel(report.status) }}</span>
+          <span v-else>尚未试运行</span>
+        </template>
+        <template v-if="$slots.actions" #actions><slot name="actions"></slot></template>
+      </SectionHeader>
+    </Teleport>
     <slot name="status">
       <p v-if="stale && report" class="test-report-history" role="status">记录已过期，请重新试运行后再提交。</p>
     </slot>
@@ -324,4 +327,7 @@ function skippedConditionNames(report: ScenarioSimulationReport) {
   .test-report-navigation { max-height: 240px; }
   .test-report-detail { padding: 12px; }
 }
+.is-results-only .test-report-navigation,
+.is-results-only .test-report-detail { max-height: none; overflow: visible; scrollbar-gutter: auto; }
+.is-results-only .test-report-workspace { align-items: start; }
 </style>
