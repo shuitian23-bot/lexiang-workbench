@@ -81,39 +81,57 @@
   font-size: 14px;
   line-height: 1.65;
 }
+/* One continuous aubergine hue; the architecture supplies luminance only. */
 .lx-brand-home #lxbrand-about .lxbrand-about-grid > .lxbrand-card:nth-child(2) {
   grid-column: 2 / 4;
   grid-row: 1;
   display: grid;
   grid-template-columns: minmax(0,1.1fr) minmax(0,.9fr);
-  border: 1px solid #e9e2eb;
-  background: #fff;
+  border: 1px solid hsl(306 23% 29%);
+  background: linear-gradient(110deg,hsl(306 28% 12%) 0%,hsl(306 27% 18%) 52%,hsl(306 25% 28%) 100%);
+  isolation: isolate;
 }
 .lx-brand-home #lxbrand-about .lxbrand-about-grid > .lxbrand-card:nth-child(2) > img {
-  grid-column: 2;
-  grid-row: 1;
-  width: 100%;
+  position: absolute;
+  inset: 0 0 0 auto;
+  width: 68%;
   height: 100%;
   min-height: 0;
   object-fit: cover;
   object-position: center;
+  filter: grayscale(1);
+  mix-blend-mode: luminosity;
+  opacity: .42;
+  mask-image: linear-gradient(90deg,transparent 0%,rgba(0,0,0,.3) 26%,#000 70%);
 }
 .lx-brand-home #lxbrand-about .lxbrand-about-grid > .lxbrand-card:nth-child(2) .lxbrand-card-body {
+  position: relative;
+  z-index: 1;
   grid-column: 1;
   grid-row: 1;
   align-self: center;
   padding: 24px;
 }
+.lx-brand-home #lxbrand-about .lxbrand-about-grid > .lxbrand-card:nth-child(2)::after {
+  z-index: 2;
+  border-color: rgba(255,255,255,.3);
+  background-color: hsl(306 18% 96%);
+}
 .lx-brand-home #lxbrand-about .lxbrand-about-grid > .lxbrand-card:nth-child(2) h3 {
   display: block;
   overflow: visible;
   margin: 0;
-  color: #252525;
+  color: #fff;
   font-size: 21px;
   line-height: 1.4;
   font-weight: 600;
 }
-.lx-brand-home #lxbrand-about .lxbrand-about-grid > .lxbrand-card:nth-child(2) p { margin: 10px 0 0; font-size: 14px; line-height: 1.65; }
+.lx-brand-home #lxbrand-about .lxbrand-about-grid > .lxbrand-card:nth-child(2) p {
+  margin: 10px 0 0;
+  color: rgba(255,255,255,.88);
+  font-size: 14px;
+  line-height: 1.65;
+}
 .lx-brand-home #lxbrand-about .lxbrand-about-links { display: contents; }
 .lx-brand-home #lxbrand-about .lxbrand-about-link {
   grid-row: 2;
