@@ -1752,6 +1752,62 @@
     }
   }
 
+  async function lxfdRunSolutionAnswer(industry = "") {
+    const __lxGenerationToken = window.__lxGeneration.capture();
+        let scoped = industry ? window.__lxIndustrySolutions.describe(industry) : null;
+        const solutionNonce = chatState.conversationNonce;
+        chatState.sending = true;
+        try {
+        const solutionAi = document.createElement("div");
+        solutionAi.className = "lxfd-msg-ai";
+        solutionAi._loadingStarted = Date.now();
+        solutionAi._traceLines = ["联想乐享正在判断"];
+        solutionAi._traceSkills = new Set();
+        solutionAi._traceCollapsed = false;
+        solutionAi.innerHTML = '<div class="lxfd-ai-body"></div>';
+        thread?.appendChild(solutionAi);
+        lxfdRenderTraceLive(solutionAi);
+        solutionAi.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "end" });
+
+        await window.__lxGeneration.wait(__lxGenerationToken,(lxfdWait(reduceMotion ? 0 : 520)));
+        solutionAi._traceLines.push("已判断："+(scoped?scoped.title:"全集解决方案")+"检索任务");
+        lxfdRenderTraceLive(solutionAi);
+        await window.__lxGeneration.wait(__lxGenerationToken,(lxfdWait(reduceMotion ? 0 : 680)));
+        solutionAi._traceSkills.add("Skill(解决方案推荐)");
+        solutionAi._traceLines.push(scoped?"正在调用 Skill(解决方案推荐)":"联想乐享官方 SKILL：正在调用 Skill(解决方案推荐)");
+        lxfdRenderTraceLive(solutionAi);
+        if (scoped) scoped = await window.__lxGeneration.wait(__lxGenerationToken,(window.__lxIndustrySolutions.run(industry)));
+        await window.__lxGeneration.wait(__lxGenerationToken,(lxfdWait(reduceMotion ? 0 : 760)));
+        if (solutionNonce !== chatState.conversationNonce) { solutionAi.remove(); return; }
+        solutionAi._traceLines.push("已完成：行业方案全集与分类楼层已生成");
+        solutionAi._traceCollapsed = true;
+        lxfdRenderTraceLive(solutionAi);
+
+        const solutionCopy = scoped ? scoped.copy : [
+          "我已为你汇总**乐享全集解决方案**，覆盖教育、医疗、政府、制造、金融、能源、交通和服务八大行业。",
+          "每个行业都按照**独立楼层**组织，并结合核心业务场景、终端部署、基础设施与持续服务，方便你快速浏览和比较。",
+          "你可以进入全集后**按行业标签定位**；当前视口会在每个楼层单排自适应展示 4–6 个方案。"
+        ].join("\n\n");
+        await window.__lxGeneration.wait(__lxGenerationToken,(lxfdAnimateFinal(solutionAi, solutionCopy)));
+        if (solutionNonce !== chatState.conversationNonce) return;
+        const solutionMeta = scoped ? {feature:scoped.feature,resultId:scoped.tabId,title:scoped.cardTitle,desc:scoped.desc} : lxfdPageCtaMeta("open_solution");
+        const solutionBody = solutionAi.querySelector(".lxfd-ai-body");
+        if (solutionBody && solutionMeta) {
+          solutionBody.insertAdjacentHTML("beforeend", renderLxfdPageCta(solutionMeta));
+          const solutionCard = solutionBody.querySelector('.answer-cta');
+          if (solutionCard) {
+            solutionCard.classList.add("is-active");
+            solutionCard.setAttribute("aria-pressed", "true");
+          }
+        }
+        lxfdPersistCurrent();
+        await window.__lxGeneration.wait(__lxGenerationToken,(lxfdWait(reduceMotion ? 0 : 720)));
+        lxfdExportToMain();
+        if (solutionNonce !== chatState.conversationNonce) return;
+        exitFullscreenWithReveal(() => { if (solutionNonce === chatState.conversationNonce) lxfdRevealFeature(scoped ? scoped.feature : "solution"); });
+        } finally {if(window.__lxGeneration.current(__lxGenerationToken)){ if (solutionNonce === chatState.conversationNonce) chatState.sending = false; }}
+  }
+
   async function submit(text) {const __lxGenerationToken=window.__lxGeneration.capture();try{
     const value = String(text || "").trim();
     if (!value || chatState.sending) return;
@@ -1829,6 +1885,12 @@
     const educationAuthKind = lxfdEducationAuthKind(value);
     if (educationAuthKind) {
       await window.__lxGeneration.wait(__lxGenerationToken, lxfdRunUnifiedAuthAnswer("education", educationAuthKind));
+      return;
+    }
+
+    const solutionQuery = window.__lxIntent?.matchSolution(value);
+    if (solutionQuery) {
+      await window.__lxGeneration.wait(__lxGenerationToken, lxfdRunSolutionAnswer(solutionQuery.industry || ""));
       return;
     }
 
@@ -2128,59 +2190,7 @@
     const _lxfdLocalCtrl = !_lxfdAutoBuy && window.__lxIntent ? window.__lxIntent.matchControl(value) : null;
     if (_lxfdLocalCtrl) {
       if (_lxfdLocalCtrl.op === "open_solution") {
-        const industry = _lxfdLocalCtrl.industry || "";
-        let scoped = industry ? window.__lxIndustrySolutions.describe(industry) : null;
-        const solutionNonce = chatState.conversationNonce;
-        chatState.sending = true;
-        try {
-        const solutionAi = document.createElement("div");
-        solutionAi.className = "lxfd-msg-ai";
-        solutionAi._loadingStarted = Date.now();
-        solutionAi._traceLines = ["联想乐享正在判断"];
-        solutionAi._traceSkills = new Set();
-        solutionAi._traceCollapsed = false;
-        solutionAi.innerHTML = '<div class="lxfd-ai-body"></div>';
-        thread?.appendChild(solutionAi);
-        lxfdRenderTraceLive(solutionAi);
-        solutionAi.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "end" });
-
-        await window.__lxGeneration.wait(__lxGenerationToken,(lxfdWait(reduceMotion ? 0 : 520)));
-        solutionAi._traceLines.push("已判断："+(scoped?scoped.title:"全集解决方案")+"检索任务");
-        lxfdRenderTraceLive(solutionAi);
-        await window.__lxGeneration.wait(__lxGenerationToken,(lxfdWait(reduceMotion ? 0 : 680)));
-        solutionAi._traceSkills.add("Skill(解决方案推荐)");
-        solutionAi._traceLines.push(scoped?"正在调用 Skill(解决方案推荐)":"联想乐享官方 SKILL：正在调用 Skill(解决方案推荐)");
-        lxfdRenderTraceLive(solutionAi);
-        if (scoped) scoped = await window.__lxGeneration.wait(__lxGenerationToken,(window.__lxIndustrySolutions.run(industry)));
-        await window.__lxGeneration.wait(__lxGenerationToken,(lxfdWait(reduceMotion ? 0 : 760)));
-        if (solutionNonce !== chatState.conversationNonce) { solutionAi.remove(); return; }
-        solutionAi._traceLines.push("已完成：行业方案全集与分类楼层已生成");
-        solutionAi._traceCollapsed = true;
-        lxfdRenderTraceLive(solutionAi);
-
-        const solutionCopy = scoped ? scoped.copy : [
-          "我已为你汇总**乐享全集解决方案**，覆盖教育、医疗、政府、制造、金融、能源、交通和服务八大行业。",
-          "每个行业都按照**独立楼层**组织，并结合核心业务场景、终端部署、基础设施与持续服务，方便你快速浏览和比较。",
-          "你可以进入全集后**按行业标签定位**；当前视口会在每个楼层单排自适应展示 4–6 个方案。"
-        ].join("\n\n");
-        await window.__lxGeneration.wait(__lxGenerationToken,(lxfdAnimateFinal(solutionAi, solutionCopy)));
-        if (solutionNonce !== chatState.conversationNonce) return;
-        const solutionMeta = scoped ? {feature:scoped.feature,resultId:scoped.tabId,title:scoped.cardTitle,desc:scoped.desc} : lxfdPageCtaMeta("open_solution");
-        const solutionBody = solutionAi.querySelector(".lxfd-ai-body");
-        if (solutionBody && solutionMeta) {
-          solutionBody.insertAdjacentHTML("beforeend", renderLxfdPageCta(solutionMeta));
-          const solutionCard = solutionBody.querySelector('.answer-cta');
-          if (solutionCard) {
-            solutionCard.classList.add("is-active");
-            solutionCard.setAttribute("aria-pressed", "true");
-          }
-        }
-        lxfdPersistCurrent();
-        await window.__lxGeneration.wait(__lxGenerationToken,(lxfdWait(reduceMotion ? 0 : 720)));
-        lxfdExportToMain();
-        if (solutionNonce !== chatState.conversationNonce) return;
-        exitFullscreenWithReveal(() => { if (solutionNonce === chatState.conversationNonce) lxfdRevealFeature(scoped ? scoped.feature : "solution"); });
-        } finally {if(window.__lxGeneration.current(__lxGenerationToken)){ if (solutionNonce === chatState.conversationNonce) chatState.sending = false; }}
+        await window.__lxGeneration.wait(__lxGenerationToken, lxfdRunSolutionAnswer(_lxfdLocalCtrl.industry || ""));
         return;
       }
       const _lxfdCtrlAi = document.createElement("div");

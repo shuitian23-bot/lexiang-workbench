@@ -781,9 +781,26 @@ root.__lxIndustrySolutions={meta,catalog,detect,describe,run};
     return nums;
   }
 
+  // 方案列表意图优先于商品推荐；方案详情、对比和售后服务保留原有入口。
+  function matchSolution(text) {
+    const value = String(text || "").trim().replace(/\s+/g, "");
+    if (!value || value.length > 160 || !/方案/.test(value)) return null;
+    if (/(?:不要|不用|无需|不想|别|取消|停止|关闭|删除)(?:再|继续|帮我|给我|为我|打开|查看|看|推荐|查找|提供|这些|这个|全部|所有|的){0,5}(?:解决方案|方案)/.test(value)) return null;
+    if (/延保|保修|维修|清灰|换硅脂|退货|退款|售后|支付|分期|优惠|补贴|认证|黑屏|蓝屏|死机|报错|无法开机|开不了机/.test(value)) return null;
+    if (/详情|详细|解读|介绍|白皮书|引用|对比|比较|多少钱|怎么购买|第[一二三四五六七八九十\d]+[个款]?方案/.test(value)) return null;
+    const catalog = /解决方案|行业方案|方案(?:推荐|列表|清单|全集|中心|大全|库)|(?:全部|全集|所有|数字化|信息化|智能化|智慧|企业|行业)(?:的)?方案/.test(value);
+    const browse = /(?:推荐|查找|搜索|查|找|查看|看看|看|打开|浏览|提供|给我|来).{0,30}方案|方案.{0,20}(?:推荐|有哪些|有什么|看看|列表|清单|全集)/.test(value);
+    if (!catalog && !browse && !/^方案[。！!？?吧呢]*$/.test(value)) return null;
+    const industry = root.__lxIndustrySolutions?.detect(value) || "";
+    return { op: "open_solution", industry, target: industry,
+      msg: industry ? "已为你汇总" + industry + "行业解决方案。" : "我已为你汇总乐享全集解决方案，覆盖八大行业。" };
+  }
+
   // 本地快路径：高频明确操作指令 0 延迟秒回，不调后端。顺序有讲究：更具体的先判。
   function matchControl(text) {
     const _t = String(text || "").trim();
+    const solution = matchSolution(_t);
+    if (solution) return solution;
     const industry = root.__lxIndustrySolutions?.detect(_t);
     if (industry) return {op:"open_solution",industry,target:industry,msg:"已为你汇总"+industry+"行业解决方案。"};
     if (!_t || _t.length > 60) return null;
@@ -936,7 +953,7 @@ root.__lxIndustrySolutions={meta,catalog,detect,describe,run};
     return t + "。请推荐几款符合以上条件的商品。";
   }
 
-  const api = { parseOrdinal: parseOrdinal, parseOrdinals: parseOrdinals, matchControl: matchControl, opNames: opNames, parseWantedCount: parseWantedCount, matchAutoBuy: matchAutoBuy, extractSeriesKeyword: extractSeriesKeyword, actionChips: actionChips, FOLLOWUP_FALLBACKS: FOLLOWUP_FALLBACKS, stripPurchasePhrase: stripPurchasePhrase };
+  const api = { parseOrdinal: parseOrdinal, parseOrdinals: parseOrdinals, matchControl: matchControl, matchSolution: matchSolution, opNames: opNames, parseWantedCount: parseWantedCount, matchAutoBuy: matchAutoBuy, extractSeriesKeyword: extractSeriesKeyword, actionChips: actionChips, FOLLOWUP_FALLBACKS: FOLLOWUP_FALLBACKS, stripPurchasePhrase: stripPurchasePhrase };
   if (typeof module !== "undefined" && module.exports) module.exports = api; // node 单测用
   if (root) {
     root.__lxIntent = api;
