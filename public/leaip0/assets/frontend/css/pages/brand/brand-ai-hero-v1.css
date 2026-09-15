@@ -39,7 +39,7 @@
   padding: 0;
   width: calc(80% * var(--lxbrand-hero-type-scale));
   max-width: none;
-  margin: 0 0 0 10%;
+  margin: 0 0 0 5%;
 }
 .lxbrand-ai-hero .lxbrand-ai-hero__title {
   font-family: inherit;
@@ -69,6 +69,6 @@
 .lxbrand-ai-hero[data-width="small"] { background-position: 60% center; }
 .lxbrand-ai-hero[data-width="small"] .lxbrand-ai-hero__inner {
   width: calc((100% - 28px) * var(--lxbrand-hero-type-scale));
-  margin-left: 14px;
+  margin-left: 7px;
   margin-right: 14px;
 }

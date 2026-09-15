@@ -54,7 +54,7 @@
   position: absolute;
   inset: 0;
   z-index: 1;
-  background: linear-gradient(180deg,rgba(32,23,34,.02) 25%,rgba(32,23,34,.36) 57%,rgba(32,23,34,.88) 100%);
+  background: linear-gradient(180deg,hsl(306 32% 12% / .38) 0%,hsl(306 32% 12% / .5) 55%,hsl(306 32% 12% / .9) 100%);
   pointer-events: none;
 }
 .lx-brand-home #lxbrand-about .lxbrand-about-grid > .lxbrand-card:first-child .lxbrand-card-body {
