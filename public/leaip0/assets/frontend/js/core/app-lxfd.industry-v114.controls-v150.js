@@ -1454,11 +1454,17 @@
   }catch(__lxStopError){if(!window.__lxGeneration.current(__lxGenerationToken))return;throw __lxStopError;}}
 
   function lxfdEducationAuthKind(text) {
-    const value = String(text || "").trim();
-    if (!value || value.length > 36) return "";
-    if (!/教育|学生|在校生|教师|高考生/.test(value) || !/认证|认定|核验|教育认$/.test(value)) return "";
-    if (/高考生/.test(value)) return "gaokao";
-    if (/教师/.test(value)) return "teacher";
+    const value = String(text || "").trim().replace(/[\s，,。.!！?？：:“”"'‘’]/g, "");
+    if (!value || value.length > 160) return "";
+    // Keep explicit opt-outs and product purchase/recommendation requests in their existing flows.
+    if (/(?:不要|不用|无需|不想|不需要|取消|停止).{0,8}(?:教育|学生|教师|老师|师生|高考)/.test(value)) return "";
+    if (/(?:推荐|对比|购买|选购|下单).{0,20}(?:商品|产品|机型|电脑|笔记本|平板)|待支付|生成订单/.test(value)) return "";
+    const audience = /教育|学生|在校生|大学生|师生|教师|老师|高考/.test(value);
+    const auth = /认证|认定|核验|教育认$/.test(value);
+    const offer = /(?:教育|学生|在校生|大学生|师生|教师|老师|高考生|高考)(?:购机|专享|专属)?(?:特惠|优惠|折扣|福利|权益|补贴|价)/.test(value);
+    if (!audience || (!auth && !offer)) return "";
+    if (/高考/.test(value)) return "gaokao";
+    if (/教师|老师/.test(value)) return "teacher";
     return "college";
   }
 
@@ -1646,7 +1652,7 @@
         ? "完成**企业会员认证**后，可解锁企业专享价、采购补贴、对公付款及专票账期等权益。请准备企业名称与采购负责人信息，提交后以正式核验结果为准。"
         : isWorkplace
         ? "**职场认证**可用于核验企业在职身份，并解锁员工购机优惠、会员权益及相关服务。请按真实情况填写个人与企业资料，提交前核对**企业信息与在职材料**，认证结果以正式身份核验信息为准。"
-        : "**教育认证**可用于核验在校生、教师或高考生身份，并解锁教育专享价格与会员权益。请按真实身份选择认证方式并填写资料，提交前核对**适用范围、有效期和材料**，结果以正式核验信息为准。";
+        : "**教育特惠**面向在校生、教师及高考生，完成**教育身份认证**后，可解锁教育专属价格与相关会员权益。\n\n请在弹窗中选择真实身份与认证方式，填写学校等资料，核对**材料与有效期**后提交。你也可点击下方小卡重新打开认证，结果以正式核验为准。";
       ai.classList.add("lx-auth-flow-answer");
       await window.__lxGeneration.wait(__lxGenerationToken,(lxfdAnimateFinal(ai, copy)));
       const body = ai.querySelector(".lxfd-ai-body");
@@ -1820,6 +1826,12 @@
       return;
     }
 
+    const educationAuthKind = lxfdEducationAuthKind(value);
+    if (educationAuthKind) {
+      await window.__lxGeneration.wait(__lxGenerationToken, lxfdRunUnifiedAuthAnswer("education", educationAuthKind));
+      return;
+    }
+
     if (window.__lxCustomerServiceQuery?.matches(value)) {
       await window.__lxGeneration.wait(__lxGenerationToken, window.__lxCustomerServiceQuery.run({
         token:__lxGenerationToken,
@@ -1861,13 +1873,8 @@
       return;
     }
 
-    const educationAuthKind = lxfdEducationAuthKind(value);
     if (lxfdIsDiscountOrderQuery(value)) {
       await window.__lxGeneration.wait(__lxGenerationToken,(lxfdRunUnifiedDiscountOrderAnswer()));
-      return;
-    }
-    if (educationAuthKind) {
-      await window.__lxGeneration.wait(__lxGenerationToken,(lxfdRunUnifiedAuthAnswer("education", educationAuthKind)));
       return;
     }
     if (lxfdIsEnterpriseLeadQuery(value)) {
