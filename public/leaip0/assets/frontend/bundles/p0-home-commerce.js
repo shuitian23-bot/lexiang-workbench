@@ -17,7 +17,7 @@
     style.textContent = `
       .lx-p0-modal-mask.lx-order-modal-mask {
         padding:20px!important;
-        background:#190e21d1!important;
+        background:rgba(25, 14, 33, 0.7)!important;
       }
       .lx-p0-modal-mask.lx-order-modal-mask .lx-p0-modal.co.lx-order-skin {
         width:min(620px,calc(100vw - 40px))!important;

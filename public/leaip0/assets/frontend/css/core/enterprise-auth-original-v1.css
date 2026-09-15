@@ -1,5 +1,5 @@
 /* Enterprise authentication: original 8091 rules, scoped capture 2026-09-10. */
-html body #lxEnterpriseAuthOriginal{--lx-modal-control-height:40px;--lx-modal-control-radius:8px;--lx-modal-form:580px;--lx-modal-gap:16px;--lx-modal-gutter:28px;--lx-modal-head-height:64px;--lx-modal-header-height:64px;--lx-modal-overlay-background:#190e21d1;--lx-modal-radius:20px;--lx-modal-shell-radius:16px;--lx-modal-width-form:620px;font-family:"Source Han Sans CN Local", "PingFang SC", "Microsoft YaHei", Arial, sans-serif;font-size:16px;font-weight:400;color:#101010;}
+html body #lxEnterpriseAuthOriginal{--lx-modal-control-height:40px;--lx-modal-control-radius:8px;--lx-modal-form:580px;--lx-modal-gap:16px;--lx-modal-gutter:28px;--lx-modal-head-height:64px;--lx-modal-header-height:64px;--lx-modal-overlay-background:rgba(25, 14, 33, 0.7);--lx-modal-radius:20px;--lx-modal-shell-radius:16px;--lx-modal-width-form:620px;font-family:"Source Han Sans CN Local", "PingFang SC", "Microsoft YaHei", Arial, sans-serif;font-size:16px;font-weight:400;color:#101010;}
 html body #lxEnterpriseAuthOriginal:is(*),
 html body #lxEnterpriseAuthOriginal :is(*){box-sizing: border-box;}
 html body #lxEnterpriseAuthOriginal:is(button),
@@ -9,7 +9,7 @@ html body #lxEnterpriseAuthOriginal :is(input){font: inherit;}
 html body #lxEnterpriseAuthOriginal:is(button),
 html body #lxEnterpriseAuthOriginal :is(button){cursor: pointer;}
 html body #lxEnterpriseAuthOriginal:is(.lx-p0-modal-mask),
-html body #lxEnterpriseAuthOriginal :is(.lx-p0-modal-mask){position: fixed; inset: 0px; z-index: 10000; display: none; align-items: center; justify-content: center; padding: 24px; background: rgba(25, 14, 33, 0.82);}
+html body #lxEnterpriseAuthOriginal :is(.lx-p0-modal-mask){position: fixed; inset: 0px; z-index: 10000; display: none; align-items: center; justify-content: center; padding: 24px; background: rgba(25, 14, 33, 0.7);}
 html body #lxEnterpriseAuthOriginal:is(.lx-p0-modal-mask.show),
 html body #lxEnterpriseAuthOriginal :is(.lx-p0-modal-mask.show){display: flex;}
 html body #lxEnterpriseAuthOriginal:is(.lx-p0-modal),

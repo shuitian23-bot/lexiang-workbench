@@ -579,7 +579,7 @@ body[data-page="personal"] > .shell > .content.leai-aui-active { position: relat
 .leai-secondary { border: 1px solid var(--ms-line); background: var(--ms-surface); color: var(--ms-brand); }
 .leai-secondary:hover, .leai-secondary:focus-visible { background: var(--ms-hover); outline: none; }
 
-.leai-modal-mask { position: fixed; inset: 0; z-index: 10020; display: none; place-items: center; padding: 24px; background: #190e21d1; }
+.leai-modal-mask { position: fixed; inset: 0; z-index: 10020; display: none; place-items: center; padding: 24px; background: rgba(25, 14, 33, 0.7); }
 .leai-modal-mask.is-open { display: grid; }
 .leai-modal { width: min(600px, calc(100vw - 48px)); max-height: calc(100vh - 48px); overflow-y: auto; border: 1px solid var(--ms-line); border-radius: 18px; background: var(--ms-surface); box-shadow: var(--ms-shadow); }
 .leai-modal.is-student { width: min(720px, calc(100vw - 48px)); }
@@ -861,7 +861,7 @@ textarea {
 }
 
 /* LX_PROFILE_FULLSCREEN_MODAL_20260823 */
-.leai-modal-mask:has(.leai-modal.is-profile-editor) { padding: 24px; background: #190e21d1; }
+.leai-modal-mask:has(.leai-modal.is-profile-editor) { padding: 24px; background: rgba(25, 14, 33, 0.7); }
 .leai-modal.is-profile-editor { width: min(860px, calc(100vw - 48px)); height: auto; max-width: 860px; max-height: min(680px, calc(100vh - 48px)); display: grid; grid-template-rows: auto minmax(0, 1fr); overflow: hidden; border: 1px solid #e2ddeb; border-radius: 18px; background: #fff; box-shadow: 0 24px 70px rgba(45,18,52,.28), 0 4px 14px rgba(45,18,52,.12); }
 
 /* 全站弹窗规范：会员中心弹窗壳不使用外部投影。 */
@@ -11955,7 +11955,7 @@ html body #leaiModal[data-profile-parity] {
 --lx-modal-gap: 16px;
 --lx-modal-gutter: 28px;
 --lx-modal-header-height: 64px;
---lx-modal-overlay-background: #190e21d1;
+--lx-modal-overlay-background: rgba(25, 14, 33, 0.7);
 --lx-modal-profile: 720px;
 --lx-modal-shell-radius: 16px;
 --ms-brand: #4d144a;
@@ -12054,7 +12054,7 @@ html body #leaiModal[data-profile-parity="profile"] :is(.leai-secondary:hover),
 html body #leaiModal[data-profile-parity="profile"]:is(.leai-secondary:focus-visible),
 html body #leaiModal[data-profile-parity="profile"] :is(.leai-secondary:focus-visible) { background: var(--ms-hover); outline: none; }
 html body #leaiModal[data-profile-parity="profile"]:is(.leai-modal-mask),
-html body #leaiModal[data-profile-parity="profile"] :is(.leai-modal-mask) { position: fixed; inset: 0px; z-index: 10020; display: none; place-items: center; padding: 24px; background: rgba(25, 14, 33, 0.82); }
+html body #leaiModal[data-profile-parity="profile"] :is(.leai-modal-mask) { position: fixed; inset: 0px; z-index: 10020; display: none; place-items: center; padding: 24px; background: rgba(25, 14, 33, 0.7); }
 html body #leaiModal[data-profile-parity="profile"]:is(.leai-modal-mask.is-open),
 html body #leaiModal[data-profile-parity="profile"] :is(.leai-modal-mask.is-open) { display: grid; }
 html body #leaiModal[data-profile-parity="profile"]:is(.leai-modal),
@@ -12092,7 +12092,7 @@ html body #leaiModal[data-profile-parity="profile"] :is(input),
 html body #leaiModal[data-profile-parity="profile"]:is(select),
 html body #leaiModal[data-profile-parity="profile"] :is(select) { font-family: "Source Han Sans CN Local", "PingFang SC", "Microsoft YaHei", Arial, sans-serif; }
 html body #leaiModal[data-profile-parity="profile"]:is(.leai-modal-mask:has(.leai-modal.is-profile-editor)),
-html body #leaiModal[data-profile-parity="profile"] :is(.leai-modal-mask:has(.leai-modal.is-profile-editor)) { padding: 24px; background: rgba(25, 14, 33, 0.82); }
+html body #leaiModal[data-profile-parity="profile"] :is(.leai-modal-mask:has(.leai-modal.is-profile-editor)) { padding: 24px; background: rgba(25, 14, 33, 0.7); }
 html body #leaiModal[data-profile-parity="profile"]:is(.leai-modal.is-profile-editor),
 html body #leaiModal[data-profile-parity="profile"] :is(.leai-modal.is-profile-editor) { width: min(860px, -48px + 100vw); height: auto; max-width: 860px; max-height: min(680px, -48px + 100vh); display: grid; grid-template-rows: auto minmax(0px, 1fr); overflow: hidden; border: 1px solid rgb(226, 221, 235); border-radius: 18px; background: rgb(255, 255, 255); box-shadow: rgba(45, 18, 52, 0.28) 0px 24px 70px, rgba(45, 18, 52, 0.12) 0px 4px 14px; }
 html body #leaiModal[data-profile-parity="profile"]:is(.leai-modal),
@@ -12422,7 +12422,7 @@ html body #leaiModal[data-profile-parity="profile"] :is(.leai-secondary:hover),
 html body #leaiModal[data-profile-parity="profile"]:is(.leai-secondary:focus-visible),
 html body #leaiModal[data-profile-parity="profile"] :is(.leai-secondary:focus-visible) { background: var(--ms-hover); outline: none; }
 html body #leaiModal[data-profile-parity="profile"]:is(.leai-modal-mask),
-html body #leaiModal[data-profile-parity="profile"] :is(.leai-modal-mask) { position: fixed; inset: 0px; z-index: 10020; display: none; place-items: center; padding: 24px; background: rgba(25, 14, 33, 0.82); }
+html body #leaiModal[data-profile-parity="profile"] :is(.leai-modal-mask) { position: fixed; inset: 0px; z-index: 10020; display: none; place-items: center; padding: 24px; background: rgba(25, 14, 33, 0.7); }
 html body #leaiModal[data-profile-parity="profile"]:is(.leai-modal-mask.is-open),
 html body #leaiModal[data-profile-parity="profile"] :is(.leai-modal-mask.is-open) { display: grid; }
 html body #leaiModal[data-profile-parity="profile"]:is(.leai-modal),
@@ -12460,7 +12460,7 @@ html body #leaiModal[data-profile-parity="profile"] :is(input),
 html body #leaiModal[data-profile-parity="profile"]:is(select),
 html body #leaiModal[data-profile-parity="profile"] :is(select) { font-family: "Source Han Sans CN Local", "PingFang SC", "Microsoft YaHei", Arial, sans-serif; }
 html body #leaiModal[data-profile-parity="profile"]:is(.leai-modal-mask:has(.leai-modal.is-profile-editor)),
-html body #leaiModal[data-profile-parity="profile"] :is(.leai-modal-mask:has(.leai-modal.is-profile-editor)) { padding: 24px; background: rgba(25, 14, 33, 0.82); }
+html body #leaiModal[data-profile-parity="profile"] :is(.leai-modal-mask:has(.leai-modal.is-profile-editor)) { padding: 24px; background: rgba(25, 14, 33, 0.7); }
 html body #leaiModal[data-profile-parity="profile"]:is(.leai-modal.is-profile-editor),
 html body #leaiModal[data-profile-parity="profile"] :is(.leai-modal.is-profile-editor) { width: min(860px, -48px + 100vw); height: auto; max-width: 860px; max-height: min(680px, -48px + 100vh); display: grid; grid-template-rows: auto minmax(0px, 1fr); overflow: hidden; border: 1px solid rgb(226, 221, 235); border-radius: 18px; background: rgb(255, 255, 255); box-shadow: rgba(45, 18, 52, 0.28) 0px 24px 70px, rgba(45, 18, 52, 0.12) 0px 4px 14px; }
 html body #leaiModal[data-profile-parity="profile"]:is(.leai-modal),
@@ -12884,7 +12884,7 @@ html body #leaiModal[data-profile-parity="phone"] :is(.leai-secondary:hover),
 html body #leaiModal[data-profile-parity="phone"]:is(.leai-secondary:focus-visible),
 html body #leaiModal[data-profile-parity="phone"] :is(.leai-secondary:focus-visible) { background: var(--ms-hover); outline: none; }
 html body #leaiModal[data-profile-parity="phone"]:is(.leai-modal-mask),
-html body #leaiModal[data-profile-parity="phone"] :is(.leai-modal-mask) { position: fixed; inset: 0px; z-index: 10020; display: none; place-items: center; padding: 24px; background: rgba(25, 14, 33, 0.82); }
+html body #leaiModal[data-profile-parity="phone"] :is(.leai-modal-mask) { position: fixed; inset: 0px; z-index: 10020; display: none; place-items: center; padding: 24px; background: rgba(25, 14, 33, 0.7); }
 html body #leaiModal[data-profile-parity="phone"]:is(.leai-modal-mask.is-open),
 html body #leaiModal[data-profile-parity="phone"] :is(.leai-modal-mask.is-open) { display: grid; }
 html body #leaiModal[data-profile-parity="phone"]:is(.leai-modal),
@@ -13128,7 +13128,7 @@ html body #leaiModal[data-profile-parity="phone"] :is(.leai-secondary:hover),
 html body #leaiModal[data-profile-parity="phone"]:is(.leai-secondary:focus-visible),
 html body #leaiModal[data-profile-parity="phone"] :is(.leai-secondary:focus-visible) { background: var(--ms-hover); outline: none; }
 html body #leaiModal[data-profile-parity="phone"]:is(.leai-modal-mask),
-html body #leaiModal[data-profile-parity="phone"] :is(.leai-modal-mask) { position: fixed; inset: 0px; z-index: 10020; display: none; place-items: center; padding: 24px; background: rgba(25, 14, 33, 0.82); }
+html body #leaiModal[data-profile-parity="phone"] :is(.leai-modal-mask) { position: fixed; inset: 0px; z-index: 10020; display: none; place-items: center; padding: 24px; background: rgba(25, 14, 33, 0.7); }
 html body #leaiModal[data-profile-parity="phone"]:is(.leai-modal-mask.is-open),
 html body #leaiModal[data-profile-parity="phone"] :is(.leai-modal-mask.is-open) { display: grid; }
 html body #leaiModal[data-profile-parity="phone"]:is(.leai-modal),

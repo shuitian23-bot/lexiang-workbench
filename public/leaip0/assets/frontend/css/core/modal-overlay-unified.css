@@ -4,7 +4,7 @@
  * 仅统一视口遮罩，不改变弹层尺寸、内容或交互。
  */
 :root {
-  --lx-modal-overlay-background: #190e21d1;
+  --lx-modal-overlay-background: rgba(25, 14, 33, 0.7);
 }
 
 html body .lx-p0-modal-mask,
@@ -93,8 +93,8 @@ html body .lxfd-msg-ai .lx-edu-auth-reco:focus-visible { border-color:#4d144a!im
 
 /* Pending-payment modal: final governed color layer, shared by every channel. */
 html body .lx-p0-modal-mask.lx-order-modal-mask {
-  background:#190e21d1!important;
-  background-color:#190e21d1!important;
+  background:rgba(25, 14, 33, 0.7)!important;
+  background-color:rgba(25, 14, 33, 0.7)!important;
   background-image:none!important;
   opacity:1!important;
   backdrop-filter:none!important;
@@ -164,8 +164,8 @@ html body .lx-p0-modal-mask.lx-order-modal-mask .lx-order-skin .cta:active { box
 
 /* Shipping-address modal: one governed template for Home, Personal, SMB and Enterprise. */
 html body .lx-p0-modal-mask.lx-addr-modal-mask {
-  background:#190e21d1!important;
-  background-color:#190e21d1!important;
+  background:rgba(25, 14, 33, 0.7)!important;
+  background-color:rgba(25, 14, 33, 0.7)!important;
   background-image:none!important;
   opacity:1!important;
   backdrop-filter:none!important;

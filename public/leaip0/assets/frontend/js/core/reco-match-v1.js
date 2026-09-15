@@ -3,7 +3,7 @@ if(window.__lxRecoMatchInstalled)return;window.__lxRecoMatchInstalled=true;
 const style=document.createElement('style');style.textContent=`
 .lx-reco-match-label{cursor:pointer}.lx-reco-match-label:focus-visible{outline:2px solid #4d144a;outline-offset:3px}
 #lx-reco-match-dialog{box-sizing:border-box;width:min(1080px,calc(100vw - 64px));height:min(730px,calc(100dvh - 64px));max-width:none;max-height:none;padding:42px 56px;border:1px solid #e2ddeb;border-radius:12px;background:#fff;color:#242424;box-shadow:0 20px 70px #190e2126;font-family:inherit}
-#lx-reco-match-dialog::backdrop{background:var(--lx-modal-overlay-background,#190e21d1)}
+#lx-reco-match-dialog::backdrop{background:var(--lx-modal-overlay-background,rgba(25, 14, 33, 0.7))}
 #lx-reco-match-dialog .lx-match-layout{height:100%;display:flex;flex-direction:column;gap:26px;min-height:0}
 #lx-reco-match-dialog h2{font-size:26px;line-height:1.4;margin:0;font-weight:700}
 #lx-reco-match-dialog .lx-match-close{position:absolute;right:20px;top:18px;border:0;background:transparent;color:#979797;width:32px;height:32px;cursor:pointer;display:grid;place-items:center}
