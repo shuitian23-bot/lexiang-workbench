@@ -1,0 +1,61 @@
+/* Original 2026-09-15 brand hero; scoped to the brand content pane. */
+.lxbrand-ai-hero {
+  --lxbrand-hero-height: calc(100vh - 63px);
+  position: relative;
+  min-height: calc(var(--lxbrand-hero-height) * .92);
+  width: calc(100% + var(--lxbrand-hero-left, 18px) + var(--lxbrand-hero-right, 18px));
+  margin: 0 calc(-1 * var(--lxbrand-hero-right, 18px)) 0 calc(-1 * var(--lxbrand-hero-left, 18px));
+  padding: 0;
+  overflow: hidden;
+  color: #fff;
+  background: url('/assets/brand/brand-ai-hero-20260915.jpg') center 43% / cover;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: normal;
+  letter-spacing: normal;
+}
+.lxbrand-ai-hero, .lxbrand-ai-hero * { box-sizing: border-box; }
+.lxbrand-ai-hero::before {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(90deg, rgba(62,19,67,.76) 0%, rgba(80,25,72,.52) 41%, rgba(44,27,64,.24) 70%, rgba(20,24,39,.14) 100%), linear-gradient(180deg, rgba(18,19,33,.20), rgba(75,22,66,.38));
+}
+.lxbrand-ai-hero::after {
+  content: ""; position: absolute; inset: auto 0 0; height: 180px;
+  background: linear-gradient(180deg, transparent, rgba(24,14,31,.24));
+}
+.lxbrand-ai-hero .lxbrand-ai-hero__inner {
+  position: relative; z-index: 2;
+  padding: clamp(48px, calc(var(--lxbrand-hero-height) * .22), 240px) 0 clamp(32px, calc(var(--lxbrand-hero-height) * .08), 96px);
+  width: 80%; max-width: 680px; margin: 0 0 0 10%;
+}
+.lxbrand-ai-hero .lxbrand-ai-hero__title {
+  font-family: inherit; font-size: 76px; line-height: .96; letter-spacing: -3.8px;
+  margin: 28px 0 14px; padding: 0; font-weight: 700; color: #fff;
+}
+.lxbrand-ai-hero .lxbrand-ai-hero__cn {
+  font-size: 47px; line-height: 1.16; font-weight: 650; letter-spacing: -1px; margin: 0 0 22px; color: #fff;
+}
+.lxbrand-ai-hero .lxbrand-ai-hero__copy {
+  font-size: 17px; line-height: 1.8; max-width: 590px; margin: 0; color: rgba(255,255,255,.86);
+}
+.lxbrand-ai-hero[data-width="medium"] .lxbrand-ai-hero__title { font-size: 62px; }
+.lxbrand-ai-hero[data-width="medium"] .lxbrand-ai-hero__cn { font-size: 40px; }
+.lxbrand-ai-hero[data-width="small"] { background-position: 60% center; }
+.lxbrand-ai-hero[data-width="small"] .lxbrand-ai-hero__inner {
+  padding-top: clamp(48px, calc(var(--lxbrand-hero-height) * .16), 160px);
+  width: calc(100% - 28px); margin-left: 14px; margin-right: 14px;
+}
+.lxbrand-ai-hero[data-width="small"] .lxbrand-ai-hero__title { font-size: 48px; letter-spacing: -2.4px; }
+.lxbrand-ai-hero[data-width="small"] .lxbrand-ai-hero__cn { font-size: 31px; }
+.lxbrand-ai-hero[data-width="small"] .lxbrand-ai-hero__copy { font-size: 15px; }
+.lxbrand-ai-hero[data-short="true"] .lxbrand-ai-hero__inner {
+  padding-top: clamp(20px, calc(var(--lxbrand-hero-height) * .08), 44px); padding-bottom: 24px;
+}
+.lxbrand-ai-hero[data-short="true"] .lxbrand-ai-hero__title {
+  font-size: clamp(36px, calc(var(--lxbrand-hero-height) * .12), 64px); letter-spacing: -.05em; margin-top: 0;
+}
+.lxbrand-ai-hero[data-short="true"] .lxbrand-ai-hero__cn {
+  font-size: clamp(24px, calc(var(--lxbrand-hero-height) * .08), 40px); margin-bottom: 16px;
+}
+.lxbrand-ai-hero[data-short="true"] .lxbrand-ai-hero__copy { font-size: 15px; }

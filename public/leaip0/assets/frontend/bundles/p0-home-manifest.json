@@ -3196,6 +3196,16 @@
       "file": "public/leaip0/brand/index.html",
       "source": "public/leaip0/assets/frontend/js/core/education-member-state-sync-v1.js",
       "url": "/assets/frontend/js/core/education-member-state-sync-v1.js?p0v=c57c550f41c8ece9"
+    },
+    {
+      "file": "public/leaip0/brand/index.html",
+      "source": "public/leaip0/assets/frontend/css/pages/brand/brand-ai-hero-v1.css",
+      "url": "/assets/frontend/css/pages/brand/brand-ai-hero-v1.css?p0v=2430cdf78b31dc0b"
+    },
+    {
+      "file": "public/leaip0/brand/index.html",
+      "source": "public/leaip0/assets/frontend/js/core/brand-ai-hero-v1.js",
+      "url": "/assets/frontend/js/core/brand-ai-hero-v1.js?p0v=8d33f720fb06477b"
     }
   ],
   "inlineSources": [
