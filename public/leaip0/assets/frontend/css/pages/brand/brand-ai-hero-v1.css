@@ -2,7 +2,7 @@
 .lxbrand-ai-hero {
   --lxbrand-hero-height: calc(100vh - 63px);
   position: relative;
-  min-height: calc(var(--lxbrand-hero-height) * .70);
+  min-height: calc(var(--lxbrand-hero-height) * .50);
   width: calc(100% + var(--lxbrand-hero-left, 18px) + var(--lxbrand-hero-right, 18px));
   margin: 0 calc(-1 * var(--lxbrand-hero-right, 18px)) 0 calc(-1 * var(--lxbrand-hero-left, 18px));
   padding: 0;
@@ -59,3 +59,14 @@
   font-size: clamp(24px, calc(var(--lxbrand-hero-height) * .08), 40px); margin-bottom: 16px;
 }
 .lxbrand-ai-hero[data-short="true"] .lxbrand-ai-hero__copy { font-size: 15px; }
+
+/* Half-pane hero: keep the existing type scale without padding expanding its height. */
+.lxbrand-ai-hero {
+  height: calc(var(--lxbrand-hero-height) * .50);
+  display: flex;
+  align-items: center;
+}
+.lxbrand-ai-hero[data-width] .lxbrand-ai-hero__inner {
+  padding-top: 0;
+  padding-bottom: 0;
+}
