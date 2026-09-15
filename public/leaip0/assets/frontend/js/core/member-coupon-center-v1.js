@@ -32,7 +32,10 @@
   }
 
   function matches(query) {
-    return /^(会员优惠券|我的优惠券|门店优惠券)$/.test(String(query || '').replace(/[\s，。！？、,.!?]/g, ''));
+    const value = String(query || '').trim().replace(/[\s，。！？、,.!?“”"'‘’]/g, '');
+    // Explicit coupon-center requests precede product, store and legacy coupon intents.
+    // Keep coupon use, purchase and explanation questions on their existing routes.
+    return /^(?:(?:请|麻烦|帮我|帮忙|为我|给我|我想|我要|想要|想|要|打开|查看|看看|看下|看一下|查询|查一下|进入|去|看)){0,6}(?:会员优惠券|我的优惠券|门店优惠券)(?:中心|页面)?(?:吧|一下|有哪些)?$/.test(value);
   }
 
   function describe(query) {

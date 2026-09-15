@@ -1088,6 +1088,11 @@
 
   function lxfdRevealFeature(feature) {
     lxfdEnsureRootSplitState();
+    if (String(feature).startsWith("member-coupon-center:")) {
+      window.__lxOpenCouponCenter?.(String(feature).split(":")[1]);
+      return;
+    }
+
     if (typeof window.__lxOpenFeature === "function") window.__lxOpenFeature(feature);
   }
 
@@ -1673,6 +1678,47 @@
     }}
   }catch(__lxStopError){if(!window.__lxGeneration.current(__lxGenerationToken))return;throw __lxStopError;}}
 
+  async function lxfdRunMemberCouponCenter(value) {
+    const token = window.__lxGeneration.capture();
+    const generation = window.__lxGeneration;
+    const data = window.__lxCouponCenter.describe(value);
+    chatState.sending = true;
+    const ai = document.createElement("div");
+    ai.className = "lxfd-msg-ai lx-chat-skin";
+    ai._loadingStarted = Date.now() - 5000;
+    ai.innerHTML = '<div class="lxfd-ai-body"></div>';
+    thread?.appendChild(ai);
+    ai.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "end" });
+    try {
+      await generation.wait(token, lxfdAnimateFinal(ai, data.copy));
+      const body = ai.querySelector(".lxfd-ai-body");
+      if (body) {
+        body.insertAdjacentHTML("beforeend", renderLxfdPageCta({
+          feature: "member-coupon-center:" + data.category,
+          resultId: "info:member-coupon-center",
+          title: "查看会员领券中心",
+          desc: data.desc
+        }));
+        body.querySelector('[data-lx-result-id="info:member-coupon-center"]')?.classList.add("lx-document-card-enter");
+      }
+      lxfdPersistCurrent();
+      await generation.wait(token, lxfdWait(reduceMotion ? 0 : 720));
+      if (!generation.current(token)) return;
+      chatState.sending = false;
+      lxfdExportToMain();
+      lxfdExitToResultAtomically(() => {
+        if (!generation.current(token)) return;
+        lxfdEnsureRootSplitState();
+        window.__lxOpenCouponCenter(data.category);
+      });
+    } finally {
+      if (generation.current(token)) {
+        chatState.sending = false;
+        syncSend();
+      }
+    }
+  }
+
   async function lxfdRunSolutionAnswer(industry = "") {
     const __lxGenerationToken = window.__lxGeneration.capture();
         let scoped = industry ? window.__lxIndustrySolutions.describe(industry) : null;
@@ -1795,6 +1841,11 @@
     if (ta) { ta.value = ""; fit(); syncSend(); }
     // 发出提问就先存一次（含 lxfd key + 同步子站 key），AI 答完再存完整——避免答得慢时切站啥都没存
     try { lxfdPersistCurrent(); } catch (_e) {if(!window.__lxGeneration.current(__lxGenerationToken))throw new DOMException('已停止生成','AbortError');}
+
+    if (window.__lxCouponCenter?.matches(value)) {
+      await window.__lxGeneration.wait(__lxGenerationToken, lxfdRunMemberCouponCenter(value));
+      return;
+    }
 
     if (window.__lxEducationOffers?.matches(value)) {
       await window.__lxGeneration.wait(__lxGenerationToken, lxfdRunEducationOfferQuery(value));
