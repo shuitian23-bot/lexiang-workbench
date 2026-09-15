@@ -28,16 +28,29 @@ html body[data-page="brand"] .content[data-view="list"]>.lx-brand-home{display:b
 @media(prefers-reduced-motion:reduce){.lx-brand-home a,.lx-brand-home img{transition:none!important}}
 
 .lx-brand-home{container-type:inline-size;container-name:lx-brand-floors}
-/* News and cases follow solution-list container widths: 4 / 5 / 6 visible cards. */
-.lx-brand-home :is(#lxbrand-news,#lxbrand-cases) .lxbrand-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
-.lx-brand-home :is(#lxbrand-news,#lxbrand-cases) .lxbrand-card:nth-child(n+5){display:none}
-@container lx-brand-floors (min-width:1100px){.lx-brand-home :is(#lxbrand-news,#lxbrand-cases) .lxbrand-grid{grid-template-columns:repeat(5,minmax(0,1fr))}.lx-brand-home :is(#lxbrand-news,#lxbrand-cases) .lxbrand-card:nth-child(5){display:flex}}
-@container lx-brand-floors (min-width:1320px){.lx-brand-home :is(#lxbrand-news,#lxbrand-cases) .lxbrand-grid{grid-template-columns:repeat(6,minmax(0,1fr))}.lx-brand-home :is(#lxbrand-news,#lxbrand-cases) .lxbrand-card:nth-child(6){display:flex}}
-@container lx-brand-floors (max-width:600px){.lx-brand-home :is(#lxbrand-news,#lxbrand-cases) .lxbrand-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@container lx-brand-floors (max-width:360px){.lx-brand-home :is(#lxbrand-news,#lxbrand-cases) .lxbrand-grid{grid-template-columns:minmax(0,1fr)}}
-
-.lx-brand-home[data-brand-columns="5"] :is(#lxbrand-news,#lxbrand-cases) .lxbrand-grid{grid-template-columns:repeat(5,minmax(0,1fr))}.lx-brand-home[data-brand-columns="6"] :is(#lxbrand-news,#lxbrand-cases) .lxbrand-grid{grid-template-columns:repeat(6,minmax(0,1fr))}
-.lx-brand-home[data-brand-columns="5"] :is(#lxbrand-news,#lxbrand-cases) .lxbrand-card:nth-child(5),.lx-brand-home[data-brand-columns="6"] :is(#lxbrand-news,#lxbrand-cases) .lxbrand-card:nth-child(n+5){display:flex}
+/* Editorial floors scale with the available pane, keeping each card readable. */
+.lx-brand-home :is(#lxbrand-news,#lxbrand-cases) { padding: 30px 0 10px; }
+.lx-brand-home :is(#lxbrand-news,#lxbrand-cases) .lxbrand-section-heading { margin-bottom: 18px; }
+.lx-brand-home :is(#lxbrand-news,#lxbrand-cases) .lxbrand-section-heading h2 { font-size: 21px; }
+.lx-brand-home :is(#lxbrand-news,#lxbrand-cases) .lxbrand-section-heading > a { min-height: 34px; font-size: 13px; }
+.lx-brand-home :is(#lxbrand-news,#lxbrand-cases) .lxbrand-grid { grid-template-columns: repeat(var(--lxbrand-floor-columns,1),minmax(0,1fr)); gap: clamp(16px,1.3cqi,22px); }
+.lx-brand-home :is(#lxbrand-news,#lxbrand-cases) .lxbrand-card { display: none; min-height: 0; border-radius: 12px; }
+.lx-brand-home :is(#lxbrand-news,#lxbrand-cases) .lxbrand-card:first-child { display: flex; }
+.lx-brand-home :is(#lxbrand-news,#lxbrand-cases) .lxbrand-grid > .lxbrand-card > img { height: auto; aspect-ratio: 16 / 9; object-fit: cover; }
+.lx-brand-home :is(#lxbrand-news,#lxbrand-cases) .lxbrand-card-body { flex: 1; padding: clamp(16px,1.3cqi,20px); }
+.lx-brand-home :is(#lxbrand-news,#lxbrand-cases) .lxbrand-card-body h3 { margin-top: 10px; min-height: 3em; font-size: clamp(16px,1.2cqi,18px); line-height: 1.5; font-weight: 500; }
+.lx-brand-home :is(#lxbrand-news,#lxbrand-cases) :is(time,.lxbrand-category,.lxbrand-ask) { min-height: 22px; font-size: 12px; line-height: 20px; }
+@container lx-brand-floors (min-width:520px){.lx-brand-home :is(#lxbrand-news,#lxbrand-cases) .lxbrand-grid{--lxbrand-floor-columns:2}.lx-brand-home :is(#lxbrand-news,#lxbrand-cases) .lxbrand-card:nth-child(-n+2){display:flex}}
+@container lx-brand-floors (min-width:780px){.lx-brand-home :is(#lxbrand-news,#lxbrand-cases) .lxbrand-grid{--lxbrand-floor-columns:3}.lx-brand-home :is(#lxbrand-news,#lxbrand-cases) .lxbrand-card:nth-child(-n+3){display:flex}}
+@container lx-brand-floors (min-width:1100px){.lx-brand-home :is(#lxbrand-news,#lxbrand-cases) .lxbrand-grid{--lxbrand-floor-columns:4}.lx-brand-home :is(#lxbrand-news,#lxbrand-cases) .lxbrand-card:nth-child(-n+4){display:flex}}
+@container lx-brand-floors (min-width:1420px){.lx-brand-home :is(#lxbrand-news,#lxbrand-cases) .lxbrand-grid{--lxbrand-floor-columns:5}.lx-brand-home :is(#lxbrand-news,#lxbrand-cases) .lxbrand-card:nth-child(-n+5){display:flex}}
+@container lx-brand-floors (min-width:1800px){.lx-brand-home :is(#lxbrand-news,#lxbrand-cases) .lxbrand-grid{--lxbrand-floor-columns:6}.lx-brand-home :is(#lxbrand-news,#lxbrand-cases) .lxbrand-card:nth-child(-n+6){display:flex}}
+.lx-brand-home[data-brand-columns="1"] :is(#lxbrand-news,#lxbrand-cases) .lxbrand-grid{--lxbrand-floor-columns:1}.lx-brand-home[data-brand-columns="1"] :is(#lxbrand-news,#lxbrand-cases) .lxbrand-card{display:none}.lx-brand-home[data-brand-columns="1"] :is(#lxbrand-news,#lxbrand-cases) .lxbrand-card:nth-child(-n+1){display:flex}
+.lx-brand-home[data-brand-columns="2"] :is(#lxbrand-news,#lxbrand-cases) .lxbrand-grid{--lxbrand-floor-columns:2}.lx-brand-home[data-brand-columns="2"] :is(#lxbrand-news,#lxbrand-cases) .lxbrand-card{display:none}.lx-brand-home[data-brand-columns="2"] :is(#lxbrand-news,#lxbrand-cases) .lxbrand-card:nth-child(-n+2){display:flex}
+.lx-brand-home[data-brand-columns="3"] :is(#lxbrand-news,#lxbrand-cases) .lxbrand-grid{--lxbrand-floor-columns:3}.lx-brand-home[data-brand-columns="3"] :is(#lxbrand-news,#lxbrand-cases) .lxbrand-card{display:none}.lx-brand-home[data-brand-columns="3"] :is(#lxbrand-news,#lxbrand-cases) .lxbrand-card:nth-child(-n+3){display:flex}
+.lx-brand-home[data-brand-columns="4"] :is(#lxbrand-news,#lxbrand-cases) .lxbrand-grid{--lxbrand-floor-columns:4}.lx-brand-home[data-brand-columns="4"] :is(#lxbrand-news,#lxbrand-cases) .lxbrand-card{display:none}.lx-brand-home[data-brand-columns="4"] :is(#lxbrand-news,#lxbrand-cases) .lxbrand-card:nth-child(-n+4){display:flex}
+.lx-brand-home[data-brand-columns="5"] :is(#lxbrand-news,#lxbrand-cases) .lxbrand-grid{--lxbrand-floor-columns:5}.lx-brand-home[data-brand-columns="5"] :is(#lxbrand-news,#lxbrand-cases) .lxbrand-card{display:none}.lx-brand-home[data-brand-columns="5"] :is(#lxbrand-news,#lxbrand-cases) .lxbrand-card:nth-child(-n+5){display:flex}
+.lx-brand-home[data-brand-columns="6"] :is(#lxbrand-news,#lxbrand-cases) .lxbrand-grid{--lxbrand-floor-columns:6}.lx-brand-home[data-brand-columns="6"] :is(#lxbrand-news,#lxbrand-cases) .lxbrand-card{display:none}.lx-brand-home[data-brand-columns="6"] :is(#lxbrand-news,#lxbrand-cases) .lxbrand-card:nth-child(-n+6){display:flex}
 
 /* Brand-only composer shortcuts; shared runtime rows remain hidden in this channel. */
 html body[data-page="brand"] .assistant-panel .assistant-bottom>.shortcut-row{display:none!important}
