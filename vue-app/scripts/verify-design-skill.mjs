@@ -1,9 +1,11 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
+import { spawnSync } from 'node:child_process'
 import { basename, dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const projectPackageRoot = dirname(projectRoot)
+const consistencyArgs = parseConsistencyArgs(process.argv.slice(2))
 const mainFile = join(projectRoot, 'src/main.ts')
 const assetsDir = join(projectRoot, 'src/assets')
 const contractFile = join(projectRoot, 'design-baseline.lock.json')
@@ -72,10 +74,63 @@ if (warnings.length > 0) {
   console.warn('\n[Design Skill Warning] 当前项目存在设计合同或封板样式风险：')
   for (const warning of warnings) console.warn(`- ${warning}`)
   const protectedSurfaces = (contract?.protectedSurfaces || []).join(', ')
-  console.warn(`\n项目会继续启动；继续新增需求前请检查目标源码和统一设计合同，并避免影响封板表面：${protectedSurfaces || 'topbar, sidebar, Agent, tabs, shared components'}。\n`)
+  console.warn(`\n上述兼容性警告不单独阻止启动；后续 0914 合同检查仍须通过。继续新增需求前请检查目标源码和统一设计合同，并避免影响封板表面：${protectedSurfaces || 'topbar, sidebar, Agent, tabs, shared components'}。\n`)
 } else {
   const contractLabel = contract?.baselineName || contract?.recommendedSkillVersion || 'portable-design-contract'
   console.log(`[Design Skill Check] OK: ${contract?.requiredSkillId || 'design-skill'} ${contractLabel}`)
+}
+
+runBundledConsistencyCheck()
+
+function parseConsistencyArgs(args) {
+  const forwarded = []
+  let guardAll = false
+  let hasChangedFiles = false
+  for (let index = 0; index < args.length; index += 1) {
+    const argument = args[index]
+    if (argument === '--guard-all' && !guardAll) {
+      guardAll = true
+      forwarded.push(argument)
+    } else if (argument === '--changed-file') {
+      const value = args[index + 1]
+      if (!value?.trim() || value.startsWith('--')) {
+        argumentError('--changed-file 需要一个 Vue/CSS/SCSS 文件路径。')
+      }
+      hasChangedFiles = true
+      forwarded.push(argument, value)
+      index += 1
+    } else {
+      argumentError(`不支持参数 ${argument}；仅支持 --changed-file <文件>（可重复）或 --guard-all。目标工程由当前检查入口固定。`)
+    }
+  }
+  if (guardAll && hasChangedFiles) {
+    argumentError('--guard-all 不能与 --changed-file 混用，以免将增量阻断降为存量提示。')
+  }
+  return forwarded
+}
+
+function argumentError(message) {
+  console.error(`[Design Skill Error] ${message}`)
+  process.exit(2)
+}
+
+function runBundledConsistencyCheck() {
+  // Only execute the reviewed, bundled checker; external metadata candidates cannot replace it.
+  const checker = join(projectPackageRoot, 'skill/portal-workbench-ui-0914/scripts/check-consistency.mjs')
+  if (!existsSync(checker)) {
+    console.error('[Design Skill Error] 缺少随仓库 0914 scripts/check-consistency.mjs，无法完成合同检查。')
+    process.exit(1)
+  }
+  const result = spawnSync(process.execPath, [checker, '--project', projectRoot, ...consistencyArgs], {
+    cwd: projectRoot,
+    stdio: 'inherit',
+    shell: false,
+  })
+  if (result.error || result.signal || result.status === null) {
+    console.error(`[Design Skill Error] 0914 合同检查未正常完成：${result.error?.message || result.signal || '无退出状态'}。`)
+    process.exit(1)
+  }
+  if (result.status !== 0) process.exit(result.status)
 }
 
 function compareSkillMeta(skillMatch) {

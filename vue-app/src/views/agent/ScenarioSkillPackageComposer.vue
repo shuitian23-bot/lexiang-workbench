@@ -608,8 +608,8 @@ function hasVersionChange(step: CanvasStep) { return Boolean(catalog.value.get(s
 .composer-library-list { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
 .composer-library-skill { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; min-width: 0; padding: 12px 8px; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); cursor: grab; }
 .composer-library-skill:hover { border-color: var(--color-primary-border); }
-.composer-library-skill.is-added { background: var(--color-warning-subtle); border-color: var(--color-warning); }
-.composer-library-skill.is-added .composer-text-button { color: var(--color-warning); font-weight: 600; }
+.composer-library-skill.is-added { background: var(--color-primary-subtle); border-color: var(--color-primary-border); }
+.composer-library-skill.is-added .composer-text-button { color: var(--color-primary); font-weight: 600; }
 .composer-grip { flex: 0 0 auto; color: var(--color-text-tertiary); font-size: 18px; line-height: 1; cursor: grab; }
 .composer-skill-summary { flex: 1 1 72px; display: grid; gap: 4px; min-width: 0; }
 .composer-skill-summary strong, .composer-selected-summary strong { color: var(--color-text); font-size: 13px; font-weight: 500; overflow-wrap: anywhere; }

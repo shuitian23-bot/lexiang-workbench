@@ -1465,46 +1465,52 @@ onBeforeUnmount(() => {
 }
 
 .skill-hub-page[data-page-flow="skill-hub"] {
-  --scenario-package-summary-gap: 16px;
+  --scenario-package-summary-gap: 14px;
   min-width: 0;
   container-type: inline-size;
 }
 
 .skill-hub-view-tabs {
-  display: inline-flex;
-  align-self: flex-start;
-  justify-self: start;
-  width: fit-content;
+  display: flex;
+  min-height: 40px;
   max-width: 100%;
-  gap: 4px;
-  padding: 4px;
-  border-radius: var(--radius-lg);
-  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border-subtle);
 }
 
 .skill-hub-view-tabs button {
-  min-width: 120px;
+  position: relative;
+  min-width: 96px;
   min-height: 40px;
-  padding: 0 20px;
-  border: 1px solid transparent;
-  border-radius: var(--radius-lg);
-  background: var(--color-surface);
+  padding: 0 16px;
+  border: 0;
+  background: transparent;
   color: var(--color-text-secondary);
   font: inherit;
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 13px;
   cursor: pointer;
 }
 
+.skill-hub-view-tabs button::after {
+  position: absolute;
+  right: 12px;
+  bottom: -1px;
+  left: 12px;
+  height: 2px;
+  background: transparent;
+  content: '';
+}
+
 .skill-hub-view-tabs button:hover {
-  background: var(--color-surface);
   color: var(--color-primary);
 }
 
 .skill-hub-view-tabs button.is-active {
-  border-color: var(--color-primary);
-  background: var(--color-primary-subtle);
   color: var(--color-primary);
+  font-weight: 600;
+}
+
+.skill-hub-view-tabs button.is-active::after {
+  background: var(--color-primary);
 }
 
 .skill-hub-view-tabs button:focus-visible,

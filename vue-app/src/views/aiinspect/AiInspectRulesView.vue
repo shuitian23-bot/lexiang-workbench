@@ -423,7 +423,7 @@ textarea.inspect-input { height: auto; min-height: 72px; padding: 8px 12px !impo
 .ai-errors { background: var(--color-danger-bg); border: 1px solid var(--color-danger); border-radius: var(--radius-md); padding: 12px 16px; font-size: 12px; color: var(--color-danger); }
 
 
-.ai-table th { height: 40px; box-sizing: border-box; color: var(--color-text-secondary); background: var(--color-bg-subtle); font-size: var(--text-sm); }
+.ai-table th { height: 40px; box-sizing: border-box; color: var(--color-text-secondary); background: var(--color-bg-subtle); }
 .ai-table td { height: 48px; box-sizing: border-box; }
 .ai-table tbody tr:hover { background: var(--color-primary-subtle); }
 .ai-select:focus-visible { outline: none; border-color: var(--color-primary); box-shadow: var(--focus-ring); }

@@ -511,7 +511,7 @@ test('adjustment log renders independent preview and formal release evidence', a
 test('Skill Hub contract keeps scenario packages on the existing route', async () => {
   const [contentSlots, pageMatrix] = await Promise.all([
     source('../src/content-slot/contentSlotDefinitions.js'),
-    source('../../skill/portal-workbench-ui-design/references/page-spec-coverage-matrix.md')
+    source('../../skill/portal-workbench-ui-0914/references/page-spec-coverage-matrix.md')
   ])
   const skillHubStart = contentSlots.indexOf("pageId: 'agent.skills'")
   const skillHubEnd = contentSlots.indexOf("pageId: 'agent.skillCreate'", skillHubStart)
@@ -524,7 +524,7 @@ test('Skill Hub contract keeps scenario packages on the existing route', async (
   assert.match(skillHubContract, /跨菜单已发布 Skill 固定版本编排/)
   assert.match(skillHubContract, /运行时权限校验策略/)
   assert.doesNotMatch(skillHubContract, /运行时权限评估|评估固定版本与运行时权限/)
-  assert.match(pageMatrix, /### 3\.1 可见页面与账号入口（19）/)
+  assert.match(pageMatrix, /## 3\. 当前 0914 项目页面矩阵/)
   assert.equal((pageMatrix.match(/^\| Agent \/ Skill Hub \|/gm) ?? []).length, 1)
   assert.doesNotMatch(pageMatrix, /^\| Agent \/ 场景技能包 \|/m)
   assert.match(matrixRow, /`\/agent\/skills\?tab=packages&mode=create`/)

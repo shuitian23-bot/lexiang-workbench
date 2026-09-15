@@ -1,4 +1,4 @@
-# 乐享 AI 工作台 0812 — Vue 3 源码包
+# 乐享 AI 工作台 — Vue 3 源码包
 
 本目录是门户工作台主维护源码。仓库根目录的 `public/admin-vue/` 是构建产物，不是源码入口。
 
@@ -16,10 +16,12 @@
 开始页面设计、实现或评审前，读取：
 
 ```text
-../skill/portal-workbench-ui-0812/SKILL.md
+../skill/portal-workbench-ui-0914/SKILL.md
 ```
 
 该 Skill 是 PM、UI 和研发共用的可移植分发副本。将当前目录作为 `<app-root>`；不依赖个人机器路径、固定项目目录名或项目/Skill 哈希。
+
+默认设计合同为 0914，0818 等目录作为历史副本保留。本轮接入沿用当前功能及权限边界，附件中的历史业务描述不覆盖后续确认的产品需求。
 
 ## 快速启动
 
@@ -34,6 +36,7 @@ pnpm dev
 
 ```bash
 pnpm guard:design-skill
+pnpm test:design-skill-guard
 pnpm lint
 pnpm typecheck
 pnpm build
@@ -46,7 +49,23 @@ pnpm smoke:shell
 PORTAL_SMOKE_PORT=4174 pnpm smoke:shell
 ```
 
-guard 检查统一 Skill 类型、建议版本、全局 CSS 和封板表面；它不计算或要求内容哈希。
+`guard:design-skill` 保留 Skill 类型、建议版本、全局 CSS 和封板表面的兼容性警告，并固定运行随仓库 0914 的原版一致性检查器。附件元信息、资源、模板、页面矩阵及当前路由不一致会返回非零。`dev`、`build` 在启动 Vite 前直接执行同一入口和既有产品合同回归，不依赖包管理器是否启用 `predev` / `prebuild` 钩子。守卫不计算或要求内容哈希；环境变量指定的 Skill 目录只参与元信息比较，不替换实际执行的检查器或当前 Vue 工程。
+
+默认检查不自动扫描产品样式。修改内容槽 Vue/CSS/SCSS 时，逐个传入相对本目录的路径；含空格的路径须加引号：
+
+```bash
+pnpm guard:design-skill --changed-file src/views/ExampleView.vue --changed-file src/components/ExamplePanel.vue
+```
+
+检查器扫描传入文件的全部样式块，而非仅扫描 Git 改动行。`--changed-file` 检查发现违规即阻断；若只需登记现有差异，单独运行：
+
+```bash
+pnpm guard:design-skill --guard-all
+```
+
+`--guard-all` 只把页面及组件的存量样式差异降为提示，附件与路由错误仍会失败。不能与 `--changed-file` 混用，也不能通过 `--project` 改变工程范围。全局样式需要显式传入；模板内联样式和外链 `<style src>` 不在此检查器的扫描范围。
+
+部分专项规范与附件检查器的通用集合存在差异，例如内容标题的 19px 字号、6px 装饰圆角和 3px 说明间距。应记录精确例外并按对应专项规范复核，不能只为通过检查而改回旧样式。静态检查通过不等于本轮浏览器视觉、交互或后端联调通过；附件中的截图及验收登记也不能代替当前版本的验证。
 
 ## 维护边界
 

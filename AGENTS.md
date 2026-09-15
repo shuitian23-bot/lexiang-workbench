@@ -9,9 +9,9 @@
 
 门户工作台 `vue-app/` 的设计、修改或评审统一读取：
 
-`skill/portal-workbench-ui-0818/SKILL.md`
+`skill/portal-workbench-ui-0914/SKILL.md`
 
-再按任务读取其中对应 reference。项目内 Skill 是统一 0818 Skill 的分发副本，PM、UI 与研发共用；0803 与 0812 目录仅作为历史版本保留，不再作为默认规范。
+再按任务读取其中对应 reference。项目内 0914 Skill 是用户提供原件的分发副本，PM、UI 与研发共用，继承 0908 设计合同；旧版目录保留作历史对照，不再作为默认规范。项目当前功能与用户已确认决定优先，具体接入与兼容说明见 `docs/design/portal-workbench-ui-0914-integration.md`，不得因应用样式回退权限或业务流程。
 
 在设计、修改、评审或发布 `leaibot.cn` 的页面样式、交互、组件、中文文案前，必须先读取并遵循（本仓库内路径）：
 

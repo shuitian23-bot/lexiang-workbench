@@ -6,11 +6,9 @@ html[data-product="leaibot"] .apo-page {
 }
 html[data-product="leaibot"] .apo-head { margin-bottom: 16px; gap: 16px; }
 html[data-product="leaibot"] .apo-vue-heading { min-width: 0; width: 100%; }
-html[data-product="leaibot"] .apo-vue-heading .content-page-header__title { color: var(--color-text); font-size: 20px; line-height: 1.35; }
-html[data-product="leaibot"] .apo-vue-heading .content-page-header__description { margin: 4px 0 0; color: var(--color-text-tertiary); font-size: 13px; line-height: 1.5; }
 html[data-product="leaibot"] .apo-filter {
   grid-template-columns: minmax(0,1fr) minmax(0,1fr) minmax(180px,.72fr) auto;
-  padding: 16px; gap: 12px; margin: 0 0 16px;
+  padding: 16px; gap: 12px; margin: 0 0 12px;
   background: var(--color-surface); border: 1px solid var(--color-border-subtle); border-radius: var(--radius-lg);
 }
 html[data-product="leaibot"] .apo-filter :is(input,select):focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }

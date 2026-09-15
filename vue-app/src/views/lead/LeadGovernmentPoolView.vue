@@ -41,7 +41,7 @@ onMounted(async () => {
 .lead-government-pool-native :deep(> .page-header) {
   grid-column: 1;
   grid-row: 1;
-  margin: 0 0 20px;
+  margin: 0 0 16px;
   padding: 0;
 }
 .lead-government-pool-native :deep(> .lead-toolbar) {
@@ -51,7 +51,7 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin: 0 0 20px;
+  margin: 0 0 16px;
   padding: 0;
 }
 .lead-government-pool-native :deep(> .lead-toolbar .btn) {

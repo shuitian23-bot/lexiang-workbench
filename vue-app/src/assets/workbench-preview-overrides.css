@@ -10097,7 +10097,7 @@ html[data-product="leaibot"] .ai-panel.open {
 html[data-product="leaibot"] :is(.ai-kpi-card,.order-kpi-card) {
   --metric-wash: rgba(51,112,255,.08);
   background: linear-gradient(135deg,var(--metric-wash) 0%,rgba(255,255,255,.86) 38%,#fff 100%);
-  border-color: var(--color-primary-border); border-radius: 10px; box-shadow: none;
+  border-color: var(--color-primary-border); border-radius: var(--radius-md); box-shadow: none;
 }
 html[data-product="leaibot"] :is(.ai-kpi-card,.order-kpi-card):nth-child(2n) { --metric-wash: rgba(44,174,165,.08); }
 

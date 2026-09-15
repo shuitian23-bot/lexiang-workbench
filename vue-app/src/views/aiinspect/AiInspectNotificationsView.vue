@@ -103,7 +103,7 @@ onMounted(() => {
 .ai-noauth p { font-size: 13px; }
 
 
-.ai-table th { height: 40px; box-sizing: border-box; color: var(--color-text-secondary); background: var(--color-bg-subtle); font-size: var(--text-sm); }
+.ai-table th { height: 40px; box-sizing: border-box; color: var(--color-text-secondary); background: var(--color-bg-subtle); }
 .ai-table td { height: 48px; box-sizing: border-box; }
 .ai-table tbody tr:hover { background: var(--color-primary-subtle); }
 .ai-select:focus-visible { outline: none; border-color: var(--color-primary); box-shadow: var(--focus-ring); }

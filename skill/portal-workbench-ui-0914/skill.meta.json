@@ -1,0 +1,23 @@
+{
+  "projectId": "lexiang-workbench",
+  "skillId": "portal-workbench-ui",
+  "skillVersion": "2026-09-14",
+  "skillRelease": "0914",
+  "baselineName": "0914-pm-scope-with-0908-design-contract",
+  "updatedAt": "2026-09-14",
+  "candidateRequirement": "2026-09-14-new-product-ui",
+  "referenceBaseline": {
+    "projectRelease": "0914",
+    "appRootHint": "vue-app"
+  },
+  "audiences": [
+    "pm",
+    "ui-ux",
+    "frontend-development",
+    "review-qa"
+  ],
+  "distributionPolicy": "single-authoritative-skill",
+  "compatibilityPolicy": "portable-target-repository",
+  "sharedRoleComponentLibrary": "assets/vue-content-slot-components",
+  "productSourceWritePolicy": "development-request-with-identified-target-authorizes-in-scope-edits"
+}
