@@ -1479,7 +1479,7 @@
     if (/(?:推荐|对比|购买|选购|下单).{0,20}(?:商品|产品|机型|电脑|笔记本|平板)|待支付|生成订单/.test(value)) return "";
     const audience = /教育|学生|在校生|大学生|师生|教师|老师|高考/.test(value);
     const auth = /认证|认定|核验|教育认$/.test(value);
-    const offer = /(?:教育|学生|在校生|大学生|师生|教师|老师|高考生|高考)(?:购机|专享|专属)?(?:特惠|优惠|折扣|福利|权益|补贴|价)/.test(value);
+    const offer = /(?:教育|学生|在校生|大学生|师生|教师|老师|高考).{0,16}(?:特惠|优惠|折扣|打折|福利|权益|补贴)|(?:教育|学生|教师|师生)(?:专享|专属)?价/.test(value);
     if (!audience || (!auth && !offer)) return "";
     if (/高考/.test(value)) return "gaokao";
     if (/教师|老师/.test(value)) return "teacher";
