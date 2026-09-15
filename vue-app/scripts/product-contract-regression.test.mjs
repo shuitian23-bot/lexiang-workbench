@@ -78,7 +78,7 @@ test('AI authorization stays readable and confirms the current Skill execution a
   assert.match(messages, /授权内容/)
   assert.match(taskCard, /授权范围/)
   assert.match(taskCard, /影响说明/)
-  assert.match(taskCard, />授权<\/button>/)
+  assert.match(taskCard, />批量授权<\/button>/)
   assert.match(taskCard, />拒绝<\/button>/)
   assert.match(taskCard, /scope: 'skill-execution'/)
   assert.doesNotMatch(taskCard, /type="checkbox"|授权选中项|单独授权此项|全选/)

@@ -135,18 +135,18 @@ test('a fully visible pending task stays still and ordinary newer messages retai
   assert.equal(view.state.messagesEl.value.scrollTop, 1800)
 })
 
-test('one Skill execution has only Authorize and Reject, with no repeated single-request title or selection controls', async () => {
+test('one Skill execution has a clickable Batch Authorize button and Reject, with no label-only substitute or selection controls', async () => {
   const task = sampleTask()
   task.requests = [{ ...task.requests[0], label: task.title }]
   const view = await openComponent('/src/components/agent/AgentTaskCard.vue', { task })
   const html = await view.html()
   assert.equal((html.match(/<button\b/g) || []).length, 2)
-  assert.match(html, />授权<\/button>/)
+  assert.match(html, />批量授权<\/button>/)
   assert.match(html, />拒绝<\/button>/)
   assert.doesNotMatch(html, /type="checkbox"|全选|已选|选中项|单独授权|单独确认/)
   assert.equal((html.match(/>核对本月统计<\//g) || []).length, 1)
   assert.match(html, /使用示例数据/)
-  assert.match(html, /批量授权/)
+  assert.doesNotMatch(html, /task-batch-label/)
   assert.match(html, /一次授权，执行本次 Skill 的全部 1 个步骤。/)
 })
 
@@ -175,7 +175,7 @@ test('a single executable request with three described steps makes batch authori
   const view = await openComponent('/src/components/agent/AgentTaskCard.vue', { task })
   const html = await view.html()
   const visibleSummary = html.slice(0, html.indexOf('<details'))
-  assert.match(visibleSummary, /批量授权/)
+  assert.match(html, />批量授权<\/button>/)
   assert.match(visibleSummary, /一次授权，执行本次 Skill 的全部 3 个步骤。/)
   assert.match(visibleSummary, /已完成 0\/1 项操作/)
   assert.doesNotMatch(html, /<details[^>]*\bopen(?:[ =>])/)
@@ -268,7 +268,7 @@ test('approved is not completed and completion closes details while retaining hi
   await nextTick()
   assert.equal(view.state.progress.value.done, 0)
   assert.match(await view.html(), /已授权|等待执行/)
-  assert.doesNotMatch(await view.html(), />授权<\/button>/)
+  assert.doesNotMatch(await view.html(), />批量授权<\/button>/)
   view.props.task.requests[0].status = 'succeeded'
   await nextTick()
   assert.equal(view.state.expanded.value, false)
@@ -305,5 +305,5 @@ test('expired requests have no active authorization and cannot emit a new decisi
   await view.state.decide('reject')
   assert.deepEqual(view.events, [])
   assert.match(await view.html(), /已过期|已失效/)
-  assert.doesNotMatch(await view.html(), />授权<\/button>/)
+  assert.doesNotMatch(await view.html(), />批量授权<\/button>/)
 })

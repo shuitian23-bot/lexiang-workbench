@@ -1,10 +1,7 @@
 <template>
   <section ref="cardEl" class="agent-task-card" data-agent-task-card :aria-label="task.title">
     <div class="task-summary">
-      <div class="task-title-row">
-        <span class="task-batch-label">批量授权</span>
-        <h3 ref="summaryEl" class="task-title" tabindex="-1">{{ task.title }}</h3>
-      </div>
+      <h3 ref="summaryEl" class="task-title" tabindex="-1">{{ task.title }}</h3>
       <span class="task-progress" role="status" aria-live="polite" aria-atomic="true">{{ progress.label }} · 已完成 {{ progress.done }}/{{ progress.total }} 项操作</span>
     </div>
     <p class="task-preview-notice">使用示例数据，不会执行真实查询、导出或修改。</p>
@@ -39,7 +36,7 @@
     <p v-else class="task-empty">当前没有待执行操作。</p>
     <div v-if="pendingRequests.length" class="task-execution-actions">
       <button type="button" data-task-action :disabled="sending || expired" @click="decide('reject')">拒绝</button>
-      <button type="button" data-task-action class="task-primary" :disabled="sending || expired" @click="decide('approve')">授权</button>
+      <button type="button" data-task-action class="task-primary" :disabled="sending || expired" @click="decide('approve')">批量授权</button>
     </div>
   </section>
 </template>
@@ -115,8 +112,6 @@ function requestStatus(status: RequestStatus) {
 <style scoped>
 .agent-task-card { min-width: 0; max-width: 100%; margin-top: 12px; padding: 12px; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); color: var(--color-text); }
 .task-summary { display: grid; gap: 4px; min-width: 0; }
-.task-title-row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; min-width: 0; }
-.task-batch-label { display: inline-flex; align-items: center; flex: 0 0 auto; min-height: 24px; padding: 0 8px; border-radius: var(--radius-sm); background: var(--color-primary-subtle); color: var(--color-primary); font-size: 12px; font-weight: 500; line-height: 1.5; white-space: nowrap; }
 .agent-task-card .task-title { margin: 0; font-size: 14px; font-weight: 600; line-height: 1.5; overflow-wrap: anywhere; }
 .task-progress { font-size: 12px; color: var(--color-text-secondary); line-height: 1.5; overflow-wrap: anywhere; }
 .agent-task-card p.task-preview-notice, .agent-task-card p.task-notice, .agent-task-card p.task-execution-summary, .agent-task-card p.task-empty { margin: 8px 0 0; font-size: 12px; line-height: 1.5; color: var(--color-text-secondary); overflow-wrap: anywhere; }
