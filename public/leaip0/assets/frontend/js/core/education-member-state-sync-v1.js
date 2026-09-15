@@ -7,6 +7,16 @@
   const get = key => { try { return localStorage.getItem(key); } catch { return null; } };
   const parse = raw => { try { const value = JSON.parse(raw); return value && typeof value === 'object' && !Array.isArray(value) ? value : null; } catch { return null; } };
   const status = value => value?.status === 'verified' ? 'verified' : ['pending', 'reviewing'].includes(value?.status) ? 'pending' : 'unverified';
+  // One-time reset requested for the P0 education demonstration. Later certifications persist.
+  const resetKey = 'lexiang.education.demo-reset.v1';
+  const resetVersion = '2026-09-15-unverified-1';
+  if (get(resetKey) !== resetVersion) {
+    try {
+      localStorage.setItem(legacyKey, JSON.stringify({ status: 'none' }));
+      localStorage.setItem(currentKey, JSON.stringify({ status: 'unverified' }));
+      localStorage.setItem(resetKey, resetVersion);
+    } catch { /* Keep the page usable when browser storage is unavailable. */ }
+  }
   let lastLegacy = get(legacyKey), lastCurrent = get(currentKey);
   const remember = () => { lastLegacy = get(legacyKey); lastCurrent = get(currentKey); };
   function sync(sourceKey) {
