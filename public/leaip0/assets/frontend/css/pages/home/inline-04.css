@@ -4775,7 +4775,7 @@
 
       .send-btn:hover {
         background: transparent;
-        box-shadow: 0 8px 18px rgba(155, 142, 182, 0.62);
+        box-shadow:none;
         transform: translateY(-1px);
       }
 
@@ -9110,7 +9110,7 @@ body[data-page="home"] .agent-summary {
 .att-enter{animation:attin .42s cubic-bezier(.22,1.2,.36,1)}
 @keyframes attin{from{opacity:0;transform:translateY(10px) scale(.9)}to{opacity:1;transform:none}}
 .send-btn{transition:background .3s ease,transform .2s ease}
-.composer.has .send-btn{background:linear-gradient(135deg,#e42b20,#B8252E);box-shadow:0 4px 14px rgba(155, 142, 182, 0.62)}
+.composer.has .send-btn{background:linear-gradient(135deg,#e42b20,#B8252E);box-shadow:none}
 .composer.has .send-btn.pulse{animation:sendpulse 1.6s infinite}
 @keyframes sendpulse{0%,100%{box-shadow:0 4px 14px rgba(155, 142, 182, 0.62)}50%{box-shadow:0 4px 22px rgba(77, 20, 74, 0.48)}}
 @media (prefers-reduced-motion:reduce){.ghost,.assistant-panel.dragging,.assistant-panel.armed,.glowlayer,.att-enter,.composer.has .send-btn.pulse{animation:none!important}}
