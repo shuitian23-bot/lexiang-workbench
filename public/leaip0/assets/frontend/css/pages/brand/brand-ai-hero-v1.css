@@ -1,6 +1,7 @@
 /* Original 2026-09-15 brand hero; scoped to the brand content pane. */
 .lxbrand-ai-hero {
   --lxbrand-hero-height: calc(100vh - 63px);
+  --lxbrand-hero-type-scale: .7;
   position: relative;
   min-height: calc(var(--lxbrand-hero-height) * .40);
   width: calc(100% + var(--lxbrand-hero-left, 18px) + var(--lxbrand-hero-right, 18px));
@@ -36,30 +37,30 @@
   position: relative;
   z-index: 2;
   padding: 0;
-  width: 80%;
+  width: calc(80% * var(--lxbrand-hero-type-scale));
   max-width: none;
   margin: 0 0 0 10%;
 }
 .lxbrand-ai-hero .lxbrand-ai-hero__title {
   font-family: inherit;
-  font-size: clamp(24px, min(6.5cqi, calc(var(--lxbrand-hero-height) * .125)), 112px);
+  font-size: calc(clamp(24px, min(6.5cqi, calc(var(--lxbrand-hero-height) * .125)), 112px) * var(--lxbrand-hero-type-scale));
   line-height: .96;
   letter-spacing: -.05em;
-  margin: 0 0 clamp(4px, 1.25cqi, calc(var(--lxbrand-hero-height) * .018));
+  margin: 0 0 calc(clamp(4px, 1.25cqi, calc(var(--lxbrand-hero-height) * .018)) * var(--lxbrand-hero-type-scale));
   padding: 0;
   font-weight: 700;
   color: #fff;
 }
 .lxbrand-ai-hero .lxbrand-ai-hero__cn {
-  font-size: clamp(16px, min(4.1cqi, calc(var(--lxbrand-hero-height) * .078)), 70px);
+  font-size: calc(clamp(16px, min(4.1cqi, calc(var(--lxbrand-hero-height) * .078)), 70px) * var(--lxbrand-hero-type-scale));
   line-height: 1.16;
   font-weight: 650;
   letter-spacing: -.02em;
-  margin: 0 0 clamp(6px, 2cqi, calc(var(--lxbrand-hero-height) * .03));
+  margin: 0 0 calc(clamp(6px, 2cqi, calc(var(--lxbrand-hero-height) * .03)) * var(--lxbrand-hero-type-scale));
   color: #fff;
 }
 .lxbrand-ai-hero .lxbrand-ai-hero__copy {
-  font-size: clamp(12px, min(1.7cqi, calc(var(--lxbrand-hero-height) * .027)), 24px);
+  font-size: calc(clamp(12px, min(1.7cqi, calc(var(--lxbrand-hero-height) * .027)), 24px) * var(--lxbrand-hero-type-scale));
   line-height: 1.8;
   max-width: min(100%, 42em);
   margin: 0;
@@ -67,7 +68,7 @@
 }
 .lxbrand-ai-hero[data-width="small"] { background-position: 60% center; }
 .lxbrand-ai-hero[data-width="small"] .lxbrand-ai-hero__inner {
-  width: calc(100% - 28px);
+  width: calc((100% - 28px) * var(--lxbrand-hero-type-scale));
   margin-left: 14px;
   margin-right: 14px;
 }
