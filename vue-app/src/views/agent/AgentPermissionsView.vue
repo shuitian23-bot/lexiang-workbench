@@ -2064,105 +2064,154 @@
       </div>
     </div>
 
-    <div v-if="organizationEditor.visible" class="permission-modal" @click.self="closeOrganizationEditor">
-      <div v-modal-overflow-state class="modal-panel org-editor-modal">
-        <button type="button" class="modal-close" @click="closeOrganizationEditor">×</button>
-        <h3>{{ organizationEditor.mode === 'create' ? '新增组织' : '编辑组织信息' }}</h3>
-        <p class="modal-note">维护组织归属、名称、负责人和描述。保存后会立即更新当前 POC 展示数据。</p>
-        <div class="org-form-grid">
-          <label>
-            <span class="field-label required">Tenant <em>必填</em></span>
-            <select v-model="organizationEditor.draft.tenant" :class="{ invalid: organizationEditor.errors.tenant }">
-              <option disabled value="">请选择 Tenant</option>
-              <option v-for="tenant in organizationTenants" :key="tenant.value" :value="tenant.value">{{ tenant.label }}</option>
-            </select>
-            <small v-if="organizationEditor.errors.tenant" class="field-error">{{ organizationEditor.errors.tenant }}</small>
-          </label>
-          <label>
-            <span class="field-label required">组织名称 <em>必填</em></span>
-            <input v-model.trim="organizationEditor.draft.name" :class="{ invalid: organizationEditor.errors.name }" placeholder="请输入组织名称">
-            <small v-if="organizationEditor.errors.name" class="field-error">{{ organizationEditor.errors.name }}</small>
-          </label>
-          <label>
-            <span :class="['field-label', { required: organizationEditor.mode === 'create' }]">上级组织 <em v-if="organizationEditor.mode === 'create'">必填</em></span>
-            <select v-model="organizationEditor.draft.parentId" :disabled="organizationEditor.mode === 'edit'" :class="{ invalid: organizationEditor.errors.parentId }">
-              <option disabled value="">请选择上级组织</option>
-              <option v-for="org in organizationParentOptions" :key="org.id" :value="org.id">{{ org.name }}</option>
-            </select>
-            <small v-if="organizationEditor.errors.parentId" class="field-error">{{ organizationEditor.errors.parentId }}</small>
-          </label>
-          <label>
-            <span>负责人</span>
-            <input v-model.trim="organizationEditor.draft.owner" placeholder="请输入负责人账号或姓名">
-          </label>
-          <label>
-            <span>创建人</span>
-            <input v-model.trim="organizationEditor.draft.creator" placeholder="请输入创建人账号或姓名">
-          </label>
-          <label>
-            <span>Code</span>
-            <input v-model.trim="organizationEditor.draft.code" :readonly="organizationEditor.mode === 'edit'" :class="{ invalid: organizationEditor.errors.code }" placeholder="例如 OPS-MALL">
-            <small v-if="organizationEditor.errors.code" class="field-error">{{ organizationEditor.errors.code }}</small>
-          </label>
-          <label class="full">
-            <span>组织描述 <em>{{ organizationEditor.draft.description.length }}/120</em></span>
-            <textarea v-model.trim="organizationEditor.draft.description" :class="{ invalid: organizationEditor.errors.description }" rows="4" placeholder="请说明该组织负责的业务范围、成员边界和权限使用场景。"></textarea>
-            <small v-if="organizationEditor.errors.description" class="field-error">{{ organizationEditor.errors.description }}</small>
-            <small v-else class="field-help">建议控制在 120 字以内，便于审批人快速理解。</small>
-          </label>
-        </div>
-        <div class="modal-actions">
-          <span v-if="organizationEditor.notice" class="approval-feedback">{{ organizationEditor.notice }}</span>
-          <button type="button" class="ghost-btn" @click="closeOrganizationEditor">取消</button>
-          <button type="button" class="primary-btn" @click="saveOrganizationEditor">保存</button>
+    <div ref="organizationDialogRoot" class="organization-dialog-root">
+      <div v-if="organizationDetailModalVisible && selectedOrganization" class="permission-modal" @click.self="closeOrganizationDetail">
+        <section v-modal-overflow-state class="modal-panel org-detail-modal" role="dialog" aria-modal="true" aria-labelledby="organization-detail-title">
+          <button type="button" class="modal-close" aria-label="关闭组织详情" @click="closeOrganizationDetail">×</button>
+          <div class="org-detail-head">
+            <div>
+              <span>{{ selectedOrganization.code }}</span>
+              <h3 id="organization-detail-title">{{ selectedOrganization.name }}</h3>
+              <p>{{ selectedOrganization.description || '暂无组织描述。' }}</p>
+            </div>
+          </div>
+          <dl class="org-detail-grid">
+            <div><dt>负责人</dt><dd>{{ selectedOrganization.owner || '未配置' }}</dd></div>
+            <div><dt>上级组织</dt><dd>{{ organizationParentName(selectedOrganization) }}</dd></div>
+            <div><dt>组织层级</dt><dd>{{ selectedOrganization.level + 1 }} 级</dd></div>
+            <div><dt>成员数量</dt><dd>{{ selectedOrganization.memberCount }} 人</dd></div>
+            <div><dt>更新时间</dt><dd>{{ selectedOrganization.updatedAt || '—' }}</dd></div>
+            <div><dt>权限定位</dt><dd>{{ selectedOrganization.scope || '未配置' }}</dd></div>
+          </dl>
+          <div class="org-member-head">
+            <b>组织成员</b>
+            <button type="button" class="primary-btn small" @click="openOrganizationMemberModal()">添加成员</button>
+          </div>
+          <div class="permission-table-wrap org-member-table-wrap">
+            <table v-if="selectedOrganizationMembers.length" class="permission-table org-member-table">
+              <thead><tr><th>姓名</th><th>账号</th><th>部门</th><th>组织角色</th><th>权限身份</th><th>操作</th></tr></thead>
+              <tbody>
+                <tr v-for="member in selectedOrganizationMembers" :key="member.account">
+                  <td>{{ member.name }}</td><td>{{ member.account }}</td><td>{{ member.department }}</td><td>{{ member.orgRole }}</td><td>{{ member.permissionIdentity }}</td>
+                  <td>
+                    <div class="row-actions">
+                      <button type="button" class="link-btn" @click="openOrganizationMemberModal(member)">编辑</button>
+                      <button type="button" class="link-btn danger" @click="removeOrganizationMember(member.account)">移除</button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+            <div v-else class="table-empty"><b>当前组织还没有成员</b></div>
+          </div>
+          <p v-if="organizationNotice" class="approval-feedback" role="status">{{ organizationNotice }}</p>
+          <footer class="modal-actions">
+            <button type="button" class="ghost-btn" @click="closeOrganizationDetail">关闭</button>
+            <button type="button" class="ghost-btn danger-outline-btn" @click="removeSelectedOrganization">移除组织</button>
+            <button type="button" class="primary-btn" @click="openOrganizationEditor('edit')">编辑信息</button>
+          </footer>
+        </section>
+      </div>
+      <div v-if="organizationEditor.visible" class="permission-modal" @click.self="closeOrganizationEditor">
+        <div v-modal-overflow-state class="modal-panel org-editor-modal">
+          <button type="button" class="modal-close" @click="closeOrganizationEditor">×</button>
+          <h3>{{ organizationEditor.mode === 'create' ? '新增组织' : '编辑组织信息' }}</h3>
+          <p class="modal-note">维护组织归属、名称、负责人和描述。保存后会立即更新当前 POC 展示数据。</p>
+          <div class="org-form-grid">
+            <label>
+              <span class="field-label required">Tenant <em>必填</em></span>
+              <select v-model="organizationEditor.draft.tenant" :class="{ invalid: organizationEditor.errors.tenant }">
+                <option disabled value="">请选择 Tenant</option>
+                <option v-for="tenant in organizationTenants" :key="tenant.value" :value="tenant.value">{{ tenant.label }}</option>
+              </select>
+              <small v-if="organizationEditor.errors.tenant" class="field-error">{{ organizationEditor.errors.tenant }}</small>
+            </label>
+            <label>
+              <span class="field-label required">组织名称 <em>必填</em></span>
+              <input v-model.trim="organizationEditor.draft.name" :class="{ invalid: organizationEditor.errors.name }" placeholder="请输入组织名称">
+              <small v-if="organizationEditor.errors.name" class="field-error">{{ organizationEditor.errors.name }}</small>
+            </label>
+            <label v-if="organizationEditor.mode === 'create'">
+              <span :class="['field-label', { required: organizationEditor.mode === 'create' }]">上级组织 <em v-if="organizationEditor.mode === 'create'">必填</em></span>
+              <select v-model="organizationEditor.draft.parentId" :disabled="organizationEditor.mode === 'edit'" :class="{ invalid: organizationEditor.errors.parentId }">
+                <option disabled value="">请选择上级组织</option>
+                <option v-for="org in organizationParentOptions" :key="org.id" :value="org.id">{{ org.name }}</option>
+              </select>
+              <small v-if="organizationEditor.errors.parentId" class="field-error">{{ organizationEditor.errors.parentId }}</small>
+            </label>
+            <label>
+              <span>负责人</span>
+              <input v-model.trim="organizationEditor.draft.owner" placeholder="请输入负责人账号或姓名">
+            </label>
+            <label>
+              <span>创建人</span>
+              <input v-model.trim="organizationEditor.draft.creator" placeholder="请输入创建人账号或姓名">
+            </label>
+            <label>
+              <span>Code</span>
+              <input v-model.trim="organizationEditor.draft.code" :readonly="organizationEditor.mode === 'edit'" :class="{ invalid: organizationEditor.errors.code }" placeholder="例如 OPS-MALL">
+              <small v-if="organizationEditor.errors.code" class="field-error">{{ organizationEditor.errors.code }}</small>
+            </label>
+            <label class="full">
+              <span>组织描述 <em>{{ organizationEditor.draft.description.length }}/120</em></span>
+              <textarea v-model.trim="organizationEditor.draft.description" :class="{ invalid: organizationEditor.errors.description }" rows="4" placeholder="请说明该组织负责的业务范围、成员边界和权限使用场景。"></textarea>
+              <small v-if="organizationEditor.errors.description" class="field-error">{{ organizationEditor.errors.description }}</small>
+              <small v-else class="field-help">建议控制在 120 字以内，便于审批人快速理解。</small>
+            </label>
+          </div>
+          <div class="modal-actions">
+            <span v-if="organizationEditor.notice" class="approval-feedback">{{ organizationEditor.notice }}</span>
+            <button type="button" class="ghost-btn" @click="closeOrganizationEditor">取消</button>
+            <button type="button" class="primary-btn" @click="saveOrganizationEditor">保存</button>
+          </div>
         </div>
       </div>
-    </div>
 
-    <div v-if="organizationMemberModal.visible" class="permission-modal" @click.self="closeOrganizationMemberModal">
-      <div v-modal-overflow-state class="modal-panel org-editor-modal">
-        <button type="button" class="modal-close" @click="closeOrganizationMemberModal">×</button>
-        <h3>{{ organizationMemberModal.mode === 'edit' ? '编辑组织成员' : '添加组织成员' }}</h3>
-        <p class="modal-note">{{ organizationMemberModal.mode === 'edit' ? '调整成员基础信息和组织角色，保存后立即更新成员列表。' : '成员会添加到当前选中的组织，并同步更新成员数量。' }}</p>
-        <div class="org-form-grid">
-          <label>
-            <span>所属组织</span>
-            <select v-model="organizationMemberModal.draft.organizationId">
-              <option v-for="org in flatOrganizations" :key="org.id" :value="org.id">{{ org.name }}</option>
-            </select>
-          </label>
-          <label>
-            <span class="field-label required">姓名 <em>必填</em></span>
-            <input v-model.trim="organizationMemberModal.draft.name" :class="{ invalid: organizationMemberModal.errors.name }" placeholder="请输入成员姓名">
-            <small v-if="organizationMemberModal.errors.name" class="field-error">{{ organizationMemberModal.errors.name }}</small>
-          </label>
-          <label>
-            <span class="field-label required">账号 <em>必填</em></span>
-            <input v-model.trim="organizationMemberModal.draft.account" :class="{ invalid: organizationMemberModal.errors.account }" placeholder="请输入 ITCode 或登录账号">
-            <small v-if="organizationMemberModal.errors.account" class="field-error">{{ organizationMemberModal.errors.account }}</small>
-          </label>
-          <label>
-            <span>部门</span>
-            <input v-model.trim="organizationMemberModal.draft.department" placeholder="例如：乐享运营">
-          </label>
-          <label>
-            <span>组织角色</span>
-            <select v-model="organizationMemberModal.draft.orgRole">
-              <option>负责人</option>
-              <option>管理员</option>
-              <option>成员</option>
-              <option>协作人</option>
-            </select>
-          </label>
-        </div>
-        <div class="modal-actions">
-          <span v-if="organizationMemberModal.notice" class="approval-feedback">{{ organizationMemberModal.notice }}</span>
-          <button type="button" class="ghost-btn" @click="closeOrganizationMemberModal">取消</button>
-          <button type="button" class="primary-btn" @click="saveOrganizationMember">{{ organizationMemberModal.mode === 'edit' ? '保存' : '确认添加' }}</button>
+      <div v-if="organizationMemberModal.visible" class="permission-modal" @click.self="closeOrganizationMemberModal">
+        <div v-modal-overflow-state class="modal-panel org-editor-modal">
+          <button type="button" class="modal-close" @click="closeOrganizationMemberModal">×</button>
+          <h3>{{ organizationMemberModal.mode === 'edit' ? '编辑组织成员' : '添加组织成员' }}</h3>
+          <p class="modal-note">{{ organizationMemberModal.mode === 'edit' ? '调整成员基础信息和组织角色，保存后立即更新成员列表。' : '成员会添加到当前选中的组织，并同步更新成员数量。' }}</p>
+          <div class="org-form-grid">
+            <label>
+              <span>所属组织</span>
+              <select v-model="organizationMemberModal.draft.organizationId">
+                <option v-for="org in flatOrganizations" :key="org.id" :value="org.id">{{ org.name }}</option>
+              </select>
+            </label>
+            <label>
+              <span class="field-label required">姓名 <em>必填</em></span>
+              <input v-model.trim="organizationMemberModal.draft.name" :class="{ invalid: organizationMemberModal.errors.name }" placeholder="请输入成员姓名">
+              <small v-if="organizationMemberModal.errors.name" class="field-error">{{ organizationMemberModal.errors.name }}</small>
+            </label>
+            <label>
+              <span class="field-label required">账号 <em>必填</em></span>
+              <input v-model.trim="organizationMemberModal.draft.account" :class="{ invalid: organizationMemberModal.errors.account }" placeholder="请输入 ITCode 或登录账号">
+              <small v-if="organizationMemberModal.errors.account" class="field-error">{{ organizationMemberModal.errors.account }}</small>
+            </label>
+            <label>
+              <span>部门</span>
+              <input v-model.trim="organizationMemberModal.draft.department" placeholder="例如：乐享运营">
+            </label>
+            <label>
+              <span>组织角色</span>
+              <select v-model="organizationMemberModal.draft.orgRole">
+                <option>负责人</option>
+                <option>管理员</option>
+                <option>成员</option>
+                <option>协作人</option>
+              </select>
+            </label>
+          </div>
+          <div class="modal-actions">
+            <span v-if="organizationMemberModal.notice" class="approval-feedback">{{ organizationMemberModal.notice }}</span>
+            <button type="button" class="ghost-btn" @click="closeOrganizationMemberModal">取消</button>
+            <button type="button" class="primary-btn" @click="saveOrganizationMember">{{ organizationMemberModal.mode === 'edit' ? '保存' : '确认添加' }}</button>
+          </div>
         </div>
       </div>
-    </div>
 
+    </div>
     <div v-if="detailModal.visible" class="permission-modal" @click.self="closeDetailModal">
       <div v-modal-overflow-state class="modal-panel">
         <button type="button" class="modal-close" @click="closeDetailModal">×</button>
@@ -2206,7 +2255,8 @@
 </template>
 
 <script setup>
-import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
+import { useDialogFocusManager } from '@/composables/useDialogFocusManager'
 import { useRoute, useRouter } from 'vue-router'
 import { MENU_TREE } from '@/stores/app'
 import ContentPageHeader from '@/components/content/ContentPageHeader.vue'
@@ -3439,6 +3489,9 @@ const organizations = reactive([
 
 const selectedOrganizationId = ref('leai-root')
 const organizationDetailModalVisible = ref(false)
+const organizationDialogRoot = ref(null)
+useDialogFocusManager(organizationDialogRoot)
+let organizationDetailTrigger = null
 const organizationSearchKeyword = ref('')
 const organizationNotice = ref('')
 let organizationNoticeTimer = null
@@ -8268,6 +8321,7 @@ function selectOrganization(id) {
 }
 
 function openOrganizationDetail(id) {
+  organizationDetailTrigger = document.activeElement
   selectedOrganizationId.value = id
   organizationDetailModalVisible.value = true
   dismissOrganizationNotice()
@@ -8275,6 +8329,13 @@ function openOrganizationDetail(id) {
 
 function closeOrganizationDetail() {
   organizationDetailModalVisible.value = false
+  nextTick(() => {
+    const target = organizationDetailTrigger?.isConnected
+      ? organizationDetailTrigger
+      : document.querySelector('.permission-page-vue .current-card .org-chart-detail-btn')
+    target?.focus()
+    organizationDetailTrigger = null
+  })
 }
 
 function clearOrganizationNoticeTimer() {
@@ -8513,7 +8574,7 @@ function removeSelectedOrganization() {
   parent.children = parent.children.filter((child) => child.id !== org.id)
   parent.updatedAt = currentDateTimeText()
   selectedOrganizationId.value = parent.id
-  organizationDetailModalVisible.value = false
+  closeOrganizationDetail()
   showOrganizationNotice(`已移除组织“${org.name}”。`)
 }
 
@@ -12775,6 +12836,10 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+}
+
+.organization-dialog-root {
+  display: contents;
 }
 
 .org-detail-modal {
