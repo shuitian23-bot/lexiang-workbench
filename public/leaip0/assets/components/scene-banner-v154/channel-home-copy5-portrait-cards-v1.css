@@ -286,12 +286,13 @@ body:is([data-page="business"], [data-page="enterprise"]) .enterprise-scene-card
 /* copy5 refinement: anchor the product posters in the lower-right visual zone.
    The offset scales gently with the canvas and preserves a calm right inset. */
 :root {
+  --lx-copy5-content-rise: 10px;
   --lx-copy5-tray-right: clamp(28px, 2.6vw, 42px);
   --lx-copy5-tray-center-y: clamp(54%, 56%, 57%);
 }
 
 html .page .hero .hero-products {
-  top: var(--lx-copy5-tray-center-y) !important;
+  top: calc(var(--lx-copy5-tray-center-y) - var(--lx-copy5-content-rise)) !important;
   right: var(--lx-copy5-tray-right) !important;
   bottom: auto !important;
   left: auto !important;
@@ -304,7 +305,7 @@ html .page .hero .hero-copy {
 }
 
 body:is([data-page="business"], [data-page="enterprise"]) .enterprise-scene-cards {
-  top: var(--lx-copy5-tray-center-y) !important;
+  top: calc(var(--lx-copy5-tray-center-y) - var(--lx-copy5-content-rise)) !important;
   right: var(--lx-copy5-tray-right) !important;
   bottom: auto !important;
   left: auto !important;
@@ -322,7 +323,7 @@ body[data-page="enterprise"] .device-scene-copy {
 @media (min-width: 761px) and (max-height: 820px) {
   html.is-short-host .page .hero .hero-products,
   body:is([data-page="business"], [data-page="enterprise"]) .enterprise-scene-cards {
-    top: 55% !important;
+    top: calc(55% - var(--lx-copy5-content-rise)) !important;
     right: clamp(24px, 2.3vw, 34px) !important;
   }
 }
@@ -332,6 +333,7 @@ html .page .hero .hero-copy,
 body:is([data-page="business"], [data-page="enterprise"]) .device-scene-copy {
   justify-content: center !important;
   padding: 0 clamp(20px, 2.2vw, 34px) 0 clamp(38px, 3.7vw, 56px) !important;
+  translate: 0 calc(0px - var(--lx-copy5-content-rise)) !important;
 }
 
 html .page .hero .eyebrow,
