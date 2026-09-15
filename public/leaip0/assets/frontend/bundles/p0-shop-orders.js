@@ -1231,8 +1231,7 @@
               var orderId = detailButton ? detailButton.dataset.orderDetailId : card.dataset.orderCard;
               var order = orders.find(function (item) { return item.id === orderId; });
               if (!order) return;
-              var mainItem = primaryItem(order);
-              streamSkillAnswer("查看这笔订单的详细信息", "订单详情查询", ["已查询到“" + mainItem.name + "”的订单详情。", "这是一笔“" + order.typeLabel + "”，当前状态为“" + order.status + "”，下单时间是 " + order.createdAt + "，应付金额 " + orderAmount(order) + "。右侧可查看商品清单、付款信息、交付信息和订单状态轨迹。"]);
+              // orders-page-silent-controls-v71-20260915: page buttons only update the right pane.
               content.querySelector("[data-orders-list]").classList.remove("is-active");
               var detail = content.querySelector("[data-order-detail]");
               detail.innerHTML = detailMarkup(order);
@@ -1367,4 +1366,3 @@ observer.observe(document.body,{childList:true,subtree:true,characterData:true})
 })();
 
 ;
-

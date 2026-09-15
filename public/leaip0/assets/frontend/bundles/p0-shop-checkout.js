@@ -909,6 +909,9 @@ window.__lxAddressRegionsV142=[{"code":"11","name":"北京市","children":[{"cod
       [data-buy-modal-direct] .lx-order-address-copy span{overflow:hidden;color:#6f6872;font-size:12px;line-height:18px;text-overflow:ellipsis;white-space:nowrap}
       [data-buy-modal-direct] .lx-address-dialog,[data-buy-modal-direct] .lx-invoice-dialog{width:min(620px,calc(100vw - 32px))!important;height:min(560px,calc(100vh - 32px))!important;min-height:min(560px,calc(100vh - 32px))!important}
       [data-buy-modal-direct] .lx-address-head{padding:0 32px}
+      /* checkout-address-back-v71-20260915 */
+      [data-buy-modal-direct] .lx-address-head{padding-left:18px;gap:10px}
+      [data-buy-modal-direct] .lx-address-head>.lx-order-edit-back{display:grid}
       [data-buy-modal-direct] .lx-address-tabs{height:100%;display:flex;align-items:center;gap:32px}
       [data-buy-modal-direct] .lx-address-tabs button{position:relative;height:100%;padding:0;border:0;background:transparent;color:#1d191f;font:600 18px/26px "Source Han Sans CN","PingFang SC",sans-serif;cursor:pointer}
       [data-buy-modal-direct] .lx-address-tabs button.is-active{color:#681057}
@@ -1532,12 +1535,12 @@ window.__lxAddressRegionsV142=[{"code":"11","name":"北京市","children":[{"cod
       const tabs = `<div class="lx-address-tabs" role="tablist" aria-label="地址管理"><button class="${isCreate ? '' : 'is-active'}" type="button" role="tab" aria-selected="${!isCreate}" data-address-tab="select">选择地址</button><button class="${isCreate ? 'is-active' : ''}" type="button" role="tab" aria-selected="${isCreate}" data-address-tab="create">新建地址</button></div>`;
       if (isCreate) {
         const editing = addressBook.find((address) => address.id === editId);
-        dialog.innerHTML = `<header class="lx-order-edit-head lx-address-head">${tabs}<button class="lx-buy-direct-close" type="button" aria-label="关闭">×</button></header><div class="lx-order-edit-body lx-address-create-body"><form class="lx-address-form" data-address-form data-address-editing="${escapeHtml(editing?.id || '')}"><label for="lxAddressName">姓名：</label><input id="lxAddressName" name="name" value="${escapeHtml(editing?.name || '')}" placeholder="请输入姓名" autocomplete="name"><label for="lxAddressPhone">手机：</label><input id="lxAddressPhone" name="phone" value="${escapeHtml(editing?.phone || '')}" placeholder="请输入手机号" inputmode="tel" autocomplete="tel"><label for="lxAddressRegion">省市：</label><select id="lxAddressRegion" name="region"><option value="">请选择省/市/区/街道</option><option value="北京市海淀区中关村街道"${editing?.region === '北京市海淀区中关村街道' ? ' selected' : ''}>北京市 / 海淀区 / 中关村街道</option><option value="北京市海淀区中关村软件园2期"${editing?.region === '北京市海淀区中关村软件园2期' ? ' selected' : ''}>北京市 / 海淀区 / 中关村软件园2期</option><option value="上海市浦东新区张江镇"${editing?.region === '上海市浦东新区张江镇' ? ' selected' : ''}>上海市 / 浦东新区 / 张江镇</option><option value="广东省深圳市南山区粤海街道"${editing?.region === '广东省深圳市南山区粤海街道' ? ' selected' : ''}>广东省 / 深圳市 / 南山区 / 粤海街道</option></select><label for="lxAddressDetail">地址：</label><textarea id="lxAddressDetail" name="detail" placeholder="请输入详细地址">${escapeHtml(editing?.detail || '')}</textarea><label class="lx-address-default"><input type="checkbox" name="isDefault" ${editing?.isDefault ? 'checked' : ''}><span>设为默认地址</span></label></form></div><footer class="lx-order-edit-footer lx-address-footer"><button type="button" data-address-save>保存</button></footer>`;
+        dialog.innerHTML = `<header class="lx-order-edit-head lx-address-head"><button class="lx-order-edit-back" type="button" data-address-back aria-label="返回修改订单"><img src="/assets/icons/order-modal-back.svg" alt="" aria-hidden="true"></button>${tabs}<button class="lx-buy-direct-close" type="button" aria-label="关闭">×</button></header><div class="lx-order-edit-body lx-address-create-body"><form class="lx-address-form" data-address-form data-address-editing="${escapeHtml(editing?.id || '')}"><label for="lxAddressName">姓名：</label><input id="lxAddressName" name="name" value="${escapeHtml(editing?.name || '')}" placeholder="请输入姓名" autocomplete="name"><label for="lxAddressPhone">手机：</label><input id="lxAddressPhone" name="phone" value="${escapeHtml(editing?.phone || '')}" placeholder="请输入手机号" inputmode="tel" autocomplete="tel"><label for="lxAddressRegion">省市：</label><select id="lxAddressRegion" name="region"><option value="">请选择省/市/区/街道</option><option value="北京市海淀区中关村街道"${editing?.region === '北京市海淀区中关村街道' ? ' selected' : ''}>北京市 / 海淀区 / 中关村街道</option><option value="北京市海淀区中关村软件园2期"${editing?.region === '北京市海淀区中关村软件园2期' ? ' selected' : ''}>北京市 / 海淀区 / 中关村软件园2期</option><option value="上海市浦东新区张江镇"${editing?.region === '上海市浦东新区张江镇' ? ' selected' : ''}>上海市 / 浦东新区 / 张江镇</option><option value="广东省深圳市南山区粤海街道"${editing?.region === '广东省深圳市南山区粤海街道' ? ' selected' : ''}>广东省 / 深圳市 / 南山区 / 粤海街道</option></select><label for="lxAddressDetail">地址：</label><textarea id="lxAddressDetail" name="detail" placeholder="请输入详细地址">${escapeHtml(editing?.detail || '')}</textarea><label class="lx-address-default"><input type="checkbox" name="isDefault" ${editing?.isDefault ? 'checked' : ''}><span>设为默认地址</span></label></form></div><footer class="lx-order-edit-footer lx-address-footer"><button type="button" data-address-save>保存</button></footer>`;
         dialog.querySelector('#lxAddressName')?.focus();
         return;
       }
       const cards = addressBook.map((address) => `<article class="lx-address-card${orderState.addressId === address.id ? ' is-selected' : ''}" data-address-card="${address.id}"><button class="lx-address-card-main" type="button" data-address-select="${address.id}"><strong>${address.isDefault ? '<em>默认</em>' : ''}<span>${escapeHtml(address.name)}</span><span>${escapeHtml(address.phone)}</span></strong><small>${escapeHtml(address.region + address.detail)}</small></button><button class="lx-address-card-edit" type="button" data-address-card-edit="${address.id}" aria-label="编辑${escapeHtml(address.name)}的地址">✎</button></article>`).join('');
-      dialog.innerHTML = `<header class="lx-order-edit-head lx-address-head">${tabs}<button class="lx-buy-direct-close" type="button" aria-label="关闭">×</button></header><div class="lx-order-edit-body lx-address-select-body"><div class="lx-address-grid">${cards}</div></div><footer class="lx-order-edit-footer lx-address-footer"><button type="button" data-address-confirm>确定</button></footer>`;
+      dialog.innerHTML = `<header class="lx-order-edit-head lx-address-head"><button class="lx-order-edit-back" type="button" data-address-back aria-label="返回修改订单"><img src="/assets/icons/order-modal-back.svg" alt="" aria-hidden="true"></button>${tabs}<button class="lx-buy-direct-close" type="button" aria-label="关闭">×</button></header><div class="lx-order-edit-body lx-address-select-body"><div class="lx-address-grid">${cards}</div></div><footer class="lx-order-edit-footer lx-address-footer"><button type="button" data-address-confirm>确定</button></footer>`;
     };
     const invoiceDateValue = (date) => [date.getFullYear(), String(date.getMonth() + 1).padStart(2, '0'), String(date.getDate()).padStart(2, '0')].join('-');
     const invoiceDelayLimits = () => {
@@ -1588,7 +1591,11 @@ window.__lxAddressRegionsV142=[{"code":"11","name":"北京市","children":[{"cod
     };
     modal.addEventListener('pointerdown', (event) => {
       const target = event.target;
-      if (target.closest('[data-order-back],[data-config-back]')) {
+      if (target.closest('[data-address-back]')) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        showOrderEdit();
+      } else if (target.closest('[data-order-back],[data-config-back]')) {
         event.preventDefault();
         event.stopImmediatePropagation();
         showOrder();
@@ -1731,6 +1738,7 @@ window.__lxAddressRegionsV142=[{"code":"11","name":"北京市","children":[{"cod
       const customerInput = target.closest('[data-order-customer]');
       if (customerInput) { const menu = dialog.querySelector('[data-order-code-menu]'); menu.hidden = !menu.hidden; customerInput.setAttribute('aria-expanded', String(!menu.hidden)); return; }
       if (target.closest('[data-claim-national-subsidy]')) { showToast('国补资格将在结算时核验，价格以实际支付为准'); return; }
+      if (target.closest('[data-address-back]')) return showOrderEdit();
       if (target.closest('[data-address-edit]')) return showAddressManager('select');
       const addressTab = target.closest('[data-address-tab]');
       if (addressTab) return showAddressManager(addressTab.dataset.addressTab);
