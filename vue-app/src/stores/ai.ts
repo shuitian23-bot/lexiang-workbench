@@ -7,6 +7,7 @@ import { ref, computed } from 'vue'
 import { getGroupLabel, getPageLabel, pageIdToPath, type SkillApplicationReportData } from '@/stores/app'
 import { STORAGE_KEYS, writeBooleanStorage } from '@/constants/storageKeys'
 import { createEmployeeCertificationReport } from '@/services/skillApplicationReport'
+import { applyTaskDecision, expireTask, updateTaskRequest, type AiTaskBlock, type TaskDecision, type TaskRequest } from '@/stores/aiTaskAuthorization'
 
 type AnyRecord = Record<string, unknown>
 type ShortcutLabel = '今日指标' | '查数据' | '商品管理' | '知识库' | 'CMS' | '运营建议'
@@ -23,9 +24,10 @@ interface AttachedFile {
 }
 
 interface TaskAction {
-  type: 'report' | 'navigate' | 'skill' | 'prompt' | 'auth_approve' | 'auth_batch_approve' | 'auth_reject' | 'skill_tune_confirm'
+  type: 'report' | 'navigate' | 'skill' | 'prompt' | 'auth_approve' | 'auth_batch_approve' | 'auth_reject' | 'auth_task_decide' | 'skill_tune_confirm'
   label: string
   value?: string
+  decision?: TaskDecision
 }
 
 interface AiMessage {
@@ -42,6 +44,7 @@ interface AiMessage {
   todoList?: TodoListBlock
   authRequest?: AuthRequestBlock
   authResult?: AuthResultBlock
+  task?: AiTaskBlock
 }
 
 interface ConversationActivityItem {
@@ -64,6 +67,8 @@ interface TodoListBlock {
 }
 
 interface AuthRequestBlock {
+  kind?: TaskRequest['kind']
+  taskTitle?: string
   title: string
   namespace: string
   command: string
@@ -168,6 +173,7 @@ interface QueryableSkillAuthScenario {
 
 interface PendingQueryableSkillAuth {
   key: string
+  conversationId: string
   payload: ComposerPayload
   scenario: QueryableSkillAuthScenario
   context: AiRuntimeContext
@@ -188,7 +194,7 @@ const QUERYABLE_SKILL_AUTH_SCENARIOS: QueryableSkillAuthScenario[] = [
     pageId: 'portal.home', skillLabel: '门户工作台首页指标查询', groupLabel: '联想门户工作台',
     aliases: [/当前页面|门户工作台|首页|今日指标|核心指标|异常项|下一步动作|运营指标/i],
     summary: '读取门户工作台首页的今日核心运营指标、异常项和待确认动作，生成只读分析结果。',
-    scope: '联想门户工作台首页，以及当前会话内同类首页指标查询。',
+    scope: '联想门户工作台首页，仅限本次请求的示例数据。',
     steps: ['读取首页今日核心指标和页面上下文', '识别异常项、影响范围和需要确认的动作', '生成结论、数据摘要和可展开报告卡片'],
     resultTitle: '门户工作台首页指标查询结果',
     resultBullets: ['结果会围绕今日核心指标、异常项和优先动作展开。', '默认只读取当前 POC mock 数据，不修改任何运营配置。', '如后续涉及导出、发布或配置调整，会再次请求授权。']
@@ -197,7 +203,7 @@ const QUERYABLE_SKILL_AUTH_SCENARIOS: QueryableSkillAuthScenario[] = [
     pageId: 'dashboard.overview', skillLabel: '运营总览查询', groupLabel: '乐享运营',
     aliases: [/运营总览|运营概览|今日指标|dau|wau|mau|gmv|活跃|经营数据|转化链路/i],
     summary: '读取运营总览核心指标、经营链路和趋势数据，生成只读分析结果。',
-    scope: '乐享运营 / 运营总览，以及当前会话内同类运营指标查询。',
+    scope: '乐享运营 / 运营总览，仅限本次请求的示例数据。',
     steps: ['读取 DAU、WAU、MAU、GMV 等核心指标', '汇总登录、互动、购买和成交链路', '生成结论、异常提示和可展开报告'],
     resultTitle: '运营总览查询结果',
     resultBullets: ['核心链路会按登录、互动、购买和成交拆解。', '默认只读取看板数据，不改动运营配置。', '如后续涉及导出或发布，会再次请求确认。']
@@ -206,7 +212,7 @@ const QUERYABLE_SKILL_AUTH_SCENARIOS: QueryableSkillAuthScenario[] = [
     pageId: 'pipeline.annotate', skillLabel: 'Query 分析查询', groupLabel: '乐享运营',
     aliases: [/query|查询分析|无答案|问答|关键词|query\s*质量/i],
     summary: '读取 Query 明细、无答案样本和知识命中情况，生成查询质量分析。',
-    scope: '乐享运营 / Query 分析，以及当前会话内同类 Query 数据查询。',
+    scope: '乐享运营 / Query 分析，仅限本次请求的示例数据。',
     steps: ['读取 Query 聚合和无答案样本', '识别高频问题与知识缺口', '生成补充建议和报告卡片'],
     resultTitle: 'Query 分析查询结果',
     resultBullets: ['结果会聚焦 Query 规模、无答案率和高频缺口。', '只读查询不会修改知识库或发布内容。', '补充知识、发布或导出前会再次确认。']
@@ -215,7 +221,7 @@ const QUERYABLE_SKILL_AUTH_SCENARIOS: QueryableSkillAuthScenario[] = [
     pageId: 'pipeline.quality', skillLabel: '质量分析查询', groupLabel: '乐享运营',
     aliases: [/质量分析|服务质量|点踩|badcase|满意度|性能|对话质量/i],
     summary: '读取质量、点踩、性能和对话体验数据，生成质量复盘。',
-    scope: '乐享运营 / 质量分析，以及当前会话内同类质量数据查询。',
+    scope: '乐享运营 / 质量分析，仅限本次请求的示例数据。',
     steps: ['读取点踩、满意度和性能指标', '定位主要 Badcase 类型', '生成质量结论和优先级建议'],
     resultTitle: '质量分析查询结果',
     resultBullets: ['结果会围绕点踩率、低满意度和 Badcase 类型展开。', '仅分析质量数据，不调整线上策略。', '涉及策略或发布改动时会再次确认。']
@@ -224,7 +230,7 @@ const QUERYABLE_SKILL_AUTH_SCENARIOS: QueryableSkillAuthScenario[] = [
     pageId: 'ops.traffic', skillLabel: '流量分析查询', groupLabel: '乐享运营',
     aliases: [/流量分析|入口|访问|流量|渠道|入口质量/i],
     summary: '读取入口流量、访问趋势和渠道表现，生成流量分析。',
-    scope: '乐享运营 / 流量分析，以及当前会话内同类流量查询。',
+    scope: '乐享运营 / 流量分析，仅限本次请求的示例数据。',
     steps: ['读取入口访问和渠道数据', '对比关键入口变化', '生成流量结论和优化建议'],
     resultTitle: '流量分析查询结果',
     resultBullets: ['结果会按入口、渠道和访问质量拆解。', '只读查询不会调整入口配置。', '如需要配置或发布，会单独授权。']
@@ -233,7 +239,7 @@ const QUERYABLE_SKILL_AUTH_SCENARIOS: QueryableSkillAuthScenario[] = [
     pageId: 'ops.gmv', skillLabel: 'GMV 分析查询', groupLabel: '乐享运营',
     aliases: [/gmv|成交|客单价|购买转化|爆款商品|热销商品|订单/i],
     summary: '读取 GMV、订单、客单价和商品转化数据，生成交易分析。',
-    scope: '乐享运营 / GMV 分析，以及当前会话内同类交易数据查询。',
+    scope: '乐享运营 / GMV 分析，仅限本次请求的示例数据。',
     steps: ['读取 GMV、购买人数和客单价', '识别转化变化与爆款商品', '生成交易结论和可展开报告'],
     resultTitle: 'GMV 分析查询结果',
     resultBullets: ['结果会突出 GMV、购买转化和商品贡献。', '默认只读取交易统计数据。', '后续导出或运营配置需再次确认。']
@@ -242,7 +248,7 @@ const QUERYABLE_SKILL_AUTH_SCENARIOS: QueryableSkillAuthScenario[] = [
     pageId: 'dashboard.geo', skillLabel: 'GEO 看板查询', groupLabel: 'GEO 看板',
     aliases: [/g\s*e\s*o|geo\s*看板|整体数据概览|信源|意图|转化看板|手工上传知识|转化/i],
     summary: '读取 GEO 看板、信源、意图和转化数据，生成只读分析结果。',
-    scope: 'GEO 看板及其子菜单，以及当前会话内同类 GEO 查询。',
+    scope: 'GEO 看板及其子菜单，仅限本次请求的示例数据。',
     steps: ['识别当前 GEO 查询维度和时间范围', '读取信源、意图、引用或转化数据', '生成结论、明细摘要和报告卡片'],
     resultTitle: 'GEO 查询结果',
     resultBullets: ['结果会按 GEO 监控数据、信源质量和转化表现组织。', '只读查询不会修改 GEO 配置或知识内容。', '如需要上传知识、发布或导出，会再次请求授权。']
@@ -251,7 +257,7 @@ const QUERYABLE_SKILL_AUTH_SCENARIOS: QueryableSkillAuthScenario[] = [
     pageId: 'employee.overview', skillLabel: '职场员工数据查询', groupLabel: '在职员工管理',
     aliases: [/职场员工|员工概览|认证数据|人群画像|认证方式|在职员工|购买转化|爆款商品/i],
     summary: '读取职场员工、认证方式、人群画像、购买转化和 GMV 数据，生成认证分析。',
-    scope: '在职员工管理 / 职场员工概览，以及当前会话内同类认证数据查询。',
+    scope: '在职员工管理 / 职场员工概览，仅限本次请求的示例数据。',
     steps: ['解析用户输入的时间范围', '读取认证、画像、购买转化和 GMV 数据', '生成结论、明细和可视化报告'],
     resultTitle: '职场员工认证查询结果',
     resultBullets: ['结果会按认证规模、用户画像、购买转化和商品贡献展开。', '只读查询不会修改认证状态。', '修改状态、导出或配置变更需要再次确认。']
@@ -260,7 +266,7 @@ const QUERYABLE_SKILL_AUTH_SCENARIOS: QueryableSkillAuthScenario[] = [
     pageId: 'employee.certification', skillLabel: '认证审核数据查询', groupLabel: '在职员工管理',
     aliases: [/认证审核|认证失败|认证成功|待审核|已失效|修改状态|审核数据/i],
     summary: '读取认证审核列表、失败原因和待审核数据，生成审核分析。',
-    scope: '在职员工管理 / 职场员工审核，以及当前会话内同类审核数据查询。',
+    scope: '在职员工管理 / 职场员工审核，仅限本次请求的示例数据。',
     steps: ['读取认证审核状态分布', '分析失败原因和待处理样本', '生成审核结论和后续动作建议'],
     resultTitle: '认证审核查询结果',
     resultBullets: ['结果会聚焦失败、成功、待审核和已失效状态。', '默认只读，不修改认证状态。', '修改状态前会再次请求授权。']
@@ -269,7 +275,7 @@ const QUERYABLE_SKILL_AUTH_SCENARIOS: QueryableSkillAuthScenario[] = [
     pageId: 'lead.dashboard', skillLabel: '线索看板查询', groupLabel: '企业客户管理',
     aliases: [/线索看板|销售线索|转商机|线索趋势|企业客户/i],
     summary: '读取线索看板、来源、阶段和转化数据，生成线索分析。',
-    scope: '企业客户管理 / 线索看板，以及当前会话内同类线索数据查询。',
+    scope: '企业客户管理 / 线索看板，仅限本次请求的示例数据。',
     steps: ['读取线索规模、来源和阶段数据', '分析线索转化和跟进优先级', '生成线索结论和报告卡片'],
     resultTitle: '线索看板查询结果',
     resultBullets: ['结果会围绕线索规模、来源结构和转化效率。', '只读查询不会更改线索归属。', '转派、导出或规则配置需再次确认。']
@@ -278,7 +284,7 @@ const QUERYABLE_SKILL_AUTH_SCENARIOS: QueryableSkillAuthScenario[] = [
     pageId: 'lead.pool', skillLabel: '线索池查询', groupLabel: '企业客户管理',
     aliases: [/线索池|线索明细|公海|待跟进|导出线索/i],
     summary: '读取线索池明细、待跟进状态和筛选结果，生成线索池分析。',
-    scope: '企业客户管理 / 线索池，以及当前会话内同类线索池查询。',
+    scope: '企业客户管理 / 线索池，仅限本次请求的示例数据。',
     steps: ['读取线索池筛选和明细数据', '识别待跟进和高价值线索', '生成结论、明细摘要和报告卡片'],
     resultTitle: '线索池查询结果',
     resultBullets: ['结果会突出待跟进、高价值和异常线索。', '只读查询不会领取、转派或导出线索。', '执行领取、导出或分配前会再次确认。']
@@ -287,7 +293,7 @@ const QUERYABLE_SKILL_AUTH_SCENARIOS: QueryableSkillAuthScenario[] = [
     pageId: 'lead.score', skillLabel: '打分模型查询', groupLabel: '企业客户管理',
     aliases: [/打分模型|评分规则|线索评分|加分|减分|规则命中/i],
     summary: '读取打分模型、规则命中和分值分布，生成评分分析。',
-    scope: '企业客户管理 / 打分模型，以及当前会话内同类评分数据查询。',
+    scope: '企业客户管理 / 打分模型，仅限本次请求的示例数据。',
     steps: ['读取当前评分规则和命中数据', '分析加分、减分和优先级分布', '生成评分结论和优化建议'],
     resultTitle: '打分模型查询结果',
     resultBullets: ['结果会围绕规则命中、分值分布和优先级排序。', '只读查询不会改动规则。', '调整规则前会再次请求授权。']
@@ -308,7 +314,8 @@ export const useAIStore = defineStore('ai', () => {
   const taskLogs = ref<TaskLog[]>([])
   const activityItems = ref<ConversationActivityItem[]>([])
   const skillTuneConfirmation = ref({ key: '', confirmedAt: 0 })
-  const pendingQueryableSkillAuth = ref<PendingQueryableSkillAuth | null>(null)
+  const pendingQueryableSkillAuth = new Map<string, PendingQueryableSkillAuth>()
+  const previewAuthorizationTasks = new Set<string>()
   // ---- 面板宽度（内联 style 用）----
   const panelWidth  = ref(AI_PANEL_DEFAULT_WIDTH) // 0 表示用 CSS 默认
   // ---- 是否因 AI 面板展开而自动折叠了侧栏 ----
@@ -386,6 +393,7 @@ export const useAIStore = defineStore('ai', () => {
 
   // ===== 新建会话（对应 newAiConversation）=====
   function newConversation(skipPersist = false) {
+    _expireCurrentAuthorizationTasks()
     if (!skipPersist) _persistConversation()
     if (loading.value) stopCurrentResponse()
     convId.value      = null
@@ -574,7 +582,7 @@ export const useAIStore = defineStore('ai', () => {
     appStore.openTempTab(report)
   }
 
-  function runTaskAction(action: TaskAction, pageId = '', context: AiRuntimeContext = {}) {
+  async function runTaskAction(action: TaskAction, pageId = '', context: AiRuntimeContext = {}) {
     if (!action) return
     if (action.type === 'report') {
       const report = _createActionReport(pageId, action.value || action.label)
@@ -607,34 +615,13 @@ export const useAIStore = defineStore('ai', () => {
       quickSend(action.value || action.label || '', pageId)
       return
     }
-    if (action.type === 'auth_approve') {
-      _recordTaskLog('auth', action.value || '授权执行', pageId || 'portal.home')
-      _resolveLatestAuthRequest({
-        status: 'approved',
-        title: '授权已确认',
-        detail: '已允许本次单项操作继续执行。当前为 POC 演示，不会触发真实写入或发布；授权结论已登记到任务日志。'
-      })
-      _completeQueryableSkillAuthorization(action.value || '', context)
+    if (action.type === 'auth_task_decide') {
+      if (action.decision) await _decideAuthorizationTask(action.decision, pageId, context)
       return
     }
-    if (action.type === 'auth_batch_approve') {
-      _recordTaskLog('auth', action.value || '批量授权执行', pageId || 'portal.home')
-      _resolveLatestAuthRequest({
-        status: 'approved',
-        title: '批量授权已确认',
-        detail: '已允许本轮同类只读查询与数据汇总步骤连续执行。后续如涉及导出、配置或发布仍会再次确认。'
-      })
-      _completeQueryableSkillAuthorization(action.value || '', context)
-      return
-    }
-    if (action.type === 'auth_reject') {
-      _recordTaskLog('auth', action.value || '拒绝执行', pageId || 'portal.home')
-      _resolveLatestAuthRequest({
-        status: 'rejected',
-        title: '授权已拒绝',
-        detail: '任务已停止，没有触发任何写入、发布、导出或命令执行。'
-      })
-      if (pendingQueryableSkillAuth.value?.key === action.value) pendingQueryableSkillAuth.value = null
+    if (['auth_approve', 'auth_batch_approve', 'auth_reject'].includes(action.type)) {
+      // Historical command-only buttons cannot identify a task or resume execution.
+      queueNotice.value = '这条授权记录已失效，请重新发起任务。'
       return
     }
     if (action.type === 'skill_tune_confirm') {
@@ -685,12 +672,15 @@ export const useAIStore = defineStore('ai', () => {
   }
 
   function restoreConversation(id: string) {
-    _persistConversation()
     const item = loadConversations().find(c => c.id === id)
     if (!item) return
+    _expireCurrentAuthorizationTasks()
+    _persistConversation()
     localConvId.value = item.id
     convId.value      = item.remoteConvId || null
-    messages.value    = item.messages || []
+    messages.value    = (item.messages || []).map(message => message.task
+      ? { ...message, task: expireTask(message.task) }
+      : message)
     ;(item.reports || []).forEach(report => {
       AI_REPORT_ARTIFACTS[report.id] = report
     })
@@ -709,7 +699,8 @@ export const useAIStore = defineStore('ai', () => {
 
   function _recordMessage(role: MessageRole, text: string, extra: Partial<AiMessage> = {}) {
     if (!text) return
-    const message = { id: _newMessageId(role), role, text, at: new Date().toISOString(), ...extra }
+    const task = extra.task || (extra.authRequest ? _taskFromAuthRequest(extra.authRequest) : undefined)
+    const message = { id: _newMessageId(role), role, text, at: new Date().toISOString(), ...extra, ...(task ? { task } : {}) }
     messages.value.push(message)
     message.artifacts?.forEach(id => {
       const report = AI_REPORT_ARTIFACTS[id]
@@ -725,22 +716,100 @@ export const useAIStore = defineStore('ai', () => {
     return `msg_${role}_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`
   }
 
-  function _resolveLatestAuthRequest(result: AuthResultBlock) {
-    const index = [...messages.value].reverse().findIndex(item => item.authRequest && !item.authResult)
-    if (index === -1) {
-      _recordMessage('assistant', result.detail)
-      return
+  function _taskFromAuthRequest(request: AuthRequestBlock): AiTaskBlock {
+    const id = _newMessageId('assistant')
+    const now = Date.now()
+    const kind = request.kind || 'unknown'
+    return {
+      id, conversationId: localConvId.value, title: request.taskTitle || request.title,
+      mode: 'preview', createdAt: now, expiresAt: now + 15 * 60 * 1000,
+      requests: [{
+        id: `${id}:request`, revision: 1, label: request.taskTitle || request.summary || request.title,
+        scope: request.scope || '当前页面、本次任务', impact: request.impact || request.detail,
+        kind, batchable: kind === 'read', approvalGroup: id, status: 'pending',
+        command: request.command, detail: request.detail
+      }]
     }
-    const targetIndex = messages.value.length - 1 - index
-    messages.value = messages.value.map((message, idx) => {
-      if (idx !== targetIndex) return message
-      return {
-        ...message,
-        activityItems: undefined,
-        authResult: result
-      }
-    })
+  }
+
+  function _replaceAuthorizationTask(task: AiTaskBlock) {
+    if (task.conversationId !== localConvId.value) return
+    messages.value = messages.value.map(message => message.task?.id === task.id
+      ? { ...message, task, activityItems: undefined }
+      : message)
     _persistConversation()
+  }
+
+  function _expireCurrentAuthorizationTasks() {
+    messages.value = messages.value.map(message => message.task
+      ? { ...message, task: expireTask(message.task) }
+      : message)
+    pendingQueryableSkillAuth.clear()
+    previewAuthorizationTasks.clear()
+  }
+
+  async function _decideAuthorizationTask(decision: TaskDecision, pageId: string, context: AiRuntimeContext) {
+    if (decision.conversationId !== localConvId.value) return
+    const message = messages.value.find(item => item.task?.id === decision.taskId && item.task.conversationId === localConvId.value)
+    if (!message?.task) return
+    const result = applyTaskDecision(message.task, decision, localConvId.value, Date.now())
+    _replaceAuthorizationTask({ ...result.task, notice: result.error })
+    if (result.error || !result.acceptedIds.length) return
+    _recordTaskLog('auth', `${decision.decision === 'approve' ? '确认' : '拒绝'}示例任务中的 ${result.acceptedIds.length} 项操作`, pageId || 'portal.home')
+    const acceptedSelections = decision.selections.filter(item => result.acceptedIds.includes(item.requestId)).map(item => ({ ...item }))
+    for (const { requestId: id, revision } of acceptedSelections) {
+      const current = messages.value.find(item => item.task?.id === decision.taskId)?.task
+      const request = current?.requests.find(item => item.id === id)
+      if (!current || !request || current.conversationId !== localConvId.value) return
+      if (decision.decision === 'reject') {
+        if (request.command) pendingQueryableSkillAuth.delete(request.command)
+        continue
+      }
+      if (request.revision !== revision || request.status !== 'approved') {
+        const changed = request.revision !== revision && ['approved', 'running'].includes(request.status)
+          ? updateTaskRequest(current, id, request.revision, 'expired', '操作范围已变化，请重新发起确认。') : current
+        _replaceAuthorizationTask({ ...changed, notice: '操作已变化，本次批准不适用于新版请求。' })
+        continue
+      }
+      if (Date.now() >= current.expiresAt) { _replaceAuthorizationTask(expireTask(current)); return }
+      const query = request.command ? pendingQueryableSkillAuth.get(request.command) : undefined
+      const isPreviewTask = previewAuthorizationTasks.has(current.id)
+      if (!isPreviewTask && (!query || query.conversationId !== current.conversationId)) {
+        _replaceAuthorizationTask({ ...current, notice: '已记录本项选择；该操作尚未接入执行，没有运行命令或修改数据。' })
+        continue
+      }
+      _replaceAuthorizationTask(updateTaskRequest(current, id, revision, 'running', '正在处理示例数据。'))
+      // This delay represents preview progress only; it never invokes a real tool.
+      await _delay(180)
+      const live = messages.value.find(item => item.task?.id === decision.taskId)?.task
+      const liveRequest = live?.requests.find(item => item.id === id)
+      if (!live || live.conversationId !== localConvId.value || liveRequest?.revision !== revision || liveRequest.status !== 'running') return
+      if (Date.now() >= live.expiresAt) { _replaceAuthorizationTask(expireTask(live)); return }
+      try {
+        const completed = isPreviewTask || _completeQueryableSkillAuthorization(request.command || '', context)
+        _replaceAuthorizationTask(updateTaskRequest(live, id, revision, completed ? 'succeeded' : 'failed', completed
+          ? (request.kind === 'export' ? '导出示例已完成，未生成真实文件。' : '示例数据处理完成。')
+          : '任务上下文已失效，请重新发起。'))
+      } catch {
+        _replaceAuthorizationTask(updateTaskRequest(live, id, revision, 'failed', '示例任务处理失败，请重新发起。'))
+      }
+    }
+  }
+
+  function _createPreviewAuthorizationTask(pageId: string): AiTaskBlock {
+    const id = _newMessageId('assistant')
+    const now = Date.now()
+    previewAuthorizationTasks.add(id)
+    const scope = `${getPageLabel(pageId) || '当前页面'} · 示例数据 · 本次任务`
+    return {
+      id, conversationId: localConvId.value, title: '合作伙伴数据查询与汇总', mode: 'preview', createdAt: now, expiresAt: now + 15 * 60 * 1000,
+      requests: [
+        { label: '查询合作伙伴列表', kind: 'read', impact: '读取示例合作伙伴基本信息。' },
+        { label: '查询合作状态', kind: 'read', impact: '读取同一批示例合作伙伴的合作状态。' },
+        { label: '汇总业务数据', kind: 'read', impact: '汇总当前范围内的示例统计结果。' },
+        { label: '导出结果文件', kind: 'export', impact: '单独确认导出范围；本示例不会生成真实文件。' }
+      ].map((item, index) => ({ ...item, kind: item.kind as TaskRequest['kind'], id: `${id}:${index + 1}`, revision: 1, scope, approvalGroup: id, batchable: item.kind === 'read', status: 'pending' as const }))
+    }
   }
 
   function _resolveSkillTuneConfirmation(key: string) {
@@ -876,6 +945,13 @@ export const useAIStore = defineStore('ai', () => {
 
   function _tryLocalCommand(payload: ComposerPayload, context: AiRuntimeContext = {}) {
     const text = payload.text || payload.userMsg || ''
+    if (/批量授权.*(?:演示|示例)|(?:演示|示例).*批量授权/.test(text)) {
+      _recordMessage('user', payload.userMsg)
+      _recordMessage('assistant', '我把本次操作整理在一个任务中。你可以勾选需要继续的只读项目，一次确认；导出项目单独确认。', {
+        task: _createPreviewAuthorizationTask(payload.pageId)
+      })
+      return true
+    }
     if (_tryQueryableSkillAuthorization(payload, context)) return true
 
     if (_isEmployeeCertificationSkillQuery(text)) {
@@ -898,11 +974,12 @@ export const useAIStore = defineStore('ai', () => {
       _recordMessage('assistant', [
         `我会按「${pageLabel}」上下文串联展示完整 Agent 对话流。`,
         '',
-        '本次演示包含过程状态、能力调用、打字机回答、授权请求、授权结论回填、报告卡片和独立 Todo List。',
-        '状态区会锚定在当前回答上方，不混入普通回答气泡。'
+        '本次使用示例数据演示任务授权、报告展开和待办清单。',
+        '勾选本次需要的操作后确认，进度和结果会在同一任务中更新。'
       ].join('\n'), {
         renderMode: 'typewriter',
         activityItems: _snapshotActivities(),
+        task: _createPreviewAuthorizationTask(payload.pageId),
         authRequest: {
           title: '请求执行演示命令',
           namespace: 'agent.demo',
@@ -1072,8 +1149,8 @@ export const useAIStore = defineStore('ai', () => {
     const scenario = _matchQueryableSkillScenario(payload.pageId, text)
     if (!scenario) return false
 
-    const key = `mock:query-skill:${scenario.pageId}:${Date.now()}`
-    pendingQueryableSkillAuth.value = { key, payload: { ...payload }, scenario, context }
+    const key = `mock:query-skill:${scenario.pageId}:${_newMessageId('assistant')}`
+    pendingQueryableSkillAuth.set(key, { key, conversationId: localConvId.value, payload: { ...payload }, scenario, context })
     _recordMessage('user', payload.userMsg)
     _setActivityItems([
       _createActivity('thinking', 'done', '识别查询型 Skill', `已匹配「${scenario.groupLabel} / ${scenario.skillLabel}」。`),
@@ -1085,6 +1162,8 @@ export const useAIStore = defineStore('ai', () => {
       activityItems: _snapshotActivities(),
       authRequest: {
         title: '确认查询授权',
+        taskTitle: scenario.skillLabel,
+        kind: 'read',
         namespace: `ai.query.${scenario.pageId}`,
         command: key,
         risk: '只读查询确认',
@@ -1093,7 +1172,7 @@ export const useAIStore = defineStore('ai', () => {
         impact: '仅读取当前 POC 数据和页面上下文，不会写入、发布、导出、修改配置或变更权限。',
         steps: scenario.steps,
         detail: '授权后继续执行查询并返回结论、数据摘要和可展开报告卡片。拒绝后任务停止，当前会话不受影响。',
-        approveHint: '可以只授权当前一步，也可以批量授权本轮同类只读查询步骤。',
+        approveHint: '本次授权仅限下方列明的操作和数据范围。',
         approveLabel: '授权',
         batchApproveLabel: '批量授权',
         rejectLabel: '拒绝'
@@ -1116,15 +1195,15 @@ export const useAIStore = defineStore('ai', () => {
   }
 
   function _completeQueryableSkillAuthorization(command: string, context: AiRuntimeContext = {}) {
-    const pending = pendingQueryableSkillAuth.value
-    if (!pending || pending.key !== command) return false
-    pendingQueryableSkillAuth.value = null
+    const pending = pendingQueryableSkillAuth.get(command)
+    if (!pending || pending.conversationId !== localConvId.value) return false
+    pendingQueryableSkillAuth.delete(command)
 
     const payload = pending.payload
     const scenario = pending.scenario
     _setActivityItems([
       _createActivity('thinking', 'done', '授权已确认', `已允许读取「${scenario.skillLabel}」所需的只读数据。`),
-      _createActivity('tool_call', 'done', `调用 ${scenario.skillLabel}`, '已按当前页面上下文和用户输入读取 POC 数据。'),
+      _createActivity('tool_call', 'done', `调用 ${scenario.skillLabel}`, '已按本次请求读取示例数据。'),
       _createActivity('tool_result', 'done', '生成查询结果', '已整理结论、数据摘要和可展开报告卡片。')
     ])
 
@@ -1151,12 +1230,12 @@ export const useAIStore = defineStore('ai', () => {
   function _queryableSkillAuthorizedReply(payload: ComposerPayload, scenario: QueryableSkillAuthScenario) {
     const sourcePageLabel = getPageLabel(scenario.pageId) || getPageLabel(payload.pageId) || scenario.skillLabel
     return [
-      `已获得授权，开始执行「${scenario.skillLabel}」只读查询。`,
+      `「${scenario.skillLabel}」示例查询已完成。`,
       '',
       '## 查询口径',
       `- 当前菜单：${scenario.groupLabel} / ${sourcePageLabel}`,
       `- 用户问题：${payload.text || payload.userMsg}`,
-      '- 权限范围：只读读取当前 POC 数据，不执行写入、发布、导出或配置变更。',
+      '- 权限范围：只读取本次示例数据，不执行写入、发布、导出或配置变更。',
       '',
       `## ${scenario.resultTitle}`,
       ...scenario.resultBullets.map(item => `- ${item}`),

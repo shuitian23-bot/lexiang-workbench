@@ -67,17 +67,20 @@ test('report actions download instead of persisting local save state', async () 
 })
 
 test('AI authorization stays readable and supports batch approval', async () => {
-  const [messages, aiStore] = await Promise.all([
+  const [messages, taskCard, aiStore] = await Promise.all([
     source('../src/components/agent/AgentMessageList.vue'),
+    source('../src/components/agent/AgentTaskCard.vue'),
     source('../src/stores/ai.ts')
   ])
 
   assert.doesNotMatch(messages, /namespace:/)
   assert.doesNotMatch(messages, /ai-auth-command/)
   assert.match(messages, /授权内容/)
-  assert.match(messages, /授权范围/)
-  assert.match(messages, /影响说明/)
-  assert.match(messages, /auth_batch_approve/)
+  assert.match(taskCard, /授权范围/)
+  assert.match(taskCard, /影响说明/)
+  assert.match(taskCard, /授权选中项/)
+  assert.match(taskCard, /单独授权此项/)
+  assert.match(messages, /auth_task_decide/)
   assert.match(aiStore, /batchApproveLabel/)
   assert.match(aiStore, /_createReadableAuthRequest/)
   assert.match(aiStore, /_tryQueryableSkillAuthorization/)

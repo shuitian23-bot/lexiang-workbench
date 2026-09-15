@@ -33,7 +33,8 @@
     <template v-if="messages.length">
       <div
         v-for="(msg, idx) in messages"
-        :key="idx"
+        :key="msg.id || `${msg.role}-${msg.at}-${idx}`"
+        :data-agent-message-index="idx"
         class="ai-msg"
         :class="[msg.role, {
           'ai-structured-msg': isStructuredMessage(msg),
@@ -45,66 +46,25 @@
         <AgentConversationStates v-if="hasExternalState(msg)" :items="msg.activityItems || []" />
         <div class="bubble ai-message-bubble">
           <div v-html="renderMsg(msg, idx)"></div>
-          <div v-if="msg.authRequest && canShowStructuredContent(msg, idx)" class="ai-auth-card">
-            <div class="ai-auth-head">
-              <span class="ai-auth-icon" aria-hidden="true">
-                <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3.5 16 6v4.1c0 3.1-2.1 5.4-6 6.4-3.9-1-6-3.3-6-6.4V6l6-2.5Z"/><path d="M10 8v3M10 14h.01"/></svg>
-              </span>
-              <div>
-                <b>{{ msg.authRequest.title }}</b>
-                <em>{{ msg.authRequest.risk }}</em>
-              </div>
-            </div>
-            <section class="ai-auth-summary">
-              <span>授权内容</span>
-              <p>{{ msg.authRequest.summary || msg.authRequest.detail }}</p>
-            </section>
-            <div class="ai-auth-scope">
-              <section>
-                <span>授权范围</span>
-                <p>{{ msg.authRequest.scope || '当前会话、本次任务' }}</p>
-              </section>
-              <section>
-                <span>影响说明</span>
-                <p>{{ msg.authRequest.impact || msg.authRequest.detail }}</p>
-              </section>
-            </div>
-            <section v-if="msg.authRequest.steps?.length" class="ai-auth-steps">
-              <span>执行内容</span>
-              <ol>
-                <li v-for="step in msg.authRequest.steps" :key="step">{{ step }}</li>
-              </ol>
-            </section>
-            <p v-if="msg.authRequest.approveHint" class="ai-auth-hint">{{ msg.authRequest.approveHint }}</p>
-            <div v-if="msg.authResult" class="ai-auth-result" :class="`is-${msg.authResult.status}`">
-              <b>{{ msg.authResult.title }}</b>
-              <span>{{ msg.authResult.detail }}</span>
-            </div>
-            <div v-else class="ai-auth-actions">
-              <button
-                type="button"
-                class="ai-auth-approve"
-                @click="$emit('run-action', { type: 'auth_approve', label: msg.authRequest.approveLabel, value: msg.authRequest.command })"
-              >
-                {{ msg.authRequest.approveLabel }}
-              </button>
-              <button
-                v-if="msg.authRequest.batchApproveLabel"
-                type="button"
-                class="ai-auth-batch"
-                @click="$emit('run-action', { type: 'auth_batch_approve', label: msg.authRequest.batchApproveLabel, value: msg.authRequest.command })"
-              >
-                {{ msg.authRequest.batchApproveLabel }}
-              </button>
-              <button
-                type="button"
-                class="ai-auth-reject"
-                @click="$emit('run-action', { type: 'auth_reject', label: msg.authRequest.rejectLabel, value: msg.authRequest.command })"
-              >
-                {{ msg.authRequest.rejectLabel }}
-              </button>
-            </div>
-          </div>
+          <AgentTaskCard
+            v-if="msg.task && canShowStructuredContent(msg, idx)"
+            :task="msg.task"
+            @decision="forwardTaskDecision"
+          />
+          <details v-else-if="msg.authRequest && canShowStructuredContent(msg, idx)" class="ai-legacy-authorization">
+            <summary>
+              <b>{{ msg.authRequest.title }}</b>
+              <span>{{ msg.authResult ? (msg.authResult.status === 'approved' ? '历史已授权' : '历史已拒绝') : '请求已过期' }}</span>
+            </summary>
+            <p v-if="!msg.authResult">这是历史请求，已失效；如需继续，请重新发起任务。</p>
+            <p v-else>历史授权记录仅供查看，不会重新执行。</p>
+            <p v-if="msg.authResult?.detail">{{ msg.authResult.detail }}</p>
+            <dl>
+              <div><dt>授权内容</dt><dd>{{ msg.authRequest.summary || msg.authRequest.detail }}</dd></div>
+              <div><dt>授权范围</dt><dd>{{ msg.authRequest.scope || '原任务范围' }}</dd></div>
+              <div><dt>影响说明</dt><dd>{{ msg.authRequest.impact || msg.authRequest.detail }}</dd></div>
+            </dl>
+          </details>
           <div v-if="msg.artifacts?.length && canShowStructuredContent(msg, idx)" class="ai-report-artifact-list">
             <div v-for="reportId in msg.artifacts" :key="reportId" class="ai-result-card">
               <div class="ai-result-card-head">
@@ -216,6 +176,7 @@
 <script setup>
 import { computed, nextTick, onBeforeUnmount, reactive, ref, watch } from 'vue'
 import AgentConversationStates from '@/components/agent/AgentConversationStates.vue'
+import AgentTaskCard from '@/components/agent/AgentTaskCard.vue'
 import { AI_REPORT_ARTIFACTS } from '@/stores/ai'
 import { getPageLabel } from '@/stores/app'
 import {
@@ -230,7 +191,11 @@ const props = defineProps({
   currentPageId: { type: String, default: '' }
 })
 
-defineEmits(['quick-send', 'open-report', 'download-report', 'run-action'])
+const emit = defineEmits(['quick-send', 'open-report', 'download-report', 'run-action'])
+
+function forwardTaskDecision(decision) {
+  emit('run-action', { type: 'auth_task_decide', label: '任务授权', decision })
+}
 
 const messagesEl = ref(null)
 const typewriterText = reactive({})
@@ -257,7 +222,22 @@ const isTodoComplete = computed(() => Boolean(latestTodoList.value && latestTodo
 function scrollToBottom() {
   nextTick(() => {
     const el = messagesEl.value
-    if (el) el.scrollTop = el.scrollHeight
+    if (!el) return
+    const latestIndex = props.messages.length - 1
+    const task = props.messages[latestIndex]?.task
+    if (task?.expiresAt > Date.now() && task.requests?.some(request => request.status === 'pending')) {
+      const message = el.querySelector(`[data-agent-message-index="${latestIndex}"]`)
+      const card = message?.querySelector('[data-agent-task-card]')
+      if (card) {
+        const viewportTop = el.getBoundingClientRect().top + el.clientTop
+        const bounds = card.getBoundingClientRect()
+        if (bounds.top < viewportTop || bounds.bottom > viewportTop + el.clientHeight) {
+          el.scrollTop += bounds.top - viewportTop
+        }
+        return
+      }
+    }
+    el.scrollTop = el.scrollHeight
   })
 }
 
@@ -284,7 +264,7 @@ function renderMsg(msg, idx) {
 }
 
 function hasExternalState(msg) {
-  return Boolean(msg?.activityItems?.length)
+  return Boolean(!msg?.task && !msg?.authRequest && msg?.activityItems?.length)
 }
 
 function isTypewriterMessage(msg) {
@@ -351,6 +331,7 @@ function isStructuredMessage(msg) {
     || msg?.activityItems?.length
     || msg?.actionItems?.length
     || msg?.todoList
+    || msg?.task
     || msg?.authRequest
   )
 }
@@ -526,8 +507,7 @@ function renderMarkdownTable(lines, startIndex) {
   text-align: left;
 }
 
-.ai-todo-card,
-.ai-auth-card {
+.ai-todo-card {
   border: 1px solid rgba(31, 35, 41, .1);
   border-radius: 8px;
   background: #fff;
@@ -765,148 +745,14 @@ function renderMarkdownTable(lines, startIndex) {
   background: var(--color-primary, #3370ff);
 }
 
-.ai-auth-card {
-  padding: 12px;
-  border-color: rgba(245, 158, 11, .42);
-  background: #fffbf2;
-}
-
-.ai-auth-head {
-  display: grid;
-  grid-template-columns: 30px minmax(0, 1fr);
-  gap: 10px;
-  align-items: start;
-}
-
-.ai-auth-icon {
-  width: 30px;
-  height: 30px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 8px;
-  background: #fff;
-  color: #b76e00;
-}
-
-.ai-auth-head b,
-.ai-auth-head em {
-  display: block;
-  min-width: 0;
-}
-
-.ai-auth-head b {
-  font-size: 14px;
-  line-height: 1.45;
-}
-
-.ai-auth-head em {
-  color: #8a5a00;
-  font-style: normal;
-  font-size: 12px;
-}
-
-.ai-auth-summary,
-.ai-auth-scope section,
-.ai-auth-steps {
-  margin-top: 10px;
-  padding: 9px 10px;
-  border: 1px solid rgba(183, 110, 0, .16);
-  border-radius: 7px;
-  background: rgba(255, 255, 255, .68);
-}
-
-.ai-auth-summary > span,
-.ai-auth-scope span,
-.ai-auth-steps > span {
-  display: block;
-  color: #8a5a00;
-  font-size: 11px;
-  font-weight: 650;
-}
-
-.ai-auth-scope {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
-}
-
-.ai-auth-steps ol {
-  margin: 7px 0 0;
-  padding-left: 18px;
-  color: var(--color-text-secondary, #646a73);
-  font-size: 12px;
-  line-height: 1.55;
-}
-
-.ai-auth-hint {
-  padding-left: 2px;
-}
-
-.ai-auth-card p {
-  margin: 8px 0 0;
-  color: var(--color-text-secondary, #646a73);
-  font-size: 12px;
-  line-height: 1.5;
-}
-
-.ai-auth-result {
-  display: grid;
-  gap: 3px;
-  margin-top: 10px;
-  padding: 9px 10px;
-  border-radius: 7px;
-  border: 1px solid rgba(32, 191, 114, .24);
-  background: rgba(32, 191, 114, .08);
-  color: #176b3a;
-  font-size: 12px;
-  line-height: 1.45;
-}
-
-.ai-auth-result.is-rejected {
-  border-color: rgba(239, 68, 68, .22);
-  background: rgba(239, 68, 68, .08);
-  color: #b42318;
-}
-
-.ai-auth-result b,
-.ai-auth-result span {
-  min-width: 0;
-}
-
-.ai-auth-actions {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
-  gap: 8px;
-  margin-top: 12px;
-}
-
-.ai-auth-actions button {
-  min-width: 0;
-  height: 34px;
-  border-radius: 7px;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.ai-auth-approve {
-  border: 1px solid #20bf72;
-  background: #20bf72;
-  color: #fff;
-}
-
-.ai-auth-batch {
-  border: 1px solid rgba(51, 112, 255, .45);
-  background: #fff;
-  color: var(--color-primary, #3370ff);
-}
-
-.ai-auth-reject {
-  border: 1px solid rgba(239, 68, 68, .5);
-  background: #fff;
-  color: #d92d20;
-}
+.ai-legacy-authorization { min-width: 0; margin-top: 12px; padding: 12px; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); color: var(--color-text); }
+.ai-legacy-authorization summary { cursor: pointer; font-size: 13px; line-height: 1.5; overflow-wrap: anywhere; }
+.ai-legacy-authorization summary span { margin-left: 8px; color: var(--color-text-secondary); font-size: 12px; }
+.ai-legacy-authorization p, .ai-legacy-authorization dl { margin: 12px 0 0; font-size: 12px; line-height: 1.5; overflow-wrap: anywhere; }
+.ai-legacy-authorization dl { display: grid; gap: 8px; }
+.ai-legacy-authorization dt { color: var(--color-text-secondary); }
+.ai-legacy-authorization dd { margin: 4px 0 0; }
+.ai-legacy-authorization summary:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
 
 .ai-reply-feedback {
   display: flex;
@@ -950,7 +796,8 @@ function renderMarkdownTable(lines, startIndex) {
   content: none;
 }
 
-.ai-typewriter-done .ai-auth-card,
+.ai-typewriter-done .agent-task-card,
+.ai-typewriter-done .ai-legacy-authorization,
 .ai-typewriter-done .ai-report-artifact-list,
 .ai-typewriter-done .ai-task-actions,
 .ai-typewriter-done .ai-todo-list-block {
