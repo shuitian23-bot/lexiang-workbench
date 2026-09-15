@@ -152,6 +152,15 @@ const pocReleaseLedger = ref({ records: {} })
 const basePocLogRecords = [
   {
     time: '2026-09-15',
+    releaseKey: 'workbench-organization-management-20260915',
+    title: '组织详情与成员管理入口恢复',
+    changePoint: '恢复组织详情、编辑和移除入口，以及成员添加、编辑、跨组织转移和移除操作。',
+    detail: '点击组织节点可查看详情并维护组织信息；编辑时不再显示上级组织，新增组织仍可选择上级。成员管理沿用已有必填、重复账号和转移校验，保留根组织及含下级组织的删除限制。原有权限申请、审批链、业务负责人、场景技能包与 AI 授权交互保持。发布环境、人员、时间和版本分别以实际记录为准。',
+    deployTargets: [],
+    status: '发布状态以环境记录为准'
+  },
+  {
+    time: '2026-09-15',
     releaseKey: 'workbench-agent-task-auth-20260915',
     title: 'AI 助手任务与批量授权',
     changePoint: '授权卡同时提供授权和批量授权：可只批准当前操作，也可一次批准本次 Skill 全部待执行操作。',
