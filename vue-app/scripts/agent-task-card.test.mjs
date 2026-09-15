@@ -135,19 +135,20 @@ test('a fully visible pending task stays still and ordinary newer messages retai
   assert.equal(view.state.messagesEl.value.scrollTop, 1800)
 })
 
-test('one Skill execution has a clickable Batch Authorize button and Reject, with no label-only substitute or selection controls', async () => {
+test('one Skill execution offers Authorize and Batch Authorize alongside Reject without selection controls', async () => {
   const task = sampleTask()
   task.requests = [{ ...task.requests[0], label: task.title }]
   const view = await openComponent('/src/components/agent/AgentTaskCard.vue', { task })
   const html = await view.html()
-  assert.equal((html.match(/<button\b/g) || []).length, 2)
+  assert.equal((html.match(/<button\b/g) || []).length, 3)
+  assert.match(html, />授权<\/button>/)
   assert.match(html, />批量授权<\/button>/)
   assert.match(html, />拒绝<\/button>/)
   assert.doesNotMatch(html, /type="checkbox"|全选|已选|选中项|单独授权|单独确认/)
   assert.equal((html.match(/>核对本月统计<\//g) || []).length, 1)
   assert.match(html, /使用示例数据/)
   assert.doesNotMatch(html, /task-batch-label/)
-  assert.match(html, /一次授权，执行本次 Skill 的全部 1 个步骤。/)
+  assert.match(html, /授权仅限当前操作，批量授权覆盖本次 Skill 全部待执行操作（共 1 个步骤）/)
 })
 
 test('multiple operations have one finite execution summary and closed steps while scopes and impacts stay visible', async () => {
@@ -155,7 +156,7 @@ test('multiple operations have one finite execution summary and closed steps whi
   task.requests[0].command = '<script>alert(1)</script> --long-parameter'
   const view = await openComponent('/src/components/agent/AgentTaskCard.vue', { task })
   const html = await view.html()
-  assert.match(html, /一次授权，执行本次 Skill 的全部 4 个步骤。/)
+  assert.match(html, /共 4 个步骤/)
   assert.doesNotMatch(html, /<details[^>]*\bopen(?:[ =>])/)
   const visibleSummary = html.slice(0, html.indexOf('<details'))
   assert.match(visibleSummary, /本月当前组织/)
@@ -176,7 +177,7 @@ test('a single executable request with three described steps makes batch authori
   const html = await view.html()
   const visibleSummary = html.slice(0, html.indexOf('<details'))
   assert.match(html, />批量授权<\/button>/)
-  assert.match(visibleSummary, /一次授权，执行本次 Skill 的全部 3 个步骤。/)
+  assert.match(visibleSummary, /共 3 个步骤/)
   assert.match(visibleSummary, /已完成 0\/1 项操作/)
   assert.doesNotMatch(html, /<details[^>]*\bopen(?:[ =>])/)
   for (const step of steps) {
@@ -185,7 +186,7 @@ test('a single executable request with three described steps makes batch authori
   }
   view.state.setExpanded(true)
   assert.match(await view.html(), /<details[^>]*\bopen(?:[ =>])/)
-  await view.state.decide('approve')
+  await view.state.decide('approve', 'batch')
   assert.deepEqual(view.events, [['decision', {
     scope: 'skill-execution', taskId: 'task-A', conversationId: 'conversation-A', decision: 'approve',
     selections: [{ requestId: 'read-A', revision: 2 }]
@@ -193,7 +194,7 @@ test('a single executable request with three described steps makes batch authori
   view.props.task.requests[0].status = 'succeeded'
   await nextTick()
   assert.match(await view.html(), /已完成 1\/1 项操作/)
-  assert.doesNotMatch(await view.html(), /一次授权，执行本次 Skill/)
+  assert.doesNotMatch(await view.html(), /授权仅限当前操作/)
 })
 
 test('the batch step count includes only pending requests and treats missing or empty step descriptions as one', async () => {
@@ -205,26 +206,76 @@ test('the batch step count includes only pending requests and treats missing or 
     { ...task.requests[3], steps: ['已完成的一', '已完成的二'], status: 'succeeded' }
   ]
   const view = await openComponent('/src/components/agent/AgentTaskCard.vue', { task })
-  assert.match(await view.html(), /一次授权，执行本次 Skill 的全部 4 个步骤。/)
+  assert.match(await view.html(), /共 4 个步骤/)
   assert.equal(view.state.progress.value.done, 1)
   assert.equal(view.state.progress.value.total, 4)
-  await view.state.decide('approve')
+  await view.state.decide('approve', 'batch')
   assert.deepEqual(view.events[0][1].selections, [
     { requestId: 'read-A', revision: 2 }, { requestId: 'read-B', revision: 3 }, { requestId: 'export-A', revision: 1 }
   ])
 })
 
-test('Authorize emits all current pending IDs and revisions as this Skill execution, including different operation kinds', async () => {
+test('Batch Authorize emits all current pending IDs and revisions as this Skill execution, including different operation kinds', async () => {
   const task = sampleTask()
   task.requests[3].kind = 'write'
   task.requests.push({ ...task.requests[0], id: 'unknown-step', kind: 'unknown', batchable: false })
   const view = await openComponent('/src/components/agent/AgentTaskCard.vue', { task })
-  await view.state.decide('approve')
+  await view.state.decide('approve', 'batch')
   assert.deepEqual(view.events, [['decision', {
     scope: 'skill-execution', taskId: 'task-A', conversationId: 'conversation-A', decision: 'approve',
     selections: task.requests.map(request => ({ requestId: request.id, revision: request.revision }))
   }]])
   assert.ok(view.props.task.requests.every(request => request.status === 'pending'), 'the UI must not invent an approval or execution result')
+})
+
+test('Authorize identifies and approves only the first pending operation, then advances to the next after completion', async () => {
+  const task = sampleTask()
+  task.requests[0].status = 'succeeded'
+  const view = await openComponent('/src/components/agent/AgentTaskCard.vue', { task })
+  const before = await view.html()
+  assert.match(before.slice(0, before.indexOf('<details')), /当前待授权操作：读取信源/)
+  await view.state.decide('approve')
+  assert.deepEqual(view.events[0], ['decision', {
+    taskId: 'task-A', conversationId: 'conversation-A', decision: 'approve',
+    selections: [{ requestId: 'read-B', revision: 3 }]
+  }])
+  assert.equal(Object.hasOwn(view.events[0][1], 'scope'), false)
+  view.props.task.requests[1].status = 'succeeded'
+  await nextTick()
+  const after = await view.html()
+  assert.match(after.slice(0, after.indexOf('<details')), /当前待授权操作：导出明细/)
+  await view.state.decide('approve')
+  assert.deepEqual(view.events[1], ['decision', {
+    taskId: 'task-A', conversationId: 'conversation-A', decision: 'approve',
+    selections: [{ requestId: 'export-A', revision: 1 }]
+  }])
+})
+
+test('approved or running operations disable every new decision in the UI and handler', async () => {
+  for (const status of ['approved', 'running']) {
+    const task = sampleTask()
+    task.requests[0].status = status
+    const view = await openComponent('/src/components/agent/AgentTaskCard.vue', { task })
+    const buttons = (await view.html()).match(/<button\b[^>]*>/g) || []
+    assert.equal(buttons.length, 3)
+    assert.ok(buttons.every(button => /\bdisabled(?:[ =>])/.test(button)), `${status} must disable all decisions`)
+    await view.state.decide('approve')
+    await view.state.decide('approve', 'batch')
+    await view.state.decide('reject')
+    assert.deepEqual(view.events, [])
+  }
+})
+
+test('one atomic request keeps the same exact request under either entry without splitting its step descriptions', async () => {
+  const task = sampleTask()
+  task.requests = [{ ...task.requests[0], steps: ['说明一', '说明二', '说明三'] }]
+  const view = await openComponent('/src/components/agent/AgentTaskCard.vue', { task })
+  await view.state.decide('approve')
+  await view.state.decide('approve', 'batch')
+  assert.deepEqual(view.events[0][1].selections, [{ requestId: 'read-A', revision: 2 }])
+  assert.deepEqual(view.events[1][1].selections, view.events[0][1].selections)
+  assert.equal(Object.hasOwn(view.events[0][1], 'scope'), false)
+  assert.equal(view.events[1][1].scope, 'skill-execution')
 })
 
 test('Reject includes every pending operation and leaves previous terminal operations outside the decision', async () => {
@@ -244,7 +295,7 @@ test('a click captures current revisions and cannot implicitly include an operat
   view.props.task.requests[0].revision = 8
   view.props.task.requests.push({ ...view.props.task.requests[1], id: 'added-before-click' })
   await nextTick()
-  await view.state.decide('approve')
+  await view.state.decide('approve', 'batch')
   view.props.task.requests.push({ ...view.props.task.requests[1], id: 'added-after-click' })
   await nextTick()
   assert.equal(view.events.length, 1)
@@ -255,7 +306,7 @@ test('a click captures current revisions and cannot implicitly include an operat
 
 test('repeated immediate clicks emit only one decision', async () => {
   const view = await openComponent('/src/components/agent/AgentTaskCard.vue', { task: sampleTask() })
-  await Promise.all([view.state.decide('approve'), view.state.decide('approve')])
+  await Promise.all([view.state.decide('approve'), view.state.decide('approve', 'batch')])
   assert.equal(view.events.length, 1)
 })
 
@@ -274,7 +325,7 @@ test('approved is not completed and completion closes details while retaining hi
   assert.equal(view.state.expanded.value, false)
   view.state.setExpanded(true)
   assert.match(await view.html(), /已完成/)
-  await view.state.decide('approve')
+  await view.state.decide('approve', 'batch')
   assert.deepEqual(view.events, [])
 })
 
@@ -301,7 +352,7 @@ test('expired requests have no active authorization and cannot emit a new decisi
   const task = sampleTask()
   task.expiresAt = Date.now() - 1
   const view = await openComponent('/src/components/agent/AgentTaskCard.vue', { task })
-  await view.state.decide('approve')
+  await view.state.decide('approve', 'batch')
   await view.state.decide('reject')
   assert.deepEqual(view.events, [])
   assert.match(await view.html(), /已过期|已失效/)

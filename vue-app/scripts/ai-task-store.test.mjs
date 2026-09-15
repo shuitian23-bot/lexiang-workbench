@@ -40,6 +40,22 @@ function skillDecision(task, action = 'approve') {
   return result
 }
 
+test('single authorization completes only the current operation and batch authorization completes the remaining Skill operations', async () => {
+  const store = useAiStore()
+  const first = await query(store, '批量授权演示')
+  const other = await query(store, '批量授权演示')
+  await store.runTaskAction(decision(first.task, [first.task.requests[0].id]), 'dashboard.geo')
+  const partial = store.messages.find(item => item.id === first.id).task
+  assert.deepEqual(partial.requests.map(item => item.status), ['succeeded', 'pending', 'pending', 'pending'])
+  assert.ok(store.messages.find(item => item.id === other.id).task.requests.every(item => item.status === 'pending'))
+  const batch = skillDecision(partial)
+  assert.equal(batch.decision.selections.length, 3)
+  await store.runTaskAction(batch, 'dashboard.geo')
+  assert.deepEqual(store.messages.find(item => item.id === first.id).task.requests.map(item => item.status), ['succeeded', 'succeeded', 'succeeded', 'succeeded'])
+  assert.ok(store.messages.find(item => item.id === other.id).task.requests.every(item => item.status === 'pending'))
+  assert.equal(store.messages.filter(item => item.task).length, 2)
+})
+
 test('ordinary GMV query preserves every declared step and one approval completes the whole Skill once', async () => {
   const store = useAiStore()
   const message = await query(store, '查询客单价')

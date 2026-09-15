@@ -9,7 +9,8 @@
       <div><dt>授权范围</dt><dd>{{ scopeSummary }}</dd></div>
       <div><dt>影响说明</dt><dd>{{ impactSummary }}</dd></div>
     </dl>
-    <p v-if="pendingRequests.length" class="task-execution-summary">一次授权，执行本次 Skill 的全部 {{ pendingStepCount }} 个步骤。</p>
+    <p v-if="pendingRequests.length" class="task-execution-summary">授权仅限当前操作，批量授权覆盖本次 Skill 全部待执行操作（共 {{ pendingStepCount }} 个步骤）。</p>
+    <p v-if="pendingRequests.length && displayTask.requests.length > 1" class="task-current-operation">当前待授权操作：{{ pendingRequests[0].label }}</p>
     <p v-if="task.notice" class="task-notice" role="status">{{ task.notice }}</p>
     <details v-if="displayTask.requests.length" class="task-details" :open="expanded" @toggle="onDetailsToggle">
       <summary>执行详情</summary>
@@ -35,8 +36,9 @@
     </details>
     <p v-else class="task-empty">当前没有待执行操作。</p>
     <div v-if="pendingRequests.length" class="task-execution-actions">
-      <button type="button" data-task-action :disabled="sending || expired" @click="decide('reject')">拒绝</button>
-      <button type="button" data-task-action class="task-primary" :disabled="sending || expired" @click="decide('approve')">批量授权</button>
+      <button type="button" data-task-action :disabled="sending || expired || progress.active > 0" @click="decide('reject')">拒绝</button>
+      <button type="button" data-task-action :disabled="sending || expired || progress.active > 0" @click="decide('approve')">授权</button>
+      <button type="button" data-task-action class="task-primary" :disabled="sending || expired || progress.active > 0" @click="decide('approve', 'batch')">批量授权</button>
     </div>
   </section>
 </template>
@@ -66,13 +68,15 @@ const sending = ref(false)
 let expiryTimer: ReturnType<typeof setTimeout> | undefined
 let mounted = false
 
-async function decide(decision: TaskDecision['decision']) {
+async function decide(decision: TaskDecision['decision'], mode: 'single' | 'batch' = 'single') {
   now.value = Date.now()
-  if (sending.value || expired.value || !pendingRequests.value.length) return
-  const selections = pendingRequests.value.map(request => ({ requestId: request.id, revision: request.revision }))
+  if (sending.value || expired.value || progress.value.active > 0 || !pendingRequests.value.length) return
+  const batch = decision === 'reject' || mode === 'batch'
+  const requests = batch ? pendingRequests.value : pendingRequests.value.slice(0, 1)
+  const selections = requests.map(request => ({ requestId: request.id, revision: request.revision }))
   sending.value = true
   try {
-    emit('decision', { scope: 'skill-execution', taskId: props.task.id, conversationId: props.task.conversationId, decision, selections })
+    emit('decision', { ...(batch ? { scope: 'skill-execution' as const } : {}), taskId: props.task.id, conversationId: props.task.conversationId, decision, selections })
     await nextTick()
   } finally { sending.value = false }
 }
@@ -114,8 +118,8 @@ function requestStatus(status: RequestStatus) {
 .task-summary { display: grid; gap: 4px; min-width: 0; }
 .agent-task-card .task-title { margin: 0; font-size: 14px; font-weight: 600; line-height: 1.5; overflow-wrap: anywhere; }
 .task-progress { font-size: 12px; color: var(--color-text-secondary); line-height: 1.5; overflow-wrap: anywhere; }
-.agent-task-card p.task-preview-notice, .agent-task-card p.task-notice, .agent-task-card p.task-execution-summary, .agent-task-card p.task-empty { margin: 8px 0 0; font-size: 12px; line-height: 1.5; color: var(--color-text-secondary); overflow-wrap: anywhere; }
-.agent-task-card p.task-notice, .agent-task-card p.task-execution-summary { color: var(--color-text); }
+.agent-task-card p.task-preview-notice, .agent-task-card p.task-notice, .agent-task-card p.task-execution-summary, .agent-task-card p.task-current-operation, .agent-task-card p.task-empty { margin: 8px 0 0; font-size: 12px; line-height: 1.5; color: var(--color-text-secondary); overflow-wrap: anywhere; }
+.agent-task-card p.task-notice, .agent-task-card p.task-execution-summary, .agent-task-card p.task-current-operation { color: var(--color-text); }
 .task-scope-summary, .task-request-scope { display: grid; gap: 4px; margin: 8px 0 0; font-size: 12px; line-height: 1.5; }
 .task-scope-summary > div, .task-request-scope > div { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 8px; min-width: 0; }
 .task-scope-summary dt, .task-request-scope dt { color: var(--color-text-secondary); }
@@ -137,7 +141,7 @@ function requestStatus(status: RequestStatus) {
 .task-technical-details { max-width: 100%; margin: 8px 0 0; padding: 12px; border-radius: var(--radius-sm); background: var(--color-bg-subtle); white-space: pre-wrap; overflow-wrap: anywhere; word-break: break-word; font-size: 12px; line-height: 1.5; }
 .agent-task-card .task-technical-details code { padding: 0; border-radius: 0; background: transparent; font: inherit; }
 .task-execution-actions { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
-.task-execution-actions button { height: 36px; padding: 0 16px; max-width: 100%; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); color: var(--color-text); font: inherit; font-size: 13px; line-height: 1.5; cursor: pointer; }
+.task-execution-actions button { height: 36px; padding: 0 16px; max-width: 100%; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); color: var(--color-text); font: inherit; font-size: 13px; line-height: 1.5; white-space: nowrap; cursor: pointer; }
 .task-execution-actions .task-primary { border-color: var(--color-primary); background: var(--color-primary); color: var(--color-on-primary); }
 .task-primary:hover:not(:disabled) { border-color: var(--color-primary-hover); background: var(--color-primary-hover); }
 .task-execution-actions button:disabled { cursor: not-allowed; color: var(--color-text-disabled); border-color: var(--color-border-subtle); background: var(--color-bg-muted); }

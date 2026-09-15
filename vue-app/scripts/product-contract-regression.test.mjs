@@ -66,7 +66,7 @@ test('report actions download instead of persisting local save state', async () 
   assert.doesNotMatch(aiStore, /报告可保存|可展开、可保存|保存状态/)
 })
 
-test('AI authorization stays readable and confirms the current Skill execution as a whole', async () => {
+test('AI authorization offers distinct current-operation and whole-Skill approval entries', async () => {
   const [messages, taskCard, aiStore] = await Promise.all([
     source('../src/components/agent/AgentMessageList.vue'),
     source('../src/components/agent/AgentTaskCard.vue'),
@@ -78,8 +78,11 @@ test('AI authorization stays readable and confirms the current Skill execution a
   assert.match(messages, /授权内容/)
   assert.match(taskCard, /授权范围/)
   assert.match(taskCard, /影响说明/)
+  assert.match(taskCard, />授权<\/button>/)
   assert.match(taskCard, />批量授权<\/button>/)
   assert.match(taskCard, />拒绝<\/button>/)
+  assert.match(taskCard, /@click="decide\('approve'\)"/)
+  assert.match(taskCard, /@click="decide\('approve', 'batch'\)"/)
   assert.match(taskCard, /scope: 'skill-execution'/)
   assert.doesNotMatch(taskCard, /type="checkbox"|授权选中项|单独授权此项|全选/)
   assert.match(messages, /auth_task_decide/)
