@@ -50,6 +50,16 @@
     const legacyWins = !current || (legacy && (legacyTime > currentTime || (legacyTime === currentTime && status(legacy) === 'verified' && status(current) !== 'verified')));
     sync(legacyWins ? legacyKey : currentKey);
   }
+  // Flush same-tab updates before routing a new query, including the existing demo review timer.
+  window.__lxReadEducationState = () => {
+    check();
+    const state = parse(get(legacyKey)) || { status: 'none' };
+    if (state.status === 'pending' && state.submittedAt && Date.now() - Number(state.submittedAt) > 12000) {
+      state.status = 'verified';
+      try { localStorage.setItem(legacyKey, JSON.stringify(state)); sync(legacyKey); } catch {}
+    }
+    return state;
+  };
   window.addEventListener('storage', event => { if (!event.key || event.key === legacyKey || event.key === currentKey) check(); });
   window.addEventListener('focus', check);
   window.addEventListener('pageshow', check);

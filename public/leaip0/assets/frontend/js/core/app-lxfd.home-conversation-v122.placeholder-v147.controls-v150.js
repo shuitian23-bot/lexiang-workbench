@@ -988,6 +988,7 @@
   }
   function renderLxfdProducts(products, options = {}) {
     if (!Array.isArray(products) || !products.length) return "";
+    const educationProduct = window.__lxEducationOffers?.isProducts(products);
     const first = products[0] || {};
     const recoId = "lxfd-reco-" + Date.now() + "-" + Math.random().toString(36).slice(2);
     window.__lxRecoPayloads = window.__lxRecoPayloads || {};
@@ -996,18 +997,20 @@
     try {
       const key = "lexiang.recoPayloads.v1";
       const store = JSON.parse(localStorage.getItem(key) || "[]");
-      store.push({ id: recoId, products: products.slice(0, 8).map((p) => ({ sku: p.sku, name: p.name, price: p.price, image_url: p.image_url || p.image, specs: p.specs, description: (p.description || "").slice(0, 400) })) });
+      store.push({ id: recoId, products: products.slice(0, educationProduct ? 12 : 8).map((p) => ({ sku: p.sku, name: p.name, price: p.price, image_url: p.image_url || p.image, specs: p.specs, description: (p.description || "").slice(0, 400) })) });
       localStorage.setItem(key, JSON.stringify(store.slice(-8)));
     } catch (_e) {}
     const isServiceProduct = !!options.serviceProduct;
-    const desc = isServiceProduct
+    const desc = educationProduct
+      ? `已为你整理 ${products.length} 款教育优惠商品`
+      : isServiceProduct
       ? `已为你推荐 ${products.length} 款服务商品`
       : products.length === 1
       ? `${escapeHtml(first.name || "按你的需求筛选出的商品")}${first.price ? ` · ${money(first.price)}` : ""}`
       : `已为你筛选 ${products.length} 款候选商品`;
     return `<button class="answer-cta lx-answer-reco" type="button" data-lxfd-reveal-products="1" data-lxfd-reco-id="${escapeHtml(recoId)}">
       <span class="answer-cta-copy">
-        <span class="answer-cta-title">${isServiceProduct ? "查看推荐服务商品" : "查看推荐商品"}</span>
+        <span class="answer-cta-title">${educationProduct ? "查看教育优惠商品" : isServiceProduct ? "查看推荐服务商品" : "查看推荐商品"}</span>
         <span class="answer-cta-desc">${desc}</span>
       </span>
       <span class="answer-cta-icon" aria-hidden="true">
@@ -1826,6 +1829,22 @@
         } finally {if(window.__lxGeneration.current(__lxGenerationToken)){ if (solutionNonce === chatState.conversationNonce) chatState.sending = false; }}
   }
 
+  async function lxfdRunEducationOfferQuery(query) {
+    const token = window.__lxGeneration.capture(); let ai;
+    return window.__lxEducationOffers.run({query,token,
+      authenticate:kind=>lfxdRunUnifiedAuthAnswer('education',kind),
+      busy:active=>{chatState.sending=active;syncSend();},
+      trace:(lines,complete)=>{
+        if(!ai){ai=document.createElement('div');ai.className='lxfd-msg-ai lx-chat-skin';ai._loadingStarted=Date.now()-5000;ai.innerHTML='<div class="lxfd-ai-body"></div>';thread?.appendChild(ai);}
+        ai._traceLines=lines;ai._traceSkills=new Set(['Skill(教育优惠商品推荐)']);ai._traceCollapsed=complete;lxfdRenderTraceLive(ai);
+      },
+      answer:async text=>{if(!ai){ai=document.createElement('div');ai.className='lxfd-msg-ai lx-chat-skin';ai.innerHTML='<div class="lxfd-ai-body"></div>';thread?.appendChild(ai);}await lxfdAnimateFinal(ai,text);},
+      card:products=>{chatState.lastProducts=products;const body=ai.querySelector('.lxfd-ai-body');body.insertAdjacentHTML('beforeend',renderLxfdProducts(products));const card=body.querySelector('[data-lxfd-reco-id]');const id=card?.getAttribute('data-lxfd-reco-id')||'';card?.setAttribute('data-lx-result-id','reco:'+id);card?.classList.add('lx-document-card-enter');return id;},
+      open:(products,recoId)=>{window.__lxfdPersistCurrentNow?.();window.__lxfdExitWithReveal(()=>window.__lxBridge?.revealProducts?.(products,{title:'教育优惠商品',recoId}));},
+      save:()=>window.__lxfdPersistCurrentNow?.()
+    });
+  }
+
   async function submit(text) {const __lxGenerationToken=window.__lxGeneration.capture();try{
     const value = String(text || "").trim();
     if (!value || chatState.sending) return;
@@ -1897,6 +1916,11 @@
 
     if (window.__lxCouponCenter?.matches(value)) {
       await window.__lxGeneration.wait(__lxGenerationToken, lxfdRunMemberCouponCenter(value));
+      return;
+    }
+
+    if (window.__lxEducationOffers?.matches(value)) {
+      await window.__lxGeneration.wait(__lxGenerationToken, lxfdRunEducationOfferQuery(value));
       return;
     }
 
