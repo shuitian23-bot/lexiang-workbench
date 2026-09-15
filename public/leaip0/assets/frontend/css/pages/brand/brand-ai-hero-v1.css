@@ -4,12 +4,13 @@
   --lxbrand-hero-type-scale: .7;
   position: relative;
   min-height: calc(var(--lxbrand-hero-height) * .40);
-  width: calc(100% + var(--lxbrand-hero-left, 18px) + var(--lxbrand-hero-right, 18px));
-  margin: 0 calc(-1 * var(--lxbrand-hero-right, 18px)) 0 calc(-1 * var(--lxbrand-hero-left, 18px));
+  width: 100%;
+  margin: 18px 0 20px;
+  border-radius: 20px;
   padding: 0;
   overflow: hidden;
   color: #fff;
-  background: url('/assets/brand/brand-ai-hero-20260915.jpg') center 43% / cover;
+  background: #251c2c;
   font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
   font-size: 16px;
   font-weight: 400;
@@ -18,10 +19,14 @@
 }
 .lxbrand-ai-hero, .lxbrand-ai-hero * { box-sizing: border-box; }
 .lxbrand-ai-hero::before {
+  z-index: 1;
+  pointer-events: none;
   content: ""; position: absolute; inset: 0;
   background: linear-gradient(90deg, rgba(62,19,67,.76) 0%, rgba(80,25,72,.52) 41%, rgba(44,27,64,.24) 70%, rgba(20,24,39,.14) 100%), linear-gradient(180deg, rgba(18,19,33,.20), rgba(75,22,66,.38));
 }
 .lxbrand-ai-hero::after {
+  z-index: 1;
+  pointer-events: none;
   content: ""; position: absolute; inset: auto 0 0; height: 180px;
   background: linear-gradient(180deg, transparent, rgba(24,14,31,.24));
 }
@@ -71,4 +76,22 @@
   width: calc((100% - 28px) * var(--lxbrand-hero-type-scale));
   margin-left: 7px;
   margin-right: 14px;
+}
+
+/* Match the enterprise carousel spacing on short desktop windows as well. */
+@media (min-width: 761px) and (max-height: 820px) {
+  .lxbrand-ai-hero { margin-bottom: 12px; }
+}
+
+/* Video fills the existing hero without changing its dimensions or copy. */
+.lxbrand-ai-hero .lxbrand-ai-hero__video {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  pointer-events: none;
 }

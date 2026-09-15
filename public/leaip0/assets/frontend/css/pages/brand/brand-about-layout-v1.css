@@ -133,32 +133,100 @@
   line-height: 1.65;
 }
 .lx-brand-home #lxbrand-about .lxbrand-about-links { display: contents; }
+/* Contact and visit: a coordinated pair of quiet, icon-led navigation cards. */
 .lx-brand-home #lxbrand-about .lxbrand-about-link {
   grid-row: 2;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: flex-start;
-  padding: 22px 22px 20px;
-  border: 1px solid #e9e2eb;
+  display: grid;
+  grid-template-columns: 42px minmax(0,1fr);
+  grid-template-rows: 27px auto 1fr;
+  column-gap: 14px;
+  align-items: start;
+  padding: 22px 22px 18px;
+  border: 1px solid #e6dfea;
   background: #fff;
+  box-shadow: 0 2px 6px rgba(50,29,57,.025);
 }
-.lx-brand-home #lxbrand-about .lxbrand-about-link:first-child { grid-column: 2; background: #4e1646; border-color: #4e1646; }
-.lx-brand-home #lxbrand-about .lxbrand-about-link:nth-child(2) { grid-column: 3; background: #fcf9fd; }
-.lx-brand-home #lxbrand-about .lxbrand-about-link h3 { margin: 0; font-size: 19px; line-height: 1.4; font-weight: 600; }
-.lx-brand-home #lxbrand-about .lxbrand-about-link p { margin: 8px 0 0; font-size: 13px; line-height: 1.6; }
-.lx-brand-home #lxbrand-about .lxbrand-link { margin-top: auto; padding-top: 14px; padding-right: 34px; font-size: 12px; font-weight: 500; }
-.lx-brand-home #lxbrand-about .lxbrand-about-link:first-child h3,
-.lx-brand-home #lxbrand-about .lxbrand-about-link:first-child .lxbrand-link { color: #fff; }
-.lx-brand-home #lxbrand-about .lxbrand-about-link:first-child p { color: rgba(255,255,255,.75); }
+.lx-brand-home #lxbrand-about .lxbrand-about-link:first-child { grid-column: 2; }
+.lx-brand-home #lxbrand-about .lxbrand-about-link:nth-child(2) { grid-column: 3; }
+.lx-brand-home #lxbrand-about .lxbrand-entry-icon {
+  grid-column: 1;
+  grid-row: 1 / 3;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  margin-top: 2px;
+  border: 1px solid #eee7f0;
+  border-radius: 10px;
+  background: #f6f1f8;
+}
+.lx-brand-home #lxbrand-about .lxbrand-entry-icon::before {
+  content: "";
+  width: 22px;
+  height: 22px;
+  background: #5b1452;
+  mask: var(--lxbrand-entry-icon) center / contain no-repeat;
+}
+.lx-brand-home #lxbrand-about .lxbrand-about-link:first-child { --lxbrand-entry-icon: url('/assets/icons/shortcut-support.svg'); }
+.lx-brand-home #lxbrand-about .lxbrand-about-link:nth-child(2) { --lxbrand-entry-icon: url('/assets/icons/order-address-location.svg'); }
+.lx-brand-home #lxbrand-about .lxbrand-about-link h3 {
+  grid-column: 2;
+  grid-row: 1;
+  margin: 0;
+  color: #2d2931;
+  font-size: 18px;
+  line-height: 27px;
+  font-weight: 600;
+}
+.lx-brand-home #lxbrand-about .lxbrand-about-link p {
+  grid-column: 2;
+  grid-row: 2;
+  margin: 4px 0 0;
+  color: #77717c;
+  font-size: 12px;
+  line-height: 1.65;
+}
+.lx-brand-home #lxbrand-about .lxbrand-about-link .lxbrand-link {
+  grid-column: 1 / -1;
+  grid-row: 3;
+  align-self: end;
+  width: 100%;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 12px 28px 0 0;
+  border-top: 1px solid #eee8f0;
+  color: #5b1452;
+  font-size: 12px;
+  line-height: 20px;
+  font-weight: 500;
+}
+.lx-brand-home #lxbrand-about .lxbrand-about-link::after {
+  right: 22px;
+  bottom: 19px;
+  width: 18px;
+  height: 18px;
+  border: 0;
+  border-radius: 0;
+  background: #5b1452;
+  mask: url('/assets/icons/global-next.svg') center / contain no-repeat;
+}
+.lx-brand-home #lxbrand-about .lxbrand-about-link:hover {
+  border-color: #d8c8dd;
+  background: #fdfbfe;
+  box-shadow: 0 6px 18px rgba(50,29,57,.065);
+}
+.lx-brand-home #lxbrand-about .lxbrand-about-link:hover .lxbrand-link { color: #4e1646; }
 @container lx-brand-floors (max-width: 900px) {
   .lx-brand-home #lxbrand-about .lxbrand-about-grid > .lxbrand-card:first-child > img { height: 64%; object-position: center; mask-image: linear-gradient(#000 70%, transparent 100%); }
   .lx-brand-home #lxbrand-about .lxbrand-about-grid { grid-template-columns: minmax(0,1fr) minmax(0,.6fr) minmax(0,.6fr); }
   .lx-brand-home #lxbrand-about .lxbrand-about-grid > .lxbrand-card:first-child .lxbrand-card-body { padding: 22px 62px 24px 22px; }
   .lx-brand-home #lxbrand-about .lxbrand-about-grid > .lxbrand-card:first-child h3 { font-size: 25px; }
   .lx-brand-home #lxbrand-about .lxbrand-about-grid > .lxbrand-card:nth-child(2) .lxbrand-card-body { padding: 20px; }
-  .lx-brand-home #lxbrand-about .lxbrand-about-link { padding: 20px 16px 18px; }
-  .lx-brand-home #lxbrand-about .lxbrand-about-link::after { right: 14px; bottom: 14px; width: 30px; height: 30px; }
+  .lx-brand-home #lxbrand-about .lxbrand-about-link { padding: 20px 16px 18px; grid-template-columns: 34px minmax(0,1fr); column-gap: 10px; }
+  .lx-brand-home #lxbrand-about .lxbrand-entry-icon { width: 34px; height: 34px; border-radius: 8px; }
+  .lx-brand-home #lxbrand-about .lxbrand-entry-icon::before { width: 20px; height: 20px; }
+  .lx-brand-home #lxbrand-about .lxbrand-about-link h3 { font-size: 17px; }
+  .lx-brand-home #lxbrand-about .lxbrand-about-link::after { right: 16px; bottom: 19px; width: 18px; height: 18px; }
 }
 @container lx-brand-floors (max-width: 720px) {
   .lx-brand-home #lxbrand-about .lxbrand-about-grid > .lxbrand-card:first-child > img { height: 100%; object-position: 43% center; mask-image: none; }
