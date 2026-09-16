@@ -412,32 +412,29 @@ body .lx-coupon-center .leai-coupon-card[data-lx-coupon-id]:focus-visible {
   outline-color: #8b5e91;
   outline-offset: 3px;
 }
-body .lx-coupon-center .leai-coupon-card[data-lx-coupon-id]::after {
-  content: attr(data-lx-coupon-hint);
-  position: absolute;
-  left: 12px;
-  bottom: calc(100% + 8px);
-  max-width: calc(100% - 24px);
+/* Brand tooltip: white surface, subtle border, aubergine text; follows pointer. */
+body .lx-coupon-pointer-tooltip {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 10050;
+  box-sizing: border-box;
+  width: max-content;
+  max-width: calc(100vw - 16px);
   padding: 8px 12px;
+  border: 1px solid #e2ddeb;
   border-radius: 8px;
-  background: #342538;
-  color: #fff;
+  background: #ffffff;
+  color: #4d144a;
+  font-family: "Source Han Sans CN Local", "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
   font-size: 12px;
   line-height: 18px;
   font-weight: 400;
+  overflow-wrap: anywhere;
   pointer-events: none;
-  visibility: hidden;
-  opacity: 0;
-  transform: translateY(3px);
-  transition: opacity .16s ease, transform .16s ease, visibility .16s;
-  z-index: 3;
 }
-body .lx-coupon-center .leai-coupon-card[data-lx-coupon-id]:is(:hover, :focus-visible)::after {
-  visibility: visible;
-  opacity: 1;
-  transform: translateY(0);
-}
+body .lx-coupon-pointer-tooltip[hidden] { display: none !important; }
+
 @media (prefers-reduced-motion: reduce) {
-  body .lx-coupon-center .leai-coupon-card[data-lx-coupon-id],
-  body .lx-coupon-center .leai-coupon-card[data-lx-coupon-id]::after {transition: none;}
+  body .lx-coupon-center .leai-coupon-card[data-lx-coupon-id] { transition: none; }
 }

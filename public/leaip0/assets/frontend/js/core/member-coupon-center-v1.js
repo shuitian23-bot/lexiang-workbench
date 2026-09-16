@@ -189,6 +189,92 @@
     composer.requestSubmit();
   }
 
+  // One shared tooltip follows the pointer without changing the coupon query flow.
+  const couponHintSelector = '.lx-coupon-center [data-lx-coupon-id]';
+  let couponHint, couponHintCard, couponHintPoint, couponHintFrame = 0;
+  function hideCouponHint() {
+    if (couponHintFrame) cancelAnimationFrame(couponHintFrame);
+    couponHintFrame = 0;
+    if (couponHint) couponHint.hidden = true;
+    if (couponHintCard) {
+      const ids = (couponHintCard.getAttribute('aria-describedby') || '').split(/\s+/).filter(id => id && id !== 'lx-coupon-pointer-tooltip');
+      if (ids.length) couponHintCard.setAttribute('aria-describedby', ids.join(' '));
+      else couponHintCard.removeAttribute('aria-describedby');
+    }
+    couponHintCard = null;
+  }
+  function placeCouponHint() {
+    couponHintFrame = 0;
+    if (!couponHintCard?.isConnected || !couponHint || couponHint.hidden) return hideCouponHint();
+    const margin = 8, gapX = 14, gapY = 16;
+    const width = couponHint.offsetWidth, height = couponHint.offsetHeight;
+    const viewportWidth = document.documentElement.clientWidth || window.innerWidth;
+    const viewportHeight = document.documentElement.clientHeight || window.innerHeight;
+    let x = couponHintPoint.x + gapX, y = couponHintPoint.y + gapY;
+    if (x + width + margin > viewportWidth) x = couponHintPoint.x - width - gapX;
+    if (y + height + margin > viewportHeight) y = couponHintPoint.y - height - gapY;
+    x = Math.max(margin, Math.min(x, viewportWidth - width - margin));
+    y = Math.max(margin, Math.min(y, viewportHeight - height - margin));
+    couponHint.style.transform = `translate3d(${Math.round(x)}px, ${Math.round(y)}px, 0)`;
+    couponHint.style.visibility = 'visible';
+  }
+  function queueCouponHint() {
+    if (!couponHintFrame) couponHintFrame = requestAnimationFrame(placeCouponHint);
+  }
+  function showCouponHint(card, point) {
+    if (couponHintCard !== card) hideCouponHint();
+    if (!couponHint) {
+      couponHint = document.createElement('div');
+      couponHint.id = 'lx-coupon-pointer-tooltip';
+      couponHint.className = 'lx-coupon-pointer-tooltip';
+      couponHint.setAttribute('role', 'tooltip');
+      document.body.appendChild(couponHint);
+    }
+    couponHintCard = card;
+    couponHintPoint = point;
+    couponHint.textContent = card.dataset.lxCouponHint;
+    couponHint.style.visibility = 'hidden';
+    couponHint.hidden = false;
+    const ids = new Set((card.getAttribute('aria-describedby') || '').split(/\s+/).filter(Boolean));
+    ids.add(couponHint.id);
+    card.setAttribute('aria-describedby', Array.from(ids).join(' '));
+    queueCouponHint();
+  }
+  document.addEventListener('pointerover', event => {
+    if (event.pointerType === 'touch') return;
+    const card = event.target.closest?.(couponHintSelector);
+    if (!card || card === event.relatedTarget?.closest?.(couponHintSelector)) return;
+    showCouponHint(card, {x: event.clientX, y: event.clientY});
+  }, {passive: true});
+  document.addEventListener('pointermove', event => {
+    if (!couponHintCard || event.pointerType === 'touch') return;
+    if (event.target.closest?.(couponHintSelector) !== couponHintCard) return hideCouponHint();
+    couponHintPoint = {x: event.clientX, y: event.clientY};
+    queueCouponHint();
+  }, {passive: true});
+  document.addEventListener('pointerout', event => {
+    if (couponHintCard && event.target.closest?.(couponHintSelector) === couponHintCard && event.relatedTarget?.closest?.(couponHintSelector) !== couponHintCard) hideCouponHint();
+  }, {passive: true});
+  document.addEventListener('focusin', event => {
+    const card = event.target.closest?.(couponHintSelector);
+    if (!card || !card.matches(':focus-visible')) return;
+    const rect = card.getBoundingClientRect();
+    showCouponHint(card, {x: rect.left, y: rect.bottom - 8});
+  });
+  document.addEventListener('focusout', event => {
+    if (event.target.closest?.(couponHintSelector) === couponHintCard) hideCouponHint();
+  });
+  document.addEventListener('pointerdown', hideCouponHint, {capture: true, passive: true});
+  document.addEventListener('keydown', event => { if (event.key === 'Escape') hideCouponHint(); });
+  document.addEventListener('scroll', hideCouponHint, {capture: true, passive: true});
+  window.addEventListener('resize', hideCouponHint, {passive: true});
+  window.addEventListener('blur', hideCouponHint);
+  document.addEventListener('visibilitychange', () => { if (document.hidden) hideCouponHint(); });
+  new MutationObserver(() => {
+    if (couponHintCard && !couponHintCard.isConnected) hideCouponHint();
+  }).observe(document.body, {childList: true, subtree: true});
+
+
   window.__lxCouponCenter = { pageHtml, matches, describe, run, matchCouponQuery, productsCoupon, runProducts: runCouponProducts };
   document.addEventListener('keydown', function (event) {
     const card = event.target.closest('[data-lx-coupon-id]');
