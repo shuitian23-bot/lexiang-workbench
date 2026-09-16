@@ -80,3 +80,5 @@ public/leaip0/assets/frontend/js/core/app.min.js|lxRso.takeRecords|P0 CTA选中�
 public/leaip0/assets/frontend/js/core/app.js|lxResultSelectionObserver.takeRecords|P0 CTA选中态同步死循环修复(源码)
 public/leaip0/brand/index.html|brand-summary-v1.js|P0品牌卡片乐享摘要(页面引用)
 public/leaip0/assets/frontend/js/pages/brand/brand-summary-v1.js|__lxBrandSummaryLoaded|P0品牌卡片乐享摘要(脚本)
+public/js/app-mobile.js|window.__lxSheet|移动端底部浮层脚本
+public/index.html|app-mobile.js?v=|移动端脚本引用

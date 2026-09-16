@@ -6401,6 +6401,7 @@ function openOrderDetail(orderId) {
 
         function lxRunTab(tab) {
           if (!tab) return;
+          if (window.__lxSheet) window.__lxSheet.open(tab); // 手机端：右栏内容改从底部浮层弹出（PC 上 open() 空转）
           const genToken = lxBeginTabGeneration(tab);
           const registeredRenderer = lxPageRenderers.get(tab.kind);
           if (registeredRenderer) {
@@ -7067,6 +7068,7 @@ function openOrderDetail(orderId) {
 
         // 自动全屏对话态：进入/退出统一管理（lx-auto-fs 用于隐藏无意义的展开缩放按钮）
         function lxSetAutoFs(on) {
+          if (on && window.matchMedia && window.matchMedia("(max-width: 767px)").matches) return; // 手机端没有 lxfd 全屏态（.lxfd 隐藏），进入即白屏
           state.autoFs = !!on;
           // 兜底：全屏对话必须处于 chat 态，否则首页下面板被隐藏会白屏
           if (on) document.body.dataset.state = "chat";
@@ -7382,6 +7384,7 @@ function openOrderDetail(orderId) {
 
         // AI 产出可看内容时退出全屏（含手动全屏）、按需展开右侧；若仍在首页语境则此时才切到个人及家庭
         function lxRevealContent() {
+          if (window.__lxSheet) window.__lxSheet.open(); // 手机端：所有"AI 产出可看内容"统一从底部浮层弹出（含 openProduct 直开详情；PC 上空转）
           const wasFullscreen = document.body.classList.contains("assistant-fullscreen") || document.body.classList.contains("lx-auto-fs");
           if (wasFullscreen) {
             if (state.autoFs || document.body.classList.contains("lx-auto-fs")) lxSetAutoFs(false);
@@ -7497,6 +7500,7 @@ function openOrderDetail(orderId) {
             if (next) lxRunTab(next);
           }
           lxRenderTabbar();
+          if (window.__lxSheet) window.__lxSheet.sync(); // 手机端：标题/peek 条跟着标签变化走（PC 上 sync() 空转）
           // 关掉最后一个 tab 且当前在分屏 → 回全屏并带入对话
           if ((state.tabs || []).length === 0 &&
               !document.body.classList.contains("assistant-fullscreen") &&
@@ -10210,6 +10214,7 @@ function openOrderDetail(orderId) {
     if (portal && portal.parentNode) portal.parentNode.removeChild(portal);
   }
   function forceRootFullscreen(){
+    if (window.matchMedia && window.matchMedia("(max-width: 767px)").matches) return; // 手机端首页留在分屏态，不进 lxfd 全屏
     removePortalHome();
     var splitActive = document.body.classList.contains("lx-home-split") ||
       document.body.classList.contains("lxfd-split-entered") ||

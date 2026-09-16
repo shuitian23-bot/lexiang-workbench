@@ -1,0 +1,694 @@
+/* ==========================================================================
+   leaibot.cn 移动端第一期：单栏聊天 + 底部半浮层
+   --------------------------------------------------------------------------
+   · 全文只在 @media (max-width: 767px) 内，PC（≥768px）渲染零变化。
+   · 必须最后加载：main.css / brand-*.css / assistant-panel-ng-skin.css 之后。
+   · 选择器里成片重复的 body:is([data-page=...]):not(.assistant-fullscreen) 前缀
+     不是复制粘贴失误——main.css 与 assistant-panel-ng-skin.css 里同名规则带
+     !important，!important 之间比的是特异性，短选择器压不动，只能同选择器对压。
+     每处压制点都在注释里标了被压的源码位置。
+   · .content 在手机上变成 position:fixed 的底部浮层，但仍是真实 overflow 滚动
+     容器（.lx-tabbar / .category-tabs 的 sticky 与 lxEnsureBuybar 的
+     IntersectionObserver(root=.content) 都依赖它，不能改成 transform 假滚动）。
+   ========================================================================== */
+
+@media (max-width: 767px) {
+
+/* ── 0. 地基 ────────────────────────────────────────────────────────────── */
+:root{
+  --lx-topbar-h:52px;
+  --lx-vvh:100vh;                 /* app-mobile.js 在软键盘顶起时改写成真实像素 */
+  --lx-sheet-radius:20px;
+}
+@supports (height:100dvh){
+  :root{ --lx-vvh:100dvh; }       /* 地址栏伸缩不跳，交给 dvh，不用 JS */
+}
+:root{ --lx-sheet-h:calc(var(--lx-vvh) * .85); }
+
+/* 压 main.css:7182 body{min-width:1180px}（无 !important，靠 !important 压）
+   与 main.css:4341 Browser-fit 区块 html,body{height:100%;overflow:hidden} */
+html,body{
+  min-width:0!important;
+  height:100%!important;
+  overflow:hidden!important;
+  overscroll-behavior:none;
+}
+body{ --assistant-panel-width:100vw; }
+
+/* 首页强制全屏（lxfd）在手机整条不走：index.html:19 / :690 与 app.js
+   forceRootFullscreen 三处已按断点跳过，这里再兜一层，防任何残留类把 .shell 藏掉。
+   压 main.css:8613 body.assistant-fullscreen>.shell{display:none!important}（0,2,1）
+   与 index.html 内联 <style> html.lx-root-lxfd-prepaint body>.shell（0,2,2）。 */
+.lxfd,
+body.lx-root-home:not(.lx-home-split)>.lxfd,
+html.lx-root-lxfd-prepaint .lxfd{ display:none!important; visibility:hidden!important; }
+body.assistant-fullscreen>.topbar,
+body.lx-auto-fs>.topbar,
+body.lx-root-home:not(.lx-home-split)>.topbar,
+html.lx-root-lxfd-prepaint body>.topbar{ display:grid!important; }
+body.assistant-fullscreen>.shell,
+body.lx-auto-fs>.shell,
+body.lx-root-home:not(.lx-home-split)>.shell,
+html.lx-root-lxfd-prepaint body>.shell{ display:block!important; }
+html.lx-root-lxfd-prepaint body{ background:#fff!important; }
+
+/* ── 1. 顶栏 ────────────────────────────────────────────────────────────── */
+/* body[data-page="personal"] .topbar（main.css:16283/16341）与 :is 四频道版本
+   都用 !important 写死了 PC 的三栏宽度，必须同选择器对压 */
+.topbar,
+body[data-page="personal"] .topbar,
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]) .topbar{
+  position:relative!important;
+  z-index:10;
+  height:var(--lx-topbar-h)!important;
+  display:grid!important;
+  grid-template-columns:auto minmax(0,1fr) auto!important;
+  align-items:center!important;
+  gap:8px;
+  padding:0 10px!important;
+}
+.brand img{ width:92px!important; }
+
+/* 频道导航还原成可横滑的按钮排。
+   PC 上四个频道页（main.css:16136/:16349/:16525 的 [data-page="personal"] 组，
+   与 :16590 起的 body:is(四频道) 组）把导航折叠成「当前频道」文字 + hover 展开：
+   容器 position:absolute 居中、::before 出标签、按钮 display:none + opacity:0。
+   手机没有 hover，不还原就是一条永远点不开的死标签，且绝对定位会脱离顶栏栅格。
+   这些规则全部带 !important 且特异性最高到 (0,4,2)，只能逐条抄同选择器对压。 */
+.main-nav,
+body[data-page="personal"] .main-nav,
+body[data-page="personal"] .main-nav:hover,
+body[data-page="personal"] .main-nav:focus-within,
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]) .main-nav,
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]) .main-nav:hover,
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]) .main-nav:focus-within{
+  position:static!important;
+  left:auto!important;
+  top:auto!important;
+  right:auto!important;
+  transform:none!important;
+  grid-column:2!important;
+  justify-self:stretch!important;
+  align-self:stretch!important;
+  min-width:0!important;
+  width:auto!important;
+  height:var(--lx-topbar-h)!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:flex-start!important;
+  gap:2px!important;
+  padding:0!important;
+  overflow-x:auto!important;
+  overflow-y:hidden!important;
+  scrollbar-width:none;
+  -webkit-overflow-scrolling:touch;
+  transition:none!important;
+}
+.main-nav::-webkit-scrollbar{ display:none; }
+/* 「开启新对话」当前话题标签（app.js __lxSyncTopNavTitle 写入）：
+   首页没有任何 CSS 管它，在 flex 顶栏里被压成 16px 宽 → 文字竖排溢出。
+   手机顶栏放不下，一律藏。四频道页的 :hover/:focus-within 展开态(0,4,2)也一并压住。 */
+.main-nav .lx-current-topic-chip,
+body[data-page="personal"] .main-nav .lx-current-topic-chip,
+body[data-page="personal"] .main-nav:hover .lx-current-topic-chip,
+body[data-page="personal"] .main-nav:focus-within .lx-current-topic-chip,
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]) .main-nav .lx-current-topic-chip,
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]) .main-nav:hover .lx-current-topic-chip,
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]) .main-nav:focus-within .lx-current-topic-chip{
+  display:none!important;
+}
+/* 折叠态的「当前频道」文字(::before) 与下拉小箭头(::after) 手机上都不要 */
+.main-nav::before,
+.main-nav::after,
+body[data-page="personal"] .main-nav::before,
+body[data-page="personal"] .main-nav::after,
+body[data-page="personal"] .main-nav:hover::before,
+body[data-page="personal"] .main-nav:focus-within::before,
+body[data-page="personal"] .main-nav:hover::after,
+body[data-page="personal"] .main-nav:focus-within::after,
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]) .main-nav::before,
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]) .main-nav::after,
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]) .main-nav:hover::before,
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]) .main-nav:focus-within::before,
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]) .main-nav:hover::after,
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]) .main-nav:focus-within::after{
+  content:none!important;
+  display:none!important;
+}
+/* 按钮：main.css:16525 与 :16634 分别用 opacity:0!important + display:none!important
+   把它们藏起来等 hover，手机上必须全部翻回来（最高特异性 0,4,2） */
+.main-nav button,
+body[data-page="personal"] .main-nav button,
+body[data-page="personal"] .main-nav:hover button,
+body[data-page="personal"] .main-nav:focus-within button,
+body[data-page="personal"] .main-nav:not(:hover):not(:focus-within) button,
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]) .main-nav button,
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]) .main-nav:hover button,
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]) .main-nav:focus-within button,
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]) .main-nav:not(:hover):not(:focus-within) button{
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  flex:0 0 auto!important;
+  height:var(--lx-topbar-h)!important;
+  padding:0 7px!important;
+  font-size:13px!important;
+  line-height:1!important;
+  white-space:nowrap!important;
+  opacity:1!important;
+  transform:none!important;
+  pointer-events:auto!important;
+  transition:none!important;
+}
+/* 当前频道高亮：PC 展开态靠 hover 才给样式，手机直接常驻 */
+.main-nav button.active,
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]) .main-nav button.active,
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]) .main-nav:not(:hover):not(:focus-within) button.active{
+  color:#5b1452!important;
+  font-weight:700!important;
+}
+.utility{ gap:6px!important; }
+.utility-btn{ width:24px!important; height:24px!important; }
+.account-menu{ top:38px!important; right:0!important; }
+
+/* ── 2. 单栏骨架：.shell 由两栏 grid 变单块 ──────────────────────────────── */
+/* 压 main.css:16483 body:is(...):not(.assistant-fullscreen) .shell{min-height:...!important}（0,3,1）
+   与 main.css:16421 body:not(.assistant-fullscreen) .shell{padding-*:0!important}（0,2,1） */
+.shell,
+body:not(.assistant-fullscreen) .shell,
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"]):not(.assistant-fullscreen) .shell{
+  display:block!important;
+  grid-template-columns:none!important;
+  column-gap:0!important;
+  width:100%!important;
+  height:calc(var(--lx-vvh) - var(--lx-topbar-h))!important;
+  min-height:0!important;
+  max-height:none!important;
+  margin:0!important;
+  padding:0!important;
+  overflow:hidden!important;
+  transition:none!important;
+}
+
+/* 助手面板吃满整屏，变 flex 列（顶部工具条 / 对话区 / 底部输入区）。
+   压 assistant-panel-ng-skin.css:3 的 padding/border/border-radius/box-shadow !important（0,3,1）、
+   main.css:16487 的 height:auto!important;min-height:100%!important（0,3,1）、
+   main.css:363 body[data-page="home"] .assistant-panel{display:none}（首页要显示出来）。 */
+.assistant-panel,
+body[data-page="home"] .assistant-panel,
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"]):not(.assistant-fullscreen) .assistant-panel,
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel{
+  position:relative!important;
+  display:flex!important;
+  flex-direction:column!important;
+  width:100%!important;
+  max-width:none!important;
+  height:100%!important;
+  min-height:0!important;
+  max-height:none!important;
+  margin:0!important;
+  padding:6px 12px calc(6px + env(safe-area-inset-bottom))!important;
+  border:0!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+  overflow:hidden!important;
+  transform:none!important;
+  transition:none!important;
+}
+
+/* 手机上无处安放 / 无手势可用的 PC 控件全部收掉。
+   「对话全屏」按钮 .assistant-toggle 会把人带进手机上 display:none 的 lxfd ＝ 白屏，
+   任何页面都必须藏：它被 main.css:9058 `.assistant-panel > .assistant-toggle`
+   (0,2,0 display:inline-flex!important) 和 ng-skin:53 (0,4,1) 两处撑着，
+   光写裸 .assistant-toggle(0,1,0) 压不动首页那条（实测首页仍是 26×26 可见）。 */
+.panel-resizer,
+.assistant-restore,
+.assistant-toggle,
+.assistant-panel .assistant-toggle,
+.assistant-panel>.assistant-toggle,
+.switch-btn,
+.assistant-panel .switch-btn,
+.page-dots,
+.hover-prompt-panel,
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel>.assistant-toggle,
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .switch-btn{
+  display:none!important;
+}
+/* 工具条（新建对话 / 历史）：main.css:725 基础规则是 position:absolute，
+   四频道页被 ng-skin:42 拉回 relative，首页(data-page=home / 无 data-page)没人管，
+   会浮在欢迎语 h1 上面。手机上一律进文档流当 flex 项。 */
+.tool-row,
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .tool-row{
+  position:relative!important;
+  top:auto!important;
+  left:auto!important;
+  right:auto!important;
+  display:flex!important;
+  align-items:center!important;
+  gap:14px!important;
+  flex:0 0 auto!important;
+  margin:0 0 6px!important;
+  padding-right:0!important;
+}
+.assistant-history-sidebar{
+  left:0!important;
+  right:0!important;
+  top:0!important;
+  bottom:0!important;
+  width:100%!important;
+  max-width:none!important;
+  padding:16px 14px!important;
+  border-radius:0!important;
+}
+
+/* 欢迎态 / 对话态：中间区域自己撑满并滚动，底部输入区不再绝对定位 */
+.panel-state{ min-height:0; }
+body[data-state="default"] .default-state{
+  flex:1 1 auto;
+  min-height:0;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+}
+/* 压 ng-skin:125/:430 .assistant-panel .default-state{padding-top:40px!important}（0,4,1）。
+   .tool-row 上面已改成文档流，这里只需一点呼吸位；首页/子站同一值。 */
+.default-state,
+.fullscreen-welcome,
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .default-state{
+  padding-top:10px!important;
+}
+.quick-list,
+.fullscreen-prompt-grid{ width:auto!important; margin-left:0!important; }
+.headline,
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .headline{
+  width:auto!important;
+  margin:0 0 12px!important;
+  padding:0!important;
+}
+body[data-state="chat"] .chat-state{
+  display:flex!important;
+  flex-direction:column;
+  flex:1 1 auto;
+  min-height:0;
+  overflow:hidden;
+}
+/* 压 main.css:6710 body:not(.assistant-fullscreen)[data-state="chat"] .assistant-panel .chat-state:has(.lx-p0-messages){padding-top:18px!important}（0,5,1） */
+.chat-state,
+body:not(.assistant-fullscreen)[data-state="chat"] .assistant-panel .chat-state:has(.lx-p0-messages){
+  padding-top:6px!important;
+}
+/* main.css:4838 .lx-p0-messages{height:calc(100vh - 310px)} 是给 PC 定死的，
+   手机改成 flex 填充，键盘弹出/收起都跟着面板走 */
+.lx-p0-messages{
+  height:auto!important;
+  max-height:none!important;
+  flex:1 1 auto!important;
+  min-height:0!important;
+  padding:4px 2px 10px!important;
+}
+
+/* 底部输入区：从 position:absolute 改回普通 flex 项（贴在面板底部）。
+   压 ng-skin:209/:424/:528/:602/:755/:765 同名 !important（最高 0,4,1）。 */
+.assistant-bottom,
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .assistant-bottom,
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .assistant-bottom:has(.composer.has){
+  position:relative!important;
+  left:auto!important;
+  right:auto!important;
+  bottom:auto!important;
+  width:auto!important;
+  max-width:none!important;
+  margin:auto 0 0!important;
+  padding:6px 0 0!important;
+  flex:0 0 auto!important;
+  overflow:visible!important;
+  z-index:20!important;
+}
+/* iOS 聚焦输入框自动放大页面的唯一解：字号 ≥16px。
+   压 ng-skin:264/:555 .assistant-panel .composer textarea{font-size:15px!important}（0,4,1） */
+.composer textarea,
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .composer textarea{
+  font-size:16px!important;
+}
+.shortcut-row,
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .shortcut-row{
+  flex-wrap:nowrap!important;
+  overflow-x:auto;
+  scrollbar-width:none;
+  -webkit-overflow-scrolling:touch;
+}
+.shortcut-row::-webkit-scrollbar{ display:none; }
+.shortcut,
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .assistant-panel .shortcut{
+  flex:0 0 auto!important;
+}
+
+/* ── 3. 右栏 .content → 底部半浮层（sheet） ─────────────────────────────── */
+/* 动画三要素走 body 上的自定义属性，避开与 main.css 的 !important 特异性缠斗：
+   变量只在 body 规则之间比大小，没有对手。 */
+body.lx-sheet-open{
+  --lx-sheet-vis:visible;
+  --lx-sheet-y:var(--lx-sheet-dy,0px);
+  --lx-sheet-vdelay:0s;
+}
+body.lx-sheet-full{
+  --lx-sheet-height:calc(var(--lx-vvh) - var(--lx-topbar-h));
+  --lx-sheet-r:0px;
+}
+body.lx-sheet-dragging{ --lx-sheet-dur:0s; }
+
+/* 选择器列表把所有会命中 .content 的高特异性 !important 规则逐条对压：
+   main.css:318 body.assistant-fullscreen .content（0,2,0，无 !important）
+   main.css:16424/16440 body:not(.assistant-fullscreen) .content:has(...)（0,3,1，!important）
+   main.css:16496 body:is(...):not(.assistant-fullscreen) .content:has(...)（0,4,1，min-height:100%!important 会把浮层撑满全屏） */
+.content,
+body.assistant-fullscreen .content,
+body.assistant-collapsed .content,
+body.assistant-right .content,
+body[data-page="home"] .content,
+body:not(.assistant-fullscreen) .content:has(.lx-site-floors),
+body:not(.assistant-fullscreen) .content:has(.product-grid),
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"]):not(.assistant-fullscreen) .content:has(.lx-site-floors),
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"]):not(.assistant-fullscreen) .content:has(.product-grid){
+  position:fixed!important;
+  left:0!important;
+  right:0!important;
+  top:auto!important;
+  bottom:0!important;
+  width:100%!important;
+  min-width:0!important;
+  max-width:none!important;
+  height:var(--lx-sheet-height,var(--lx-sheet-h))!important;
+  min-height:0!important;
+  max-height:none!important;
+  margin:0!important;
+  padding:0 12px calc(14px + env(safe-area-inset-bottom))!important;
+  background:#fff!important;
+  border-radius:var(--lx-sheet-r,var(--lx-sheet-radius)) var(--lx-sheet-r,var(--lx-sheet-radius)) 0 0!important;
+  box-shadow:0 -12px 34px rgba(43,30,43,.14)!important;
+  z-index:9000!important;
+  overflow-y:auto!important;          /* 真实滚动容器，sticky / IntersectionObserver 依赖 */
+  overflow-x:hidden!important;
+  overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
+  opacity:1!important;
+  pointer-events:auto!important;
+  visibility:var(--lx-sheet-vis,hidden)!important;
+  transform:translateY(var(--lx-sheet-y,100%))!important;
+  transition:transform var(--lx-sheet-dur,.28s) cubic-bezier(.2,.72,.2,1),
+             visibility 0s linear var(--lx-sheet-vdelay,.28s)!important;
+  will-change:transform;
+  grid-column:auto!important;
+  grid-row:auto!important;
+  align-self:auto!important;
+}
+
+.lx-sheet-backdrop{
+  position:fixed;
+  inset:0;
+  z-index:8999;
+  background:rgba(28,24,29,.38);
+  opacity:0;
+  visibility:hidden;
+  transition:opacity .22s ease,visibility 0s linear .22s;
+}
+body.lx-sheet-open .lx-sheet-backdrop{
+  opacity:1;
+  visibility:visible;
+  transition:opacity .22s ease;
+}
+
+/* 浮层把手：标题 + 展开 + 关闭，整条可拖 */
+.lx-sheet-head{
+  position:sticky;
+  top:0;
+  z-index:40;
+  box-sizing:border-box;
+  display:flex;
+  align-items:center;
+  gap:6px;
+  height:48px;
+  margin:0 -12px;
+  padding:10px 8px 0 14px;
+  background:#fff;
+  border-bottom:1px solid #eee8f2;
+  touch-action:none;
+  user-select:none;
+  -webkit-user-select:none;
+}
+.lx-sheet-head::before{
+  content:"";
+  position:absolute;
+  top:5px;
+  left:50%;
+  width:36px;
+  height:4px;
+  margin-left:-18px;
+  border-radius:2px;
+  background:#d9d2dd;
+}
+.lx-sheet-title{
+  flex:1;
+  min-width:0;
+  font-size:15px;
+  font-weight:600;
+  color:#252525;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.lx-sheet-btn{
+  flex:0 0 auto;
+  width:34px;
+  height:34px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:0;
+  border:0;
+  border-radius:17px;
+  background:#f4f0f6;
+  color:#4d144a;
+  font-size:17px;
+  line-height:1;
+  cursor:pointer;
+}
+
+/* 标签栏挪到把手下方横滑。display 不能加 !important：
+   main.css:6438 .lx-tabbar[hidden]{display:none!important} 靠它在 ≤1 个标签时收起。 */
+.lx-tabbar{
+  position:sticky!important;
+  top:48px!important;
+  z-index:30!important;
+  display:flex;
+  flex-wrap:nowrap!important;
+  gap:6px!important;
+  margin:0 -12px!important;
+  padding:8px 12px!important;
+  overflow-x:auto;
+  overflow-y:hidden;
+  scrollbar-width:none;
+  -webkit-overflow-scrolling:touch;
+  background:#fff;
+}
+.lx-tabbar::-webkit-scrollbar{ display:none; }
+.lx-tab{ flex:0 0 auto!important; max-width:150px!important; }
+
+/* peek 条：浮层收起后停在输入框上方，一点即拉回，内容不销毁 */
+.lx-sheet-peek{
+  display:none;
+  align-items:center;
+  gap:8px;
+  width:100%;
+  height:36px;
+  margin:0 0 8px;
+  padding:0 12px;
+  border:0;
+  border-radius:18px;
+  background:#f4f0f6;
+  color:#4d144a;
+  font-size:13px;
+  font-weight:500;
+  text-align:left;
+  cursor:pointer;
+}
+.lx-sheet-peek>span{
+  flex:1;
+  min-width:0;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.lx-sheet-peek>.lx-sheet-peek-go{ flex:0 0 auto; opacity:.55; }
+body.lx-peek-on:not(.lx-sheet-open) .lx-sheet-peek{ display:flex; }
+
+/* ── 4. 弹窗一律从底部弹出 ─────────────────────────────────────────────── */
+.lx-p0-modal-mask{ align-items:flex-end!important; padding:0!important; }
+/* 覆盖各皮肤自带宽度：.lx-lead-shell(0,2,0 !important)、
+   .lx-p0-modal:has(.lx-edu-success-modal)(0,2,0 !important)、
+   .lx-wpa-modal-mask .lx-p0-modal(0,3,0)、订单/地址皮肤(0,6,0，无 !important) */
+.lx-p0-modal-mask .lx-p0-modal,
+.lx-p0-modal-mask .lx-p0-modal.lx-lead-shell,
+.lx-p0-modal-mask.lx-wpa-modal-mask .lx-p0-modal,
+.lx-p0-modal:has(.lx-edu-success-modal){
+  width:100%!important;
+  max-width:none!important;
+  max-height:calc(var(--lx-vvh) * .92)!important;
+  border-radius:var(--lx-sheet-radius) var(--lx-sheet-radius) 0 0!important;
+  padding-bottom:env(safe-area-inset-bottom);
+}
+.lx-p0-modal-mask .lx-p0-modal-body{ max-height:none!important; }
+.lx-p0-toast{
+  left:12px!important;
+  right:12px!important;
+  bottom:calc(12px + env(safe-area-inset-bottom))!important;
+  max-width:none!important;
+}
+
+/* ── 5. 浮层里各视图的必修坑 ───────────────────────────────────────────── */
+/* data-view 互斥：reco/compare/info 用 (0,2,1) display:none!important、
+   detail 用 (0,2,1) display:none 把 hero/category-tabs/product-grid/lx-site-floors 关掉
+   （main.css:1719-1770）。这里**绝对不能写 display**——早先写了 display:grid!important，
+   (0,3,1) 直接压穿 reco 的隐藏，AI 出推荐时浮层顶部漏出整片货架、.reco-page 被挤到
+   1900px 开外。列数与间距不带 display 同样生效（display:grid 由 main.css:1544/:9583 给）。 */
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"]):not(.assistant-fullscreen) .lx-floor-products,
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"]):not(.assistant-fullscreen) .product-grid,
+.lx-floor-products,
+.product-grid{
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:10px!important;
+  overflow:visible!important;
+  flex-wrap:wrap!important;          /* 万一落到 @media(max-width:600px) 的 display:flex 分支也不横滚 */
+  scroll-snap-type:none!important;
+  padding-bottom:0!important;
+}
+/* [hidden] 必须始终赢：lxRenderTabbar 等靠它收起元素 */
+.content [hidden]{ display:none!important; }
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"]):not(.assistant-fullscreen) .lx-floor-product,
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"]):not(.assistant-fullscreen) .product-card,
+.lx-floor-product,
+.product-card{
+  flex:0 0 calc(50% - 5px)!important;  /* grid 下无效，flex 兜底时两列 */
+  width:auto!important;
+  min-width:0!important;
+  min-height:0!important;
+  scroll-snap-align:none!important;
+}
+/* main.css:9597 图片写死 max-width:149px/height:149px !important（0,3,2），
+   两列时 ≤360px 屏会被卡片 overflow 切掉，同选择器改成随列宽缩 */
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"]):not(.assistant-fullscreen) .lx-floor-product .product-visual,
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"]):not(.assistant-fullscreen) .product-card .product-visual,
+.lx-floor-product .product-visual,
+.product-card .product-visual{
+  height:132px!important;
+  min-height:132px!important;
+  max-height:132px!important;
+  flex:0 0 132px!important;
+}
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"]):not(.assistant-fullscreen) .lx-floor-product .product-visual img,
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"]):not(.assistant-fullscreen) .product-card .product-visual img,
+.lx-floor-product .product-visual img,
+.product-card .product-visual img{
+  max-width:100%!important;
+  height:126px!important;
+  max-height:126px!important;
+  object-fit:contain!important;
+}
+/* 兑换专区网格同理（main.css:14101 行内压缩块，0,2,0 !important） */
+.lx-ent-redeem-page .lx-ent-redeem-grid{ grid-template-columns:repeat(2,minmax(0,1fr))!important; gap:10px!important; }
+
+/* 分类 tab 在浮层里不再吸顶，否则会和把手 / 标签栏叠在一起（main.css:8588 sticky top:0） */
+.category-tabs{
+  position:static!important;
+  height:auto!important;
+  gap:14px!important;
+  padding:8px 0!important;
+  overflow-x:auto;
+  overflow-y:hidden;
+  scrollbar-width:none;
+}
+.category-tabs::-webkit-scrollbar{ display:none; }
+.hero{ height:clamp(118px,30vw,168px)!important; }
+
+/* 信息页 / 商详 / 对比 */
+.info-page,
+.info-page.is-wide{ max-width:none!important; width:100%!important; padding:4px 0 24px!important; }
+/* 商详与评价区都是 grid，PC 写的是 1fr＝minmax(auto,1fr)：轨道被最宽子元素的
+   min-content 顶开（实测商详 437px、评价区 1356px），在窄屏里整片右溢出被裁掉。
+   必须改成 minmax(0,1fr) 才允许轨道收缩。 */
+.content[data-view="detail"] .detail-main{
+  grid-template-columns:minmax(0,1fr)!important;
+  max-width:none!important;
+}
+.content[data-view="detail"] .detail-reviews-section{
+  grid-template-columns:minmax(0,1fr)!important;
+}
+.content[data-view="detail"] .product-detail,
+.content[data-view="detail"] .detail-main,
+.content[data-view="detail"] .detail-gallery,
+.content[data-view="detail"] .detail-visual,
+.content[data-view="detail"] .detail-info,
+.content[data-view="detail"] .detail-reviews-section,
+.content[data-view="detail"] .detail-reviews-header,
+.content[data-view="detail"] .detail-review-ai-banner,
+.content[data-view="detail"] .detail-review-cards-wrap{
+  min-width:0!important;
+  max-width:100%!important;
+}
+.content[data-view="detail"] .detail-gallery,
+.content[data-view="detail"] .detail-info{ padding:16px 12px!important; }
+.content[data-view="detail"] .detail-product-image,
+.content[data-view="detail"] .detail-visual img{ max-width:100%!important; height:auto!important; }
+/* 评价卡固定 260px，容器横滑而不是把整页顶宽 */
+.content[data-view="detail"] .detail-review-grid{
+  overflow-x:auto;
+  -webkit-overflow-scrolling:touch;
+  min-width:0!important;
+}
+.content[data-view="detail"] .detail-service{ grid-template-columns:repeat(3,minmax(0,1fr))!important; }
+/* 下单/加购/找相似三个按钮 PC 是一行不换行，窄屏放不下 */
+.content[data-view="detail"] .detail-actions{ flex-wrap:wrap!important; gap:8px!important; }
+.content[data-view="detail"] .detail-actions>*{ flex:1 1 auto!important; min-width:0!important; }
+/* 底部购买条：main.css:11696 给 PC 写了 width:calc(100% + 36px)+负 margin 去边缝，
+   在 12px 内边距的浮层里会顶出 7px 横向溢出，同选择器 (0,3,1) 压回去 */
+.lx-buybar,
+body:not(.assistant-fullscreen) .content[data-view="detail"] .lx-buybar{
+  left:0!important;
+  right:0!important;
+  width:calc(100% + 24px)!important;
+  max-width:none!important;
+  margin:0 -12px -1px!important;
+  gap:8px!important;
+  padding:8px 10px calc(8px + env(safe-area-inset-bottom))!important;
+  box-sizing:border-box!important;
+}
+.lx-buybar .detail-primary,
+.lx-buybar .detail-secondary{ padding:9px 12px!important; font-size:12.5px!important; }
+/* 窄屏放不下「缩略图 + 名称 + 价格 + 两个按钮」，名称与图让位给价格和 CTA */
+.lx-buybar img{ display:none!important; }
+.lx-buybar .lx-buybar-info strong{ display:none!important; }
+.lx-buybar .lx-buybar-info b{ font-size:15px!important; }
+.lx-cmp-wrap,
+.compare-page{ overflow-x:auto; -webkit-overflow-scrolling:touch; }
+.lx-sim-grid{ grid-template-columns:repeat(2,minmax(0,1fr))!important; }
+
+/* 推荐行：main.css:10705 起那组前缀长达 (0,7,1)/(0,7,2)，只能整条抄前缀对压 */
+.reco-row{ flex-wrap:wrap; }
+.reco-row img{ width:96px!important; height:auto!important; }
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .content[data-view="reco"] .reco-page:has(> .reco-row) .reco-row{
+  gap:10px!important;
+  padding:10px 4px!important;
+  min-height:0!important;
+}
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .content[data-view="reco"] .reco-page:has(> .reco-row) .reco-row::before{
+  width:18px;
+  font-size:19px;
+}
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"],[data-page="brand"]):not(.assistant-fullscreen) .content[data-view="reco"] .reco-page:has(> .reco-row) .reco-row>img{
+  width:88px!important;
+  height:88px!important;
+}
+
+/* 楼层标题 25px 在两列里过大（main.css:9578，0,3,1 !important） */
+body:is([data-page="personal"],[data-page="business"],[data-page="enterprise"]):not(.assistant-fullscreen) .lx-floor-head h3{ font-size:18px!important; }
+
+}
