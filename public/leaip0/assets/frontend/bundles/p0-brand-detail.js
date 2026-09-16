@@ -147,7 +147,7 @@
   window.__lxMarketReviewTab = true;
 
   var PAGE_SIZE = 10;
-  var VERSION = 'followup-pagination-v2';
+  var VERSION = 'followup-pagination-v3';
   var followupText = '这款产品开机速度快，屏幕清晰，颜色漂亮，自带流量，出差使用特别方便，追剧玩游戏再也不用考虑流量问题了';
   // The existing review area is explicitly labeled as demonstration content.
   var reviews = [
@@ -183,7 +183,7 @@
     return '<article class="lx-market-review-item" data-review-id="' + review[0] + '">' +
       '<aside class="lx-market-review-user"><strong>' + review[0] + '</strong><span class="lx-market-stars" aria-label="5 星评价">★★★★★</span><time>' + review[1] + '</time></aside>' +
       '<div class="lx-market-review-body"><p>' + review[2] + '</p>' + mediaMarkup(review[3], false) +
-      (review[4] ? '<section class="lx-market-review-followup" aria-label="购买1天后追评"><h3>【购买1天后追评】</h3><p>' + followupText + '</p>' + mediaMarkup(review[4], true) + '</section>' : '') +
+      (review[4] ? '<section class="lx-market-review-followup" aria-label="购买1天后追评"><h3>购买1天后追评</h3><p>' + followupText + '</p>' + mediaMarkup(review[4], true) + '</section>' : '') +
       '</div></article>';
   }
   function paginationMarkup(page, pages, total) {
