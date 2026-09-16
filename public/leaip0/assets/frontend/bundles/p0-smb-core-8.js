@@ -16,7 +16,11 @@
   }
 
   function isProductIntent(value) {
-    return PRODUCT_INTENT.test(normalize(value)) || SERVICE_INTENT.test(normalize(value));
+    var query = normalize(value);
+    // Verified education queries intentionally produce products after the skill completes.
+    var education = window.__lxEducationOffers;
+    return !!(education && education.verified() && education.matches(query)) ||
+      PRODUCT_INTENT.test(query) || SERVICE_INTENT.test(query);
   }
 
   function latestUserQuery(scope) {
