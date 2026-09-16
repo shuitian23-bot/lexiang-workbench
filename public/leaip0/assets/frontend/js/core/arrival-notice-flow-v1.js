@@ -10,6 +10,26 @@ async function lxArrivalNoticeSkill() {
     id: 'modal:arrival-notice:1056661'
   };
 }
+let arrivalSuccessTimer = null;
+function lxShowArrivalSuccessToast() {
+  let toast = document.querySelector('.lx-arrival-success-toast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.className = 'lx-arrival-success-toast';
+    toast.setAttribute('role', 'status');
+    toast.setAttribute('aria-live', 'polite');
+    toast.setAttribute('aria-atomic', 'true');
+    document.body.appendChild(toast);
+  }
+  window.clearTimeout(arrivalSuccessTimer);
+  toast.textContent = '订阅成功';
+  toast.classList.add('show');
+  arrivalSuccessTimer = window.setTimeout(() => {
+    toast.classList.remove('show');
+    toast.textContent = '';
+    arrivalSuccessTimer = null;
+  }, 2400);
+}
 let activeArrivalCleanup = null;
 function lxOpenArrivalNotice() {
   activeArrivalCleanup?.();
@@ -81,15 +101,16 @@ function lxOpenArrivalNotice() {
     stopTimer(); updateCountdown(); timer = window.setInterval(updateCountdown, 1000); sms.focus();
   });
   form.addEventListener('submit', event => {
-    event.preventDefault(); clearError();
+    event.preventDefault();
+    if (disposed) return;
+    clearError();
     if (!validatePhone() || !validateCaptcha()) return;
     if (!smsCode || sentPhone !== phone.value.trim()) { fail(sms, '请先获取短信验证码'); return; }
     if (Date.now() > expiresAt) { fail(sms, '短信验证码已过期，请重新获取'); return; }
     if (sms.value.trim() !== smsCode) { fail(sms, '请输入正确的6位短信验证码'); return; }
-    resetSms(); [phone, captcha, sms].forEach(input => { input.value = ''; });
-    status.textContent = '演示验证完成，未实际订阅，也不会发送短信。';
-    form.querySelectorAll('input, button').forEach(control => { control.disabled = true; });
-    panel.querySelector('.lx-p0-close')?.focus();
+    cleanup();
+    N();
+    lxShowArrivalSuccessToast();
   });
   const onClose = event => { if (event.target === mask || event.target.closest('.lx-p0-close')) cleanup(); };
   const lifecycle = new MutationObserver(() => { if (!mask.classList.contains('show') || !form.isConnected) cleanup(); });

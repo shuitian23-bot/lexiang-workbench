@@ -36,3 +36,8 @@
   .lx-arrival-dialog .lx-arrival-code-row {grid-template-columns:minmax(0,1fr) 112px;gap:8px;}
   .lx-arrival-dialog .lx-p0-modal-body {padding-right:16px;padding-left:16px;}
 }
+
+/* Arrival-notice success feedback appears after the dialog closes. */
+.lx-arrival-success-toast {position:fixed;left:50%;top:50%;z-index:10030;max-width:calc(100vw - 48px);padding:16px 24px;border-radius:6px;background:#666666;color:#ffffff;font-size:18px;font-weight:500;line-height:26px;text-align:center;transform:translate(-50%,-50%);opacity:0;pointer-events:none;transition:opacity .18s ease;}
+.lx-arrival-success-toast.show {opacity:1;}
+@media(prefers-reduced-motion:reduce){.lx-arrival-success-toast {transition:none;}}
