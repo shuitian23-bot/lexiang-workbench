@@ -270,6 +270,17 @@ async function lxRunCouponProductsQuery(query){
   open:(products,tab)=>{No();Ua(tab);Za(tab);},save:()=>window.__lxSaveConversationNow?.()
  });
 }
+async function lxRunServiceProductsQuery(query){
+ const token=window.__lxGeneration.capture();let message,lines=[],done=false;
+ return window.__lxServiceProducts.run({query,token,
+  busy:active=>{d.sending=active;ot();nt();},
+  trace:(items,complete)=>{lines=items;done=complete;if(!message)message=ye('ai loading','',ke(lines,{collapsed:false,foldable:false,skillCount:1}));else qe(message).innerHTML=ke(lines,{collapsed:complete,foldable:complete,skillCount:1});},
+  answer:async text=>{if(!message)message=ye('ai loading','');message._raw=text;await Ne(message,Uo(text));qe(message).insertAdjacentHTML('afterbegin',ke(lines,{collapsed:done,foldable:true,skillCount:1}));},
+  card:products=>{d.products=products;const tab=A(products,{label:'推荐服务商品'});S(tab);Ie(message,_e({title:'查看推荐服务商品',desc:`已为你推荐 ${products.length} 款服务商品`,attr:`data-lx-open-tab="${v(tab.id)}" data-lx-service-products-card="1"`}));message.querySelector('[data-lx-service-products-card]')?.classList.add('lx-document-card-enter');return tab;},
+  open:(products,tab)=>{No();Ua(tab);Za(tab);},
+  save:()=>{d.queryHistory.push(query);Qe();window.__lxSaveConversationNow?.();}
+ });
+}
 async function lxRunEducationOfferQuery(query){
  const token=window.__lxGeneration.capture();let message,lines=[],done=false;
  return window.__lxEducationOffers.run({query,token,
@@ -349,7 +360,7 @@ async function lxPageCommandV150(text,context={}){
 }
 window.__lxPageCommandV150=lxPageCommandV150;
 window.__lxInstallArrivalNotice({d,j,I,N,O,z,ot,nt,Qe,xe,ye,ke,Ne,Uo,qe,xn,bindDialog:(focus,handler)=>{B=focus;if(D)document.removeEventListener("keydown",D,true);D=handler;document.addEventListener("keydown",D,true);}});
-async function xn(t){const __lxGenerationToken=window.__lxGeneration.capture();try{const e=(t||h(".composer textarea")?.value||"").trim();if(!e||d.sending)return;if(await window.__lxGeneration.wait(__lxGenerationToken,(lxPageCommandV150(e))))return;if(!re())return;try{localStorage.removeItem("lexiang.newChatEmpty.v1")}catch(t){if(!window.__lxGeneration.current(__lxGenerationToken))throw new DOMException('已停止生成','AbortError');}"function"==typeof window.__lxSetConversationQuery&&window.__lxSetConversationQuery(e);const n=d.conversationNonce;let a=0,o=[];const s=h(".composer textarea");if(s)s.value="";to();d.lastUserText=e;Ee();ye("user",e);if(lxEnterpriseMemberQuery(e))return void await window.__lxGeneration.wait(__lxGenerationToken,lxRunEnterpriseMemberText(e));if(window.__lxCouponCenter?.matchCouponQuery(e))return void await window.__lxGeneration.wait(__lxGenerationToken,lxRunCouponProductsQuery(e));
+async function xn(t){const __lxGenerationToken=window.__lxGeneration.capture();try{const e=(t||h(".composer textarea")?.value||"").trim();if(!e||d.sending)return;if(await window.__lxGeneration.wait(__lxGenerationToken,(lxPageCommandV150(e))))return;if(!re())return;try{localStorage.removeItem("lexiang.newChatEmpty.v1")}catch(t){if(!window.__lxGeneration.current(__lxGenerationToken))throw new DOMException('已停止生成','AbortError');}"function"==typeof window.__lxSetConversationQuery&&window.__lxSetConversationQuery(e);const n=d.conversationNonce;let a=0,o=[];const s=h(".composer textarea");if(s)s.value="";to();d.lastUserText=e;Ee();ye("user",e);if(window.__lxServiceProducts?.matches(e))return void await window.__lxGeneration.wait(__lxGenerationToken,lxRunServiceProductsQuery(e));if(lxEnterpriseMemberQuery(e))return void await window.__lxGeneration.wait(__lxGenerationToken,lxRunEnterpriseMemberText(e));if(window.__lxCouponCenter?.matchCouponQuery(e))return void await window.__lxGeneration.wait(__lxGenerationToken,lxRunCouponProductsQuery(e));
 if(window.__lxCouponCenter?.matches(e))return await window.__lxGeneration.wait(__lxGenerationToken,window.__lxCouponCenter.run({query:e,token:__lxGenerationToken,state:d,message:ye,card:_e,appendCard:Ie,refresh:()=>{ot();nt()},enterSplit:No,open:lxOpenCouponCenter,history:Qe}));
 if(window.__lxEducationOffers?.matches(e))return void await window.__lxGeneration.wait(__lxGenerationToken,lxRunEducationOfferQuery(e));
 const __lxEducationKind=lxEducationAuthKindV1(e);if(__lxEducationKind)return void await window.__lxGeneration.wait(__lxGenerationToken,gn(__lxEducationKind));

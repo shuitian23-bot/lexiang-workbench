@@ -1830,6 +1830,21 @@
     });
   }
 
+  async function lxfdRunServiceProductsQuery(query) {
+    const token = window.__lxGeneration.capture(); let ai;
+    return window.__lxServiceProducts.run({query,token,
+      busy:active=>{chatState.sending=active;syncSend();},
+      trace:(lines,complete)=>{
+        if(!ai){ai=document.createElement('div');ai.className='lxfd-msg-ai lx-chat-skin';ai._loadingStarted=Date.now()-5000;ai.innerHTML='<div class="lxfd-ai-body"></div>';thread?.appendChild(ai);}
+        ai._traceLines=lines;ai._traceSkills=new Set(['Skill(服务商品推荐)']);ai._traceCollapsed=complete;lxfdRenderTraceLive(ai);
+      },
+      answer:async text=>{await lxfdAnimateFinal(ai,text);},
+      card:products=>{chatState.lastProducts=products;const body=ai.querySelector('.lxfd-ai-body');body.insertAdjacentHTML('beforeend',renderLxfdProducts(products,{serviceProduct:true}));const card=body.querySelector('[data-lxfd-reco-id]');const id=card?.getAttribute('data-lxfd-reco-id')||'';card?.setAttribute('data-lx-result-id','reco:'+id);card?.setAttribute('data-lx-service-products-card','1');card?.classList.add('lx-document-card-enter');return id;},
+      open:(products,recoId)=>{window.__lxfdPersistCurrentNow?.();window.__lxfdExitWithReveal(()=>window.__lxBridge?.revealProducts?.(products,{title:'推荐服务商品',recoId}));},
+      save:()=>window.__lxfdPersistCurrentNow?.()
+    });
+  }
+
 async function lxfdRunEducationOfferQuery(query) {
     const token = window.__lxGeneration.capture(); let ai;
     return window.__lxEducationOffers.run({query,token,
@@ -1933,6 +1948,11 @@ async function lxfdRunEducationOfferQuery(query) {
 
     if (window.__lxEnterpriseAuthQuery?.matches(value)) {
       await window.__lxGeneration.wait(__lxGenerationToken,lxfdRunEnterpriseAuthQuery(value));
+      return;
+    }
+
+    if (window.__lxServiceProducts?.matches(value)) {
+      await window.__lxGeneration.wait(__lxGenerationToken, lxfdRunServiceProductsQuery(value));
       return;
     }
 
