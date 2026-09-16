@@ -7669,6 +7669,7 @@ body.lx-home-split[data-page="home"].assistant-right .shell {
 .content[data-view="detail"] .detail-fit-reason { display: flex; align-items: flex-start; gap: 10px; margin: 0; padding: 13px 16px; border: 1px solid #e2ddeb; border-radius: 12px; background: linear-gradient(105deg,#f3f0f7,#f3edf6); color: #101010; font-size: 13px; line-height: 1.6; }
 .content[data-view="detail"] .detail-fit-reason[hidden] { display: none !important; }
 .content[data-view="detail"] .detail-fit-reason strong { margin-right: 10px; color: #5b1452; font-weight: 700; }
+.content[data-view="detail"] .detail-fit-reason .lx-fit-text > strong { display: inline-block; color: #4D144A; background-image: var(--lx-gradient-brand, linear-gradient(90deg, #4D144A 11.9%, #B8252E 100%)); background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 .content[data-view="detail"] .detail-fit-reason .lx-fit-icon { flex: none; margin-top: 1px; font-size: 15px; }
 .content[data-view="detail"] .detail-fit-reason .lx-fit-text { display: block; }
 .content[data-view="detail"] .detail-fit-reason .lx-fit-note { display: block; margin: 3px 0 0; color: #c0b1c4; font-size: 11px; }
