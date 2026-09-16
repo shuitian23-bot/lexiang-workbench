@@ -8,7 +8,7 @@ html body > .lx-p0-toast {
   width: 360px;
   max-width: calc(100vw - 32px);
   padding: 18px 48px 18px 20px;
-  border: 1px solid var(--lx-border, #e2ddeb);
+  border: 1px solid #e42b20;
   border-radius: 16px;
   background: linear-gradient(115deg, #fff 8%, #fdfbfe 48%, #f4eef5 100%);
   color: var(--lx-text-primary, #252525);
