@@ -23,7 +23,7 @@ function lxOpenArrivalNotice() {
       <div class="lx-arrival-code-row"><div class="lx-arrival-input-wrap"><input id="lx-arrival-sms" aria-label="短信验证码" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="请输入您的短信码" aria-describedby="lx-arrival-status lx-arrival-error" required></div><button class="lx-arrival-send-code" type="button" data-arrival-send-code>获取验证码</button></div>
       <p id="lx-arrival-status" class="lx-arrival-status" role="status" aria-live="polite"></p>
       <p id="lx-arrival-error" class="lx-arrival-error" role="alert"></p>
-      <button class="detail-primary lx-arrival-confirm" type="submit">确认</button>
+      <button class="detail-primary lx-arrival-confirm" type="submit">提交</button>
     </form>
   </div>`);
   const mask = I(), panel = mask.querySelector('.lx-p0-modal'), form = mask.querySelector('.lx-arrival-form');
