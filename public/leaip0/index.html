@@ -1,3 +1,4 @@
+<!-- Release marker: navigation-card-top-orders-silent-v72-20260916 -->
 <!-- Release marker: checkout-address-back-orders-silent-v71-20260915 -->
 <!-- Release marker: checkout-benefit-info-v65-20260905 -->
 <!-- Release marker: checkout-layout-v62-20260905 -->
@@ -390,7 +391,7 @@ html.lx-root-lxfd-prepaint body{overflow:hidden!important;background:#fcfaff}
   <link rel="stylesheet" data-lx-modal-overlay-unified href="/assets/frontend/css/core/modal-overlay-unified.css?p0v=2d63121637cf5176">
   <link rel="stylesheet" data-lx-workplace-auth-modal href="/assets/frontend/css/core/workplace-auth-modal.css?p0v=67883b263a1cdfc2">
   <link rel="stylesheet" data-lx-enterprise-member-auth-modal href="/assets/frontend/css/core/enterprise-member-auth-modal.css?p0v=663d6f86d0dd12a4">
-  <script id="p0-home-feature-config" type="application/json">{"memberStyle":"/assets/frontend/bundles/p0-home-member.css?p0v=50a646d8b7c50f48","features":{"detail":{"styles":[{"anchor":"p0-commerce-style-2","url":"/assets/frontend/bundles/p0-home-commerce-style-2.css?p0v=1897ffc493bf0bb5"},{"anchor":"p0-commerce-style-3","url":"/assets/frontend/bundles/p0-home-commerce-style-3.css?p0v=08dd25b63874065c"},{"anchor":"p0-commerce-style-4","url":"/assets/frontend/bundles/p0-home-commerce-style-4.css?p0v=12c7b4eac601e3b4"},{"anchor":"p0-commerce-style-5","url":"/assets/frontend/bundles/p0-home-commerce-style-5.css?p0v=f054b000c8c6f79f"},{"anchor":"p0-commerce-style-6","url":"/assets/frontend/bundles/p0-home-commerce-style-6.css?p0v=2abd72502c25e611"},{"anchor":"p0-commerce-style-7","url":"/assets/frontend/bundles/p0-home-commerce-style-7.css?p0v=cb8e2ca3f9d57fe1"}],"script":"/assets/frontend/bundles/p0-home-detail.js?p0v=ad829c58dcc0d0f0"},"orders":{"styles":[{"anchor":"p0-commerce-style-1","url":"/assets/frontend/bundles/p0-home-commerce-style-1.css?p0v=e0e9c414dedb98a6"}],"script":"/assets/frontend/bundles/p0-home-orders.js?p0v=124e267192097947"},"checkout":{"depends":["detail","orders"],"styles":[{"anchor":"p0-commerce-style-0","url":"/assets/frontend/bundles/p0-home-commerce-style-0.css?p0v=4cd8a5a5d35aa42c"}],"script":"/assets/frontend/bundles/p0-home-checkout.js?p0v=91c266702500501b"}}}</script>
+  <script id="p0-home-feature-config" type="application/json">{"memberStyle":"/assets/frontend/bundles/p0-home-member.css?p0v=50a646d8b7c50f48","features":{"detail":{"styles":[{"anchor":"p0-commerce-style-2","url":"/assets/frontend/bundles/p0-home-commerce-style-2.css?p0v=1897ffc493bf0bb5"},{"anchor":"p0-commerce-style-3","url":"/assets/frontend/bundles/p0-home-commerce-style-3.css?p0v=08dd25b63874065c"},{"anchor":"p0-commerce-style-4","url":"/assets/frontend/bundles/p0-home-commerce-style-4.css?p0v=12c7b4eac601e3b4"},{"anchor":"p0-commerce-style-5","url":"/assets/frontend/bundles/p0-home-commerce-style-5.css?p0v=f054b000c8c6f79f"},{"anchor":"p0-commerce-style-6","url":"/assets/frontend/bundles/p0-home-commerce-style-6.css?p0v=2abd72502c25e611"},{"anchor":"p0-commerce-style-7","url":"/assets/frontend/bundles/p0-home-commerce-style-7.css?p0v=cb8e2ca3f9d57fe1"}],"script":"/assets/frontend/bundles/p0-home-detail.js?p0v=ad829c58dcc0d0f0"},"orders":{"styles":[{"anchor":"p0-commerce-style-1","url":"/assets/frontend/bundles/p0-home-commerce-style-1.css?p0v=e0e9c414dedb98a6"}],"script":"/assets/frontend/bundles/p0-home-orders.js?p0v=ffaa941d597053a5"},"checkout":{"depends":["detail","orders"],"styles":[{"anchor":"p0-commerce-style-0","url":"/assets/frontend/bundles/p0-home-commerce-style-0.css?p0v=4cd8a5a5d35aa42c"}],"script":"/assets/frontend/bundles/p0-home-checkout.js?p0v=91c266702500501b"}}}</script>
 <script data-p0-inline-source="/assets/frontend/js/core/p0-home-features-v1.js">/* Explicit feature boundaries: detail / orders / checkout. No eager business downloads. */
 (() => {
   'use strict';
@@ -444,6 +445,7 @@ html.lx-root-lxfd-prepaint body{overflow:hidden!important;background:#fcfaff}
   window.addEventListener('click',event=>{
     if(replaying||!(event.target instanceof Element))return;const button=event.target.closest('button,a,[role="button"]');if(!button||button.closest('.lx-tab-close'))return;
     const input=button.closest('form')?.querySelector('textarea')||document.querySelector(inputSelector);
+    if(button.matches('.utility-btn[data-commerce-entry="orders"],.lxfd-ic[data-commerce-entry="orders"],.lxfd-ic[data-lxfd-open="orders"]'))return intercept(event,'orders',()=>window.__lxOpenOrdersCenter({question:''}));
     if(!ready('orders')&&(button.matches(orderSelector)||(button.matches(sendSelector)&&isOrder(input))))return intercept(event,'orders',()=>{if(button.isConnected)button.click();});
     const buy=!button.closest('[data-buy-modal-direct]')&&!button.dataset.bizQuote&&(button.matches('[data-buy-sku],[data-buy-now],[data-action="buy"],[data-order-action="buy"],[data-cart-checkout]')||/^(?:一键领取?优惠下单|一键领优惠下单|立即购买|立即下单|去购买|去下单|去结算|结算|提交订单)$/.test(button.textContent.replace(/\s+/g,'')));
     if(config.features.checkout&&!ready('checkout')&&buy)intercept(event,'checkout',()=>{if(button.isConnected)button.click();});
@@ -1833,5 +1835,3 @@ if (document.documentElement.classList.contains("lx-root-lxfd-prepaint")) {
 <script defer src="/assets/frontend/js/core/tabbar-compression-v1.js?p0v=3d614472748a0996"></script>
 </body>
 </html>
-
-
