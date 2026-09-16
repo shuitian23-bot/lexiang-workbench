@@ -35,7 +35,7 @@
     if (family) products = products.filter(p => p.name.toLowerCase().includes(family.toLowerCase()));
     return products.slice(0, 12).map(p => ({...p, specs:{...specsOf(p), lx_education_offer:marker}}));
   }
-  const copy = count => `发现你已经完成**教育优惠认证**，无需重复认证。已为你整理 **${count} 款教育优惠商品**，方便结合学习、办公等需求继续挑选。\n\n点击下方**查看教育优惠商品**，可浏览配置与价格，也可继续询问或对比。具体优惠、适用资格与最终价格，以商品详情和活动规则为准。`;
+  const copy = count => `发现你已经完成**教育优惠认证**，无需重复认证。已为你整理 **${count} 款教育优惠商品**，可结合学习、办公需求挑选。\n\n点击下方**查看教育优惠商品**，了解配置与价格，也可继续咨询或对比。具体优惠、适用资格及最终价格，以商品详情和活动规则为准。`;
   async function run(host) {
     const gen = window.__lxGeneration, token = host.token;
     if (!verified()) return await gen.wait(token, host.authenticate(kind(host.query)));

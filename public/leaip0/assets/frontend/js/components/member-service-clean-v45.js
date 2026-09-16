@@ -684,7 +684,7 @@
       return;
     }
     if (event.target.closest("[data-education-recommend]")) {
-      openRightView("education-products");
+      submitComposerQuery(educationRecommendationQuery);
       return;
     }
     var selectionOpen = event.target.closest("[data-selection-open]");
