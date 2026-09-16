@@ -9,9 +9,7 @@
   const byName = new Map(records.map(item => [item.name,item]));
   const disclaimer = 'AI 补充内容仅供选型参考；客户案例为场景示例，并非已交付项目。产品配置与实际交付范围以业务顾问确认为准。';
   const selector = '.content .lx-solution-floor[data-solution-industry="制造"]';
-  let queued = false, installedCatalog = null;
-  const observed = new WeakSet();
-  const resize = typeof ResizeObserver === 'function' ? new ResizeObserver(schedule) : null;
+  let installedCatalog = null;
   function get(name, sector) {
     if (sector && !['制造','智能制造'].includes(sector)) return null;
     return byName.get(String(name || '').trim()) || null;
@@ -36,8 +34,14 @@
   function updateGrids() {
     document.querySelectorAll(selector).forEach(floor => {
       const grid = floor.querySelector('.lx-floor-body');
-      if (!grid || grid.dataset.lxManufacturingContent === revision) return;
-      // The current six titles stay stable; persisted copies expand to distinct scenarios once.
+      if (!grid) return;
+      // Historical pages may retain the former multi-row scroll-region attributes.
+      if (grid.style.getPropertyValue('--lx-manufacturing-row-height')) grid.style.removeProperty('--lx-manufacturing-row-height');
+      if (grid.getAttribute('aria-label') === '制造行业解决方案列表，可向下滚动查看更多') {
+        grid.removeAttribute('aria-label');grid.removeAttribute('tabindex');grid.removeAttribute('role');
+      }
+      if (grid.dataset.lxManufacturingContent === revision) return;
+      // Keep all scenarios available to the shared single-row layout and shuffle action.
       const first = byName.get(grid.querySelector('.lx-solution-card')?.dataset.solutionTitle);
       const offset = first ? records.indexOf(first) : 0;
       grid.innerHTML = [...records.slice(offset),...records.slice(0,offset)].map(cardHtml).join('');
@@ -115,38 +119,12 @@
     });
   }
   function syncContent() { registerCatalog(); updateGrids(); updateComparisons(); updateDetails(); }
-  function schedule() {
-    if (queued) return;
-    queued = true;
-    requestAnimationFrame(() => { queued = false; layout(); });
-  }
-  function layout() {
-    document.querySelectorAll(selector).forEach(floor => {
-      if (!floor.getClientRects().length) return;
-      const grid = floor.querySelector('.lx-floor-body'), content = floor.closest('.content');
-      if (!grid || !content) return;
-      if (resize && !observed.has(content)) { observed.add(content); resize.observe(content); }
-      const selected = floor.closest('.lx-solution-center-page')?.dataset.solutionSelected;
-      const top = selected === '制造' ? Math.max(0,grid.getBoundingClientRect().top - content.getBoundingClientRect().top + content.scrollTop) : 140;
-      const gap = parseFloat(getComputedStyle(grid).rowGap) || 14;
-      const row = Math.max(220,Math.min(380,(content.clientHeight - top - 46 - gap * 2) / 2.5));
-      const value = row.toFixed(2) + 'px';
-      if (grid.style.getPropertyValue('--lx-manufacturing-row-height') !== value) grid.style.setProperty('--lx-manufacturing-row-height',value);
-      grid.setAttribute('tabindex','0'); grid.setAttribute('role','region');
-      grid.setAttribute('aria-label','制造行业解决方案列表，可向下滚动查看更多');
-    });
-  }
   function start() {
-    syncContent(); layout();
+    syncContent();
     // Upgrade fresh results and restored historical HTML before the next paint.
-    new MutationObserver(() => { syncContent(); schedule(); }).observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['data-solution-selected']});
-    window.addEventListener('resize',schedule,{passive:true});
+    new MutationObserver(syncContent).observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['data-solution-selected']});
   }
   window.__lxManufacturingSolutions = {revision,records,get};
   registerCatalog();
-  document.addEventListener('click',event => {
-    const floor = event.target.closest?.('[data-solution-shuffle]')?.closest(selector);
-    if (floor) requestAnimationFrame(() => { const grid = floor.querySelector('.lx-floor-body'); if (grid) grid.scrollTop = 0; });
-  });
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded',start,{once:true}); else start();
 })();
