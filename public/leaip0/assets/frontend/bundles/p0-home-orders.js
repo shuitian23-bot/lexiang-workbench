@@ -1319,16 +1319,6 @@
             openOrdersFromChat("");
           });
 
-          // top-orders-silent-v72-20260916: top-right order buttons only update the workspace.
-          window.addEventListener("click", function (event) {
-            var trigger = event.target.closest?.('.utility-btn[data-commerce-entry="orders"], .lxfd-ic[data-commerce-entry="orders"], .lxfd-ic[data-lxfd-open="orders"]');
-            if (!trigger) return;
-            event.preventDefault();
-            event.stopPropagation();
-            event.stopImmediatePropagation();
-            openOrdersFromChat("");
-          }, true);
-
           if (window.MutationObserver) {
             assistantQueryObserver = new MutationObserver(function (records) {
               records.forEach(function (record) {

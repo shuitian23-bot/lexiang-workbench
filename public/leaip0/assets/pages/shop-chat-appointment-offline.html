@@ -1,5 +1,4 @@
-<!-- Release marker: navigation-card-top-orders-silent-v72-20260916 -->
-<!-- Release marker: store-nav-card-checkout-address-orders-silent-v71-20260915 -->
+<!-- Release marker: store-navigation-real-event-orders-rollback-v73-20260916 -->
 <!-- Release marker: checkout-benefit-info-v65-20260905 -->
 <!-- Release marker: checkout-layout-v62-20260905 -->
 <!-- Release marker: checkout-address-invoice-store-position-v61-20260905 -->
@@ -1182,8 +1181,7 @@ body.lx-template-file .lxfd-nav-cluster:not(.open) {
           event.preventDefault();
           event.stopPropagation();
           event.stopImmediatePropagation();
-          var entry = trigger.getAttribute("data-commerce-entry");
-          Promise.resolve(window.lxOpenCommerceEntry(entry, { sendQuery: entry !== "orders" }))
+          Promise.resolve(window.lxOpenCommerceEntry(trigger.getAttribute("data-commerce-entry"), { sendQuery: true }))
             .catch(function (error) { console.error("[commerce-entry] failed", error); });
         }, true);
       </script>
@@ -4486,7 +4484,7 @@ if (!window.__lxCreateTypewriter) {
           event.preventDefault();
           event.stopPropagation();
           event.stopImmediatePropagation();
-          lxOpenCommerceEntry(kind, { sendQuery: kind !== "orders" }).catch((error) => {
+          lxOpenCommerceEntry(kind, { sendQuery: true }).catch((error) => {
             console.error("[commerce-entry] failed", error);
           });
         }, true);
@@ -11341,7 +11339,7 @@ async function openEduZone() {
             }
             if (lxfdCommerceKind === "orders") {
               event.preventDefault();
-              lxOpenCommerceEntry("orders", { sendQuery: false });
+              lxOpenCommerceEntry("orders", { sendQuery: true });
               return;
             }
 
@@ -11353,7 +11351,7 @@ async function openEduZone() {
             }
             if (utility?.getAttribute("aria-label") === "订单") {
               event.preventDefault();
-              lxOpenCommerceEntry("orders", { sendQuery: false });
+              lxOpenCommerceEntry("orders", { sendQuery: true });
               return;
             }
             if (utility?.getAttribute("aria-label") === "账号" && !state.user) openLogin();
@@ -14476,7 +14474,7 @@ async function openEduZone() {
     if (button.dataset.lxfdOpen === "orders" || label.includes("订单")) {
       e.preventDefault();
       e.stopPropagation();
-      window.lxOpenCommerceEntry?.("orders", { sendQuery: false });
+      window.lxOpenCommerceEntry?.("orders", { sendQuery: true });
       return;
     }
     // 首页空白态胶囊里的历史入口（必须在兜底 exitFullscreen 之前拦下）：
