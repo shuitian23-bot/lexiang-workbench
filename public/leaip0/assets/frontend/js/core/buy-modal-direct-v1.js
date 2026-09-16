@@ -458,6 +458,7 @@
   };
 
   const showToast = (message) => {
+    if (window.__lxToast) return window.__lxToast.show(message);
     let toast = document.querySelector('.lx-p0-toast');
     if (!toast) {
       toast = document.createElement('div');

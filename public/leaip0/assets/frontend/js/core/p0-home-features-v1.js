@@ -34,6 +34,7 @@
   window.__lxHomeFeatures={version:2,detail:()=>ensure('detail'),orders:()=>ensure('orders'),commerce:()=>ensure('checkout'),get ready(){return ready('checkout');},states:()=>Object.fromEntries([...features].map(([k,v])=>[k,v.state]))};
   if(config.memberStyle)window.__lxLoadMemberStyles=()=>Promise.all((config.memberStyles||[{url:config.memberStyle,anchor:'p0-member-style-anchor'}]).map((s,n)=>load('link',s.url,document.getElementById(s.anchor),n===0?'lx-member-component-css':undefined)));
   function status(message,retry){
+    if(window.__lxToast){window.__lxToast.show(message,{id:'p0-feature-status',title:retry?'加载暂未完成':'正在加载',kind:retry?'error':'info',duration:0,retry});return;}
     document.getElementById('p0-feature-status')?.remove();const box=document.createElement('div');box.id='p0-feature-status';box.className='lx-p0-toast show';box.setAttribute('role',retry?'alert':'status');box.textContent=message;
     if(retry){const b=document.createElement('button');b.type='button';b.textContent='重试';b.onclick=retry;box.append(' ',b);}document.body.appendChild(box);
   }

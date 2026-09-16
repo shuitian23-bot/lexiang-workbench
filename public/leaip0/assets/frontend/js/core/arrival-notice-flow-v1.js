@@ -10,8 +10,9 @@ async function lxArrivalNoticeSkill() {
     id: 'modal:arrival-notice:1056661'
   };
 }
-let arrivalSuccessTimer = null;
-function lxShowArrivalSuccessToast() {
+let centerToastTimer = null;
+// Compact centered feedback shared by subscription and solution selection.
+function lxShowCenterToast(message) {
   let toast = document.querySelector('.lx-arrival-success-toast');
   if (!toast) {
     toast = document.createElement('div');
@@ -21,13 +22,13 @@ function lxShowArrivalSuccessToast() {
     toast.setAttribute('aria-atomic', 'true');
     document.body.appendChild(toast);
   }
-  window.clearTimeout(arrivalSuccessTimer);
-  toast.textContent = '订阅成功';
+  window.clearTimeout(centerToastTimer);
+  toast.textContent = message;
   toast.classList.add('show');
-  arrivalSuccessTimer = window.setTimeout(() => {
+  centerToastTimer = window.setTimeout(() => {
     toast.classList.remove('show');
     toast.textContent = '';
-    arrivalSuccessTimer = null;
+    centerToastTimer = null;
   }, 2400);
 }
 let activeArrivalCleanup = null;
@@ -110,7 +111,7 @@ function lxOpenArrivalNotice() {
     if (sms.value.trim() !== smsCode) { fail(sms, '请输入正确的6位短信验证码'); return; }
     cleanup();
     N();
-    lxShowArrivalSuccessToast();
+    lxShowCenterToast('订阅成功');
   });
   const onClose = event => { if (event.target === mask || event.target.closest('.lx-p0-close')) cleanup(); };
   const lifecycle = new MutationObserver(() => { if (!mask.classList.contains('show') || !form.isConnected) cleanup(); });
@@ -174,5 +175,5 @@ window.addEventListener('click', event => {
   event.preventDefault(); event.stopImmediatePropagation();
   z('arrival-notice', '1056661');
 }, true);
-window.__lxArrivalNotice = {matches:lxIsArrivalQuery, run:lxArrivalNoticeQuery};
+window.__lxArrivalNotice = {matches:lxIsArrivalQuery, run:lxArrivalNoticeQuery, showToast:lxShowCenterToast};
 };
