@@ -1,6 +1,5 @@
 /* PC 5.0: shared review presentation, without changing review data or actions. */
 .content .product-detail .lx-market-reviews {box-sizing:border-box;width:100%;padding:24px;color:#252525;background:#ffffff;}
-.content .product-detail .lx-market-reviews::before {content:"评价展示示例，非当前商品真实买家评价";display:block;margin:0 0 16px;color:#606060;font-size:12px;line-height:20px;}
 .content .product-detail .lx-market-review-summary {display:flex;flex-direction:column;gap:16px;padding:0 0 20px;border-bottom:1px solid #e2ddeb;}
 .content .product-detail .lx-market-satisfaction {display:flex;align-items:baseline;gap:12px;font-size:16px;line-height:24px;font-weight:500;}
 .content .product-detail .lx-market-satisfaction strong {color:#4d144a;font-size:28px;line-height:36px;font-weight:500;}
