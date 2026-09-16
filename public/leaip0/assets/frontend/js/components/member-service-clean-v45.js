@@ -2225,6 +2225,10 @@
   }
 
   function openRightView(view, displayMode) {
+    if (view === "asset:coupons" && typeof window.__lxOpenCouponCenter === "function") {
+      window.__lxOpenCouponCenter("product");
+      return;
+    }
     if (embeddedHost) {
       if (state.rightTabs.indexOf(view) < 0) state.rightTabs.push(view);
       state.rightViewDisplayMode[view] = displayMode || "secondary";
@@ -2355,6 +2359,9 @@
   }
 
   function rightViewHtml(view) {
+    if (view === "asset:coupons" && window.__lxCouponCenter) {
+      return window.__lxCouponCenter.pageHtml("product");
+    }
     var html = "";
     if (view.indexOf("asset:") === 0) html = memberAssetPage(view.split(":")[1]);
     else if (view.indexOf("device:") === 0) html = memberDeviceDetailPage(view.split(":")[1]);
