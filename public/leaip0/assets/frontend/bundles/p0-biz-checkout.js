@@ -1085,6 +1085,7 @@ window.__lxAddressRegionsV142=[{"code":"11","name":"北京市","children":[{"cod
   };
 
   const showToast = (message, duration = 2400) => {
+    if (window.__lxToast) return window.__lxToast.show(message, { duration });
     let toast = document.querySelector('.lx-p0-toast');
     if (!toast) {
       toast = document.createElement('div');
