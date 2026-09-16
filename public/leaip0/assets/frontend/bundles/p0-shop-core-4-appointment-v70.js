@@ -2433,6 +2433,27 @@ async function lxfdRunEducationOfferQuery(query) {
     // 发出提问就先存一次（含 lxfd key + 同步子站 key），AI 答完再存完整——避免答得慢时切站啥都没存
     try { lxfdPersistCurrent(); } catch (_e) {if(!window.__lxGeneration.current(__lxGenerationToken))throw new DOMException('已停止生成','AbortError');}
 
+    if (window.__lxEnterpriseMemberText?.matches(value)) {
+      chatState.sending = true;
+      syncSend();
+      const memberAi = document.createElement("div");
+      memberAi.className = "lxfd-msg-ai lx-chat-skin";
+      memberAi._loadingStarted = Date.now() - 5000;
+      memberAi.innerHTML = '<div class="lxfd-ai-body"></div>';
+      thread?.appendChild(memberAi);
+      memberAi.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "end" });
+      try {
+        await window.__lxGeneration.wait(__lxGenerationToken, lxfdAnimateFinal(memberAi, window.__lxEnterpriseMemberText.profile().copy));
+      } finally {
+        if (window.__lxGeneration.current(__lxGenerationToken)) {
+          chatState.sending = false;
+          syncSend();
+          lxfdPersistCurrent();
+        }
+      }
+      return;
+    }
+
     if (window.__lxEnterpriseAuthQuery?.matches(value)) {
       await window.__lxGeneration.wait(__lxGenerationToken,lxfdRunEnterpriseAuthQuery(value));
       return;
@@ -2729,6 +2750,12 @@ async function lxfdRunEducationOfferQuery(query) {
       thread?.appendChild(memberAi);
       memberAi.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "end" });
       await window.__lxGeneration.wait(__lxGenerationToken,(lxfdAnimateFinal(memberAi, profile.copy)));
+      if (profile.enterprise) {
+        chatState.sending = false;
+        syncSend();
+        lxfdPersistCurrent();
+        return;
+      }
       const memberBody = memberAi.querySelector(".lxfd-ai-body");
       if (memberBody) {
         memberBody.insertAdjacentHTML("beforeend", renderLxfdPageCta({ feature: "member", title: "查看会员中心", desc: profile.cardDesc }));
