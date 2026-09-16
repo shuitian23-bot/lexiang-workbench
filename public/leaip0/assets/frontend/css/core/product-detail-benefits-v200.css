@@ -2,8 +2,8 @@
 .product-detail .lx-detail-benefits-v182 {
   display: block;
   margin: 10px 0 20px;
-  border-top: 1px solid #ece7ee;
-  border-bottom: 1px solid #ece7ee;
+  border-top: 0;
+  border-bottom: 0;
   background: #fff;
   color: #242126;
 }
