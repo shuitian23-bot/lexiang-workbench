@@ -198,3 +198,8 @@ body.lx-template-file.lx-home-split:is([data-page="business"], [data-page="enter
 .content[data-view="detail"] .product-detail .detail-fit-reason .lx-fit-icon > * {
   display: none !important;
 }
+
+/* Keep the entire split-view input dock opaque as references or text add rows. */
+body:not(.assistant-fullscreen) .assistant-panel .assistant-bottom {
+  background: #FFFFFF;
+}
