@@ -1345,3 +1345,6 @@ html body .lx-answer-followups-title,html body .lx-answer-tools .lx-answer-quest
 
 /* Halve price-to-highlight whitespace: 12px price padding + 20px margin + 22px flex gap = 54px; reduce by 27px. */
 .content[data-view="detail"] .product-detail .detail-info>.lx-detail-benefits-v182+.detail-fit-reason:not([hidden]){margin-top:-27px!important}
+
+/* Slightly open the two-line label for this YOGA configuration only. */
+.content[data-view="detail"] .lx-spu-chip[data-variant-sku="1054444"] .lx-spu-chip-label{line-height:1.6}
