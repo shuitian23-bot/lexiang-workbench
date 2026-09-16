@@ -17,9 +17,7 @@ function lxOpenArrivalNotice() {
   activeArrivalCleanup?.();
   const returnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
   j('到货通知', `<div class="lx-arrival-content">
-    <p class="lx-arrival-product">联想天逸 510 Pro</p>
     <p class="lx-arrival-tip"><strong>温馨提示：</strong>当商品到货后，我们会通过短信第一时间通知您，请注意查收短信。</p>
-    <p class="lx-p0-disclaimer">演示模式：仅体验填写与验证流程，不会实际订阅或发送短信，手机号不会上传或保存。</p>
     <form class="lx-arrival-form" novalidate>
       <label for="lx-arrival-phone">手机号码</label>
       <div class="lx-arrival-input-wrap"><input id="lx-arrival-phone" type="tel" inputmode="numeric" autocomplete="off" maxlength="11" placeholder="请输入11位手机号码" aria-describedby="lx-arrival-error" required><button type="button" data-arrival-clear aria-label="清空手机号码">清空</button></div>
