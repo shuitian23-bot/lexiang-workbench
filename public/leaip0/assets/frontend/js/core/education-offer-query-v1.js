@@ -9,7 +9,9 @@
     if (/(?:不要|不用|无需|不想|不需要|取消|停止|关闭).{0,10}(?:教育|学生|教师|老师|师生|高考)/.test(value)) return false;
     if (/对比|比较|下单|待支付|生成订单|支付订单|取消订单|订单详情|退款|退货/.test(value)) return false;
     if (/(?:购买|选购).{0,6}第[一二三四五六七八九十\d]+/.test(value)) return false;
-    return /(?:教育|学生|在校生|大学生|师生|教师|老师|高考).{0,16}(?:特惠|优惠|折扣|打折|福利|权益|补贴)|(?:教育|学生|教师|师生)(?:专享|专属)?价/.test(value);
+    const offer = /(?:教育|学生|在校生|大学生|师生|教师|老师|高考).{0,16}(?:特惠|优惠|折扣|打折|福利|权益|补贴)|(?:教育|学生|教师|师生)(?:专享|专属)?价/.test(value);
+    const authentication = /(?:教育|学生|在校生|大学生|师生|教师|老师|高考|学籍|学校邮箱|edu邮箱).{0,12}(?:认证|认定|核验)|(?:认证|认定|核验).{0,12}(?:教育身份|学生身份|教师身份|学籍)|教育认$/i.test(value);
+    return offer || authentication;
   }
   const kind = text => /高考/.test(text) ? 'gaokao' : /教师|老师/.test(text) ? 'teacher' : 'college';
   const verified = () => window.__lxReadEducationState?.()?.status === 'verified';
