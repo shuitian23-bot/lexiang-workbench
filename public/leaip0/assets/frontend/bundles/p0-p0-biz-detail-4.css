@@ -37,7 +37,7 @@
 /* Follow-up reviews stay inside their original review; pagination shares brand tokens. */
 .content .product-detail .lx-market-reviews {scroll-margin-top:72px;}
 .content .product-detail .lx-market-review-followup {display:flex;flex-direction:column;gap:8px;margin-top:8px;min-width:0;}
-.content .product-detail .lx-market-review-followup h3 {display:inline-flex;align-items:center;align-self:flex-start;margin:0;padding:4px 12px;border-radius:8px;background:#f3f0f7;color:#4d144a;font-size:14px;line-height:24px;font-weight:700;}
+.content .product-detail .lx-market-review-followup h3 {display:inline-flex;align-items:center;align-self:flex-start;margin:0;padding:4px 12px;border-radius:8px;background:#f3f0f7;color:#4d144a;font-size:14px;line-height:24px;font-weight:600;}
 .content .product-detail .lx-market-review-followup p {margin:0;}
 .content .product-detail .lx-market-review-pagination {display:flex;flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:8px;margin-top:28px;padding:20px 0 8px;border-top:1px solid #e2ddeb;}
 .content .product-detail .lx-market-review-pagination[hidden] {display:none;}
