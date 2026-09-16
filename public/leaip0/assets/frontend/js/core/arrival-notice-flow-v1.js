@@ -17,13 +17,10 @@ function lxOpenArrivalNotice() {
   j('到货通知', `<div class="lx-arrival-content">
     <p class="lx-arrival-tip"><strong>温馨提示：</strong>当商品到货后，我们会通过短信第一时间通知您，请注意查收短信。</p>
     <form class="lx-arrival-form" novalidate>
-      <label for="lx-arrival-phone">手机号码</label>
-      <div class="lx-arrival-input-wrap"><input id="lx-arrival-phone" type="tel" inputmode="numeric" autocomplete="off" maxlength="11" placeholder="请输入11位手机号码" aria-describedby="lx-arrival-error" required><button type="button" data-arrival-clear aria-label="清空手机号码">清空</button></div>
-      <label class="lx-arrival-field-label" for="lx-arrival-captcha">验证码（必填）</label>
-      <div class="lx-arrival-code-row"><div class="lx-arrival-input-wrap"><input id="lx-arrival-captcha" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="6" placeholder="请输入图形验证码" aria-describedby="lx-arrival-captcha-hint lx-arrival-error" required></div><button class="lx-arrival-captcha" type="button" data-arrival-captcha-refresh title="点击更换验证码"></button></div>
+      <div class="lx-arrival-input-wrap"><input id="lx-arrival-phone" aria-label="手机号码" type="tel" inputmode="numeric" autocomplete="off" maxlength="11" placeholder="请输入11位手机号码" aria-describedby="lx-arrival-error" required><button type="button" data-arrival-clear aria-label="清空手机号码">清空</button></div>
+      <div class="lx-arrival-code-row"><div class="lx-arrival-input-wrap"><input id="lx-arrival-captcha" aria-label="图形验证码" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="6" placeholder="请输入图形验证码" aria-describedby="lx-arrival-captcha-hint lx-arrival-error" required></div><button class="lx-arrival-captcha" type="button" data-arrival-captcha-refresh title="点击更换验证码"></button></div>
       <p id="lx-arrival-captcha-hint" class="lx-arrival-field-hint">看不清？点击图片更换验证码</p>
-      <label class="lx-arrival-field-label" for="lx-arrival-sms">短信验证码（必填）</label>
-      <div class="lx-arrival-code-row"><div class="lx-arrival-input-wrap"><input id="lx-arrival-sms" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="请输入您的短信码" aria-describedby="lx-arrival-status lx-arrival-error" required></div><button class="lx-arrival-send-code" type="button" data-arrival-send-code>获取验证码</button></div>
+      <div class="lx-arrival-code-row"><div class="lx-arrival-input-wrap"><input id="lx-arrival-sms" aria-label="短信验证码" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="请输入您的短信码" aria-describedby="lx-arrival-status lx-arrival-error" required></div><button class="lx-arrival-send-code" type="button" data-arrival-send-code>获取验证码</button></div>
       <p id="lx-arrival-status" class="lx-arrival-status" role="status" aria-live="polite"></p>
       <p id="lx-arrival-error" class="lx-arrival-error" role="alert"></p>
       <button class="detail-primary lx-arrival-confirm" type="submit">确认</button>
