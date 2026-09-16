@@ -1336,3 +1336,6 @@ html body:not(.assistant-fullscreen):not(.lx-auto-fs) .assistant-panel button.se
 html body [data-member-device-page] .leai-device-center .leai-device-filters{display:none!important}
 
 html body .lx-answer-followups-title,html body .lx-answer-tools .lx-answer-question{font-size:12.5px!important}
+
+/* Fixed operating-system choice keeps the same selected configuration appearance. */
+.content[data-view="detail"] .lx-detail-os .lx-spu-chip:disabled{opacity:1;cursor:default}
