@@ -1339,3 +1339,6 @@ html body .lx-answer-followups-title,html body .lx-answer-tools .lx-answer-quest
 
 /* Fixed operating-system choice keeps the same selected configuration appearance. */
 .content[data-view="detail"] .lx-detail-os .lx-spu-chip:disabled{opacity:1;cursor:default}
+
+/* Product highlight cards retain their surface and radius without an outline. */
+.content[data-view="detail"] .detail-fit-reason{border:0!important}
