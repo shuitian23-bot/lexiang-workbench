@@ -11,7 +11,42 @@
   const bars = new Map();
   let scheduled = false;
 
+  let stickyScheduled = false;
+
+  function updateSticky(bar) {
+    const content = bar.parentElement;
+    if (!bar.isConnected || !content) return;
+    const style = getComputedStyle(bar);
+    const rect = bar.getBoundingClientRect();
+    const viewport = content.getBoundingClientRect();
+    const stuck = !bar.hidden && bar.clientWidth > 0 && style.position === 'sticky'
+      && content.scrollTop > 1
+      && rect.top <= viewport.top + content.clientTop + (Number.parseFloat(style.top) || 0) + 1;
+    if (stuck) {
+      const start = viewport.left + content.clientLeft;
+      const insets = {
+        '--lx-tabbar-bleed-left': Math.max(0, rect.left - start),
+        '--lx-tabbar-bleed-right': Math.max(0, start + content.clientWidth - rect.right)
+      };
+      for (const [property, value] of Object.entries(insets)) {
+        const pixels = value + 'px';
+        if (bar.style.getPropertyValue(property) !== pixels) bar.style.setProperty(property, pixels);
+      }
+    }
+    bar.classList.toggle('lx-tabbar-stuck', stuck);
+  }
+
+  function scheduleSticky() {
+    if (stickyScheduled) return;
+    stickyScheduled = true;
+    requestAnimationFrame(() => {
+      stickyScheduled = false;
+      bars.forEach((observers, bar) => updateSticky(bar));
+    });
+  }
+
   function layout(bar) {
+    updateSticky(bar);
     if (!bar.isConnected || bar.hidden || !bar.clientWidth) return;
     bar.classList.remove('lx-tabbar-overflowing');
     const tabs = [...bar.querySelectorAll(':scope > .lx-tab')];
@@ -42,8 +77,10 @@
         bar.setAttribute('data-lx-tab-compression', '');
         const mutation = new MutationObserver(scheduleLayout);
         mutation.observe(bar, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ['hidden', 'aria-hidden'] });
+        mutation.observe(bar.parentElement, { attributes: true, attributeFilter: ['data-view', 'class'] });
         const resize = new ResizeObserver(scheduleLayout);
         resize.observe(bar);
+        resize.observe(bar.parentElement);
         bars.set(bar, [mutation, resize]);
       }
       layout(bar);
@@ -67,4 +104,7 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', attach, { once: true });
   else attach();
   window.addEventListener('resize', scheduleLayout);
+  document.addEventListener('scroll', event => {
+    if (event.target?.matches?.('.content')) scheduleSticky();
+  }, true);
 })();

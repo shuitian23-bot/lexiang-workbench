@@ -5,3 +5,26 @@ body.lx-home-split:not(.assistant-fullscreen) .content>.lx-tabbar[data-lx-tab-co
 body.lx-home-split:not(.assistant-fullscreen) .content>.lx-tabbar[data-lx-tab-compression]>.lx-tab{box-sizing:border-box!important;flex:0 0 auto!important;min-width:0!important;max-width:200px!important}
 body.lx-home-split:not(.assistant-fullscreen) .content>.lx-tabbar[data-lx-tab-compression].lx-tabbar-overflowing>.lx-tab{flex:1 1 0!important;min-width:0!important}
 body.lx-home-split:not(.assistant-fullscreen) .content>.lx-tabbar[data-lx-tab-compression].lx-tabbar-overflowing>.lx-tab[data-tab-id^="site:"]{flex:0 0 auto!important;min-width:0!important}
+
+/* Only a pinned result tab bar gains the full-width white backing and 10px
+ * bottom padding. Compensate its extra height so scrolling never shifts content.
+ */
+body.lx-home-split:not(.assistant-fullscreen) .content>.lx-tabbar[data-lx-tab-compression].lx-tabbar-stuck:not([hidden]){
+  height:53px!important;
+  min-height:53px!important;
+  max-height:53px!important;
+  padding-bottom:10px!important;
+  margin-bottom:-10px!important;
+  background:#fff!important;
+}
+body.lx-home-split:not(.assistant-fullscreen) .content>.lx-tabbar[data-lx-tab-compression].lx-tabbar-stuck:not([hidden])::before{
+  content:"";
+  position:absolute;
+  top:0;
+  bottom:0;
+  left:calc(-1 * var(--lx-tabbar-bleed-left,0px));
+  right:calc(-1 * var(--lx-tabbar-bleed-right,0px));
+  background:#fff;
+  z-index:-1;
+  pointer-events:none;
+}
