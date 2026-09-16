@@ -372,7 +372,15 @@ async function lxRunEducationOfferQuery(query){
   authenticate:kind=>gn(kind),busy:active=>{d.sending=active;ot();nt();},
   trace:(items,complete)=>{lines=items;done=complete;if(!message)message=ye('ai loading','',ke(lines,{collapsed:false,foldable:false,skillCount:1}));else qe(message).innerHTML=ke(lines,{collapsed:complete,foldable:complete,skillCount:1});},
   answer:async text=>{if(!message)message=ye('ai loading','');message._raw=text;await Ne(message,Uo(text));qe(message).insertAdjacentHTML('afterbegin',ke(lines,{collapsed:done,foldable:true,skillCount:1}));},
-  card:products=>{d.products=products;Ie(message,Se(products));const card=message.querySelector('[data-lxfd-reco-id]');card?.classList.add('lx-document-card-enter');return A(products,{label:'教育优惠商品',recoId:card?.getAttribute('data-lxfd-reco-id')});},
+  card:products=>{
+    d.products=products;
+    // Keep the education result card independent of generic product-keyword cleanup.
+    // Register the result before exposing its card so history can reopen the same list.
+    const tab=A(products,{label:'教育优惠商品'});S(tab);
+    Ie(message,_e({title:'查看教育优惠商品',desc:`已为你整理 ${products.length} 款教育优惠商品`,attr:`data-lx-open-tab="${v(tab.id)}" data-lx-education-offer-card="1"`}));
+    message.querySelector('[data-lx-education-offer-card]')?.classList.add('lx-document-card-enter');
+    return tab;
+  },
   open:(products,tab)=>{No();Ua(tab);Za(tab);},save:()=>window.__lxSaveConversationNow?.()
  });
 }
