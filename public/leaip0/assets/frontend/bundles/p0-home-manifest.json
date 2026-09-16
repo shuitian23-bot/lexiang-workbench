@@ -3338,6 +3338,31 @@
       "file": "public/leaip0/brand/index.html",
       "source": "public/leaip0/assets/frontend/js/core/tabbar-compression-v1.js",
       "url": "/assets/frontend/js/core/tabbar-compression-v1.js?p0v=3d614472748a0996"
+    },
+    {
+      "file": "public/leaip0/index.html",
+      "source": "public/leaip0/assets/frontend/css/core/conversation-location-navigation-v1.css",
+      "url": "/assets/frontend/css/core/conversation-location-navigation-v1.css?p0v=292f692b4a3cc76d"
+    },
+    {
+      "file": "public/leaip0/shop-chat/index.html",
+      "source": "public/leaip0/assets/frontend/css/core/conversation-location-navigation-v1.css",
+      "url": "/assets/frontend/css/core/conversation-location-navigation-v1.css?p0v=292f692b4a3cc76d"
+    },
+    {
+      "file": "public/leaip0/b-chat/index.html",
+      "source": "public/leaip0/assets/frontend/css/core/conversation-location-navigation-v1.css",
+      "url": "/assets/frontend/css/core/conversation-location-navigation-v1.css?p0v=292f692b4a3cc76d"
+    },
+    {
+      "file": "public/leaip0/biz-chat/index.html",
+      "source": "public/leaip0/assets/frontend/css/core/conversation-location-navigation-v1.css",
+      "url": "/assets/frontend/css/core/conversation-location-navigation-v1.css?p0v=292f692b4a3cc76d"
+    },
+    {
+      "file": "public/leaip0/brand/index.html",
+      "source": "public/leaip0/assets/frontend/css/core/conversation-location-navigation-v1.css",
+      "url": "/assets/frontend/css/core/conversation-location-navigation-v1.css?p0v=292f692b4a3cc76d"
     }
   ],
   "inlineSources": [
