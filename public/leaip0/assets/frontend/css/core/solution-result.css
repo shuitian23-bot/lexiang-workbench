@@ -1342,3 +1342,6 @@ html body .lx-answer-followups-title,html body .lx-answer-tools .lx-answer-quest
 
 /* Product highlight cards retain their surface and radius without an outline. */
 .content[data-view="detail"] .detail-fit-reason{border:0!important}
+
+/* Halve price-to-highlight whitespace: 12px price padding + 20px margin + 22px flex gap = 54px; reduce by 27px. */
+.content[data-view="detail"] .product-detail .detail-info>.lx-detail-benefits-v182+.detail-fit-reason:not([hidden]){margin-top:-27px!important}
