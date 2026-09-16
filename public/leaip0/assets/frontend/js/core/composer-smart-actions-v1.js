@@ -96,6 +96,16 @@
       if (window.__lxBridge && window.__lxBridge.sendChat) window.__lxBridge.sendChat(label);
     }
   });
+  window.__lxComposerButtonSuite.register('compare', {
+    labels: function() { return window.__lxComparisonDisplay?.labels() || []; },
+    source: '.compare-page .lx-product-compare',
+    identity: function(content) { return activeTabId(content) || 'product-compare'; },
+    ready: function() { return !!window.__lxCompareDisplayView?.snapshot(); },
+    invoke: function(content,label) {
+      if(window.__lxState?.sending||!window.__lxComparisonDisplay?.labels().includes(label))return;
+      window.__lxBridge?.sendChat?.(label);
+    }
+  });
   window.__lxComposerButtonSuite.register('reco', recommendationScene);
   window.__lxComposerButtonSuite.register('recommendation', recommendationScene);
   window.__lxComposerButtonSuite.register('service', {

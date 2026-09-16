@@ -1830,7 +1830,18 @@
     });
   }
 
-  async function lxfdRunServiceProductsQuery(query) {
+  async function lxfdRunCompareDisplayQuery(query) {
+  const token=window.__lxGeneration.capture();let ai;
+  return window.__lxComparisonDisplay.run(query,{token,
+    busy:active=>{chatState.sending=active;syncSend();},
+    answer:async text=>{
+      if(!ai){ai=document.createElement('div');ai.className='lxfd-msg-ai lx-chat-skin';ai._loadingStarted=Date.now()-5000;ai.innerHTML='<div class="lxfd-ai-body"></div>';thread?.appendChild(ai);}
+      await lxfdAnimateFinal(ai,text);
+    },
+    save:()=>window.__lxfdPersistCurrentNow?.()
+  });
+}
+async function lxfdRunServiceProductsQuery(query) {
     const token = window.__lxGeneration.capture(); let ai;
     return window.__lxServiceProducts.run({query,token,
       busy:active=>{chatState.sending=active;syncSend();},
@@ -1948,6 +1959,11 @@ async function lxfdRunEducationOfferQuery(query) {
 
     if (window.__lxEnterpriseAuthQuery?.matches(value)) {
       await window.__lxGeneration.wait(__lxGenerationToken,lxfdRunEnterpriseAuthQuery(value));
+      return;
+    }
+
+    if (window.__lxComparisonDisplay?.matches(value)) {
+      await window.__lxGeneration.wait(__lxGenerationToken, lxfdRunCompareDisplayQuery(value));
       return;
     }
 
