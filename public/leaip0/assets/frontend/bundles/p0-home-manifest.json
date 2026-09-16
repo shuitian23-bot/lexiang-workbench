@@ -1721,11 +1721,6 @@
     },
     {
       "file": "public/leaip0/index.html",
-      "source": "public/leaip0/assets/frontend/js/core/app-voice.js",
-      "url": "/assets/frontend/js/core/app-voice.js"
-    },
-    {
-      "file": "public/leaip0/index.html",
       "source": "public/leaip0/assets/frontend/js/core/app-agent.js",
       "url": "/assets/frontend/js/core/app-agent.js"
     },
@@ -1938,11 +1933,6 @@
       "file": "public/leaip0/shop-chat/index.html",
       "source": "public/leaip0/assets/frontend/css/core/arrival-notice-v1.css",
       "url": "/assets/frontend/css/core/arrival-notice-v1.css?p0v=3b09e9a2b19c58ae"
-    },
-    {
-      "file": "public/leaip0/shop-chat/index.html",
-      "source": "public/leaip0/assets/frontend/js/core/app-voice.js",
-      "url": "/assets/frontend/js/core/app-voice.js"
     },
     {
       "file": "public/leaip0/shop-chat/index.html",
@@ -2201,11 +2191,6 @@
     },
     {
       "file": "public/leaip0/b-chat/index.html",
-      "source": "public/leaip0/assets/frontend/js/core/app-voice.js",
-      "url": "/assets/frontend/js/core/app-voice.js"
-    },
-    {
-      "file": "public/leaip0/b-chat/index.html",
       "source": "public/leaip0/assets/frontend/js/core/app-agent.js",
       "url": "/assets/frontend/js/core/app-agent.js"
     },
@@ -2461,11 +2446,6 @@
     },
     {
       "file": "public/leaip0/biz-chat/index.html",
-      "source": "public/leaip0/assets/frontend/js/core/app-voice.js",
-      "url": "/assets/frontend/js/core/app-voice.js"
-    },
-    {
-      "file": "public/leaip0/biz-chat/index.html",
       "source": "public/leaip0/assets/frontend/js/core/app-agent.js",
       "url": "/assets/frontend/js/core/app-agent.js"
     },
@@ -2623,11 +2603,6 @@
       "file": "public/leaip0/brand/index.html",
       "source": "public/leaip0/assets/frontend/css/core/arrival-notice-v1.css",
       "url": "/assets/frontend/css/core/arrival-notice-v1.css?p0v=3b09e9a2b19c58ae"
-    },
-    {
-      "file": "public/leaip0/brand/index.html",
-      "source": "public/leaip0/assets/frontend/js/core/app-voice.js",
-      "url": "/assets/frontend/js/core/app-voice.js"
     },
     {
       "file": "public/leaip0/brand/index.html",
