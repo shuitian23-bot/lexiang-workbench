@@ -388,3 +388,56 @@ body .leai-ledou-ledger-page .leai-asset-filter-tabs button.is-active:is(.lx-cou
 .info-page:has(.lx-coupon-center){max-width:none!important;padding:0!important;background:#fff!important;overflow:auto!important}.info-page:has(.lx-coupon-center)>.reco-head{display:none!important}
 
 .lx-coupon-center { color: #101010; }
+
+
+/* Coupon cards keep their current geometry and expose a single query action. */
+body .lx-coupon-center .leai-coupon-card[data-lx-coupon-id] {
+  cursor: pointer;
+  overflow: visible;
+  transition: border-color .18s ease, box-shadow .18s ease;
+}
+body .lx-coupon-center .leai-coupon-card[data-lx-coupon-id] .leai-coupon-value {
+  border-radius: 11px 0 0 11px;
+}
+body .lx-coupon-center .leai-coupon-card[data-lx-coupon-id] .leai-coupon-copy {
+  border-radius: 0 11px 11px 0;
+}
+body .lx-coupon-center .leai-coupon-card[data-lx-coupon-id]:is(:hover, :focus-visible) {
+  border-color: #b293ba !important;
+  box-shadow: 0 3px 12px rgba(77,20,74,.08) !important;
+  outline: 2px solid transparent;
+  z-index: 2;
+}
+body .lx-coupon-center .leai-coupon-card[data-lx-coupon-id]:focus-visible {
+  outline-color: #8b5e91;
+  outline-offset: 3px;
+}
+body .lx-coupon-center .leai-coupon-card[data-lx-coupon-id]::after {
+  content: attr(data-lx-coupon-hint);
+  position: absolute;
+  left: 12px;
+  bottom: calc(100% + 8px);
+  max-width: calc(100% - 24px);
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: #342538;
+  color: #fff;
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 400;
+  pointer-events: none;
+  visibility: hidden;
+  opacity: 0;
+  transform: translateY(3px);
+  transition: opacity .16s ease, transform .16s ease, visibility .16s;
+  z-index: 3;
+}
+body .lx-coupon-center .leai-coupon-card[data-lx-coupon-id]:is(:hover, :focus-visible)::after {
+  visibility: visible;
+  opacity: 1;
+  transform: translateY(0);
+}
+@media (prefers-reduced-motion: reduce) {
+  body .lx-coupon-center .leai-coupon-card[data-lx-coupon-id],
+  body .lx-coupon-center .leai-coupon-card[data-lx-coupon-id]::after {transition: none;}
+}
