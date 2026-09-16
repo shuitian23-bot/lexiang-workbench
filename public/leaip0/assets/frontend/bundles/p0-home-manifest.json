@@ -1513,11 +1513,11 @@
         "public/leaip0/assets/frontend/js/core/app-brand.industry-v114.trace-first-v117.tabs-v120.min.js",
         "public/leaip0/assets/frontend/js/core/app-lxfd.industry-v114.js"
       ],
-      "url": "/assets/frontend/bundles/p0-brand-core-4.js?p0v=3be12111bd82107b",
-      "hash": "3be12111bd82107b70928a0bbc84ca8031891e8849635f2bf10eeb99cd19bd60",
+      "url": "/assets/frontend/bundles/p0-brand-core-4.js?p0v=25a0964fbb9d0157",
+      "hash": "25a0964fbb9d01571f599e84ba850f33a03056c70a5c3a56d77cbe56b34c5f81",
       "sourceHashes": [
         "174b29c6a044e0eeae43c3a3ba566ffbef7baed7281443439a31a192c39fad66",
-        "8842bed6cb1c58769d6da4a44ff46821bdf2dfb484aff66a82238d8cf376dfb6",
+        "a812331837d9ec5a92facddeebe796bdf467428e31a21d48f0c55286a62e819b",
         "aaee85d30c35a02bd18ce642c290d27cf13b41f0fc12197787bf20a702004c9c"
       ]
     },
@@ -1542,10 +1542,10 @@
         "public/leaip0/assets/frontend/js/core/composer-smart-actions-v1.js",
         "public/leaip0/assets/frontend/js/core/followup-chevron-v1.js"
       ],
-      "url": "/assets/frontend/bundles/p0-brand-core-6.js?p0v=0f12b23c490f0b89",
-      "hash": "0f12b23c490f0b89a4dbc3bf5e10befb625d366f5148a8aff2f12eb62955df1a",
+      "url": "/assets/frontend/bundles/p0-brand-core-6.js?p0v=fff3bf72dc2e24c0",
+      "hash": "fff3bf72dc2e24c02fc82544a5edb46d4c2f91a932f2cbd73cbe168cb064782b",
       "sourceHashes": [
-        "8abecd2cea45996ed6eaeb87a6bfc3cd67a5c064aed243fd2b55ca9cb9127b23",
+        "9bd0402db893e03669f6b9fd3683153ee6c998b98fcae989b73ef97b02171609",
         "845b3e54e80e4b4ad6fa011d40bd09134a80b8c78179df0198c133bcc0d0fca0"
       ]
     }
@@ -1905,7 +1905,7 @@
     {
       "file": "public/leaip0/shop-chat/index.html",
       "source": "public/leaip0/assets/frontend/js/core/composer-smart-actions-v1.js",
-      "url": "/assets/frontend/js/core/composer-smart-actions-v1.js"
+      "url": "/assets/frontend/js/core/composer-smart-actions-v1.js?p0v=9bd0402db893e036"
     },
     {
       "file": "public/leaip0/shop-chat/index.html",
@@ -2165,7 +2165,7 @@
     {
       "file": "public/leaip0/b-chat/index.html",
       "source": "public/leaip0/assets/frontend/js/core/composer-smart-actions-v1.js",
-      "url": "/assets/frontend/js/core/composer-smart-actions-v1.js"
+      "url": "/assets/frontend/js/core/composer-smart-actions-v1.js?p0v=9bd0402db893e036"
     },
     {
       "file": "public/leaip0/b-chat/index.html",
@@ -2425,7 +2425,7 @@
     {
       "file": "public/leaip0/biz-chat/index.html",
       "source": "public/leaip0/assets/frontend/js/core/composer-smart-actions-v1.js",
-      "url": "/assets/frontend/js/core/composer-smart-actions-v1.js"
+      "url": "/assets/frontend/js/core/composer-smart-actions-v1.js?p0v=9bd0402db893e036"
     },
     {
       "file": "public/leaip0/biz-chat/index.html",
@@ -2900,7 +2900,7 @@
     {
       "file": "public/leaip0/index.html",
       "source": "public/leaip0/assets/frontend/js/core/member-coupon-center-v1.js",
-      "url": "/assets/frontend/js/core/member-coupon-center-v1.js?p0v=b645ab61b46c4282"
+      "url": "/assets/frontend/js/core/member-coupon-center-v1.js?p0v=0940425517a453a5"
     },
     {
       "file": "public/leaip0/index.html",
@@ -2910,7 +2910,7 @@
     {
       "file": "public/leaip0/shop-chat/index.html",
       "source": "public/leaip0/assets/frontend/js/core/member-coupon-center-v1.js",
-      "url": "/assets/frontend/js/core/member-coupon-center-v1.js?p0v=b645ab61b46c4282"
+      "url": "/assets/frontend/js/core/member-coupon-center-v1.js?p0v=0940425517a453a5"
     },
     {
       "file": "public/leaip0/shop-chat/index.html",
@@ -2925,7 +2925,7 @@
     {
       "file": "public/leaip0/b-chat/index.html",
       "source": "public/leaip0/assets/frontend/js/core/member-coupon-center-v1.js",
-      "url": "/assets/frontend/js/core/member-coupon-center-v1.js?p0v=b645ab61b46c4282"
+      "url": "/assets/frontend/js/core/member-coupon-center-v1.js?p0v=0940425517a453a5"
     },
     {
       "file": "public/leaip0/b-chat/index.html",
@@ -2935,7 +2935,7 @@
     {
       "file": "public/leaip0/biz-chat/index.html",
       "source": "public/leaip0/assets/frontend/js/core/member-coupon-center-v1.js",
-      "url": "/assets/frontend/js/core/member-coupon-center-v1.js?p0v=b645ab61b46c4282"
+      "url": "/assets/frontend/js/core/member-coupon-center-v1.js?p0v=0940425517a453a5"
     },
     {
       "file": "public/leaip0/biz-chat/index.html",
@@ -3280,7 +3280,7 @@
     {
       "file": "public/leaip0/brand/index.html",
       "source": "public/leaip0/assets/frontend/js/core/member-coupon-center-v1.js",
-      "url": "/assets/frontend/js/core/member-coupon-center-v1.js?p0v=b645ab61b46c4282"
+      "url": "/assets/frontend/js/core/member-coupon-center-v1.js?p0v=0940425517a453a5"
     },
     {
       "file": "public/leaip0/brand/index.html",

@@ -62,6 +62,40 @@
       if (window.__lxBridge && window.__lxBridge.sendChat) window.__lxBridge.sendChat(label);
     }
   };
+  // Coupon results reuse the complete suite, with actions bound to the visible list.
+  var couponActions = ['对比前两款商品', '我要购买第2款'];
+  function couponRecommendationProducts(content) {
+    var state = window.__lxState, page = visibleRecommendation(content);
+    var tab = state && (state.tabs || []).find(function(item) { return item.id === state.activeTabId; });
+    var pool = tab && Array.isArray(tab.products) ? tab.products : [];
+    if (!page || !window.__lxCouponCenter || !window.__lxCouponCenter.productsCoupon(pool)) return null;
+    return Array.from(page.querySelectorAll('.reco-row, .lx-reco-poc-row')).map(function(row) {
+      var sku = row.getAttribute('data-open-product') || row.getAttribute('data-sku');
+      return pool.find(function(product) { return String(product.sku) === sku; });
+    });
+  }
+  window.__lxComposerButtonSuite.register('coupon-recommendation', {
+    labels: function(content) {
+      var products = couponRecommendationProducts(content);
+      return products && products.length >= 2 && products[0] && products[1] ? couponActions : [];
+    },
+    source: recommendationScene.source,
+    identity: recommendationScene.identity,
+    ready: function(content) {
+      var products = couponRecommendationProducts(content);
+      return !!(products && products.length && products.every(function(product) { return product && product.sku; }));
+    },
+    invoke: function(content, label) {
+      var products = couponRecommendationProducts(content), state = window.__lxState;
+      if (!state || state.sending || !products || !products[0] || !products[1]) return;
+      if (label !== couponActions[0] && label !== couponActions[1]) return;
+      var compare = label === couponActions[0];
+      state.refProducts = compare ? products.slice(0, 2).map(function(product) { return Object.assign({}, product); }) : [];
+      state.refProduct = null;
+      state._composerRecoPurchase = compare ? null : { query: label, product: Object.assign({}, products[1]) };
+      if (window.__lxBridge && window.__lxBridge.sendChat) window.__lxBridge.sendChat(label);
+    }
+  });
   window.__lxComposerButtonSuite.register('reco', recommendationScene);
   window.__lxComposerButtonSuite.register('recommendation', recommendationScene);
   window.__lxComposerButtonSuite.register('service', {
@@ -514,7 +548,8 @@
     var solutionCompareVisible = solutionCompare && solutionCompare.getBoundingClientRect().width && solutionCompare.getBoundingClientRect().height;
     var solutionPage = content && content.querySelector('.lx-solution-center-page');
     var solutionVisible = solutionPage && solutionPage.getBoundingClientRect().width && solutionPage.getBoundingClientRect().height;
-    var scene = content && pageScenes[solutionCompareVisible ? 'solution-compare' : solutionDetailVisible ? 'solution-detail' : solutionVisible ? 'solutions' : storeVisible ? 'stores' : deviceVisible ? 'devices' : serviceVisible ? 'service' : content.getAttribute('data-view')];
+    var couponVisible = content && couponRecommendationProducts(content);
+    var scene = content && pageScenes[couponVisible ? 'coupon-recommendation' : solutionCompareVisible ? 'solution-compare' : solutionDetailVisible ? 'solution-detail' : solutionVisible ? 'solutions' : storeVisible ? 'stores' : deviceVisible ? 'devices' : serviceVisible ? 'service' : content.getAttribute('data-view')];
     if (!scene) {
       if (currentScene) { currentScene = null; sceneCandidate = ''; hideCurrent(); document.querySelectorAll('.lx-smart-actions').forEach(function(panel) { panel.remove(); }); }
       if (wasSending) scheduleSync(100);
@@ -524,7 +559,7 @@
     if (wasSending || content.getAttribute('aria-busy') === 'true' || content.classList.contains('is-generating-tab') || content.querySelector('.lx-page-generating') || !scene.ready(content)) {
       sceneCandidate = ''; sceneSince = 0; scheduleSync(100); return;
     }
-    var key = (solutionCompareVisible ? 'solution-compare' : solutionDetailVisible ? 'solution-detail' : solutionVisible ? 'solutions' : storeVisible ? 'stores' : deviceVisible ? 'devices' : serviceVisible || scene === recommendationScene && isServiceRecommendation(content) ? 'service' : content.getAttribute('data-view')) + ':' + scene.identity(content);
+    var key = (couponVisible ? 'coupon-recommendation' : solutionCompareVisible ? 'solution-compare' : solutionDetailVisible ? 'solution-detail' : solutionVisible ? 'solutions' : storeVisible ? 'stores' : deviceVisible ? 'devices' : serviceVisible || scene === recommendationScene && isServiceRecommendation(content) ? 'service' : content.getAttribute('data-view')) + ':' + scene.identity(content);
     var labels = typeof scene.labels === 'function' ? scene.labels(content) : scene.labels;
     var labelKey = JSON.stringify(labels);
     if (!currentScene || currentScene.key !== key) {

@@ -272,7 +272,7 @@
   document.addEventListener('visibilitychange', () => { if (document.hidden) hideCouponHint(); });
   new MutationObserver(() => {
     if (couponHintCard && !couponHintCard.isConnected) hideCouponHint();
-  }).observe(document.body, {childList: true, subtree: true});
+  }).observe(document.documentElement, {childList: true, subtree: true});
 
 
   window.__lxCouponCenter = { pageHtml, matches, describe, run, matchCouponQuery, productsCoupon, runProducts: runCouponProducts };
