@@ -4372,13 +4372,13 @@ observer.observe(document.body,{childList:true,subtree:true,characterData:true})
   window.__lxMarketReviewTab = true;
 
   var PAGE_SIZE = 10;
-  var VERSION = 'followup-pagination-v1';
+  var VERSION = 'followup-pagination-v2';
   var followupText = '这款产品开机速度快，屏幕清晰，颜色漂亮，自带流量，出差使用特别方便，追剧玩游戏再也不用考虑流量问题了';
   // The existing review area is explicitly labeled as demonstration content.
   var reviews = [
     ["lenovo161508778", "2026-09-03 22:35", "上手体验很好，性能强、屏幕清晰，日常办公和多任务切换都很流畅，整机表现超出预期。", ["/assets/img/shop-1.jpg", "/assets/img/shop-2.jpg", "/assets/img/shop-3.jpg"]],
     ["lenovo161822155", "2026-09-03 21:44", "电脑运行流畅，屏幕观感细腻，机身质感和便携性都不错，整体非常满意。", ["/assets/img/shop-4.jpg", "/assets/img/shop-5.jpg", "/assets/img/shop-6.jpg"], ["/assets/img/shop-4.jpg", "/assets/img/shop-5.jpg", "/assets/img/shop-6.jpg"]],
-    ["lenovo80651593", "2026-09-03 18:19", "轻薄机身的性能释放很稳，应用启动快，散热和噪声控制符合预期，适合日常办公使用。", ["/assets/img/shop-7.jpg", "/assets/img/shop-8.jpg"], ["/assets/img/shop-7.jpg", "/assets/img/shop-8.jpg", "/assets/img/shop-6.jpg"]],
+    ["lenovo80651593", "2026-09-03 18:19", "轻薄机身的性能释放很稳，应用启动快，散热和噪声控制符合预期，适合日常办公使用。", ["/assets/img/shop-7.jpg", "/assets/img/shop-8.jpg"], []],
     ["lenovo161817808", "2026-09-03 18:18", "运行速度快，多窗口处理没有明显卡顿，键盘手感也比较舒适。", ["/assets/img/shop-2.jpg", "/assets/img/shop-5.jpg", "/assets/img/shop-8.jpg"]],
     ["lenovo163026501", "2026-09-03 16:42", "屏幕显示细腻，文档和表格看起来很清楚，日常办公用着顺手。", ["/assets/img/shop-1.jpg"]],
     ["lenovo162307416", "2026-09-03 15:26", "机身轻薄，放进背包很方便，出门开会带着没有负担。", []],
