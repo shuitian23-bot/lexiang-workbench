@@ -34,3 +34,17 @@
 .content .product-detail .detail-review-card-content {font-size:15px;line-height:26px;color:#454545;}
 .content .product-detail .detail-review-card-foot {font-size:12px;line-height:20px;color:#606060;}
 @media(max-width:1280px){.content .product-detail .lx-market-reviews{padding:20px;}.content .product-detail .lx-market-review-user time{margin-left:0;}}
+
+/* Follow-up reviews stay inside their original review; pagination shares brand tokens. */
+.content .product-detail .lx-market-reviews {scroll-margin-top:72px;}
+.content .product-detail .lx-market-review-followup {display:flex;flex-direction:column;gap:8px;margin-top:8px;min-width:0;}
+.content .product-detail .lx-market-review-followup h3 {margin:0;color:#606060;font-size:15px;line-height:24px;font-weight:500;}
+.content .product-detail .lx-market-review-followup p {margin:0;}
+.content .product-detail .lx-market-review-pagination {display:flex;flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:8px;margin-top:28px;padding:20px 0 8px;border-top:1px solid #e2ddeb;}
+.content .product-detail .lx-market-review-pagination[hidden] {display:none;}
+.content .product-detail .lx-market-review-page-total {margin-right:8px;color:#606060;font-size:13px;line-height:20px;}
+.content .product-detail .lx-market-review-pagination button {min-width:34px;height:34px;padding:0 12px;border:1px solid #e2ddeb;border-radius:7px;background:#ffffff;color:#454545;font:inherit;font-size:13px;cursor:pointer;}
+.content .product-detail .lx-market-review-pagination button:hover:not(:disabled),.content .product-detail .lx-market-review-pagination button[aria-current="page"] {border-color:#4d144a;background:#f3f0f7;color:#4d144a;}
+.content .product-detail .lx-market-review-pagination button[aria-current="page"] {font-weight:500;}
+.content .product-detail .lx-market-review-pagination button:disabled {color:#606060;opacity:.45;cursor:default;}
+.content .product-detail .lx-market-review-page-status {position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;}
