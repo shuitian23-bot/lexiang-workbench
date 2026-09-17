@@ -203,3 +203,16 @@ body.lx-template-file.lx-home-split:is([data-page="business"], [data-page="enter
 body:not(.assistant-fullscreen) .assistant-panel .assistant-bottom {
   background: #FFFFFF;
 }
+
+/* Keep the split composer fixed while extending the agent panel 10px downward.
+   The home entry also uses data-page="personal" when it enters this split frame.
+   Height +10px and dock bottom +10px cancel, preserving the input's viewport position. */
+@media (min-width: 901px) {
+  html body.lx-home-split:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]):not(.assistant-fullscreen):not(.lx-auto-fs) > .shell > .assistant-panel {
+    height: calc(100vh - clamp(76px, 7.2vh, 108px) - var(--lx-assistant-bottom-gap) + 10px) !important;
+    max-height: calc(100vh - clamp(76px, 7.2vh, 108px) - var(--lx-assistant-bottom-gap) + 10px) !important;
+  }
+  html body.lx-home-split:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]):not(.assistant-fullscreen):not(.lx-auto-fs) > .shell > .assistant-panel > .assistant-bottom {
+    bottom: 20px !important;
+  }
+}
