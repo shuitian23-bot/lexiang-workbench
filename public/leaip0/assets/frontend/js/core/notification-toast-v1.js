@@ -1,7 +1,7 @@
 /* Shared P0 action feedback: brand card, concise heading and dismiss control. */
 (function (root) {
   'use strict';
-  if (root.__lxToast?.version === 1) return;
+  if (root.__lxToast?.version === 2) return;
   let toast = null;
   let remaining = 0;
   let startedAt = 0;
@@ -111,7 +111,8 @@
 
   function show(message, options = {}) {
     const text = String(message || '').trim();
-    if (!text) return;
+    // Referenced products are already visible in the composer; keep every caller silent.
+    if (!text || text === '已引用商品，直接提问即可') return;
     const info = describe(text);
     if (!toast?.isConnected) {
       document.querySelectorAll('.lx-p0-toast').forEach((old) => { clearTimeout(old._timer); old.remove(); });
@@ -147,5 +148,5 @@
     return toast;
   }
 
-  root.__lxToast = { version: 1, show, dismiss, describe };
+  root.__lxToast = { version: 2, show, dismiss, describe };
 })(window);
