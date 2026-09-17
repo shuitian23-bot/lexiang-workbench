@@ -63,6 +63,9 @@
     if (!page) return;
     // Match the visible top inset to the parent card's side inset at every scale.
     page.style.paddingTop = (sideInset / scale) + 'px';
+    // Match SMB/BIZ hero-to-floor spacing in visible host pixels at every scale.
+    const bottomInset = window.innerWidth > 760 && window.innerHeight <= 820 ? 12 : 20;
+    page.style.paddingBottom = (bottomInset / scale) + 'px';
     const padding = parseFloat(frame.contentWindow.getComputedStyle(frameDocument.body).paddingBottom) || 0;
     const height = Math.ceil(page.getBoundingClientRect().bottom + padding);
     frame.style.height = height + 'px';
