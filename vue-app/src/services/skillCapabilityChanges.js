@@ -1,5 +1,8 @@
 const SHANGHAI_TIME_ZONE = 'Asia/Shanghai'
 const CAPABILITY_FLOW_REVISION = 'controlled-update-20260821'
+const FAILURE_DEMO_NAME = 'capability-update-failure-demo'
+const FAILURE_DEMO_RECORD_ID = 'capability-change-failure-demo-20260917'
+const FAILURE_DEMO_PHASE = '能力上下文扫描'
 
 const seedUpdates = {
   'product-knowledge': {
@@ -147,8 +150,44 @@ Object.assign(seedUpdates, {
     targetVersion: 'cap-2026.08.21',
     detectedAt: '2026-08-21 09:50',
     summary: '天气能力新增预警等级和运营活动建议字段。'
-  })
+  }),
+  [FAILURE_DEMO_NAME]: createFailureDemoSeedUpdate()
 })
+
+function createFailureDemoSeedUpdate() {
+  const update = {
+    ...createLifecycleSeedUpdate({
+      skillName: FAILURE_DEMO_NAME,
+      contextId: 'dashboard.query',
+      menuPath: '乐享运营 / Query 分析',
+      currentVersion: 'cap-2026.09.15',
+      targetVersion: 'cap-2026.09.17',
+      detectedAt: '2026-09-17 09:10',
+      summary: '运营数据查询新增字段说明，需要同步能力上下文。'
+    }),
+    recordId: FAILURE_DEMO_RECORD_ID
+  }
+  const started = beginCapabilityUpdate({
+    name: FAILURE_DEMO_NAME,
+    cnName: '运营数据查询',
+    category: '乐享运营',
+    desc: '查询运营数据并解释字段含义。',
+    version: 'v1.0.0',
+    online: 'v1.0.0',
+    status: 'published',
+    workflowStatus: 'published',
+    onlineStatus: 'published',
+    capabilityUpdate: update
+  }, '2026-09-17 09:11')
+  const failed = failCapabilityUpdate(started, '读取运营数据字段说明超时，未生成更新草稿。', '2026-09-17 09:12')
+  Object.assign(failed.capabilityUpdate.task, {
+    kind: 'initial',
+    phase: FAILURE_DEMO_PHASE,
+    errorCode: 'CAPABILITY_SCAN_TIMEOUT',
+    retryAdvice: '可重试当前任务；本示例将模拟恢复成功，线上版本保持不变。'
+  })
+  return failed.capabilityUpdate
+}
 
 function createLifecycleSeedUpdate({ skillName, contextId, menuPath, currentVersion, targetVersion, detectedAt, summary }) {
   const contextName = menuPath.split(' / ').at(-1) || menuPath
@@ -314,10 +353,13 @@ export function skillHubMutationDecision(item, actorInput, intent = 'edit', scor
     return { allowed: false, reason: `当前综合评分 ${Number(score || 0).toFixed(3)}，需达到 0.80 才能提交审核。` }
   }
   const update = item?.capabilityUpdate
+  const ignoredInitialFailure = update?.status === 'ignored'
+    && update.task?.status === 'failed'
+    && (update.task.kind === 'initial' || update.task.kind === undefined)
   if (
     ['available', 'preparing', 'processing_with_available', 'failed'].includes(update?.status)
     || update?.task?.status === 'generating'
-    || update?.task?.status === 'failed'
+    || (update?.task?.status === 'failed' && !ignoredInitialFailure)
   ) {
     return { allowed: false, reason: '仍有能力变化待处理或扫描待重试，完成后才能提交审核。' }
   }
@@ -516,6 +558,36 @@ export function getSeedCapabilityUpdate(skillName) {
   return clone(seedUpdates[skillName])
 }
 
+export function getCapabilityUpdateDemoReply(skillName, update) {
+  if (
+    skillName !== FAILURE_DEMO_NAME
+    || update?.recordId !== FAILURE_DEMO_RECORD_ID
+    || update.status !== 'preparing'
+    || update.task?.id !== `capability-update-${FAILURE_DEMO_RECORD_ID}`
+    || update.task.status !== 'generating'
+    || update.task.kind !== 'initial'
+    || update.task.phase !== FAILURE_DEMO_PHASE
+  ) return null
+  return {
+    title: '运营数据能力更新恢复演示',
+    sections: [
+      {
+        title: '本次模拟结果',
+        items: ['使用示例数据模拟恢复成功，已读取运营数据字段说明并生成更新建议。']
+      },
+      {
+        title: '保留范围',
+        items: ['沿用运营数据查询目标和原有权限边界。', '线上 v1.0.0 保持不变，本次只准备 v1.0.1 更新草稿。']
+      },
+      {
+        title: '后续操作',
+        items: ['确认新增字段的输入、输出和异常提示，再完成草稿、评估与审核。']
+      }
+    ],
+    closing: '以上为模拟演示结果，不代表真实能力扫描或业务数据变更；未自动提交审核或发布。'
+  }
+}
+
 export function nextPatchVersion(version) {
   const match = String(version || '').match(/^v?(\d+)\.(\d+)\.(\d+)$/)
   if (!match) return 'v1.0.0'
@@ -665,7 +737,10 @@ export function beginCapabilityUpdate(item, updatedAt = formatShanghaiMinute()) 
     kind: 'initial',
     status: 'generating',
     startedAt: updatedAt,
-    rollback
+    rollback,
+    ...(target.name === FAILURE_DEMO_NAME && update.recordId === FAILURE_DEMO_RECORD_ID
+      ? { phase: FAILURE_DEMO_PHASE }
+      : {})
   }
   target.updated = updatedAt
   return target

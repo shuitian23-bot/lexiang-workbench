@@ -151,6 +151,15 @@ const pocReleaseLedger = ref({ records: {} })
 
 const basePocLogRecords = [
   {
+    time: '2026-09-17',
+    releaseKey: 'workbench-skillhub-failure-demo-20260917',
+    title: 'Skill Hub 更新失败示例补齐',
+    changePoint: '新增独立的更新失败示例，可查看失败阶段、错误码、原因和重试建议，并演示重试恢复与忽略更新。',
+    detail: '在 Skill Hub 搜索“更新失败示例”即可体验。重试复用当前任务并使用明确标注的本地演示结果生成更新草稿，线上版本保持不变；忽略后恢复普通流程，刷新可重新体验失败。示例不调用真实模型或查询业务数据，原有 Skill 保持原处理方式。发布环境、人员、时间和版本分别以实际记录为准。',
+    deployTargets: [],
+    status: '发布状态以环境记录为准'
+  },
+  {
     time: '2026-09-15',
     releaseKey: 'workbench-organization-management-20260915',
     title: '组织详情与成员管理入口恢复',

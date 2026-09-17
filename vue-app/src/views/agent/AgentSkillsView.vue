@@ -545,8 +545,11 @@
           </div>
           <div v-if="capabilityChangeItem.capabilityUpdate?.status === 'failed'" class="skill-capability-error" role="alert">
             <b>更新任务执行失败</b>
-            <span>任务 {{ capabilityChangeItem.capabilityUpdate.task?.id || '-' }} · {{ capabilityChangeItem.capabilityUpdate.task?.error || '更新生成失败' }}</span>
-            <small>可返回列表重试更新，重试将复用当前任务和变化记录。</small>
+            <span>任务 {{ capabilityChangeItem.capabilityUpdate.task?.id || '-' }}</span>
+            <span v-if="capabilityChangeItem.capabilityUpdate.task?.phase">失败阶段：{{ capabilityChangeItem.capabilityUpdate.task.phase }}</span>
+            <span v-if="capabilityChangeItem.capabilityUpdate.task?.errorCode">错误码：{{ capabilityChangeItem.capabilityUpdate.task.errorCode }}</span>
+            <span>失败原因：{{ capabilityChangeItem.capabilityUpdate.task?.error || '更新生成失败' }}</span>
+            <small>重试建议：{{ capabilityChangeItem.capabilityUpdate.task?.retryAdvice || '可返回列表重试更新，重试将复用当前任务和变化记录。' }}</small>
           </div>
           <div class="skill-capability-report">
             <SafeCapabilityMarkdown :markdown="capabilityDetailUpdate.reportMarkdown" />

@@ -567,7 +567,7 @@ import ContentPageHeader from '@/components/content/ContentPageHeader.vue'
 import { MENU_TREE, useAppStore } from '@/stores/app'
 import { useAIStore } from '@/stores/ai'
 import { useSkillHubStore, type SkillCapabilityUpdate, type SkillDraftSnapshot, type SkillHubActor, type SkillHubItem } from '@/stores/skillHub'
-import { skillHubMutationDecision } from '@/services/skillCapabilityChanges.js'
+import { getCapabilityUpdateDemoReply, skillHubMutationDecision } from '@/services/skillCapabilityChanges.js'
 import { mergeSkillContextItems, mergeSkillMenuLabels } from '@/domain/skillContextCatalog.js'
 import AgentConversationStates from '@/components/agent/AgentConversationStates.vue'
 
@@ -1261,7 +1261,7 @@ async function runPendingCapabilityUpdate() {
   scrollChat()
 
   try {
-    const reply = await requestSkillModelReply(scanMessage.text)
+    const reply = getCapabilityUpdateDemoReply(form.value.name, update) ?? await requestSkillModelReply(scanMessage.text)
     clarifyMessages.value = clarifyMessages.value.filter(message => message.id !== stateId)
     clarifyMessages.value.push({ id: `${stateId}-done`, kind: 'state', states: [
       { kind: 'thinking', status: 'done', title: '能力版本变化已读取', detail: `已完成 ${update.currentCapabilityVersion} 到 ${update.targetCapabilityVersion} 的差异确认。` },

@@ -64,6 +64,9 @@ export interface CapabilityUpdateTask {
   startedAt?: string
   completedAt?: string
   error?: string
+  phase?: string
+  errorCode?: string
+  retryAdvice?: string
   rollback?: Record<string, unknown>
 }
 
@@ -196,6 +199,7 @@ type SkillDraftPayload = Omit<SkillCreatePayload, 'score'> & {
 type SeedSkillHubItem = Omit<SkillHubItem, 'workflowStatus' | 'onlineStatus'>
 
 const defaultItems: SeedSkillHubItem[] = [
+  { name: 'capability-update-failure-demo', cnName: '运营查询（更新失败示例）', platform: 'lexiang', desc: '演示数据：查看能力更新失败原因、重试恢复或忽略更新。重试仅生成示例草稿，不查询真实数据，不改变线上版本；刷新可重新体验。', version: 'v1.0.0', online: 'v1.0.0', status: 'published', statusText: '已发布', category: '乐享运营', tags: ['查询', '演示'], owner: 'admin', updated: '2026-09-17 10:00' },
   { name: 'capability-draft-demo', cnName: '运营查询草稿', platform: 'lexiang', desc: '聚合运营查询条件并输出业务标签、异常原因和处理建议。', version: 'v0.1.0', online: '未发布', status: 'draft', statusText: '草稿', category: '乐享运营', tags: ['查询', '草稿'], owner: 'admin', updated: '2026-08-21 09:10' },
   { name: 'operations-insight-draft', cnName: '运营洞察草稿', platform: 'lexiang', desc: '汇总运营指标并生成异常归因建议，当前仍处于草稿编辑阶段。', version: 'v0.2.0', online: '未发布', status: 'draft', statusText: '草稿', category: '乐享运营', tags: ['运营', '草稿'], owner: 'admin', updated: '2026-08-20 16:30' },
   { name: 'workplace-employee-review-analysis', cnName: '职场员工审核数据分析', platform: 'lexiang', desc: '职场员工审核数据分析 Skill，支持认证方式分布、通过率趋势、失败原因和待审核积压分析。', version: 'v1.0.0', online: '未发布', status: 'rejected', statusText: '已驳回', category: '在职员工管理', tags: ['认证', '统计'], owner: 'admin', reviewer: 'admin', reviewTime: '2026-06-10 14:20', reviewNote: '驳回：请补充业务边界、测试用例或审批材料后重新提交。', updated: '2026-06-10 14:20' },
