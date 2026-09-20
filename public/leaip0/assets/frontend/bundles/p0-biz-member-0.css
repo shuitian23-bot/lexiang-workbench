@@ -13341,6 +13341,10 @@ body [data-member-device-detail-page] > :is(.leai-device-detail-hero, .leai-devi
 /* Account-device details use one flat list of basic parameters. */
 [data-member-device-detail-page] .leai-device-detail-visual { background: #fff; }
 .leai-device-specifications { margin-top: 14px; }
+body .lx-member-component-host > [data-member-device-detail-page].leai-page:not(.leai-member-page) > .leai-device-specifications {
+  padding-top: 32px;
+  padding-left: calc(var(--secondary-panel-pad-x, 18px) * 2);
+}
 .leai-device-spec-note { margin: 0 0 20px; color: var(--ms-muted); font-size: 12px; line-height: 1.6; }
 .leai-device-spec-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 24px; }
 .leai-device-specifications .leai-device-detail-list { margin: 0; }
