@@ -24,7 +24,7 @@
   max-width: 100%;
   padding: 5px 14px;
   border: 1px solid var(--lx-border-strong, #d8c8dd);
-  border-radius: 999px;
+  border-radius: 8px;
   background: var(--lx-surface, #fff);
   color: var(--lx-aubergine, #5b1452);
   font: inherit;
