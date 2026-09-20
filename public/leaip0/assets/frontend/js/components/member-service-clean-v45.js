@@ -3268,8 +3268,8 @@
     var device = deviceCatalog[id] || deviceCatalog.thinkbook16p;
     var deviceBackView = state.deviceDetailOrigin === "member" ? "member" : "devices";
     var deviceBackLabel = deviceBackView === "member" ? "会员中心" : "我的设备";
-    return '<section class="leai-page" data-member-device-detail-page data-device-detail-id="' + device.id + '" aria-labelledby="leaiDeviceDetailTitle"><header class="leai-page-header"><div><p class="leai-page-kicker">设备详情</p><div class="leai-page-title-row"><button class="leai-page-back" type="button" data-secondary-back="' + escapeHtml(deviceBackView) + '" aria-label="返回' + escapeHtml(deviceBackLabel) + '"><img src="' + icons.next + '" alt=""></button><h1 class="leai-page-title" id="leaiDeviceDetailTitle">' + escapeHtml(device.name) + '</h1></div><p class="leai-page-desc">查看当前 Lenovo ID 下的资产关系、购买信息、官方保障与可用服务。</p></div><span class="leai-status-pill"><img src="' + icons.check + '" alt="">' + escapeHtml(device.service) + '</span></header>' +
-      '<section class="leai-panel leai-device-detail-hero"><div class="leai-device-detail-visual"><img src="' + device.image + '" alt="' + escapeHtml(device.name) + '"></div><div class="leai-device-detail-summary"><span>已绑定当前 Lenovo ID</span><h2>' + escapeHtml(device.product) + '</h2><p>设备编号 ' + escapeHtml(device.sn) + '</p><strong>' + escapeHtml(device.warranty) + '</strong>' + (device.extensionEligible ? '<button class="leai-secondary" type="button" data-device-warranty="' + device.id + '">查看维保方案</button>' : '') + '</div></section>' +
+    return '<section class="leai-page" data-member-device-detail-page data-device-detail-id="' + device.id + '" data-device-warranty-eligible="' + Boolean(device.extensionEligible) + '" aria-labelledby="leaiDeviceDetailTitle"><header class="leai-page-header"><div><p class="leai-page-kicker">设备详情</p><div class="leai-page-title-row"><button class="leai-page-back" type="button" data-secondary-back="' + escapeHtml(deviceBackView) + '" aria-label="返回' + escapeHtml(deviceBackLabel) + '"><img src="' + icons.next + '" alt=""></button><h1 class="leai-page-title" id="leaiDeviceDetailTitle">' + escapeHtml(device.name) + '</h1></div><p class="leai-page-desc">查看当前 Lenovo ID 下的资产关系、购买信息、官方保障与可用服务。</p></div><span class="leai-status-pill"><img src="' + icons.check + '" alt="">' + escapeHtml(device.service) + '</span></header>' +
+      '<section class="leai-panel leai-device-detail-hero"><div class="leai-device-detail-visual"><img src="' + device.image + '" alt="' + escapeHtml(device.name) + '"></div><div class="leai-device-detail-summary"><span>已绑定当前 Lenovo ID</span><h2>' + escapeHtml(device.product) + '</h2><p>设备编号 ' + escapeHtml(device.sn) + '</p><strong>' + escapeHtml(device.warranty) + '</strong>' + (device.extensionEligible && !embeddedHost ? '<button class="leai-secondary" type="button" data-device-warranty="' + device.id + '">查看维保方案</button>' : '') + '</div></section>' +
       memberDeviceSpecificationsHtml(device) +
       '</section>';
   }
@@ -3568,6 +3568,7 @@
 
   window.LXMemberService = Object.freeze({
     mount: mountMemberComponent,
+    recommendDeviceWarranty: runWarrantyRecommendation,
     installDemoPanel: installDemoPanel,
     openDeviceBind: function (trigger) { openModal("deviceBind", trigger); },
     completeCheckin: function () {

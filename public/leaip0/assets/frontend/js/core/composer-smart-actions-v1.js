@@ -225,6 +225,29 @@
       if (target) target.click();
     }
   });
+  window.__lxComposerButtonSuite.register('device-detail', {
+    labels: function(content) {
+      var page = content.querySelector('[data-member-device-detail-page]');
+      return page && page.getAttribute('data-device-warranty-eligible') === 'true' ? ['查看维保方案'] : [];
+    },
+    source: '[data-member-device-detail-page] .leai-device-detail-hero',
+    identity: function(content) {
+      var page = content.querySelector('[data-member-device-detail-page]');
+      return page && page.getAttribute('data-device-detail-id') || '';
+    },
+    ready: function(content) {
+      return !!content.querySelector('[data-member-device-detail-page] .leai-device-detail-hero') &&
+        !!window.LXMemberService && typeof window.LXMemberService.recommendDeviceWarranty === 'function';
+    },
+    invoke: function(content, label) {
+      var page = content && content.querySelector('[data-member-device-detail-page]');
+      if (label !== '查看维保方案' || !page || page.getAttribute('data-device-warranty-eligible') !== 'true') return;
+      if (window.__lxState && window.__lxState.sending) return;
+      if (window.LXMemberService && typeof window.LXMemberService.recommendDeviceWarranty === 'function') {
+        window.LXMemberService.recommendDeviceWarranty(page.getAttribute('data-device-detail-id'));
+      }
+    }
+  });
   window.__lxComposerButtonSuite.register('detail', {
     labels: function(content) {
       var enterprise = /^\/(b-chat|biz-chat)(?:\/|$)/.test(location.pathname);
@@ -548,6 +571,8 @@
     var content = getRightContent();
     var servicePage = content && content.querySelector('[data-member-service-page]');
     var serviceVisible = servicePage && servicePage.getBoundingClientRect().width && servicePage.getBoundingClientRect().height;
+    var deviceDetailPage = content && content.querySelector('[data-member-device-detail-page]');
+    var deviceDetailVisible = deviceDetailPage && deviceDetailPage.getBoundingClientRect().width && deviceDetailPage.getBoundingClientRect().height;
     var devicePage = content && content.querySelector('.leai-device-center');
     var deviceVisible = devicePage && devicePage.getBoundingClientRect().width && devicePage.getBoundingClientRect().height;
     var storePage = content && content.querySelector('.lx-store-component-host, .lx-store-exact-frame');
@@ -559,7 +584,7 @@
     var solutionPage = content && content.querySelector('.lx-solution-center-page');
     var solutionVisible = solutionPage && solutionPage.getBoundingClientRect().width && solutionPage.getBoundingClientRect().height;
     var couponVisible = content && couponRecommendationProducts(content);
-    var scene = content && pageScenes[couponVisible ? 'coupon-recommendation' : solutionCompareVisible ? 'solution-compare' : solutionDetailVisible ? 'solution-detail' : solutionVisible ? 'solutions' : storeVisible ? 'stores' : deviceVisible ? 'devices' : serviceVisible ? 'service' : content.getAttribute('data-view')];
+    var scene = content && pageScenes[couponVisible ? 'coupon-recommendation' : solutionCompareVisible ? 'solution-compare' : solutionDetailVisible ? 'solution-detail' : solutionVisible ? 'solutions' : storeVisible ? 'stores' : deviceDetailVisible ? 'device-detail' : deviceVisible ? 'devices' : serviceVisible ? 'service' : content.getAttribute('data-view')];
     if (!scene) {
       if (currentScene) { currentScene = null; sceneCandidate = ''; hideCurrent(); document.querySelectorAll('.lx-smart-actions').forEach(function(panel) { panel.remove(); }); }
       if (wasSending) scheduleSync(100);
@@ -569,7 +594,7 @@
     if (wasSending || content.getAttribute('aria-busy') === 'true' || content.classList.contains('is-generating-tab') || content.querySelector('.lx-page-generating') || !scene.ready(content)) {
       sceneCandidate = ''; sceneSince = 0; scheduleSync(100); return;
     }
-    var key = (couponVisible ? 'coupon-recommendation' : solutionCompareVisible ? 'solution-compare' : solutionDetailVisible ? 'solution-detail' : solutionVisible ? 'solutions' : storeVisible ? 'stores' : deviceVisible ? 'devices' : serviceVisible || scene === recommendationScene && isServiceRecommendation(content) ? 'service' : content.getAttribute('data-view')) + ':' + scene.identity(content);
+    var key = (couponVisible ? 'coupon-recommendation' : solutionCompareVisible ? 'solution-compare' : solutionDetailVisible ? 'solution-detail' : solutionVisible ? 'solutions' : storeVisible ? 'stores' : deviceDetailVisible ? 'device-detail' : deviceVisible ? 'devices' : serviceVisible || scene === recommendationScene && isServiceRecommendation(content) ? 'service' : content.getAttribute('data-view')) + ':' + scene.identity(content);
     var labels = typeof scene.labels === 'function' ? scene.labels(content) : scene.labels;
     var labelKey = JSON.stringify(labels);
     if (!currentScene || currentScene.key !== key) {

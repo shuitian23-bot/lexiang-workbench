@@ -4,6 +4,8 @@
   function matches(query) {
     const text = String(query || '').trim().replace(/\s+/g, '');
     if (!text || text.length > 180) return false;
+    // Device-specific warranty requests use their existing eligibility and plan flow.
+    if (/^为.+推荐可购买的(?:保修|延保)商品[。！!]?$/.test(text)) return false;
     if (/^我的设备是.+所在地区是.+请推荐可购买、可预约的清灰换硅脂服务商品$/.test(text)) return false;
     if (/(?:不要|不用|无需|不想|不需要|取消|停止|关闭).{0,10}(?:推荐|服务|清灰|保养|维修)/.test(text)) return false;
     if (/订单|退款|退货|联系客服|人工客服|优惠券|领券|对比|比较|支付|立即下单|预约时间|预约进度|是什么|什么意思/.test(text)) return false;
