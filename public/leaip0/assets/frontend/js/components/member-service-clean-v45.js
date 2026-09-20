@@ -3271,7 +3271,7 @@
     return '<section class="leai-page" data-member-device-detail-page data-device-detail-id="' + device.id + '" aria-labelledby="leaiDeviceDetailTitle"><header class="leai-page-header"><div><p class="leai-page-kicker">设备详情</p><div class="leai-page-title-row"><button class="leai-page-back" type="button" data-secondary-back="' + escapeHtml(deviceBackView) + '" aria-label="返回' + escapeHtml(deviceBackLabel) + '"><img src="' + icons.next + '" alt=""></button><h1 class="leai-page-title" id="leaiDeviceDetailTitle">' + escapeHtml(device.name) + '</h1></div><p class="leai-page-desc">查看当前 Lenovo ID 下的资产关系、购买信息、官方保障与可用服务。</p></div><span class="leai-status-pill"><img src="' + icons.check + '" alt="">' + escapeHtml(device.service) + '</span></header>' +
       '<section class="leai-panel leai-device-detail-hero"><div class="leai-device-detail-visual"><img src="' + device.image + '" alt="' + escapeHtml(device.name) + '"></div><div class="leai-device-detail-summary"><span>已绑定当前 Lenovo ID</span><h2>' + escapeHtml(device.product) + '</h2><p>设备编号 ' + escapeHtml(device.sn) + '</p><strong>' + escapeHtml(device.warranty) + '</strong>' + (device.extensionEligible ? '<button class="leai-secondary" type="button" data-device-warranty="' + device.id + '">查看维保方案</button>' : '') + '</div></section>' +
       memberDeviceSpecificationsHtml(device) +
-      '<p class="leai-device-capability-note">联想乐享当前展示的是账号设备资产信息，不代表对设备实时硬件状态的检测结果。</p><p class="leai-member-disclaimer">当前为 Mock 设备数据，设备关系与保障信息以 Lenovo ID 设备资产服务实时结果为准。</p></section>';
+      '</section>';
   }
 
   function deviceFilterButton(key, label, count, activeFilter) {
