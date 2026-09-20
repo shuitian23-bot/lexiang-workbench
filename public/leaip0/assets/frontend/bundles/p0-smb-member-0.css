@@ -13332,6 +13332,12 @@ html body .lx-member-component-host.leai-aui-view:has(> [data-member-device-deta
 html body .lx-member-component-host.leai-aui-view > [data-member-device-detail-page].leai-page:not(.leai-member-page) {
   background: transparent !important;
 }
+/* Device summary and basic parameters keep clean, borderless white surfaces. */
+body [data-member-device-detail-page] > :is(.leai-device-detail-hero, .leai-device-specifications) {
+  border: 0;
+  box-shadow: none;
+}
+
 /* Account-device details use one flat list of basic parameters. */
 [data-member-device-detail-page] .leai-device-detail-visual { background: #fff; }
 .leai-device-specifications { margin-top: 14px; }
