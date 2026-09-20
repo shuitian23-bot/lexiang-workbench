@@ -1,16 +1,19 @@
-/* 职场认证：全站统一采用 PC 5.0「票据雅序」事务弹窗。 */
+/* 企业职工认证：四步统一采用已确认的本地参考样式。 */
 html body .lx-p0-modal-mask.lx-lead-modal-mask:has(.lx-wpa-modal) {
   padding: 24px !important;
 }
 
 html body .lx-p0-modal.lx-lead-shell:has(.lx-wpa-modal) {
+  /* Follow the education-auth shell: a focused, single-column dialog. */
   width: min(680px, calc(100vw - 48px)) !important;
-  max-height: min(760px, calc(100vh - 48px)) !important;
+  height: min(528px, calc(100vh - 48px)) !important;
+  min-height: 0 !important;
+  max-height: min(680px, calc(100vh - 48px)) !important;
   display: grid !important;
   grid-template-rows: 72px minmax(0, 1fr) !important;
   overflow: hidden !important;
   border: 0 !important;
-  border-radius: 20px !important;
+  border-radius: 18px !important;
   background: #fff !important;
   box-shadow: 0 24px 70px rgba(45,18,52,.28), 0 4px 14px rgba(45,18,52,.12) !important;
 }
@@ -19,62 +22,81 @@ html body .lx-p0-modal.lx-lead-shell:has(.lx-wpa-modal) .lx-p0-modal-head {
   min-height: 72px !important;
   display: flex !important;
   align-items: center !important;
-  padding: 0 28px !important;
-  border-bottom: 1px solid #efe4f1 !important;
+  padding: 20px 22px 12px !important;
+  border-bottom: 0 !important;
 }
 
 html body .lx-p0-modal.lx-lead-shell:has(.lx-wpa-modal) .lx-p0-modal-title {
   margin: 0 !important;
   color: #1f1822 !important;
-  font-size: 17px !important;
+  font-size: 18px !important;
   line-height: 26px !important;
-  font-weight: 800 !important;
+  font-weight: 700 !important;
   letter-spacing: 0 !important;
 }
 
+/* The reference places the benefit cue directly beneath the dialog title. */
+html body .lx-p0-modal.lx-lead-shell:has(.lx-wpa-modal) .lx-p0-modal-title::after {
+  content: "获取更多权益";
+  display: block;
+  margin-top: 1px;
+  color: #979797;
+  font-size: 11px;
+  line-height: 16px;
+  font-weight: 400;
+}
+
 html body .lx-p0-modal.lx-lead-shell:has(.lx-wpa-modal) .lx-p0-close {
-  width: 30px !important;
-  height: 30px !important;
+  width: 34px !important;
+  height: 34px !important;
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
   border: 0 !important;
-  border-radius: 50% !important;
-  background: #f3edf6 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
   color: #625b68 !important;
-  font-size: 22px !important;
+  font-size: 20px !important;
   line-height: 1 !important;
   font-weight: 400 !important;
 }
 
 html body .lx-p0-modal.lx-lead-shell:has(.lx-wpa-modal) .lx-p0-close:hover {
-  background: #efe4f1 !important;
-  color: #5b1452 !important;
+  background: transparent !important;
+  color: #625b68 !important;
 }
 
 html body .lx-p0-modal.lx-lead-shell:has(.lx-wpa-modal) .lx-p0-modal-body {
   min-height: 0 !important;
-  padding: 24px 28px 28px !important;
+  display: flex !important;
+  padding: 14px 28px 22px !important;
   overflow-y: auto !important;
 }
 
 html body .lx-wpa-modal {
+  position: relative !important;
+  min-height: 100% !important;
+  flex: 1 1 auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  padding-bottom: 60px !important;
   color: #252525 !important;
   font-family: "Source Han Sans CN", "PingFang SC", "Microsoft YaHei", Arial, sans-serif !important;
 }
 
 html body .lx-wpa-modal .lx-wpa-steps {
   margin: 0 0 28px !important;
-  padding: 0 12px !important;
+  padding: 0 8px !important;
 }
 
 html body .lx-wpa-modal .lx-wpa-dot {
-  width: 28px !important;
-  height: 28px !important;
-  background: #f0ebf3 !important;
-  color: #979797 !important;
+  width: 26px !important;
+  height: 26px !important;
+  border-radius: 50% !important;
+  background: #f7f6f8 !important;
+  color: #a6a1aa !important;
   font-size: 12px !important;
-  font-weight: 700 !important;
+  font-weight: 600 !important;
   box-shadow: none !important;
 }
 
@@ -82,59 +104,168 @@ html body .lx-wpa-modal .lx-wpa-step.active .lx-wpa-dot,
 html body .lx-wpa-modal .lx-wpa-step.done .lx-wpa-dot {
   background: linear-gradient(90deg, #4d144a 11.9%, #b8252e 100%) !important;
   color: #fff !important;
-  box-shadow: 0 5px 14px rgba(91,20,82,.18) !important;
+  box-shadow: none !important;
+}
+
+html body .lx-wpa-modal .lx-wpa-step.done .lx-wpa-dot {
+  font-size: 0 !important;
+}
+
+html body .lx-wpa-modal .lx-wpa-step.done .lx-wpa-dot::after {
+  content: none !important;
+  display: none !important;
+}
+
+html body .lx-wpa-modal .lx-wpa-done-icon {
+  width: 18px !important;
+  height: 18px !important;
+  display: block !important;
+  object-fit: contain !important;
+  filter: drop-shadow(0 0 .35px #fff) !important;
 }
 
 html body .lx-wpa-modal .lx-wpa-step > span {
-  max-width: 88px !important;
-  margin-top: 7px !important;
+  max-width: 76px !important;
+  margin-top: 6px !important;
   color: #979797 !important;
-  font-size: 12px !important;
-  line-height: 18px !important;
+  font-size: 11px !important;
+  line-height: 16px !important;
   font-weight: 400 !important;
 }
 
 html body .lx-wpa-modal .lx-wpa-step.active > span,
 html body .lx-wpa-modal .lx-wpa-step.done > span {
-  color: #5b1452 !important;
-  font-weight: 700 !important;
+  color: #252525 !important;
+  font-weight: 600 !important;
 }
 
 html body .lx-wpa-modal .lx-wpa-line {
-  top: 13px !important;
-  left: calc(50% + 18px) !important;
-  right: calc(-50% + 18px) !important;
-  height: 2px !important;
+  top: 12px !important;
+  left: calc(50% + 16px) !important;
+  right: calc(-50% + 16px) !important;
+  height: 1px !important;
   background: #e6dfea !important;
 }
 
 html body .lx-wpa-modal .lx-wpa-line.done {
-  background: linear-gradient(90deg, #4d144a, #b8252e) !important;
+  background: linear-gradient(90deg, #4d144a 11.9%, #b8252e 100%) !important;
 }
 
 html body .lx-wpa-modal .lx-wpa-section h4 {
-  margin: 0 0 14px !important;
+  margin: 0 0 12px !important;
   color: #1f1822 !important;
-  font-size: 15px !important;
+  font-size: 16px !important;
   line-height: 24px !important;
   font-weight: 700 !important;
 }
 
-html body .lx-wpa-modal .lx-wpa-radio {
-  min-height: 68px !important;
-  display: flex !important;
-  align-items: center !important;
-  gap: 12px !important;
-  margin: 0 0 10px !important;
-  padding: 14px 16px !important;
-  border: 1px solid #e6dfea !important;
-  border-radius: 12px !important;
-  background: #fff !important;
+/* Step one follows the design copy while preserving the existing selectable flow. */
+html body .lx-wpa-modal[data-wpa-step="1"] .lx-wpa-section h4 {
+  display: grid !important;
+  gap: 2px !important;
+  margin-bottom: 14px !important;
+  font-size: 0 !important;
 }
 
-html body .lx-wpa-modal .lx-wpa-radio:hover {
-  border-color: #d8c8dd !important;
+html body .lx-wpa-modal[data-wpa-step="1"] .lx-wpa-section h4::before {
+  content: "第1步：企业职工认证";
+  color: #252525;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 700;
+}
+
+html body .lx-wpa-modal[data-wpa-step="1"] .lx-wpa-section h4::after {
+  content: "完成在职身份认证，即可解锁采购专属权益";
+  color: #625b68;
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 400;
+}
+
+/* Figma-aligned first step: explain the four supported methods instead of
+   presenting a redundant single-choice card. */
+html body .lx-wpa-modal[data-wpa-step="1"] .lx-wpa-step-one-reference h4 {
+  display: block !important;
+  margin: 0 0 3px !important;
+  color: #252525 !important;
+  font-size: 16px !important;
+  line-height: 24px !important;
+  font-weight: 700 !important;
+}
+
+html body .lx-wpa-modal[data-wpa-step="1"] .lx-wpa-step-one-reference h4::before,
+html body .lx-wpa-modal[data-wpa-step="1"] .lx-wpa-step-one-reference h4::after {
+  content: none !important;
+  display: none !important;
+}
+
+html body .lx-wpa-modal .lx-wpa-step-lead {
+  margin: 0 0 14px !important;
+  color: #979797 !important;
+  font-size: 11px !important;
+  line-height: 17px !important;
+}
+
+html body .lx-wpa-modal .lx-wpa-methods {
+  padding: 14px 16px 15px !important;
+  border: 1px solid #e2ddeb !important;
+  border-radius: 8px !important;
   background: #fcfaff !important;
+}
+
+html body .lx-wpa-modal .lx-wpa-methods-title {
+  margin: 0 0 12px !important;
+  color: #252525 !important;
+  font-size: 12px !important;
+  line-height: 18px !important;
+  font-weight: 600 !important;
+}
+
+html body .lx-wpa-modal .lx-wpa-methods-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 14px 30px !important;
+}
+
+html body .lx-wpa-modal .lx-wpa-method {
+  min-width: 0 !important;
+  display: grid !important;
+  gap: 3px !important;
+}
+
+html body .lx-wpa-modal .lx-wpa-method strong {
+  color: #5b1452 !important;
+  font-size: 12px !important;
+  line-height: 19px !important;
+  font-weight: 600 !important;
+}
+
+html body .lx-wpa-modal .lx-wpa-method span {
+  color: #8b8790 !important;
+  font-size: 11px !important;
+  line-height: 17px !important;
+  font-weight: 400 !important;
+}
+
+html body .lx-wpa-modal .lx-wpa-step-note {
+  margin: 8px 0 0 !important;
+  color: #979797 !important;
+  font-size: 10px !important;
+  line-height: 16px !important;
+}
+
+html body .lx-wpa-modal .lx-wpa-radio {
+  min-height: 64px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 10px !important;
+  margin: 0 0 8px !important;
+  padding: 12px 14px !important;
+  border: 1px solid #e6dfea !important;
+  border-radius: 8px !important;
+  background: #fff !important;
 }
 
 html body .lx-wpa-modal .lx-wpa-radio.selected {
@@ -169,16 +300,27 @@ html body .lx-wpa-modal .lx-wpa-radio-body span {
 }
 
 html body .lx-wpa-modal .lx-p0-field {
+  box-sizing: border-box !important;
   width: 100% !important;
   min-height: 44px !important;
-  margin-bottom: 10px !important;
+  margin-bottom: 8px !important;
   padding: 0 13px !important;
   border: 1px solid #e6dfea !important;
   border-radius: 8px !important;
-  background: #fff !important;
+  background-color: #fff !important;
   color: #252525 !important;
-  font-size: 13px !important;
+  font-size: 12px !important;
+  line-height: 20px !important;
+  font-weight: 400 !important;
   outline: none !important;
+}
+
+html body .lx-wpa-modal .lx-p0-field::placeholder {
+  color: #979797 !important;
+  font-size: 12px !important;
+  line-height: 20px !important;
+  font-weight: 400 !important;
+  opacity: 1 !important;
 }
 
 html body .lx-wpa-modal .lx-p0-field:focus {
@@ -187,51 +329,400 @@ html body .lx-wpa-modal .lx-p0-field:focus {
 }
 
 html body .lx-wpa-modal .lx-wpa-code-row {
+  position: relative !important;
+  display: block !important;
+  margin: 0 !important;
+  background: #fff !important;
+  border-radius: 8px !important;
+}
+
+/* Step two mirrors the reference: two fields per row. */
+html body .lx-wpa-modal[data-wpa-step="2"] .lx-wpa-section {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 14px 20px !important;
+}
+
+html body .lx-wpa-modal[data-wpa-step="2"] .lx-wpa-field-group {
+  min-width: 0 !important;
+  display: grid !important;
+  gap: 6px !important;
+}
+
+html body .lx-wpa-modal[data-wpa-step="2"] .lx-wpa-field-label {
+  color: #252525 !important;
+  font-size: 13px !important;
+  line-height: 20px !important;
+  font-weight: 500 !important;
+}
+
+html body .lx-wpa-modal[data-wpa-step="2"] .lx-wpa-field-label i {
+  margin-right: 4px !important;
+  color: #b8252e !important;
+  font-style: normal !important;
+}
+
+html body .lx-wpa-modal[data-wpa-step="2"] .lx-wpa-section > h4,
+html body .lx-wpa-modal[data-wpa-step="2"] .lx-wpa-section > .lx-wpa-agree {
+  grid-column: 1 / -1 !important;
+}
+
+html body .lx-wpa-modal[data-wpa-step="2"] .lx-wpa-section > h4 {
+  margin-bottom: 2px !important;
+}
+
+html body .lx-wpa-modal[data-wpa-step="2"] .lx-p0-field {
+  min-width: 0 !important;
+  margin: 0 !important;
+}
+
+html body .lx-wpa-modal[data-wpa-step="2"] .lx-wpa-code-input {
+  padding-right: 92px !important;
+}
+
+html body .lx-wpa-modal[data-wpa-step="2"] .lx-wpa-send-code,
+html body .lx-wpa-modal[data-wpa-step="2"] .lx-wpa-send-code:hover,
+html body .lx-wpa-modal[data-wpa-step="2"] .lx-wpa-send-code:active,
+html body .lx-wpa-modal[data-wpa-step="2"] .lx-wpa-send-code:focus-visible {
+  position: absolute !important;
+  top: 50% !important;
+  right: 12px !important;
+  width: auto !important;
+  min-width: 0 !important;
+  height: auto !important;
+  min-height: 0 !important;
+  padding: 4px 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: #5b1452 !important;
+  font-size: 13px !important;
+  line-height: 20px !important;
+  font-weight: 400 !important;
+  box-shadow: none !important;
+  outline: 0 !important;
+  transform: translateY(-50%) !important;
+}
+
+html body .lx-wpa-modal[data-wpa-step="2"] .lx-wpa-send-code:disabled {
+  color: #979797 !important;
+  cursor: default !important;
+}
+
+html body .lx-wpa-modal[data-wpa-step="2"] .lx-wpa-agree {
+  position: absolute !important;
+  left: 0 !important;
+  bottom: 12px !important;
+  margin: 0 !important;
+}
+
+/* Step three reuses the real-name form rhythm: two controls per row. */
+html body .lx-wpa-modal[data-wpa-step="3"] .lx-wpa-employment-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 14px 20px !important;
+}
+
+html body .lx-wpa-modal .lx-wpa-select {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  padding-right: 42px !important;
+  background-image: url("/assets/icons/arrow-down.svg") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 18px center !important;
+  background-size: 9px 5px !important;
+}
+
+html body .lx-wpa-modal[data-wpa-step="3"] .lx-wpa-employment-grid > h4 {
+  grid-column: 1 / -1 !important;
+  margin-bottom: 2px !important;
+}
+
+html body .lx-wpa-modal[data-wpa-step="3"] .lx-wpa-field-group {
+  box-sizing: border-box !important;
+  min-width: 0 !important;
+  display: grid !important;
+  gap: 6px !important;
+}
+
+html body .lx-wpa-modal[data-wpa-step="3"] .lx-wpa-field-label {
+  color: #252525 !important;
+  font-size: 13px !important;
+  line-height: 20px !important;
+  font-weight: 500 !important;
+}
+
+html body .lx-wpa-modal[data-wpa-step="3"] .lx-wpa-field-label i,
+html body .lx-wpa-modal .lx-wpa-upload-title i {
+  margin-right: 4px !important;
+  color: #b8252e !important;
+  font-style: normal !important;
+}
+
+html body .lx-wpa-modal[data-wpa-step="3"] .lx-p0-field {
+  min-width: 0 !important;
+  margin: 0 !important;
+}
+
+/* Step four follows the supplied material-submission composition. */
+html body .lx-wpa-modal[data-wpa-step="4"] {
+  min-height:0 !important;
+  display:grid !important;
+  grid-template-rows:auto minmax(0,1fr) auto !important;
+  padding-bottom: 0 !important;
+}
+
+html body .lx-p0-modal.lx-lead-shell:has(.lx-wpa-modal[data-wpa-step="4"]) .lx-p0-modal-body {
+  overflow:hidden !important;
+}
+
+html body .lx-wpa-modal[data-wpa-step="4"] .lx-wpa-proof-step {
+  min-height:0 !important;
+  overflow-y:auto !important;
+  overscroll-behavior:contain !important;
+  padding-right:2px !important;
+  scrollbar-width:none !important;
+}
+
+html body .lx-wpa-modal[data-wpa-step="4"] .lx-wpa-proof-step::-webkit-scrollbar {
+  display:none !important;
+  width:0 !important;
+  height:0 !important;
+}
+
+html body .lx-wpa-modal[data-wpa-step="4"] .lx-wpa-steps {
+  margin-bottom: 18px !important;
+}
+
+html body .lx-wpa-modal .lx-wpa-proof-heading h4 {
+  margin: 0 !important;
+}
+
+html body .lx-wpa-modal .lx-wpa-proof-heading p {
+  margin: 1px 0 10px !important;
+  color: #979797 !important;
+  font-size: 11px !important;
+  line-height: 17px !important;
+}
+
+html body .lx-wpa-modal .lx-wpa-proof-list {
+  display: grid !important;
+  gap: 8px !important;
+}
+
+html body .lx-wpa-modal .lx-wpa-proof-list .lx-wpa-radio {
+  box-sizing: border-box !important;
+  min-height: 58px !important;
+  justify-content: flex-start !important;
+  text-align: left !important;
+  margin: 0 !important;
+  padding: 9px 12px !important;
+}
+
+html body .lx-wpa-modal .lx-wpa-proof-list .lx-wpa-radio.selected {
+  border-color: #8a4a72 !important;
+  background: #fcfafd !important;
+  box-shadow: none !important;
+}
+
+html body .lx-wpa-modal .lx-wpa-proof-list .lx-wpa-radio-body {
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  gap: 0 !important;
+}
+
+html body .lx-wpa-modal .lx-wpa-proof-list .lx-wpa-radio-body strong {
+  font-size: 13px !important;
+  line-height: 20px !important;
+}
+
+html body .lx-wpa-modal .lx-wpa-proof-list .lx-wpa-radio-body span {
+  color: #979797 !important;
+  font-size: 11px !important;
+  line-height: 17px !important;
+}
+
+html body .lx-wpa-modal .lx-wpa-proof-upload {
+  margin-top: 12px !important;
+}
+
+html body .lx-wpa-modal .lx-wpa-upload-title {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 12px !important;
+  margin-bottom: 7px !important;
+}
+
+html body .lx-wpa-modal .lx-wpa-upload-title strong {
+  font-size: 12px !important;
+  line-height: 18px !important;
+  font-weight: 500 !important;
+}
+
+html body .lx-wpa-modal .lx-wpa-upload-title span,
+html body .lx-wpa-modal .lx-wpa-proof-upload > p {
+  color: #979797 !important;
+  font-size: 10px !important;
+  line-height: 15px !important;
+}
+
+html body .lx-wpa-modal .lx-wpa-upload-box {
+  min-height: 58px !important;
+  display: flex !important;
+  align-items: center !important;
   gap: 10px !important;
-  margin-bottom: 10px !important;
+  padding: 10px 14px !important;
+  border: 1px solid #eee9f1 !important;
+  border-radius: 7px !important;
+  background: #fcfaff !important;
+  color: #979797 !important;
+  font-size: 11px !important;
+  cursor: pointer !important;
+}
+
+html body .lx-wpa-modal .lx-wpa-upload-prompt {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 7px !important;
+  width: 100% !important;
+  text-align: center !important;
+}
+
+html body .lx-wpa-modal .lx-wpa-upload-prompt b {
+  color: #5b1452 !important;
+  font-size: 17px !important;
+  line-height: 1 !important;
+  font-weight: 400 !important;
+}
+
+html body .lx-wpa-modal .lx-wpa-upload-box input {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  opacity: 0 !important;
+}
+
+html body .lx-wpa-modal .lx-wpa-proof-upload > p {
+  margin: 5px 0 0 !important;
+}
+
+html body .lx-wpa-modal .lx-wpa-proof-email {
+  margin: 0 !important;
+}
+
+html body .lx-wpa-modal[data-wpa-step="4"] .lx-p0-actions {
+  position: static !important;
+  flex: 0 0 auto !important;
+  margin:0 !important;
+  padding:16px 0 2px !important;
+  border-top:0 !important;
+  background:#fff !important;
 }
 
 html body .lx-wpa-modal .lx-p0-actions {
-  display: grid !important;
-  grid-template-columns: minmax(0, 1fr) !important;
+  position: absolute !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  display: flex !important;
+  justify-content: flex-end !important;
   gap: 12px !important;
-  margin: 22px 0 0 !important;
+  margin: 0 !important;
 }
 
 html body .lx-wpa-modal .lx-p0-actions:has([data-wpa-back]) {
-  grid-template-columns: 120px minmax(0, 1fr) !important;
+  grid-template-columns: none !important;
 }
 
 html body .lx-wpa-modal .lx-p0-actions .lx-p0-btn {
-  width: 100% !important;
-  height: 50px !important;
-  min-height: 50px !important;
+  width: 132px !important;
+  min-width: 132px !important;
+  height: 44px !important;
+  min-height: 44px !important;
   border: 1px solid #d8c8dd !important;
-  border-radius: 13px !important;
+  border-radius: 22px !important;
   background: #fff !important;
   color: #5b1452 !important;
-  font-size: 16px !important;
-  font-weight: 800 !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
 }
 
 html body .lx-wpa-modal .lx-p0-actions .lx-p0-btn.primary {
+  width: 164px !important;
+  min-width: 164px !important;
   border: 0 !important;
   background: linear-gradient(90deg, #4d144a 11.9%, #b8252e 100%) !important;
   color: #fff !important;
-  box-shadow: 0 12px 26px rgba(91,20,82,.18) !important;
+  box-shadow: none !important;
 }
 
 html body .lx-wpa-modal .lx-p0-actions .lx-p0-btn:hover {
-  transform: translateY(-2px) !important;
+  transform: none !important;
 }
 
 html body .lx-wpa-modal .lx-p0-actions .lx-p0-btn:active {
   transform: translateY(0) !important;
 }
 
-@media (max-width: 720px) {
-  html body .lx-p0-modal.lx-lead-shell:has(.lx-wpa-modal) .lx-p0-modal-body { padding: 20px !important; }
-  html body .lx-wpa-modal .lx-wpa-steps { padding: 0 !important; }
-  html body .lx-wpa-modal .lx-p0-actions:has([data-wpa-back]) { grid-template-columns: 96px minmax(0, 1fr) !important; }
+/* Final component-level guard: keep the workplace controls identical to the
+   order and education-auth modal controls, even when feature styles are added
+   after the shared modal sheet. */
+html body .lx-p0-modal.lx-lead-shell:has(.lx-wpa-modal) button.lx-p0-close,
+html body .lx-p0-modal.lx-lead-shell:has(.lx-wpa-modal) button.lx-p0-close:hover,
+html body .lx-p0-modal.lx-lead-shell:has(.lx-wpa-modal) button.lx-p0-close:active,
+html body .lx-p0-modal.lx-lead-shell:has(.lx-wpa-modal) button.lx-p0-close:focus-visible {
+  width: 34px !important;
+  min-width: 34px !important;
+  height: 34px !important;
+  min-height: 34px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: #625b68 !important;
+  transform: translateY(-50%) !important;
 }
 
+html body .lx-p0-modal.lx-lead-shell:has(.lx-wpa-modal) .lx-p0-actions > button.lx-p0-btn.primary {
+  width: 164px !important;
+  min-width: 164px !important;
+  height: 44px !important;
+  min-height: 44px !important;
+  border: 0 !important;
+  border-radius: 22px !important;
+  background: linear-gradient(90deg, #4d144a 11.9%, #b8252e 100%) !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+@media (max-width: 720px) {
+  html body .lx-p0-modal.lx-lead-shell:has(.lx-wpa-modal) { height:auto!important; min-height:min(528px,calc(100vh - 48px))!important; }
+  html body .lx-p0-modal.lx-lead-shell:has(.lx-wpa-modal) .lx-p0-modal-body { padding: 20px !important; }
+  html body .lx-wpa-modal .lx-wpa-steps { padding: 0 !important; }
+  html body .lx-wpa-modal[data-wpa-step="2"] .lx-wpa-section { grid-template-columns:1fr!important; }
+  html body .lx-wpa-modal[data-wpa-step="3"] .lx-wpa-employment-grid { grid-template-columns:1fr!important; }
+  html body .lx-wpa-modal[data-wpa-step="2"] .lx-wpa-section > h4,
+  html body .lx-wpa-modal[data-wpa-step="2"] .lx-wpa-section > .lx-wpa-agree { grid-column:1!important; }
+  html body .lx-wpa-modal[data-wpa-step="2"] .lx-wpa-agree { position:static!important; }
+  html body .lx-wpa-modal .lx-wpa-methods-grid { grid-template-columns:1fr!important; }
+  html body .lx-wpa-modal .lx-p0-actions { left:0!important; }
+  html body .lx-wpa-modal .lx-p0-actions:has([data-wpa-back]) { justify-content:stretch !important; }
+  html body .lx-wpa-modal .lx-p0-actions .lx-p0-btn { flex:1 1 0 !important; min-width:0 !important; }
+}
+
+/* Explicit shell geometry avoids inherited modal variants moving the close control. */
+html body .lx-p0-modal.lx-lead-shell:has(.lx-wpa-modal) .lx-p0-modal-head { position:relative!important; }
+html body .lx-p0-modal.lx-lead-shell:has(.lx-wpa-modal) button.lx-p0-close { position:absolute!important; top:50%!important; right:24px!important; }
+html body .lx-wpa-modal .lx-wpa-step.done .lx-wpa-dot svg,
+html body .lx-wpa-modal .lx-wpa-step.done .lx-wpa-dot img { width:18px!important; height:18px!important; }
+html body .lx-wpa-modal .lx-wpa-file-error { color:#b8252e!important; }
+html body .lx-wpa-modal .lx-wpa-file-error:empty { display:none!important; }
+html body .lx-wpa-modal .lx-wpa-upload-prompt { overflow-wrap:anywhere; }
+html body .lx-wpa-modal .lx-wpa-upload-box:focus-within { outline:2px solid #8a4a72; outline-offset:2px; }
+html body .lx-wpa-modal .lx-p0-field:focus { border-color:#d8cdd9!important; box-shadow:0 0 0 2px rgba(77,20,74,.035)!important; }
+
+html body .lx-wpa-modal .lx-wpa-step.done .lx-approved-icon { width:18px!important; height:18px!important; flex:0 0 18px!important; font-size:18px!important; color:#fff!important; }
+
+html body .lx-p0-modal.lx-lead-shell:has(.lx-wpa-modal) select.lx-wpa-select { background-image:url("/assets/icons/arrow-down.svg")!important; background-repeat:no-repeat!important; background-position:right 18px center!important; background-size:9px 5px!important; }
