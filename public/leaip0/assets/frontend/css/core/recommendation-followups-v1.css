@@ -37,7 +37,17 @@
 .lx-reco-followup-options > button:hover,
 .lx-reco-followup-options > button[aria-pressed="true"] { background: var(--lx-surface-weak, #f6f1f8); border-color: var(--lx-border, #e2ddeb); color: var(--lx-aubergine, #5b1452); }
 .lx-reco-followup-options > button:focus-visible, .lx-reco-draft-tag > button:focus-visible { outline: 2px solid var(--lx-aubergine, #5b1452); outline-offset: 3px; }
+/* Draft rows must participate in the split composer's natural height.
+   Its compact fixed-height rule otherwise flex-shrinks tags to a clipped strip. */
+html body:not(.assistant-fullscreen) .assistant-panel .assistant-bottom form.composer.has-reco-draft {
+  height: auto !important;
+  max-height: none !important;
+}
+.assistant-panel .composer.has-reco-draft > textarea {
+  flex-shrink: 0 !important;
+}
 .lx-reco-draft-tags {
+  flex: 0 0 auto;
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
