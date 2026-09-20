@@ -13318,15 +13318,14 @@ html body #leaiModal[data-profile-parity="phone"] :is(html body :is(.lx-p0-modal
 html body #leaiModal[data-profile-parity="phone"]:is(html body :is(.lx-p0-modal-mask, .leai-modal-mask) :is(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), textarea, select, .lx-p0-field, .leai-field, [contenteditable="true"]):is(:focus, :focus-visible)),
 html body #leaiModal[data-profile-parity="phone"] :is(html body :is(.lx-p0-modal-mask, .leai-modal-mask) :is(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), textarea, select, .lx-p0-field, .leai-field, [contenteditable="true"]):is(:focus, :focus-visible)) { border-color: rgb(207, 195, 213) !important; outline: 0px !important; box-shadow: rgba(91, 20, 82, 0.055) 0px 0px 0px 3px !important; }
 
-/* Account-device specifications share the existing asset-detail row treatment. */
+/* Account-device details use one flat list of basic parameters. */
+[data-member-device-detail-page] .leai-device-detail-visual { background: #fff; }
 .leai-device-specifications { margin-top: 14px; }
 .leai-device-spec-note { margin: 0 0 20px; color: var(--ms-muted); font-size: 12px; line-height: 1.6; }
-.leai-device-spec-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px 24px; }
-.leai-device-spec-group { min-width: 0; }
-.leai-device-spec-group h3 { margin: 0 0 4px; color: var(--ms-text); font-size: 14px; line-height: 1.6; font-weight: 600; }
-.leai-device-spec-group .leai-device-detail-list { margin: 0; }
-.leai-device-spec-group .leai-device-detail-list > div { grid-template-columns: 112px minmax(0, 1fr); min-height: 50px; padding: 10px 0; box-sizing: border-box; }
-.leai-device-spec-group .leai-device-detail-list :is(dt, dd) { min-width: 0; line-height: 1.7; overflow-wrap: anywhere; }
+.leai-device-spec-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 24px; }
+.leai-device-specifications .leai-device-detail-list { margin: 0; }
+.leai-device-spec-grid > div { min-width: 0; grid-template-columns: 112px minmax(0, 1fr); min-height: 50px; padding: 10px 0; box-sizing: border-box; }
+.leai-device-spec-grid :is(dt, dd) { min-width: 0; line-height: 1.7; overflow-wrap: anywhere; }
 @media (max-width: 1100px) {
   .leai-device-spec-grid { grid-template-columns: 1fr; }
 }

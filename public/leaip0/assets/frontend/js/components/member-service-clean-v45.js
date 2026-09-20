@@ -3240,15 +3240,27 @@
 
   function memberDeviceSpecificationsHtml(device) {
     var profile = memberDeviceSpecifications.profiles[device.id];
-    if (!profile) return '<section class="leai-panel leai-device-specifications" data-device-specifications><h2 class="leai-panel-title">基本参数</h2><p class="leai-page-desc">暂无该设备的详细配置，请以设备出厂信息为准。</p></section>';
-    var sections = memberDeviceSpecifications.groups.map(function (group) {
-      var rows = group[1].filter(function (label) { return Object.prototype.hasOwnProperty.call(profile.values, label); });
-      if (!rows.length) return '';
-      return '<section class="leai-device-spec-group"><h3>' + escapeHtml(group[0]) + '</h3><dl class="leai-device-detail-list">' + rows.map(function (label) {
-        return '<div><dt>' + escapeHtml(label) + '</dt><dd>' + escapeHtml(profile.values[label]) + '</dd></div>';
-      }).join('') + '</dl></section>';
-    }).join('');
-    return '<section class="leai-panel leai-device-specifications" data-device-specifications data-device-spec-kind="' + escapeHtml(profile.kind) + '"><h2 class="leai-panel-title">基本参数</h2><p class="leai-device-spec-note">以下为当前机型的演示配置，实际配置以设备出厂信息为准。</p><div class="leai-device-spec-grid">' + sections + '</div></section>';
+    var rows = [
+      ['产品型号', device.product],
+      ['设备编号', device.sn],
+      ['购买时间', device.purchased],
+      ['绑定关系', '已绑定当前 Lenovo ID'],
+      ['保障信息', device.service],
+      ['基础保修', device.warranty.replace('基础保修至 ', '至 ')],
+      ['保障范围', '以设备资产服务实时回执为准'],
+      ['可用服务', device.extensionEligible ? '维保方案、官方维修与支持' : '官方维修与支持']
+    ];
+    if (profile) {
+      memberDeviceSpecifications.groups.forEach(function (group) {
+        group[1].forEach(function (label) {
+          if (Object.prototype.hasOwnProperty.call(profile.values, label)) rows.push([label, profile.values[label]]);
+        });
+      });
+    }
+    var note = profile ? '以下为当前机型的演示配置，实际配置以设备出厂信息为准。' : '暂无该设备的详细配置，请以设备出厂信息为准。';
+    return '<section class="leai-panel leai-device-specifications" data-device-specifications' + (profile ? ' data-device-spec-kind="' + escapeHtml(profile.kind) + '"' : '') + '><h2 class="leai-panel-title">基本参数</h2><p class="leai-device-spec-note">' + note + '</p><dl class="leai-device-detail-list leai-device-spec-grid">' + rows.map(function (row) {
+      return '<div><dt>' + escapeHtml(row[0]) + '</dt><dd>' + escapeHtml(row[1]) + '</dd></div>';
+    }).join('') + '</dl></section>';
   }
 
 
@@ -3258,7 +3270,6 @@
     var deviceBackLabel = deviceBackView === "member" ? "会员中心" : "我的设备";
     return '<section class="leai-page" data-member-device-detail-page data-device-detail-id="' + device.id + '" aria-labelledby="leaiDeviceDetailTitle"><header class="leai-page-header"><div><p class="leai-page-kicker">设备详情</p><div class="leai-page-title-row"><button class="leai-page-back" type="button" data-secondary-back="' + escapeHtml(deviceBackView) + '" aria-label="返回' + escapeHtml(deviceBackLabel) + '"><img src="' + icons.next + '" alt=""></button><h1 class="leai-page-title" id="leaiDeviceDetailTitle">' + escapeHtml(device.name) + '</h1></div><p class="leai-page-desc">查看当前 Lenovo ID 下的资产关系、购买信息、官方保障与可用服务。</p></div><span class="leai-status-pill"><img src="' + icons.check + '" alt="">' + escapeHtml(device.service) + '</span></header>' +
       '<section class="leai-panel leai-device-detail-hero"><div class="leai-device-detail-visual"><img src="' + device.image + '" alt="' + escapeHtml(device.name) + '"></div><div class="leai-device-detail-summary"><span>已绑定当前 Lenovo ID</span><h2>' + escapeHtml(device.product) + '</h2><p>设备编号 ' + escapeHtml(device.sn) + '</p><strong>' + escapeHtml(device.warranty) + '</strong>' + (device.extensionEligible ? '<button class="leai-secondary" type="button" data-device-warranty="' + device.id + '">查看维保方案</button>' : '') + '</div></section>' +
-      '<section class="leai-panel leai-device-detail-sections"><div><h2 class="leai-panel-title">设备资产信息</h2><dl class="leai-device-detail-list"><div><dt>产品型号</dt><dd>' + escapeHtml(device.product) + '</dd></div><div><dt>设备编号</dt><dd>' + escapeHtml(device.sn) + '</dd></div><div><dt>购买时间</dt><dd>' + escapeHtml(device.purchased) + '</dd></div><div><dt>绑定关系</dt><dd>已绑定当前 Lenovo ID</dd></div></dl></div><div><h2 class="leai-panel-title">官方保障与服务</h2><dl class="leai-device-detail-list"><div><dt>保障信息</dt><dd>' + escapeHtml(device.service) + '</dd></div><div><dt>基础保修</dt><dd>' + escapeHtml(device.warranty.replace("基础保修至 ", "至 ")) + '</dd></div><div><dt>保障范围</dt><dd>以设备资产服务实时回执为准</dd></div><div><dt>可用服务</dt><dd>' + (device.extensionEligible ? "维保方案、官方维修与支持" : "官方维修与支持") + '</dd></div></dl></div></section>' +
       memberDeviceSpecificationsHtml(device) +
       '<p class="leai-device-capability-note">联想乐享当前展示的是账号设备资产信息，不代表对设备实时硬件状态的检测结果。</p><p class="leai-member-disclaimer">当前为 Mock 设备数据，设备关系与保障信息以 Lenovo ID 设备资产服务实时结果为准。</p></section>';
   }
