@@ -1,7 +1,11 @@
 /* Shared P0 action feedback: brand card, concise heading and dismiss control. */
 (function (root) {
   'use strict';
-  if (root.__lxToast?.version === 2) return;
+  if (root.__lxToast?.version === 3) return;
+  root.__lxToast?.dismiss?.();
+  // 乐享轻提示暂时停用；需要恢复时，将此默认开关改为 true。
+  const DEFAULT_ENABLED = false;
+  let enabled = DEFAULT_ENABLED;
   let toast = null;
   let remaining = 0;
   let startedAt = 0;
@@ -82,6 +86,22 @@
     toast.setAttribute('aria-hidden', 'true');
   }
 
+  function setEnabled(value) {
+    enabled = value === true;
+    document.documentElement.setAttribute('data-lx-light-toast-enabled', String(enabled));
+    if (!enabled) {
+      dismiss();
+      document.querySelectorAll('.lx-p0-toast').forEach((node) => {
+        clearTimeout(node._timer);
+        node._timer = null;
+        node.classList.remove('show');
+        node.inert = true;
+        node.setAttribute('aria-hidden', 'true');
+      });
+    }
+    return enabled;
+  }
+
   function resume() {
     if (!toast?.isConnected || !toast.classList.contains('show') || toast._timer || hovered || toast.contains(document.activeElement) || remaining <= 0) return;
     startedAt = Date.now();
@@ -110,6 +130,7 @@
   }
 
   function show(message, options = {}) {
+    if (!enabled) return;
     const text = String(message || '').trim();
     // Referenced products are already visible in the composer; keep every caller silent.
     if (!text || text === '已引用商品，直接提问即可') return;
@@ -148,5 +169,6 @@
     return toast;
   }
 
-  root.__lxToast = { version: 2, show, dismiss, describe };
+  root.__lxToast = { version: 3, show, dismiss, describe, setEnabled, get enabled() { return enabled; } };
+  setEnabled(DEFAULT_ENABLED);
 })(window);

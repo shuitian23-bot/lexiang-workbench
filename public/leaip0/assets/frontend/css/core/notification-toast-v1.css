@@ -85,3 +85,8 @@ html body > .lx-p0-toast.is-centered.show { transform: translate(-50%, -50%) sca
 @media (prefers-reduced-motion: reduce) {
   html body > .lx-p0-toast { transition: none; }
 }
+
+/* Default-off gate also covers legacy fallback nodes before scripts finish loading. */
+html:not([data-lx-light-toast-enabled="true"]) .lx-p0-toast {
+  display: none !important;
+}
