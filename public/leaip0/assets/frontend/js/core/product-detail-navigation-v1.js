@@ -6,6 +6,7 @@
 
   // Temporary product destination requested for the P0 prototype.
   const DETAIL_URL = 'https://item.lenovo.com.cn/product/1054438.html';
+  const SUPPORT_URL = 'https://b.lenovo.com.cn/activity/qygzxdhym.html';
   const DETAIL_ACTION = '[data-product-detail-external], [data-occ-view-detail], [data-coupon-product-open], [data-solution-product-detail]';
   const PRODUCT_SCOPE = '.product-detail, .product-card, .lx-floor-product, .lx-reco-poc-row, [data-open-product], [data-product-id], [data-sku]';
   const clean = value => String(value || '').replace(/\s+/g, '');
@@ -42,10 +43,12 @@
     if (detail && button.matches('.detail-primary')) syncDetail(detail);
     const isProductDetail = button.matches(DETAIL_ACTION) ||
       (/^查看详情[→›]?$/.test(clean(button.textContent)) && button.closest(PRODUCT_SCOPE));
-    if (!isProductDetail) return;
+    const isDetailSupport = clean(button.textContent) === '咨询客服' &&
+      button.closest('.product-detail, .lx-buybar');
+    if (!isProductDetail && !isDetailSupport) return;
     event.preventDefault();
     event.stopImmediatePropagation();
-    window.open(DETAIL_URL, '_blank', 'noopener,noreferrer');
+    window.open(isDetailSupport ? SUPPORT_URL : DETAIL_URL, '_blank', 'noopener,noreferrer');
   }, true);
 
   let pending = false;
