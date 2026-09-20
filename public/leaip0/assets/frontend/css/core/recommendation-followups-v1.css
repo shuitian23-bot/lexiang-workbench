@@ -35,7 +35,7 @@
   box-shadow: none;
   transition: background-color .15s ease, border-color .15s ease;
 }
-.lx-reco-followup-options > button:hover { background: var(--lx-surface-hover, #f0eaf8); border-color: var(--lx-aubergine, #5b1452); }
+.lx-reco-followup-options > button:hover,
 .lx-reco-followup-options > button[aria-pressed="true"] { background: var(--lx-surface-weak, #f6f1f8); border-color: var(--lx-border-strong, #d8c8dd); color: var(--lx-aubergine, #5b1452); }
 .lx-reco-followup-options > button:focus-visible, .lx-reco-draft-tag > button:focus-visible { outline: 2px solid var(--lx-aubergine, #5b1452); outline-offset: 3px; }
 .lx-reco-draft-tags {
