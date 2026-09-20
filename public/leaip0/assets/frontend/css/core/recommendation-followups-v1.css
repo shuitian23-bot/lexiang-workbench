@@ -3,9 +3,9 @@
   margin: 20px 0 4px;
   color: var(--lx-text, #101010);
   font-family: inherit;
-  font-size: 14px;
+  font-size: inherit;
   font-weight: 400;
-  line-height: 1.7;
+  line-height: inherit;
 }
 .lx-recommendation-followups .lx-reco-followup-intro { margin: 0 0 12px; }
 .lx-reco-followup-panel {
@@ -26,6 +26,7 @@
   background: var(--lx-surface, #fff);
   color: var(--lx-aubergine, #5b1452);
   font: inherit;
+  font-size: 14px;
   font-weight: 500;
   line-height: 1.5;
   text-align: left;
@@ -80,6 +81,5 @@
   box-shadow: none;
 }
 .lx-reco-draft-tag > button:hover { background: var(--lx-surface-hover, #f0eaf8); }
-.assistant-panel .lx-recommendation-followups { font-size: 13px; }
-.assistant-panel .lx-reco-followup-options > button { padding: 5px 12px; }
+.assistant-panel .lx-reco-followup-options > button { padding: 5px 12px; font-size: 13px; }
 @media (prefers-reduced-motion: reduce) { .lx-reco-followup-options > button { transition: none; } }
