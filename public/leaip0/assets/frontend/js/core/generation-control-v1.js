@@ -15,6 +15,7 @@
   const composing = new WeakSet();
   function queryFor(input) {
     if (!input || input.disabled || input.readOnly) return '';
+    if (input.matches('#lxfdTa, .assistant-panel .composer textarea') && window.__lxRecommendationFollowups?.hasSelection()) return '推荐商品';
     const value = input.value || '';
     const placeholder = input.placeholder.trim();
     return value.trim() || (!value && defaultQueries.has(placeholder) ? placeholder : '');
@@ -24,6 +25,7 @@
   }
   function materializeDefault(input) {
     if (!input || input.value || composing.has(input)) return;
+    if (input.matches('#lxfdTa, .assistant-panel .composer textarea') && window.__lxRecommendationFollowups?.hasSelection()) return;
     const query = queryFor(input);
     if (!query) return;
     input.value = query;

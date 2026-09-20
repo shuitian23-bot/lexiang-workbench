@@ -1,0 +1,88 @@
+/* Lexiang PC tokens; scoped to recommendation follow-ups and their composer draft. */
+.lx-recommendation-followups {
+  margin: 20px 0 4px;
+  color: var(--lx-text, #101010);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.7;
+}
+.lx-recommendation-followups .lx-reco-followup-intro { margin: 0 0 12px; }
+.lx-reco-followup-panel {
+  padding: 20px;
+  border-radius: 8px;
+  background: var(--lx-surface-weak, #f6f1f8);
+}
+.lx-reco-followup-panel fieldset { min-width: 0; margin: 0; padding: 0; border: 0; }
+.lx-reco-followup-panel fieldset + fieldset { margin-top: 24px; }
+.lx-reco-followup-panel legend { float: none; width: 100%; padding: 0; margin: 0 0 12px; font: inherit; }
+.lx-reco-followup-options { display: flex; flex-wrap: wrap; gap: 8px; }
+.lx-reco-followup-options > button {
+  appearance: none;
+  min-height: 34px;
+  max-width: 100%;
+  padding: 5px 14px;
+  border: 1px solid var(--lx-border-strong, #d8c8dd);
+  border-radius: 999px;
+  background: var(--lx-surface, #fff);
+  color: var(--lx-aubergine, #5b1452);
+  font: inherit;
+  font-weight: 500;
+  line-height: 1.5;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: none;
+  transition: background-color .15s ease, border-color .15s ease;
+}
+.lx-reco-followup-options > button:hover { background: var(--lx-surface-hover, #f0eaf8); border-color: var(--lx-aubergine, #5b1452); }
+.lx-reco-followup-options > button[aria-pressed="true"] { background: var(--lx-surface-hover, #f0eaf8); border-color: var(--lx-aubergine, #5b1452); }
+.lx-reco-followup-options > button[aria-pressed="true"]::before { content: '✓'; margin-right: 6px; }
+.lx-reco-followup-options > button:focus-visible, .lx-reco-draft-tag > button:focus-visible { outline: 2px solid var(--lx-aubergine, #5b1452); outline-offset: 3px; }
+.lx-reco-draft-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  grid-column: 1 / -1;
+  width: 100%;
+  max-height: 108px;
+  overflow-y: auto;
+  padding: 1px;
+  margin: 0 0 8px;
+}
+.lx-reco-draft-tags[hidden] { display: none; }
+.lx-reco-draft-tag {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  gap: 4px;
+  min-height: 30px;
+  padding: 2px 4px 2px 10px;
+  border: 1px solid var(--lx-border-strong, #d8c8dd);
+  border-radius: 7px;
+  background: var(--lx-surface-weak, #f6f1f8);
+  color: var(--lx-aubergine, #5b1452);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.5;
+  box-sizing: border-box;
+}
+.lx-reco-draft-tag > span { min-width: 0; overflow-wrap: anywhere; font-size: 13px; line-height: 1.5; }
+.lx-reco-draft-tag > button {
+  flex: 0 0 24px;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--lx-aubergine, #5b1452);
+  font: 20px/24px Arial, sans-serif;
+  cursor: pointer;
+  box-shadow: none;
+}
+.lx-reco-draft-tag > button:hover { background: var(--lx-surface-hover, #f0eaf8); }
+.assistant-panel .lx-reco-followup-panel { padding: 16px; }
+.assistant-panel .lx-recommendation-followups { font-size: 13px; }
+.assistant-panel .lx-reco-followup-options > button { padding: 5px 12px; }
+@media (prefers-reduced-motion: reduce) { .lx-reco-followup-options > button { transition: none; } }

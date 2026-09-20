@@ -258,6 +258,7 @@
   function lxfdLoadConv(id) {
     const c = lxfdLoadStore().find(x => x.id === id);
     if (!c) return;
+    window.__lxRecommendationFollowups?.clear();
     lxfdPersistCurrent();
     chatState.localId = c.id;
     chatState.convId = c.convId || null;
@@ -848,7 +849,7 @@
     ta.style.height = Math.min(ta.scrollHeight, 148) + "px";
   }
   function syncSend() {
-    const empty = !ta?.value.trim();
+    const empty = !ta?.value.trim() && !window.__lxRecommendationFollowups?.hasSelection();
     send?.classList.toggle("idle", empty);
     if (send) send.disabled = empty;
   }
@@ -948,6 +949,7 @@
   }
 
   function resetConversation(collapseRail) {
+    window.__lxRecommendationFollowups?.clear();
     lxfdPersistCurrent();
     // 先归档旧会话，再锁定当前会话为空；刷新/卸载期间不得由旧 DOM 回写。
     try {
@@ -1019,7 +1021,7 @@
       <span class="answer-cta-icon" aria-hidden="true">
         ${window.__lxApprovedIcon("global-next")}
       </span>
-    </button>`;
+    </button>${!couponProduct&&!educationProduct&&!isServiceProduct?(window.__lxRecommendationFollowups?.render(recoId)||""):""}`;
   }
 
   function lxfdPageCtaMeta(op) {
@@ -1951,6 +1953,7 @@ async function lxfdRunEducationOfferQuery(query) {
     thread?.appendChild(user);
     turns.push({ id: turnId, text: value });
     renderTurnIndex(turnId);
+    window.__lxRecommendationFollowups?.consume(value);
     if (ta) { ta.value = ""; fit(); syncSend(); }
     // 发出提问就先存一次（含 lxfd key + 同步子站 key），AI 答完再存完整——避免答得慢时切站啥都没存
     try { lxfdPersistCurrent(); } catch (_e) {if(!window.__lxGeneration.current(__lxGenerationToken))throw new DOMException('已停止生成','AbortError');}
@@ -3024,8 +3027,8 @@ async function lxfdRunEducationOfferQuery(query) {
   })();
 
   ta?.addEventListener("input", () => { fit(); syncSend(); });
-  ta?.addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); submit(ta.value); } });
-  $("#lxfdComposer")?.addEventListener("submit", (e) => { e.preventDefault(); submit(ta.value); });
+  ta?.addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); submit(window.__lxRecommendationFollowups?.prepare(ta.value,ta) ?? ta.value); } });
+  $("#lxfdComposer")?.addEventListener("submit", (e) => { e.preventDefault(); submit(window.__lxRecommendationFollowups?.prepare(ta.value,ta) ?? ta.value); });
   chips?.addEventListener("click", (e) => {
     const b = e.target.closest(".lxfd-chip-q");
     if (!b) return;

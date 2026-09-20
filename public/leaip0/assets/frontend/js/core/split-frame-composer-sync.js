@@ -15,7 +15,7 @@
     }
 
     function update() {
-      send.disabled = !textarea.value.trim();
+      send.disabled = !textarea.value.trim() && !window.__lxRecommendationFollowups?.hasSelection();
       textarea.style.height = "auto";
       var contentHeight = textarea.scrollHeight;
       textarea.style.height = Math.min(Math.max(contentHeight, 21), 90) + "px";
