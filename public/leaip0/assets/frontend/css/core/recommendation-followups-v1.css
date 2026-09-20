@@ -21,7 +21,7 @@
   min-height: 34px;
   max-width: 100%;
   padding: 5px 14px;
-  border: 1px solid var(--lx-border-strong, #d8c8dd);
+  border: 1px solid var(--lx-border, #e2ddeb);
   border-radius: 8px;
   background: var(--lx-surface, #fff);
   color: var(--lx-aubergine, #5b1452);
@@ -34,7 +34,7 @@
   transition: background-color .15s ease, border-color .15s ease;
 }
 .lx-reco-followup-options > button:hover,
-.lx-reco-followup-options > button[aria-pressed="true"] { background: var(--lx-surface-weak, #f6f1f8); border-color: var(--lx-border-strong, #d8c8dd); color: var(--lx-aubergine, #5b1452); }
+.lx-reco-followup-options > button[aria-pressed="true"] { background: var(--lx-surface-weak, #f6f1f8); border-color: var(--lx-border, #e2ddeb); color: var(--lx-aubergine, #5b1452); }
 .lx-reco-followup-options > button:focus-visible, .lx-reco-draft-tag > button:focus-visible { outline: 2px solid var(--lx-aubergine, #5b1452); outline-offset: 3px; }
 .lx-reco-draft-tags {
   display: flex;
@@ -55,7 +55,7 @@
   gap: 4px;
   min-height: 30px;
   padding: 2px 4px 2px 10px;
-  border: 1px solid var(--lx-border-strong, #d8c8dd);
+  border: 1px solid var(--lx-border, #e2ddeb);
   border-radius: 7px;
   background: var(--lx-surface-weak, #f6f1f8);
   color: var(--lx-aubergine, #5b1452);
