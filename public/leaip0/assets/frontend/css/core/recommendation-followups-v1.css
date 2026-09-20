@@ -9,10 +9,10 @@
 }
 .lx-recommendation-followups .lx-reco-followup-intro { margin: 0 0 12px; }
 .lx-reco-followup-panel {
-  --lx-surface-weak: #fcfaff; /* PC 5.0 approved light lavender surface */
+  --lx-reco-panel-background: #fcfaff; /* PC 5.0 approved light lavender surface */
   padding: 20px;
   border-radius: 8px;
-  background: var(--lx-surface-weak, #fcfaff);
+  background: var(--lx-reco-panel-background);
 }
 .lx-reco-followup-panel fieldset { min-width: 0; margin: 0; padding: 0; border: 0; }
 .lx-reco-followup-panel fieldset + fieldset { margin-top: 24px; }
@@ -36,7 +36,7 @@
   transition: background-color .15s ease, border-color .15s ease;
 }
 .lx-reco-followup-options > button:hover { background: var(--lx-surface-hover, #f0eaf8); border-color: var(--lx-aubergine, #5b1452); }
-.lx-reco-followup-options > button[aria-pressed="true"] { background: var(--lx-surface-hover, #f0eaf8); border-color: var(--lx-aubergine, #5b1452); }
+.lx-reco-followup-options > button[aria-pressed="true"] { background: var(--lx-surface-weak, #f6f1f8); border-color: var(--lx-border-strong, #d8c8dd); color: var(--lx-aubergine, #5b1452); }
 .lx-reco-followup-options > button:focus-visible, .lx-reco-draft-tag > button:focus-visible { outline: 2px solid var(--lx-aubergine, #5b1452); outline-offset: 3px; }
 .lx-reco-draft-tags {
   display: flex;
