@@ -565,3 +565,60 @@ html body .lx-p0-modal.lx-lead-shell:has(#lxEntCompany) .lx-lead-actions > .lx-l
   html body .lx-p0-modal.lx-lead-shell:has(#lxEntCompany) #lxEnterpriseAuthForm > .lx-lead-row,
   html body .lx-p0-modal.lx-lead-shell:has(#lxEntCompany) #lxEnterpriseAuthForm > .lx-lead-actions { grid-area:auto!important; }
 }
+
+/* Modal errors stay inside the form instead of covering the page with a toast. */
+html body .lx-p0-modal-mask.show .lx-p0-modal .lx-p0-modal-body .lx-modal-field-invalid:not([disabled]),
+html body .lx-p0-modal-mask.show .lx-p0-modal .lx-p0-modal-body .lx-modal-field-invalid:not([disabled]):focus {
+  border-color:#e5484d!important;
+  box-shadow:0 0 0 4px rgba(229,72,77,.08)!important;
+  outline:0!important;
+}
+html body .lx-p0-modal .lx-p0-modal-body input[type="checkbox"].lx-modal-field-invalid {
+  outline:1px solid #e5484d!important;
+  outline-offset:2px!important;
+}
+html body .lx-p0-modal .lx-p0-modal-body .lx-modal-validation-actions {
+  flex-wrap:wrap!important;
+}
+html body .lx-p0-modal .lx-p0-modal-body .lx-modal-validation-error {
+  position:relative!important;
+  box-sizing:border-box!important;
+  flex:0 0 100%!important;
+  grid-column:1 / -1!important;
+  width:100%!important;
+  margin:0!important;
+  padding:0 0 0 24px!important;
+  color:#c52b32!important;
+  -webkit-text-fill-color:#c52b32!important;
+  font-size:12px!important;
+  line-height:20px!important;
+  font-weight:400!important;
+  text-align:left!important;
+  white-space:normal!important;
+  overflow-wrap:anywhere!important;
+}
+html body .lx-p0-modal .lx-p0-modal-body .lx-modal-validation-error::before {
+  content:"!";
+  position:absolute;
+  left:0;top:2px;
+  width:16px;height:16px;
+  border-radius:50%;
+  background:#c52b32;
+  color:#fff;
+  -webkit-text-fill-color:#fff;
+  text-align:center;
+  font:700 12px/16px Arial,sans-serif;
+}
+html body .lx-p0-modal .lx-p0-modal-body .lx-modal-validation-error[hidden] { display:none!important; }
+html body .lx-p0-modal .lx-modal-has-errors .lx-wpa-modal:not([data-wpa-step="4"]) { padding-bottom:110px!important; }
+html body .lx-p0-modal .lx-wpa-modal .lx-modal-validation-actions { left:0!important; }
+/* Enterprise fields have an ID-scoped focus skin; errors take precedence. */
+html body .lx-p0-modal.lx-lead-shell #lxEnterpriseAuthForm input.lx-modal-field-invalid[aria-invalid="true"],
+html body .lx-p0-modal.lx-lead-shell #lxEnterpriseAuthForm input.lx-modal-field-invalid[aria-invalid="true"]:focus {
+  border-color:#e5484d!important;
+  box-shadow:0 0 0 4px rgba(229,72,77,.08)!important;
+  outline:0!important;
+}
+/* Keep the agreement beside the footer buttons clickable. */
+html body .lx-p0-modal .lx-wpa-modal .lx-modal-validation-actions { pointer-events:none!important; }
+html body .lx-p0-modal .lx-wpa-modal .lx-modal-validation-actions > * { pointer-events:auto!important; }
