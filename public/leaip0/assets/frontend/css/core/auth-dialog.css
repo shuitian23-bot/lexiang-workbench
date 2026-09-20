@@ -48,8 +48,8 @@
 .lx-auth-modal .lx-auth-field button{border:0;background:transparent;color:var(--brand-red);font-size:13px;font-weight:700;white-space:nowrap}
 .lx-auth-modal .lx-auth-eye{width:34px;height:34px;border-radius:8px!important;display:grid;place-items:center;padding:0!important;color:#8d8491!important}
 .lx-auth-modal .lx-auth-eye:hover{background:#f7f3f7!important}
-.lx-auth-modal .lx-auth-primary{width:100%;height:56px;border:0;border-radius:12px;color:white;font-size:16px;font-weight:800;letter-spacing:.2px;background:linear-gradient(90deg,var(--brand-deep) 0%,#7c194b 34%,var(--brand-red) 72%,#ed2733 100%);box-shadow:0 10px 22px rgba(184,37,46,.18);transition:.18s ease}
-.lx-auth-modal .lx-auth-primary:hover{transform:translateY(-1px);box-shadow:0 13px 26px rgba(184,37,46,.24)}
+.lx-auth-modal .lx-auth-primary{width:100%;height:56px;border:0;border-radius:12px;color:white;font-size:16px;font-weight:800;letter-spacing:.2px;background:linear-gradient(90deg,#4d144a 11.9%,#b8252e 100%);box-shadow:none;transition:.18s ease}
+.lx-auth-modal .lx-auth-primary:hover{transform:translateY(-1px);box-shadow:none}
 .lx-auth-modal .lx-auth-primary:disabled{cursor:default;transform:none;opacity:.72}
 .lx-auth-modal .lx-auth-code-row{display:grid;grid-template-columns:1fr 120px;gap:10px;margin-bottom:14px}
 .lx-auth-modal .lx-auth-code-row .lx-auth-field{margin:0}
@@ -84,3 +84,17 @@
 }
 .lx-auth-limit-notice strong{font-size:14px;line-height:1.5;font-weight:700}
 .lx-auth-limit-notice span{color:#625b68;font-size:12px;line-height:1.5}
+
+/* 登录协议按确认文案自然换行，保留逐项可点击的协议链接。 */
+html body .lx-auth-modal [data-auth-panel="quick"] .lx-auth-agree-note,
+html body .lx-auth-modal [data-auth-panel="quick"] .lx-auth-agree-consent,
+html body .lx-auth-modal [data-auth-panel="quick"] .lx-auth-agree-links { display:inline; }
+html body .lx-auth-modal [data-auth-panel="quick"] .lx-auth-agree-links { white-space:normal; margin-left:4px; }
+html body .lx-auth-modal [data-auth-panel="quick"] .lx-auth-agree-links a { text-decoration:none; }
+html body .lx-p0-modal.lx-auth-modal .lx-auth-primary,
+html body .lx-p0-modal.lx-auth-modal .lx-auth-primary:hover,
+html body .lx-p0-modal.lx-auth-modal .lx-auth-primary:active,
+html body .lx-p0-modal.lx-auth-modal .lx-auth-primary:focus-visible {
+  background:linear-gradient(90deg,#4d144a 11.9%,#b8252e 100%);
+  box-shadow:none;
+}
