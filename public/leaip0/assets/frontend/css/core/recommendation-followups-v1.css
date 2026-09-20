@@ -76,7 +76,7 @@
   border: 0;
   border-radius: 4px;
   background: transparent;
-  color: var(--lx-aubergine, #5b1452);
+  color: #979797; /* PC 5.0 approved neutral gray */
   font: 20px/24px Arial, sans-serif;
   cursor: pointer;
   box-shadow: none;
