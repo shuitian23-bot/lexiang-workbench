@@ -85,19 +85,28 @@
     mask.querySelector("input")?.focus();
   }
 
+  // Enterprise membership uses the three-field registration form. The diamond
+  // upgrade has its own explicit entry and must not replace this shared route.
+  const openEnterpriseRegistration = () => window.__lxExecControl?.("start_enterprise_auth");
   const install = () => {
     window.__lxOpenEnterpriseDiamondUpgradeModal = openEnterpriseMemberAuth;
-    window.__lxOpenEnterpriseAuthModal = openEnterpriseMemberAuth;
-    window.__lxRecommendedModalRule?.register?.("enterprise-member-auth", openEnterpriseMemberAuth);
+    window.__lxOpenEnterpriseAuthModal = openEnterpriseRegistration;
+    window.__lxRecommendedModalRule?.register?.("enterprise-member-auth", openEnterpriseRegistration);
   };
   install();
   [0, 120, 600, 1600].forEach(delay => window.setTimeout(install, delay));
-  window.addEventListener("click", event => { if (!event.target.closest?.(selector)) return; event.preventDefault(); event.stopImmediatePropagation(); openEnterpriseMemberAuth(); }, true);
+  window.addEventListener("click", event => {
+    const entry = event.target.closest?.(selector);
+    if (!entry) return;
+    event.preventDefault(); event.stopImmediatePropagation();
+    if (entry.dataset.enterpriseAuthKind === "diamond") openEnterpriseMemberAuth();
+    else openEnterpriseRegistration();
+  }, true);
 })();
 
 (function(){
 'use strict';
-const copy='已为你打开**企业会员认证**，请填写手机号并上传**认证材料**。提交申请后，请耐心等待审核结果。';
+const copy='已为你打开**企业会员认证**，请填写**企业名称、企业税号和企业邮箱**。提交申请后，请耐心等待审核结果。';
 const matches=query=>/^(我要认证企业会员|如何认证企业会员)$/.test(String(query||'').trim().replace(/[。！!？?]+$/,''));
 async function run(api){
  const gen=window.__lxGeneration, token=api.token;
@@ -106,12 +115,12 @@ async function run(api){
   const reply=api.message('assistant',copy);
   if(reply?._typingDone)await gen.wait(token,reply._typingDone);
   if(!gen.current(token))return false;
-  api.appendCard(reply,api.card({title:'认证企业会员',desc:'填写手机号 · 上传认证材料',attr:'data-open-enterprise-auth-modal data-lx-result-id="modal:enterprise-member-auth" aria-label="打开企业会员认证弹窗"'}));
+  api.appendCard(reply,api.card({title:'认证企业会员',desc:'填写企业名称 · 企业税号 · 企业邮箱',attr:'data-open-enterprise-auth-modal data-lx-result-id="modal:enterprise-member-auth" aria-label="打开企业会员认证弹窗"'}));
   const card=reply?.querySelector('[data-open-enterprise-auth-modal]');
   card?.classList.add('lx-document-card-enter');
   await gen.wait(token,new Promise(resolve=>gen.timeout(token,resolve,window.matchMedia('(prefers-reduced-motion: reduce)').matches?0:700)));
   if(!gen.current(token))return false;
-  api.enterSplit();window.__lxOpenEnterpriseDiamondUpgradeModal();
+  api.enterSplit();window.__lxOpenEnterpriseAuthModal();
   api.state.queryHistory.push(api.query);api.history();return true;
  }finally{if(gen.current(token)){api.state.sending=false;api.refresh();window.__lxSaveConversationNow?.();}}
 }

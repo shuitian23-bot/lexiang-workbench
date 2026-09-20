@@ -1551,7 +1551,7 @@
   function lxfdAuthRecommendationCard(type, kind) {
     if (type === "enterprise" || type === "enterprise-diamond") {
       const label = type === "enterprise-diamond" ? "认证企业钻石会员" : "立即认证企业会员";
-      return `<button class="answer-cta lx-answer-page lx-auth-answer-card lx-edu-auth-reco lx-enterprise-auth-reco" type="button" data-open-enterprise-auth-modal data-lx-result-id="modal:enterprise-member-auth" aria-label="打开企业会员认证弹窗" aria-pressed="false"><span><span class="answer-cta-title">${label}</span></span><span class="answer-cta-icon" aria-hidden="true">${window.__lxApprovedIcon("global-next")}</span></button>`;
+      return `<button class="answer-cta lx-answer-page lx-auth-answer-card lx-edu-auth-reco lx-enterprise-auth-reco" type="button" data-open-enterprise-auth-modal ${type === "enterprise-diamond" ? 'data-enterprise-auth-kind="diamond"' : ""} data-lx-result-id="modal:enterprise-member-auth" aria-label="打开企业会员认证弹窗" aria-pressed="false"><span><span class="answer-cta-title">${label}</span></span><span class="answer-cta-icon" aria-hidden="true">${window.__lxApprovedIcon("global-next")}</span></button>`;
     }
     if (type === "workplace") {
       return `<button class="answer-cta lx-answer-page lx-auth-answer-card lx-edu-auth-reco lx-workplace-auth-reco" type="button" data-open-wpa data-lx-result-id="modal:workplace-auth" aria-label="打开职场身份认证弹窗" aria-pressed="false"><span class="answer-cta-title">职场认证</span><span class="answer-cta-icon" aria-hidden="true">${window.__lxApprovedIcon("global-next")}</span></button>`;
@@ -1655,7 +1655,7 @@
       const copy = isDiamond
         ? "完成**企业钻石会员升级认证**后，可进一步解锁企业专享采购权益、专属服务与会员支持。请准备**企业名称、统一社会信用代码及企业邮箱**，提交后以正式核验结果为准。"
         : isEnterprise
-        ? "完成**企业会员认证**后，可解锁企业专享价、采购补贴、对公付款及专票账期等权益。请准备企业名称与采购负责人信息，提交后以正式核验结果为准。"
+        ? "完成**企业会员认证**后，可解锁企业专享价、采购补贴、对公付款及专票账期等权益。请准备企业名称、统一社会信用代码及企业邮箱，提交后以正式核验结果为准。"
         : isWorkplace
         ? "**职场认证**可用于核验企业在职身份，并解锁员工购机优惠、会员权益及相关服务。请按真实情况填写个人与企业资料，提交前核对**企业信息与在职材料**，认证结果以正式身份核验信息为准。"
         : "**教育特惠**面向在校生、教师及高考生，完成**教育身份认证**后，可解锁教育专属价格与相关会员权益。\n\n请在弹窗中选择真实身份与认证方式，填写学校等资料，核对**材料与有效期**后提交。你也可点击下方小卡重新打开认证，结果以正式核验为准。";
@@ -1672,7 +1672,8 @@
         card.addEventListener("animationend", done, { once: true });
         window.__lxGeneration.timeout(__lxGenerationToken,done, 700);
       })));
-      if (isEnterprise) window.__lxOpenEnterpriseAuthModal?.();
+      if (isDiamond) window.__lxOpenEnterpriseDiamondUpgradeModal?.();
+      else if (isEnterprise) window.__lxOpenEnterpriseAuthModal?.();
       else if (isWorkplace) window.openWorkplaceAuth?.();
       else window.__lxAgentAPI?.openStudentAuth?.(kind);
     } finally {if(window.__lxGeneration.current(__lxGenerationToken)){
@@ -1707,7 +1708,7 @@
       lxfdExitToResultAtomically(() => {
         if (!generation.current(token)) return;
         lxfdEnsureRootSplitState();
-        window.__lxOpenEnterpriseDiamondUpgradeModal();
+        window.__lxOpenEnterpriseAuthModal();
       });
     } finally {
       if (generation.current(token)) {
