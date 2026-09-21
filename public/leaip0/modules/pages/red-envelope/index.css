@@ -1,0 +1,195 @@
+/* 我的限时红包 — ordered style fragments. */
+@media (-p0-part: pc8b9d7912357a96dce90) {
+
+/* LX_REDPACKET_SUMMARY_CONTENT_FINAL_20260828 */
+body .leai-member-asset-page > .leai-redpacket-summary {
+  grid-template-columns: 1.4fr repeat(3, minmax(0, .8fr));
+}
+
+body .leai-member-asset-page > .leai-redpacket-summary .leai-member-main {
+  position: relative;
+  grid-column: 1;
+}
+
+body .leai-redpacket-summary .leai-summary-value {
+  display: flex;
+  align-items: baseline;
+  gap: 1px;
+}
+
+body .leai-redpacket-summary .leai-summary-value small {
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 600;
+}
+
+body .leai-redpacket-usage {
+  position: absolute;
+  right: 16px;
+  bottom: 14px;
+  min-height: 24px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ms-muted);
+  font-size: 11px;
+  line-height: 17px;
+}
+
+body .leai-redpacket-usage span {
+  width: 13px;
+  height: 13px;
+  display: grid;
+  place-items: center;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  font-size: 9px;
+  line-height: 1;
+}
+
+body .leai-redpacket-usage:hover,
+body .leai-redpacket-usage:focus-visible {
+  color: var(--ms-brand);
+  outline: none;
+}
+
+@media (max-width: 900px) {
+  body .leai-member-asset-page > .leai-redpacket-summary {
+    grid-template-columns: minmax(280px, 1fr) 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  body .leai-member-asset-page > .leai-redpacket-summary {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* LX_REDPACKET_LEDGER_MATCH_LEDOU_FINAL_20260828 */
+body .leai-redpacket-ledger-panel {
+  overflow: hidden;
+  border: 1px solid var(--ms-line-soft);
+  border-radius: 12px;
+  background: #fff;
+}
+
+body .leai-redpacket-table-head,
+body .leai-redpacket-record {
+  display: grid;
+  grid-template-columns: minmax(220px, 2fr) minmax(180px, 1fr) minmax(100px, .65fr);
+  align-items: center;
+  column-gap: 20px;
+}
+
+body .leai-redpacket-table-head {
+  min-height: 48px;
+  padding: 0 22px;
+  background: var(--ms-page, #fcfaff);
+  color: #625b68;
+  font-size: 12px;
+}
+
+body .leai-redpacket-table-head span:last-child {
+  text-align: right;
+}
+
+body .leai-redpacket-record {
+  min-height: 76px;
+  padding: 14px 22px;
+  border-top: .5px solid #f1eef2;
+  transition: background-color .16s ease;
+}
+
+body .leai-redpacket-record:hover {
+  background: var(--ms-page, #fcfaff);
+}
+
+body .leai-redpacket-record strong {
+  color: #252525;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+}
+
+body .leai-redpacket-record time {
+  color: #aaa5ad;
+  font-size: 12px;
+  line-height: 18px;
+}
+
+body .leai-redpacket-record em {
+  color: #f04438;
+  font-size: 16px;
+  line-height: 22px;
+  font-style: normal;
+  font-weight: 600;
+  text-align: right;
+  white-space: nowrap;
+}
+
+body .leai-redpacket-record.is-income em {
+  color: #31b889;
+}
+}
+@media (-p0-part: p1c4c18d83cf9900f7ae5) {
+
+@media (max-width: 720px) {
+  body .leai-redpacket-table-head {
+    display: none;
+  }
+
+  body .leai-redpacket-record {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: "name amount" "time amount";
+    gap: 3px 12px;
+    min-height: 66px;
+    padding: 11px 14px;
+  }
+
+  body .leai-redpacket-record strong { grid-area: name; }
+  body .leai-redpacket-record time { grid-area: time; }
+  body .leai-redpacket-record em { grid-area: amount; }
+}
+}
+@media (-p0-part: p3d1adec7d17aa0afe946) {
+
+body .leai-redpacket-summary .leai-summary-value {
+  margin-top: 10px;
+  font-size: 34px;
+  line-height: 40px;
+  font-weight: 750;
+}
+
+body .leai-redpacket-summary .leai-summary-value small {
+  font-size: 18px;
+  line-height: 24px;
+  font-weight: 650;
+}
+}
+@media (-p0-part: pfa720d3a5c414ff61093) {
+
+html body .leai-redpacket-summary .leai-summary-value {
+  margin-top: 14px !important;
+}
+
+html body .leai-redpacket-record em {
+  display: inline-flex !important;
+  align-items: baseline !important;
+  justify-content: flex-end !important;
+  gap: 1px !important;
+  font-size: 15px !important;
+  line-height: 22px !important;
+}
+
+html body .leai-redpacket-record em .leai-amount-sign {
+  position: relative;
+  top: 1px;
+  font-size: 11px !important;
+  line-height: 16px !important;
+  font-weight: 600 !important;
+}
+}
+

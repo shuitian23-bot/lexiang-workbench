@@ -1,8 +1,0 @@
-/* 对话定位导航 — temporary visibility switch, 2026-09-16.
- * Restore by setting data-lx-conversation-location-nav="visible" on the five entry pages.
- * Keep the original dots, question lists, anchors and navigation handlers intact.
- */
-html[data-lx-conversation-location-nav="hidden"] body .assistant-panel .page-dots.page-dots,
-html[data-lx-conversation-location-nav="hidden"] body #lxfdTurnIndex {
-  display: none !important;
-}

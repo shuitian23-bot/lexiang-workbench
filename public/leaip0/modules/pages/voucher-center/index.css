@@ -1,0 +1,95 @@
+/* 我的代金券 — ordered style fragments. */
+@media (-p0-part: p7eeec4a1be721ee5b5a8) {
+
+body .leai-voucher-page .leai-voucher-ledger-panel {
+  overflow: hidden;
+  border: 1px solid var(--ms-line-soft);
+  border-radius: 12px;
+  background: #fff;
+}
+
+body .leai-voucher-page .leai-voucher-ledger-panel .leai-asset-ledger {
+  border-top: 0;
+}
+
+body .leai-voucher-page .leai-voucher-ledger-panel .leai-asset-ledger > div {
+  min-height: 76px;
+  padding: 14px 22px;
+  border-bottom: .5px solid #f1eef2;
+  transition: background-color .16s ease;
+}
+
+body .leai-voucher-page .leai-voucher-ledger-panel .leai-asset-ledger > div:last-child {
+  border-bottom: 0;
+}
+
+body .leai-voucher-page .leai-voucher-ledger-panel .leai-asset-ledger > div:hover {
+  background: var(--ms-page, #fcfaff);
+}
+
+body .leai-voucher-page .leai-voucher-ledger-panel .leai-asset-ledger strong {
+  color: #252525;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+}
+
+body .leai-voucher-page .leai-voucher-ledger-panel .leai-asset-ledger small {
+  margin-top: 4px;
+  color: #aaa5ad;
+  font-size: 11px;
+  line-height: 17px;
+}
+
+body .leai-voucher-page .leai-voucher-ledger-panel .leai-asset-ledger em {
+  color: var(--ms-brand);
+  font-size: 15px;
+  line-height: 22px;
+  font-weight: 600;
+}
+}
+@media (-p0-part: pe97d634e481b1f8f5ae1) {
+
+/* P0 voucher summary: available amount, matching the single-card reference. */
+body .leai-member-asset-page > .leai-voucher-summary {
+  grid-template-columns: 1.4fr repeat(3, minmax(0, .8fr));
+}
+html body .leai-member-asset-page.leai-voucher-page > .leai-voucher-summary .leai-summary-value {
+  position: absolute;
+  left: 16px;
+  bottom: 18px;
+  margin: 0;
+  font-size: 24px;
+  line-height: 32px;
+  font-weight: 700;
+}
+body .leai-voucher-summary .leai-summary-value small {
+  font-size: 18px;
+  font-weight: 600;
+}
+body .leai-voucher-page .leai-voucher-summary .leai-summary-usage {
+  color: var(--ms-brand);
+}
+@media (max-width: 900px) {
+  body .leai-member-asset-page > .leai-voucher-summary {
+    grid-template-columns: minmax(280px, 1fr) 1fr;
+  }
+}
+@media (max-width: 720px) {
+  body .leai-member-asset-page > .leai-voucher-summary {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+}
+@media (-p0-part: p99ab84f47bd8853bbcbe) {/* Voucher usage tooltip is below its trigger: point upward. */
+html body .leai-member-asset-page .leai-summary-card.leai-member-main > #leaiAssetRule-vouchers.leai-asset-rule-tooltip {
+ top: calc(100% + 8px) !important;
+ bottom: auto !important;
+}
+html body .leai-member-asset-page .leai-summary-card.leai-member-main > #leaiAssetRule-vouchers.leai-asset-rule-tooltip::after {
+ top: -6px !important;
+ bottom: auto !important;
+ transform: rotate(225deg) !important;
+}
+}
+

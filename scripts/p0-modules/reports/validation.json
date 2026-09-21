@@ -1,0 +1,566 @@
+{
+  "baselineCommit": "9585cb03a47c5a63d9049cc79a6f50c7e449d620",
+  "backup": {
+    "local": "P0业务模块重构前完整备份-20260921-162958.tar.gz",
+    "server": "/tmp/p0-before-96-modules-20260921-162958.tar.gz",
+    "sha256": "bccaa5255e88a4702c4efb315464173c6373862a8725046025075a2399fef684"
+  },
+  "fileCounts": {
+    "before": {
+      "js": 111,
+      "css": 88,
+      "bytes": 14447247
+    },
+    "after": {
+      "js": 48,
+      "css": 48,
+      "bytes": 9555289
+    }
+  },
+  "suites": {
+    "main": {
+      "sourceReport": "report.json",
+      "pass": true,
+      "checks": 18,
+      "snapshots": [
+        {
+          "key": "home-initial",
+          "elements": 73,
+          "match": true,
+          "changedElements": 0
+        },
+        {
+          "key": "home-split",
+          "elements": 31,
+          "match": true,
+          "changedElements": 0
+        },
+        {
+          "key": "home-login",
+          "elements": 33,
+          "match": true,
+          "changedElements": 0
+        },
+        {
+          "key": "home-login-invalid",
+          "elements": 30,
+          "match": true,
+          "changedElements": 0
+        },
+        {
+          "key": "home-register",
+          "elements": 30,
+          "match": true,
+          "changedElements": 0
+        },
+        {
+          "key": "home-lead",
+          "elements": 51,
+          "match": true,
+          "changedElements": 0
+        },
+        {
+          "key": "home-lead-invalid",
+          "elements": 52,
+          "match": true,
+          "changedElements": 0
+        },
+        {
+          "key": "home-enterprise",
+          "elements": 23,
+          "match": true,
+          "changedElements": 0
+        },
+        {
+          "key": "home-workplace-1",
+          "elements": 43,
+          "match": true,
+          "changedElements": 0
+        },
+        {
+          "key": "home-workplace-2",
+          "elements": 49,
+          "match": true,
+          "changedElements": 0
+        },
+        {
+          "key": "home-workplace-3",
+          "elements": 41,
+          "match": true,
+          "changedElements": 0
+        },
+        {
+          "key": "home-workplace-4",
+          "elements": 60,
+          "match": true,
+          "changedElements": 0
+        },
+        {
+          "key": "home-history",
+          "elements": 11,
+          "match": true,
+          "changedElements": 0
+        },
+        {
+          "key": "home-followups-split",
+          "elements": 71,
+          "match": true,
+          "changedElements": 0
+        },
+        {
+          "key": "home-followups-fullscreen",
+          "elements": 28,
+          "match": true,
+          "changedElements": 0
+        },
+        {
+          "key": "shop-chat-initial",
+          "elements": 60,
+          "match": true,
+          "changedElements": 0
+        },
+        {
+          "key": "b-chat-initial",
+          "elements": 99,
+          "match": true,
+          "changedElements": 0
+        },
+        {
+          "key": "biz-chat-initial",
+          "elements": 106,
+          "match": true,
+          "changedElements": 0
+        },
+        {
+          "key": "biz-chat-login",
+          "elements": 33,
+          "match": true,
+          "changedElements": 0
+        },
+        {
+          "key": "biz-chat-login-invalid",
+          "elements": 30,
+          "match": true,
+          "changedElements": 0
+        },
+        {
+          "key": "biz-chat-register",
+          "elements": 30,
+          "match": true,
+          "changedElements": 0
+        },
+        {
+          "key": "biz-chat-lead",
+          "elements": 51,
+          "match": true,
+          "changedElements": 0
+        },
+        {
+          "key": "biz-chat-lead-invalid",
+          "elements": 52,
+          "match": true,
+          "changedElements": 0
+        },
+        {
+          "key": "biz-chat-enterprise",
+          "elements": 23,
+          "match": true,
+          "changedElements": 0
+        },
+        {
+          "key": "biz-chat-workplace-1",
+          "elements": 43,
+          "match": true,
+          "changedElements": 0
+        },
+        {
+          "key": "biz-chat-workplace-2",
+          "elements": 49,
+          "match": true,
+          "changedElements": 0
+        },
+        {
+          "key": "biz-chat-workplace-3",
+          "elements": 41,
+          "match": true,
+          "changedElements": 0
+        },
+        {
+          "key": "biz-chat-workplace-4",
+          "elements": 60,
+          "match": true,
+          "changedElements": 0
+        },
+        {
+          "key": "biz-chat-history",
+          "elements": 11,
+          "match": true,
+          "changedElements": 0
+        },
+        {
+          "key": "biz-chat-followups-split",
+          "elements": 73,
+          "match": true,
+          "changedElements": 0
+        },
+        {
+          "key": "biz-chat-followups-fullscreen",
+          "elements": 29,
+          "match": true,
+          "changedElements": 0
+        },
+        {
+          "key": "brand-initial",
+          "elements": 137,
+          "match": true,
+          "changedElements": 0
+        }
+      ]
+    },
+    "narrow": {
+      "sourceReport": "report.json",
+      "pass": true,
+      "checks": 8,
+      "snapshots": [
+        {
+          "key": "home-initial",
+          "elements": 73,
+          "match": true,
+          "changedElements": 0
+        },
+        {
+          "key": "home-split",
+          "elements": 31,
+          "match": true,
+          "changedElements": 0
+        },
+        {
+          "key": "home-login",
+          "elements": 33,
+          "match": true,
+          "changedElements": 0
+        },
+        {
+          "key": "home-login-invalid",
+          "elements": 30,
+          "match": true,
+          "changedElements": 0
+        },
+        {
+          "key": "home-register",
+          "elements": 30,
+          "match": true,
+          "changedElements": 0
+        },
+        {
+          "key": "home-lead",
+          "elements": 51,
+          "match": true,
+          "changedElements": 0
+        },
+        {
+          "key": "home-lead-invalid",
+          "elements": 52,
+          "match": true,
+          "changedElements": 0
+        },
+        {
+          "key": "home-enterprise",
+          "elements": 23,
+          "match": true,
+          "changedElements": 0
+        },
+        {
+          "key": "home-workplace-1",
+          "elements": 43,
+          "match": true,
+          "changedElements": 0
+        },
+        {
+          "key": "home-workplace-2",
+          "elements": 49,
+          "match": true,
+          "changedElements": 0
+        },
+        {
+          "key": "home-workplace-3",
+          "elements": 41,
+          "match": true,
+          "changedElements": 0
+        },
+        {
+          "key": "home-workplace-4",
+          "elements": 60,
+          "match": true,
+          "changedElements": 0
+        },
+        {
+          "key": "home-history",
+          "elements": 11,
+          "match": true,
+          "changedElements": 0
+        },
+        {
+          "key": "home-followups-split",
+          "elements": 71,
+          "match": true,
+          "changedElements": 0
+        },
+        {
+          "key": "home-followups-fullscreen",
+          "elements": 28,
+          "match": true,
+          "changedElements": 0
+        }
+      ]
+    },
+    "business": {
+      "sourceReport": "report.json",
+      "pass": true,
+      "checks": 27,
+      "snapshots": [
+        {
+          "key": "login-success",
+          "elements": 9,
+          "match": true,
+          "changedElements": 0
+        },
+        {
+          "key": "member-center",
+          "elements": 302,
+          "match": true,
+          "changedElements": 0
+        },
+        {
+          "key": "profile-edit",
+          "elements": 34,
+          "match": true,
+          "changedElements": 0
+        },
+        {
+          "key": "education-auth",
+          "elements": 44,
+          "match": true,
+          "changedElements": 0
+        },
+        {
+          "key": "diamond-upgrade",
+          "elements": 26,
+          "match": true,
+          "changedElements": 0
+        },
+        {
+          "key": "coupon-center",
+          "elements": 24,
+          "match": true,
+          "changedElements": 0
+        },
+        {
+          "key": "voucher-center",
+          "elements": 40,
+          "match": true,
+          "changedElements": 0
+        },
+        {
+          "key": "red-envelope",
+          "elements": 60,
+          "match": true,
+          "changedElements": 0
+        },
+        {
+          "key": "ledou-center",
+          "elements": 114,
+          "match": true,
+          "changedElements": 0
+        },
+        {
+          "key": "device-list",
+          "elements": 82,
+          "match": true,
+          "changedElements": 0
+        },
+        {
+          "key": "device-detail",
+          "elements": 170,
+          "match": true,
+          "changedElements": 0
+        },
+        {
+          "key": "device-bind",
+          "elements": 35,
+          "match": true,
+          "changedElements": 0
+        },
+        {
+          "key": "product-list",
+          "elements": 53,
+          "match": true,
+          "changedElements": 0
+        },
+        {
+          "key": "product-match",
+          "elements": 28,
+          "match": true,
+          "changedElements": 0
+        },
+        {
+          "key": "product-detail",
+          "elements": 57,
+          "match": true,
+          "changedElements": 0
+        },
+        {
+          "key": "product-compare",
+          "elements": 118,
+          "match": true,
+          "changedElements": 0
+        },
+        {
+          "key": "solution-list",
+          "elements": 418,
+          "match": true,
+          "changedElements": 0
+        },
+        {
+          "key": "solution-detail",
+          "elements": 99,
+          "match": true,
+          "changedElements": 0
+        },
+        {
+          "key": "solution-compare",
+          "elements": 47,
+          "match": true,
+          "changedElements": 0
+        },
+        {
+          "key": "store-list",
+          "elements": 156,
+          "match": true,
+          "changedElements": 0
+        },
+        {
+          "key": "store-detail",
+          "elements": 292,
+          "match": true,
+          "changedElements": 0
+        },
+        {
+          "key": "store-coupon-verify",
+          "elements": 61,
+          "match": true,
+          "changedElements": 0
+        },
+        {
+          "key": "store-appointment-confirm",
+          "elements": 22,
+          "match": true,
+          "changedElements": 0
+        },
+        {
+          "key": "store-select",
+          "elements": 28,
+          "match": true,
+          "changedElements": 0
+        },
+        {
+          "key": "arrival-time",
+          "elements": 36,
+          "match": true,
+          "changedElements": 0
+        },
+        {
+          "key": "store-purpose",
+          "elements": 11,
+          "match": true,
+          "changedElements": 0
+        }
+      ]
+    },
+    "orders": {
+      "sourceReport": "report.json",
+      "pass": true,
+      "checks": 8,
+      "snapshots": [
+        {
+          "key": "order-payment-confirm",
+          "elements": 56,
+          "match": true,
+          "changedElements": 0
+        },
+        {
+          "key": "configuration-edit",
+          "elements": 33,
+          "match": true,
+          "changedElements": 0
+        },
+        {
+          "key": "configuration-quantity",
+          "elements": 33,
+          "match": true,
+          "changedElements": 0
+        },
+        {
+          "key": "order-edit",
+          "elements": 62,
+          "match": true,
+          "changedElements": 0
+        },
+        {
+          "key": "invoice-edit",
+          "elements": 41,
+          "match": true,
+          "changedElements": 0
+        },
+        {
+          "key": "invoice-company",
+          "elements": 30,
+          "match": true,
+          "changedElements": 0
+        },
+        {
+          "key": "invoice-vat",
+          "elements": 41,
+          "match": true,
+          "changedElements": 0
+        },
+        {
+          "key": "invoice-notice",
+          "elements": 29,
+          "match": true,
+          "changedElements": 0
+        },
+        {
+          "key": "payment-processing",
+          "elements": 13,
+          "match": true,
+          "changedElements": 0
+        },
+        {
+          "key": "payment-success",
+          "elements": 11,
+          "match": true,
+          "changedElements": 0
+        },
+        {
+          "key": "order-detail",
+          "elements": 107,
+          "match": true,
+          "changedElements": 0
+        },
+        {
+          "key": "order-list",
+          "elements": 540,
+          "match": true,
+          "changedElements": 0
+        }
+      ]
+    }
+  },
+  "limits": [
+    "No real orders, payments, authentication submissions or other writes were sent.",
+    "Business map comparison fixes third-party maps to the same offline state.",
+    "The existing scene-banner iframe departure error also exists in baseline; no new errors were introduced.",
+    "The historical September 4 first-load performance budget fails on the pre-migration baseline; file-count and total-code reductions do not establish faster startup."
+  ]
+}

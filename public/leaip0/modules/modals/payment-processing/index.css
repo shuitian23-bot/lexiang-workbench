@@ -1,0 +1,44 @@
+/* 正在支付 — ordered style fragments. */
+@media (-p0-part: pe6857377275ea6010a86) {
+      .lx-p0-modal-mask.lx-checkout5-modal-mask .lx-checkout5-shell[data-checkout-view="payment"]{width:min(600px,calc(100% - 32px));height:auto;max-height:calc(100% - 32px)}
+}
+@media (-p0-part: p080602bc2498722b226f) {
+      .lx-checkout5-pay-body{display:grid;grid-template-columns:188px minmax(0,1fr);gap:20px;padding:20px 24px 16px;background:#fff}
+}
+@media (-p0-part: p5a438ef5917ccdca01d6) {
+      .lx-checkout5-pay-info{min-width:0;display:flex;flex-direction:column;align-items:stretch;padding:2px 0}
+}
+@media (-p0-part: p519c91374ca6a2b346a7) {
+      .lx-checkout5-pay-amount{display:flex;align-items:baseline;justify-content:space-between;margin-top:16px;padding-bottom:14px;border-bottom:1px solid #eee}.lx-checkout5-pay-amount small{color:#625b68;font-size:12px}.lx-checkout5-pay-amount strong{color:#ff2f2f;font-size:28px;line-height:36px}.lx-checkout5-pay-info dl{display:grid;grid-template-columns:56px minmax(0,1fr);gap:8px 10px;margin:14px 0 0;font-size:11px;line-height:18px}.lx-checkout5-pay-info dt{color:#979797}.lx-checkout5-pay-info dd{min-width:0;margin:0;overflow:hidden;color:#252525;text-overflow:ellipsis;white-space:nowrap}.lx-checkout5-pay-note{margin:13px 0 0;color:#979797;font-size:10px;line-height:17px}
+}
+@media (-p0-part: p09fabce42c10d7d8138b) {.lx-checkout5-pay-actions .lx-checkout5-btn.is-primary{min-width:132px}
+}
+@media (-p0-part: p31075332f045910067cf) {
+
+      /* 扫码支付弹层：复用学籍认证二维码占位视觉思路 */
+      .lx-scanpay-skin{display:flex;flex-direction:column;align-items:center;text-align:center;padding:6px 0 2px}
+      .lx-scanpay-skin .sp-qr{width:168px;height:168px;border-radius:14px;background:var(--lavender-weak);position:relative;overflow:hidden}
+      .lx-scanpay-skin .sp-qr::before{content:"";position:absolute;inset:14px;background-image:linear-gradient(90deg,var(--border-strong) 2px,transparent 2px),linear-gradient(0deg,var(--border-strong) 2px,transparent 2px);background-size:18px 18px;opacity:.6}
+      .lx-scanpay-skin .sp-qr::after{content:"";position:absolute;left:14px;top:14px;width:32px;height:32px;border:4px solid var(--text);border-radius:6px;box-shadow:112px 0 0 var(--text),0 112px 0 var(--text);opacity:.85}
+      .lx-scanpay-skin .sp-channel{margin-top:12px;font-size:13px;font-weight:700;color:var(--text)}
+      .lx-scanpay-skin .sp-meta{margin-top:10px;width:100%;display:flex;flex-direction:column;gap:6px}
+      .lx-scanpay-skin .sp-meta .row{display:flex;align-items:center;justify-content:space-between;font-size:12.5px;color:var(--text-soft)}
+      .lx-scanpay-skin .sp-meta .row .v{color:var(--text);font-weight:700}
+      .lx-scanpay-skin .sp-meta .row .v.amt{color:var(--price-red);font-size:18px}
+      .lx-scanpay-skin .sp-confirm{margin-top:18px;width:100%;min-height:46px;border-radius:13px}
+}
+@media (-p0-part: pd95b025cab0010aa55f1) {
+.lx-scanpay-skin{display:flex;flex-direction:column;align-items:center;text-align:center;padding:6px 0 2px}
+.lx-scanpay-skin .sp-qr{width:168px;height:168px;border-radius:14px;background:#f3f0f7;position:relative;overflow:hidden}
+.lx-scanpay-skin .sp-qr::before{content:"";position:absolute;inset:14px;background-image:linear-gradient(90deg,#e2ddeb 2px,transparent 2px),linear-gradient(0deg,#e2ddeb 2px,transparent 2px);background-size:18px 18px;opacity:.6}
+.lx-scanpay-skin .sp-qr::after{content:"";position:absolute;left:14px;top:14px;width:32px;height:32px;border:4px solid #101010;border-radius:6px;box-shadow:112px 0 0 #101010,0 112px 0 #101010;opacity:.85}
+.lx-scanpay-skin .sp-channel{margin-top:12px;font-size:13px;font-weight:700;color:#101010}
+.lx-scanpay-skin .sp-meta{margin-top:10px;width:100%;display:flex;flex-direction:column;gap:6px}
+.lx-scanpay-skin .sp-meta .row{display:flex;align-items:center;justify-content:space-between;font-size:12.5px;color:#625b68}
+.lx-scanpay-skin .sp-meta .row .v{color:#101010;font-weight:700}
+.lx-scanpay-skin .sp-meta .row .v.amt{color:#ff2f2f;font-size:18px}
+.lx-scanpay-skin .sp-confirm{margin-top:18px;width:100%;min-height:46px;border-radius:13px}
+}
+@media (-p0-part: p8c2e543c067894efd576) {.lx-p0-modal .lx-scanpay-skin .sp-confirm,.lx-p0-modal .lx-scanpay-skin .sp-confirm.lx-p0-btn.primary,.lx-p0-modal .lx-scanpay-skin .lx-scanpay-confirm,.lx-p0-modal .lx-scanpay-skin [data-occ-pay-confirm],.lx-p0-modal .lx-scanpay-skin [data-confirm-payment],.lx-p0-modal.lx-scanpay-skin .lx-scanpay-confirm,.lx-p0-modal.lx-scanpay-skin [data-occ-pay-confirm],.lx-p0-modal.lx-scanpay-skin [data-confirm-payment]{border:0!important;background:linear-gradient(90deg,#4d144a 11.9%,#b8252e 100%)!important;color:#fff!important;box-shadow:none!important;filter:none!important;}.lx-p0-modal .lx-scanpay-skin .sp-confirm:hover,.lx-p0-modal .lx-scanpay-skin .sp-confirm:active,.lx-p0-modal .lx-scanpay-skin .lx-scanpay-confirm:hover,.lx-p0-modal .lx-scanpay-skin .lx-scanpay-confirm:active,.lx-p0-modal .lx-scanpay-skin [data-occ-pay-confirm]:hover,.lx-p0-modal .lx-scanpay-skin [data-occ-pay-confirm]:active,.lx-p0-modal .lx-scanpay-skin [data-confirm-payment]:hover,.lx-p0-modal .lx-scanpay-skin [data-confirm-payment]:active,.lx-p0-modal.lx-scanpay-skin .lx-scanpay-confirm:hover,.lx-p0-modal.lx-scanpay-skin .lx-scanpay-confirm:active,.lx-p0-modal.lx-scanpay-skin [data-occ-pay-confirm]:hover,.lx-p0-modal.lx-scanpay-skin [data-occ-pay-confirm]:active,.lx-p0-modal.lx-scanpay-skin [data-confirm-payment]:hover,.lx-p0-modal.lx-scanpay-skin [data-confirm-payment]:active{background:linear-gradient(90deg,#4d144a 11.9%,#b8252e 100%)!important;box-shadow:none!important;filter:none!important;transform:none!important;}.lx-p0-modal .lx-scanpay-skin .sp-confirm:focus-visible,.lx-p0-modal .lx-scanpay-skin .lx-scanpay-confirm:focus-visible,.lx-p0-modal .lx-scanpay-skin [data-occ-pay-confirm]:focus-visible,.lx-p0-modal .lx-scanpay-skin [data-confirm-payment]:focus-visible,.lx-p0-modal.lx-scanpay-skin .lx-scanpay-confirm:focus-visible,.lx-p0-modal.lx-scanpay-skin [data-occ-pay-confirm]:focus-visible,.lx-p0-modal.lx-scanpay-skin [data-confirm-payment]:focus-visible{outline:2px solid #76216d!important;outline-offset:3px!important;}
+}
+

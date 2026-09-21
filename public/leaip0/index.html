@@ -47,552 +47,181 @@
 <!doctype html>
 <html lang="zh-CN" data-lx-conversation-location-nav="hidden">
   <head>
-<link rel="stylesheet" href="/assets/frontend/css/core/notification-toast-v1.css?p0v=22951c7db61a0d50" />
-<script src="/assets/frontend/js/core/product-detail-navigation-v1.js?p0v=34b3bcacde0c016f"></script>
-<script src="/assets/frontend/js/core/notification-toast-v1.js?p0v=20c3cef677d1a7ca"></script>
-<script src="/assets/frontend/js/core/comparison-display-actions-v1.js?p0v=0eef0e297ad3b765"></script>
-<script src="/assets/frontend/js/core/detail-operating-system-v1.js?p0v=6bb29bcc43fff595"></script>
-<script src="/assets/frontend/js/core/service-products-query-v1.js?p0v=d0b6fc0181529458"></script>
-<script src="/assets/frontend/js/core/education-member-state-sync-v1.js?p0v=642a431b6eaf7aa2"></script>
-<script src="/assets/frontend/js/core/education-offer-query-v1.js?p0v=b21e263c0b382cd8" defer></script>
-<script src="/assets/frontend/js/core/generation-control-v1.js?p0v=ecf34ea3f3d35b9e"></script>
-<script src="/channel-customer-service-v126.js?p0v=6663a15bf799c69e"></script>
+<!-- P0 48 business modules: register only; run at the original document slots. -->
+<link rel="stylesheet" data-p0-style-library href="/modules/shared/common/index.css?p0v=7aea23eb1054031f">
+<link rel="stylesheet" data-p0-style-library href="/modules/shared/agent-content/index.css?p0v=7aea23eb1054031f">
+<link rel="stylesheet" data-p0-style-library href="/modules/pages/home/index.css?p0v=7aea23eb1054031f">
+<link rel="stylesheet" data-p0-style-library href="/modules/pages/brand-home/index.css?p0v=7aea23eb1054031f">
+<link rel="stylesheet" data-p0-style-library href="/modules/pages/product-list/index.css?p0v=7aea23eb1054031f">
+<link rel="stylesheet" data-p0-style-library href="/modules/pages/solution-list/index.css?p0v=7aea23eb1054031f">
+<link rel="stylesheet" data-p0-style-library href="/modules/pages/store-list/index.css?p0v=7aea23eb1054031f">
+<link rel="stylesheet" data-p0-style-library href="/modules/pages/device-list/index.css?p0v=7aea23eb1054031f">
+<link rel="stylesheet" data-p0-style-library href="/modules/pages/product-detail/index.css?p0v=7aea23eb1054031f">
+<link rel="stylesheet" data-p0-style-library href="/modules/pages/solution-detail/index.css?p0v=7aea23eb1054031f">
+<link rel="stylesheet" data-p0-style-library href="/modules/pages/store-detail/index.css?p0v=7aea23eb1054031f">
+<link rel="stylesheet" data-p0-style-library href="/modules/pages/device-detail/index.css?p0v=7aea23eb1054031f">
+<link rel="stylesheet" data-p0-style-library href="/modules/pages/product-compare/index.css?p0v=7aea23eb1054031f">
+<link rel="stylesheet" data-p0-style-library href="/modules/pages/solution-compare/index.css?p0v=7aea23eb1054031f">
+<link rel="stylesheet" data-p0-style-library href="/modules/pages/order-list/index.css?p0v=7aea23eb1054031f">
+<link rel="stylesheet" data-p0-style-library href="/modules/pages/order-detail/index.css?p0v=7aea23eb1054031f">
+<link rel="stylesheet" data-p0-style-library href="/modules/pages/member-center/index.css?p0v=7aea23eb1054031f">
+<link rel="stylesheet" data-p0-style-library href="/modules/pages/coupon-center/index.css?p0v=7aea23eb1054031f">
+<link rel="stylesheet" data-p0-style-library href="/modules/pages/voucher-center/index.css?p0v=7aea23eb1054031f">
+<link rel="stylesheet" data-p0-style-library href="/modules/pages/red-envelope/index.css?p0v=7aea23eb1054031f">
+<link rel="stylesheet" data-p0-style-library href="/modules/pages/ledou-center/index.css?p0v=7aea23eb1054031f">
+<link rel="stylesheet" data-p0-style-library href="/modules/modals/login/index.css?p0v=7aea23eb1054031f">
+<link rel="stylesheet" data-p0-style-library href="/modules/modals/register/index.css?p0v=7aea23eb1054031f">
+<link rel="stylesheet" data-p0-style-library href="/modules/modals/login-success/index.css?p0v=7aea23eb1054031f">
+<link rel="stylesheet" data-p0-style-library href="/modules/modals/lead-form/index.css?p0v=7aea23eb1054031f">
+<link rel="stylesheet" data-p0-style-library href="/modules/modals/education-auth/index.css?p0v=7aea23eb1054031f">
+<link rel="stylesheet" data-p0-style-library href="/modules/modals/workplace-auth/index.css?p0v=7aea23eb1054031f">
+<link rel="stylesheet" data-p0-style-library href="/modules/modals/enterprise-auth/index.css?p0v=7aea23eb1054031f">
+<link rel="stylesheet" data-p0-style-library href="/modules/modals/diamond-upgrade/index.css?p0v=7aea23eb1054031f">
+<link rel="stylesheet" data-p0-style-library href="/modules/modals/profile-edit/index.css?p0v=7aea23eb1054031f">
+<link rel="stylesheet" data-p0-style-library href="/modules/modals/store-appointment-confirm/index.css?p0v=7aea23eb1054031f">
+<link rel="stylesheet" data-p0-style-library href="/modules/modals/store-select/index.css?p0v=7aea23eb1054031f">
+<link rel="stylesheet" data-p0-style-library href="/modules/modals/arrival-time/index.css?p0v=7aea23eb1054031f">
+<link rel="stylesheet" data-p0-style-library href="/modules/modals/store-purpose/index.css?p0v=7aea23eb1054031f">
+<link rel="stylesheet" data-p0-style-library href="/modules/modals/order-payment-confirm/index.css?p0v=7aea23eb1054031f">
+<link rel="stylesheet" data-p0-style-library href="/modules/modals/order-edit/index.css?p0v=7aea23eb1054031f">
+<link rel="stylesheet" data-p0-style-library href="/modules/modals/configuration-edit/index.css?p0v=7aea23eb1054031f">
+<link rel="stylesheet" data-p0-style-library href="/modules/modals/invoice-edit/index.css?p0v=7aea23eb1054031f">
+<link rel="stylesheet" data-p0-style-library href="/modules/modals/payment-processing/index.css?p0v=7aea23eb1054031f">
+<link rel="stylesheet" data-p0-style-library href="/modules/modals/payment-success/index.css?p0v=7aea23eb1054031f">
+<link rel="stylesheet" data-p0-style-library href="/modules/modals/store-coupon-verify/index.css?p0v=7aea23eb1054031f">
+<link rel="stylesheet" data-p0-style-library href="/modules/modals/product-match/index.css?p0v=7aea23eb1054031f">
+<link rel="stylesheet" data-p0-style-library href="/modules/modals/device-bind/index.css?p0v=7aea23eb1054031f">
+<link rel="stylesheet" data-p0-style-library href="/modules/modals/toast/index.css?p0v=7aea23eb1054031f">
+<link rel="stylesheet" data-p0-style-library href="/modules/modals/conversation-history/index.css?p0v=7aea23eb1054031f">
+<script data-p0-library src="/modules/shared/common/index.js?p0v=7aea23eb1054031f"></script>
+<script data-p0-library src="/modules/shared/agent-content/index.js?p0v=7aea23eb1054031f"></script>
+<script data-p0-library src="/modules/pages/home/index.js?p0v=7aea23eb1054031f"></script>
+<script data-p0-library src="/modules/pages/smb-home/index.js?p0v=7aea23eb1054031f"></script>
+<script data-p0-library src="/modules/pages/product-list/index.js?p0v=7aea23eb1054031f"></script>
+<script data-p0-library src="/modules/pages/solution-list/index.js?p0v=7aea23eb1054031f"></script>
+<script data-p0-library src="/modules/pages/store-list/index.js?p0v=7aea23eb1054031f"></script>
+<script data-p0-library src="/modules/pages/device-list/index.js?p0v=7aea23eb1054031f"></script>
+<script data-p0-library src="/modules/pages/product-detail/index.js?p0v=7aea23eb1054031f"></script>
+<script data-p0-library src="/modules/pages/solution-detail/index.js?p0v=7aea23eb1054031f"></script>
+<script data-p0-library src="/modules/pages/store-detail/index.js?p0v=7aea23eb1054031f"></script>
+<script data-p0-library src="/modules/pages/device-detail/index.js?p0v=7aea23eb1054031f"></script>
+<script data-p0-library src="/modules/pages/product-compare/index.js?p0v=7aea23eb1054031f"></script>
+<script data-p0-library src="/modules/pages/solution-compare/index.js?p0v=7aea23eb1054031f"></script>
+<script data-p0-library src="/modules/pages/order-list/index.js?p0v=7aea23eb1054031f"></script>
+<script data-p0-library src="/modules/pages/order-detail/index.js?p0v=7aea23eb1054031f"></script>
+<script data-p0-library src="/modules/pages/member-center/index.js?p0v=7aea23eb1054031f"></script>
+<script data-p0-library src="/modules/pages/coupon-center/index.js?p0v=7aea23eb1054031f"></script>
+<script data-p0-library src="/modules/pages/voucher-center/index.js?p0v=7aea23eb1054031f"></script>
+<script data-p0-library src="/modules/pages/red-envelope/index.js?p0v=7aea23eb1054031f"></script>
+<script data-p0-library src="/modules/pages/ledou-center/index.js?p0v=7aea23eb1054031f"></script>
+<script data-p0-library src="/modules/modals/login/index.js?p0v=7aea23eb1054031f"></script>
+<script data-p0-library src="/modules/modals/register/index.js?p0v=7aea23eb1054031f"></script>
+<script data-p0-library src="/modules/modals/login-success/index.js?p0v=7aea23eb1054031f"></script>
+<script data-p0-library src="/modules/modals/lead-form/index.js?p0v=7aea23eb1054031f"></script>
+<script data-p0-library src="/modules/modals/education-auth/index.js?p0v=7aea23eb1054031f"></script>
+<script data-p0-library src="/modules/modals/workplace-auth/index.js?p0v=7aea23eb1054031f"></script>
+<script data-p0-library src="/modules/modals/enterprise-auth/index.js?p0v=7aea23eb1054031f"></script>
+<script data-p0-library src="/modules/modals/diamond-upgrade/index.js?p0v=7aea23eb1054031f"></script>
+<script data-p0-library src="/modules/modals/profile-edit/index.js?p0v=7aea23eb1054031f"></script>
+<script data-p0-library src="/modules/modals/store-appointment-confirm/index.js?p0v=7aea23eb1054031f"></script>
+<script data-p0-library src="/modules/modals/store-select/index.js?p0v=7aea23eb1054031f"></script>
+<script data-p0-library src="/modules/modals/arrival-time/index.js?p0v=7aea23eb1054031f"></script>
+<script data-p0-library src="/modules/modals/store-purpose/index.js?p0v=7aea23eb1054031f"></script>
+<script data-p0-library src="/modules/modals/order-payment-confirm/index.js?p0v=7aea23eb1054031f"></script>
+<script data-p0-library src="/modules/modals/order-edit/index.js?p0v=7aea23eb1054031f"></script>
+<script data-p0-library src="/modules/modals/configuration-edit/index.js?p0v=7aea23eb1054031f"></script>
+<script data-p0-library src="/modules/modals/invoice-edit/index.js?p0v=7aea23eb1054031f"></script>
+<script data-p0-library src="/modules/modals/payment-processing/index.js?p0v=7aea23eb1054031f"></script>
+<script data-p0-library src="/modules/modals/payment-success/index.js?p0v=7aea23eb1054031f"></script>
+<script data-p0-library src="/modules/modals/store-coupon-verify/index.js?p0v=7aea23eb1054031f"></script>
+<script data-p0-library src="/modules/modals/product-match/index.js?p0v=7aea23eb1054031f"></script>
+<script data-p0-library src="/modules/modals/device-bind/index.js?p0v=7aea23eb1054031f"></script>
+<script data-p0-library src="/modules/modals/toast/index.js?p0v=7aea23eb1054031f"></script>
+<script data-p0-library src="/modules/modals/conversation-history/index.js?p0v=7aea23eb1054031f"></script>
+<script>window.__p0Modules.collectStyles();</script>
+
+<link rel="stylesheet" href="/modules/modals/toast/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Fnotification-toast-v1.css" /><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/modules/modals/toast/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Fnotification-toast-v1.css");</script>
+<script src="/modules/pages/product-detail/index.js?p0v=7aea23eb1054031f#p0-script=%2Fassets%2Ffrontend%2Fjs%2Fcore%2Fproduct-detail-navigation-v1.js"></script>
+<script src="/modules/modals/toast/index.js?p0v=7aea23eb1054031f#p0-script=%2Fassets%2Ffrontend%2Fjs%2Fcore%2Fnotification-toast-v1.js"></script>
+<script src="/modules/pages/product-compare/index.js?p0v=7aea23eb1054031f#p0-script=%2Fassets%2Ffrontend%2Fjs%2Fcore%2Fcomparison-display-actions-v1.js"></script>
+<script src="/modules/shared/common/index.js?p0v=7aea23eb1054031f#p0-script=%2Fassets%2Ffrontend%2Fjs%2Fcore%2Fdetail-operating-system-v1.js"></script>
+<script src="/modules/shared/common/index.js?p0v=7aea23eb1054031f#p0-script=%2Fassets%2Ffrontend%2Fjs%2Fcore%2Fservice-products-query-v1.js"></script>
+<script src="/modules/pages/member-center/index.js?p0v=7aea23eb1054031f#p0-script=%2Fassets%2Ffrontend%2Fjs%2Fcore%2Feducation-member-state-sync-v1.js"></script>
+<script src="/modules/shared/common/index.js?p0v=7aea23eb1054031f#p0-script=%2Fassets%2Ffrontend%2Fjs%2Fcore%2Feducation-offer-query-v1.js" defer></script>
+<script src="/modules/shared/agent-content/index.js?p0v=7aea23eb1054031f#p0-script=%2Fassets%2Ffrontend%2Fjs%2Fcore%2Fgeneration-control-v1.js"></script>
+<script src="/modules/shared/common/index.js?p0v=7aea23eb1054031f#p0-script=%2Fchannel-customer-service-v126.js"></script>
     <base href="./assets/templates/">
     <!-- Temporary full-storage diagnostic disabled: preserve user storage. -->
-    <script  data-p0-inline-source="/assets/frontend/js/core/p0-root-nav.js">
-(function () {
-  "use strict";
-
-  var routes = {
-    home: "index.html",
-    personal: "shop-chat/index.html",
-    business: "b-chat/index.html",
-    enterprise: "biz-chat/index.html",
-    brand: "brand/index.html"
-  };
-  var rootBase = new URL("../../", document.baseURI).href;
-  var currentByPath = {
-    "": "home",
-    "index.html": "home",
-    "shop-chat": "personal",
-    "shop-chat/index.html": "personal",
-    "b-chat": "business",
-    "b-chat/index.html": "business",
-    "biz-chat": "enterprise",
-    "biz-chat/index.html": "enterprise",
-    "brand": "brand",
-    "brand/index.html": "brand"
-  };
-  var bridgePrefix = "leaip0-conversation:";
-  var sharedKeys = [
-    "lexiang.conversation.v1",
-    "lexiang.lxfd.convs.v1",
-    "lexiang.conversation.sourcePage.v1",
-    "lexiang.recoPayloads.v1",
-    "lexiang.cart.v1",
-    "lexiang.orders.v1",
-    "lexiang.compare.v1",
-    "lexiang.coupons.v1"
-  ];
-
-  function restoreNavigationBridge() {
-    if (typeof window.name !== "string" || window.name.indexOf(bridgePrefix) !== 0) return;
-    try {
-      var payload = JSON.parse(decodeURIComponent(window.name.slice(bridgePrefix.length)));
-      sharedKeys.forEach(function (key) {
-        if (typeof payload[key] === "string") localStorage.setItem(key, payload[key]);
-      });
-      window.name = "";
-    } catch (_e) {}
-  }
-
-  function saveNavigationBridge() {
-    try {
-      var payload = {};
-      sharedKeys.forEach(function (key) {
-        var value = localStorage.getItem(key);
-        if (value !== null) payload[key] = value;
-      });
-      window.name = bridgePrefix + encodeURIComponent(JSON.stringify(payload));
-    } catch (_e) {}
-  }
-
-  function snapshotVisibleConversation() {
-    try {
-      if (localStorage.getItem("lexiang.newChatEmpty.v1") === "1") {
-        localStorage.removeItem("lexiang.conversation.v1");
-        return;
-      }
-      var fullscreenNodes = Array.from(document.querySelectorAll(".lxfd-thread > .lxfd-msg-user, .lxfd-thread > .lxfd-msg-ai"));
-      var splitNodes = Array.from(document.querySelectorAll(".chat-state .lx-p0-messages > .lx-p0-message"));
-      var fullscreenActive = currentPage() === "home" &&
-        (document.body.classList.contains("assistant-fullscreen") || document.body.classList.contains("lx-auto-fs"));
-      var splitHasConversation = splitNodes.some(function (node) {
-        return node.classList.contains("user");
-      });
-      var fullscreenHasConversation = fullscreenNodes.some(function (node) {
-        return node.classList.contains("lxfd-msg-user");
-      });
-      // 五个频道共用同一个智能体会话。子站/分屏页面中仍会保留一份隐藏的全屏 DOM，
-      // 它可能只同步了首轮。不能因为这份旧 DOM 里“存在用户消息”就覆盖当前分屏的完整多轮。
-      // 只有首页真正处于全屏对话态时才以全屏为准；其余情况分屏会话优先。
-      var nodes = fullscreenActive && fullscreenHasConversation
-        ? fullscreenNodes
-        : (splitHasConversation ? splitNodes : fullscreenNodes);
-      var messages = [];
-
-      nodes.forEach(function (node) {
-        var isFullscreenUser = node.classList.contains("lxfd-msg-user");
-        var isSplitUser = node.classList.contains("user");
-        var isUser = isFullscreenUser || isSplitUser;
-        var isAi = node.classList.contains("lxfd-msg-ai") || node.classList.contains("ai") || node.classList.contains("assistant");
-        if (!isUser && !isAi) return;
-
-        if (isUser) {
-          var userBubble = node.querySelector(".user-bubble");
-          var userText = ((userBubble || node).textContent || "").trim();
-          if (userText) messages.push({ role: "user", text: userText, html: "" });
-          return;
-        }
-
-        var aiBody = node.querySelector(".lxfd-ai-body, .ai-body") || node;
-        var aiText = (aiBody.textContent || "").trim();
-        var aiHtml = aiBody.innerHTML || "";
-        var hasVisiblePending = Array.from(aiBody.querySelectorAll(".lx-generating, .loading-line, .typing-text, .typing-cursor")).some(function (pending) {
-          return !pending.hidden && pending.getAttribute("aria-hidden") !== "true";
-        });
-        var hasPlaceholderOnly = /联想乐享正在生成中|正在生成中/.test(aiText) && aiText.length < 40;
-        if ((hasVisiblePending || hasPlaceholderOnly) && !aiText.replace(/联想乐享正在生成中|正在生成中/g, "").trim()) return;
-        if (hasVisiblePending || hasPlaceholderOnly) aiHtml = "";
-        if (aiText || aiHtml) messages.push({ role: "ai", text: aiText, html: aiHtml });
-      });
-
-      if (!messages.length) return;
-      localStorage.setItem("lexiang.conversation.v1", JSON.stringify({
-        convId: (window.__lxState && window.__lxState.convId) || null,
-        messages: messages.slice(-50),
-        ts: Date.now()
-      }));
-    } catch (_e) {}
-  }
-
-  restoreNavigationBridge();
-
-  function currentPage() {
-    if (window.__LX_TEMPLATE_PAGE && routes[window.__LX_TEMPLATE_PAGE]) return window.__LX_TEMPLATE_PAGE;
-    try {
-      var relativePath = decodeURIComponent(location.pathname).replace(decodeURIComponent(new URL(rootBase).pathname), "").replace(/^\/+|\/+$/g, "");
-      return currentByPath[relativePath] || "home";
-    } catch (_e) {
-      return "home";
-    }
-  }
-
-  function syncActiveState() {
-    var page = currentPage();
-    document.querySelectorAll(".main-nav [data-page], .lxfd-nav-sheet [data-page]").forEach(function (item) {
-      var active = item.dataset.page === page;
-      item.classList.toggle("active", active);
-      if (active) item.setAttribute("aria-current", "page");
-      else item.removeAttribute("aria-current");
-    });
-  }
-
-  function isFullscreenConversationActive() {
-    return currentPage() === "home" &&
-      (document.body.classList.contains("assistant-fullscreen") || document.body.classList.contains("lx-auto-fs"));
-  }
-
-  function resetConversationAndReturnHome() {
-    var fullscreenVisible = document.body.classList.contains("assistant-fullscreen") ||
-      document.body.classList.contains("lx-auto-fs");
-    // 当前可见会话先走各自已有的“新建对话”归档链路，历史记录继续保留；
-    // 随后只清当前会话缓存，确保回首页后是全新的欢迎态。
-    try {
-      if (fullscreenVisible && typeof window.lxfdReset === "function") window.lxfdReset(true);
-      else if (window.__lxBridge && typeof window.__lxBridge.newConversationInCurrentChannel === "function") {
-        window.__lxBridge.newConversationInCurrentChannel();
-      }
-    } catch (_e) {}
-    try {
-      localStorage.setItem("lexiang.newChatEmpty.v1", "1");
-      localStorage.removeItem("lexiang.conversation.v1");
-      localStorage.removeItem("lexiang.conversation.sourcePage.v1");
-    } catch (_e) {}
-    window.name = "";
-    location.assign(new URL(routes.home, rootBase).href);
-  }
-
-  document.addEventListener("click", function (event) {
-    if (!event.isTrusted) return;
-    var item = event.target.closest && event.target.closest(".main-nav [data-page], .lxfd-nav-sheet [data-page], .brand, .lxfd-logo-pill");
-    if (!item) return;
-    var isLogo = item.matches(".brand, .lxfd-logo-pill");
-    var page = item.dataset.page || "home";
-    if (!routes[page]) return;
-    event.preventDefault();
-    event.stopImmediatePropagation();
-    if (isLogo) {
-      resetConversationAndReturnHome();
-      return;
-    }
-    // 隐藏的 lxfd 线程不是当前会话源；让它持久化会把分屏的多轮快照回退成首轮。
-    if (isFullscreenConversationActive()) {
-      try { window.__lxfdPersistCurrentNow && window.__lxfdPersistCurrentNow(); } catch (_e) {}
-    }
-    try { window.__lxSaveConversationNow && window.__lxSaveConversationNow(); } catch (_e) {}
-    snapshotVisibleConversation();
-    saveNavigationBridge();
-    location.assign(new URL(routes[page], rootBase).href);
-  }, true);
-
-  document.addEventListener("DOMContentLoaded", syncActiveState);
-  document.addEventListener("DOMContentLoaded", function () {
-    document.querySelectorAll(".brand, .lxfd-logo-pill").forEach(function (logo) {
-      logo.setAttribute("aria-label", "新建对话并返回首页");
-      logo.setAttribute("title", "新建对话并返回首页");
-    });
-  });
-  window.setTimeout(syncActiveState, 0);
-  new MutationObserver(function (_records, observer) {
-    if (!document.querySelector(".main-nav [data-page], .lxfd-nav-sheet [data-page]")) return;
-    syncActiveState();
-    observer.disconnect();
-  }).observe(document.documentElement, { childList: true, subtree: true });
-})();
-
-</script>
-    <script  data-p0-inline-source="/assets/frontend/js/pages/home/inline-01.js">
-window.__LX_TEMPLATE_PATH="/";
-      window.__LX_TEMPLATE_PAGE="home";
-      // POC 一次性历史清理：仅清空当前会话快照、共享历史列表与来源标记。
-      // 用独立迁移标记保证只执行一次，清理后新产生的历史仍可正常保存。
-      (function(){
-        var cleanupKey = "lexiang.history.cleanup.20260819.v1";
-        try {
-          if (localStorage.getItem(cleanupKey)) return;
-          [
-            "lexiang.conversation.v1",
-            "lexiang.lxfd.convs.v1",
-            "lexiang.conversation.sourcePage.v1"
-          ].forEach(function(key){ localStorage.removeItem(key); });
-          localStorage.setItem(cleanupKey, "1");
-        } catch (_) {}
-      })();
-      // P0 多频道共享同一份会话，不在页面切换或刷新时清空持久化内容。
-      (function(){
-        var productionOrigin = new URL(document.baseURI).origin;
-        if (location.protocol !== "file:" && location.origin === productionOrigin) return;
-        ["pushState","replaceState"].forEach(function(method){
-          var nativeMethod = history[method];
-          history[method] = function(state,title,url){
-            if (location.protocol === "file:" && url) return;
-            if (url) {
-              try {
-                if (new URL(url,document.baseURI).origin !== location.origin) {
-                  return nativeMethod.call(history,state,title);
-                }
-              } catch (_) {}
-            }
-            return nativeMethod.apply(history,arguments);
-          };
-        });
-      })();
-
-</script>
+    <script  data-p0-inline-source="/assets/frontend/js/core/p0-root-nav.js">window.__p0Modules.run("/@inline/index.html/4390.js",document.currentScript);</script>
+    <script  data-p0-inline-source="/modules/pages/home/index.js?p0v=7aea23eb1054031f#p0-script=%2Fassets%2Ffrontend%2Fjs%2Fpages%2Fhome%2Finline-01.js">window.__p0Modules.run("/@inline/index.html/12576.js",document.currentScript);</script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>联想乐享 PC 端首页全屏对话模板</title>
-    <script  data-p0-inline-source="/assets/frontend/js/pages/home/inline-02.js">
-(function(){
-        var path = (window.__LX_TEMPLATE_PATH || location.pathname).replace(/\/+$|^$/, "/");
-        if (path === "/") document.documentElement.classList.add("lx-root-lxfd-prepaint");
-        if (["/shop-chat/", "/b-chat/", "/biz-chat/", "/brand/"].indexOf(path) >= 0) {
-          document.documentElement.classList.add("lx-route-prepaint");
-        }
-      })();
-
-</script>
-    <style data-p0-inline-source="/assets/frontend/css/pages/home/inline-03.css">
-html.lx-root-lxfd-prepaint body{overflow:hidden!important;background:#fcfaff}
-      html.lx-root-lxfd-prepaint body>.topbar,
-      html.lx-root-lxfd-prepaint body>.shell{display:none!important}
-      html.lx-root-lxfd-prepaint .lxfd{display:block!important}
-      html.lx-root-lxfd-prepaint .lxfd .anim-rise,
-      html.lx-root-lxfd-prepaint .lxfd .anim-fade{opacity:1!important;animation:none!important;transform:none!important}
-      html.lx-root-lxfd-prepaint .lxfd-actions .lxfd-ic:first-child{display:none!important}
-      html.lx-root-lxfd-prepaint #lxfdNavSheet [data-page="home"]{display:none!important}
-      html.lx-root-lxfd-prepaint body:not(.lxfd-chatting) .lxfd-rail-fab{display:none!important}
-      html.lx-root-lxfd-prepaint body.lxfd-chatting .lxfd-ic-history{display:none!important}
-      html:not(.lx-root-lxfd-prepaint) .lxfd-ic-history{display:none!important}
-      html.lx-root-lxfd-prepaint body:not(.lxfd-rail-user-open) .lxfd-rail{transform:translate3d(calc(-100% - 26px),0,0)!important}
-      html.lx-root-lxfd-prepaint body.lxfd-rail-user-open .lxfd-rail.open{transform:translate3d(0,0,0)!important}
-      html.lx-root-lxfd-prepaint body:not(.lxfd-rail-user-open) .lxfd-rail-fab{opacity:1!important;visibility:visible!important;transform:none!important}
-      html.lx-root-lxfd-prepaint body.lxfd-chatting:not(.lxfd-rail-user-open) .lxfd-rail-new-fab{opacity:1!important;visibility:visible!important;transform:none!important}
-      html.lx-root-lxfd-prepaint body:not(.lxfd-chatting) .lxfd-rail-new-fab{opacity:0!important;visibility:hidden!important;transform:translateX(-10px)!important}
-      html.lx-root-lxfd-prepaint body.lxfd-rail-user-open .lxfd-rail-fab,
-      html.lx-root-lxfd-prepaint body.lxfd-rail-user-open .lxfd-rail-new-fab{opacity:0!important;visibility:hidden!important;transform:translateX(-10px)!important}
-      html.lx-root-lxfd-prepaint body:not(.lxfd-rail-user-open) .lxfd-stage{padding-left:40px!important}
-      html.lx-root-lxfd-prepaint body.lxfd-rail-user-open .lxfd-stage.shift{padding-left:316px!important}
-      html.lx-root-lxfd-prepaint .lxfd-chips{width:min(100%,700px);grid-template-columns:repeat(6,minmax(0,1fr));gap:10px 12px;margin:36px auto 0}
-      html.lx-root-lxfd-prepaint .lxfd-chip-q:nth-child(1){grid-column:1/span 2}
-      html.lx-root-lxfd-prepaint .lxfd-chip-q:nth-child(2){grid-column:3/span 2}
-      html.lx-root-lxfd-prepaint .lxfd-chip-q:nth-child(3){grid-column:5/span 2}
-      html.lx-root-lxfd-prepaint .lxfd-chip-q:nth-child(4){grid-column:2/span 2}
-      html.lx-root-lxfd-prepaint .lxfd-chip-q:nth-child(5){grid-column:4/span 2}
-      html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home{align-items:center!important;padding-top:clamp(78px,9vh,104px)!important;padding-bottom:18px!important;}
-      html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home .lxfd-welcome{flex:0 0 auto!important;justify-content:flex-start!important;min-height:auto!important;padding-bottom:0!important;margin-top:clamp(82px,12vh,124px)!important;}
-      html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home .lxfd-hello{font-size:clamp(30px,2.55vw,42px)!important;line-height:1.08!important;letter-spacing:0!important;}
-      html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home .lxfd-chips{display:none!important;}
-      html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home:not(.is-chatting){--lxfd-gallery-shell:clamp(520px,calc(72.22vw - 194px),920px);}
-      html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home .lxfd-dock{position:relative!important;bottom:auto!important;width:var(--lxfd-gallery-shell)!important;max-width:var(--lxfd-gallery-shell)!important;margin:clamp(26px,3.4vh,42px) auto 0!important;padding-top:0!important;transform:none!important;z-index:3!important;box-sizing:border-box!important;}
-      html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home .lxfd-composer{width:100%!important;margin:0 auto!important;padding:14px 14px 10px 14px!important;border-radius:18px!important;box-sizing:border-box!important;}
-      html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home .lxfd-composer textarea{min-height:35px!important;font-size:16px!important;transform:translateY(3px)!important;}
-      html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home .lxfd-comp-actions{display:flex!important;align-items:center!important;justify-content:flex-start!important;gap:8px!important;margin-top:8px!important;}
-      html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home .lxfd-comp-left,html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home .lxfd-comp-right,html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home .lxfd-scope-actions{gap:8px!important;}
-      html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home .lxfd-comp-left{flex:0 0 auto!important;}
-      html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home .lxfd-comp-right{flex:0 0 auto!important;margin-left:auto!important;}
-      html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home .lxfd-quick,html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home .lxfd-footnote{display:none!important;}
-      html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home .lxfd-toggle,html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home .lxfd-scope-chip,html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home .lxfd-scope-more-btn{padding:0 10px!important;}
-      html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home:not(.is-chatting) .lxfd-scope-more{display:inline-flex!important;}
-      html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home:not(.is-chatting) .lxfd-scope-actions > .lxfd-scope-chip:nth-child(n+3){display:none!important;}
-      html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home:not(.is-chatting) .lxfd-scope-menu .lxfd-scope-chip{display:flex!important;}
-      html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home .lxfd-home-gallery{position:relative!important;z-index:1!important;width:var(--lxfd-gallery-shell)!important;max-width:var(--lxfd-gallery-shell)!important;box-sizing:border-box!important;margin:0 auto!important;padding:clamp(24px,3vh,34px) 0 clamp(24px,3.4vh,40px)!important;}
-      html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home:not(.is-chatting) .lxfd-legal-line{position:fixed!important;left:50%!important;right:auto!important;bottom:18px!important;transform:translateX(-50%)!important;width:auto!important;max-width:calc(100vw - 48px)!important;margin:0!important;padding:0!important;text-align:center!important;color:#f3f0f7!important;font-size:12px!important;line-height:1.5!important;font-weight:400!important;letter-spacing:0!important;pointer-events:none!important;}
-      @media (max-height:860px){html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home{padding-top:72px!important;}html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home .lxfd-welcome{margin-top:60px!important;}html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home .lxfd-dock{margin-top:22px!important;}html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home .lxfd-home-gallery{padding-top:20px!important;padding-bottom:22px!important;}}
-      @media (min-width:1920px){html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home:not(.is-chatting){--lxfd-gallery-shell:clamp(520px,calc(68.75vw - 150px),1000px);}html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home:not(.is-chatting) .lxfd-scope-actions > .lxfd-scope-chip,html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home:not(.is-chatting) .lxfd-scope-actions > .lxfd-scope-chip:nth-child(n+3){display:inline-flex!important;}html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home:not(.is-chatting) .lxfd-scope-more{display:none!important;}}
-      @media (min-width:1280px) and (max-width:1739px){html.lx-root-lxfd-prepaint .lxfd-stage.lxfd-gallery-home:not(.is-chatting){--lxfd-gallery-shell:clamp(520px,calc(68.75vw - 150px),920px);}}
-      html.lx-route-prepaint body{background:#fcfaff}
-      html.lx-route-prepaint body>.topbar,
-      html.lx-route-prepaint body>.shell,
-      html.lx-route-prepaint body>.lxfd{visibility:hidden!important}
-      .lx-route-loading{display:none}
-      html.lx-route-prepaint .lx-route-loading{display:flex;position:fixed;inset:0;z-index:9999;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:#fcfaff}
-      .lx-route-loading .lx-rl-spin{width:34px;height:34px;border:3px solid #e2ddeb;border-top-color:#5b1452;border-radius:50%;animation:lxRlSpin .8s linear infinite}
-      .lx-route-loading .lx-rl-txt{color:#979797;font-size:14px;letter-spacing:.04em}
-      @keyframes lxRlSpin{to{transform:rotate(360deg)}}
-      .portal-home{display:none!important}
-      html.lx-root-lxfd-prepaint body>.topbar,
-      html.lx-root-lxfd-prepaint body>.shell,
-      body.lx-root-home:not(.lx-home-split)>.topbar,
-      body.lx-root-home:not(.lx-home-split)>.shell{display:none!important}
-      html.lx-root-lxfd-prepaint .lxfd,
-      body.lx-root-home:not(.lx-home-split)>.lxfd{display:block!important;visibility:visible!important}
-
-</style>
+    <script  data-p0-inline-source="/modules/pages/home/index.js?p0v=7aea23eb1054031f#p0-script=%2Fassets%2Ffrontend%2Fjs%2Fpages%2Fhome%2Finline-02.js">window.__p0Modules.run("/@inline/index.html/14198.js",document.currentScript);</script>
+    <link rel="stylesheet" href="/modules/pages/home/index.css?p0v=7aea23eb1054031f#p0-style=%2F%40inline%2Findex.html%2F14668.css"><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/@inline/index.html/14668.css");</script>
     <link rel="preload" as="image" href="../logos/logo-full-red.png">
     <link rel="preload" as="image" href="../img/lxfd-gallery-1-1.jpg">
     <link rel="preload" as="image" href="../img/lxfd-gallery-1-2.jpg">
     <link rel="preload" as="image" href="../img/lxfd-gallery-1-3.jpg">
-    <link rel="stylesheet" data-template-source="https://leaibot.cn/css/main.css?v=202607150210" href="/assets/frontend/css/pages/home/inline-04.css?p0v=2c340568e534e786">
-    <link rel="stylesheet" data-template-source="https://leaibot.cn/css/assistant-panel-ng-skin.css?v=202606222610" href="/assets/frontend/css/pages/home/inline-05.css?p0v=11367ccb4bfae459">
-    <link rel="stylesheet" data-category-waiting-modal href="/assets/frontend/css/shared/inline-935e2224afac.css?p0v=44194d31b465439c">
-  <link rel="stylesheet" href="/assets/frontend/css/core/split-frame-composer-sync.css?p0v=3da557c3cd6b065b" />
-  <link rel="stylesheet" href="/assets/frontend/css/core/right-generation-aurora.css?p0v=9fb0189512e6318b" />
-  <link rel="stylesheet" href="/assets/frontend/css/core/auth-dialog.css?p0v=8dc00cd03756d00a" />
-  <link rel="stylesheet" href="/assets/frontend/css/core/hover-ai-disabled.css?p0v=316a5c45d5e7cb4a" />
-  <link rel="stylesheet" id="lx-history-modal-standard" href="/assets/frontend/css/pages/home/inline-07.css?p0v=f813cb9eab24329a">
-  <link rel="stylesheet" data-lx-modal-overlay-unified href="/assets/frontend/css/core/modal-overlay-unified.css?p0v=3500c9504569dc0a">
-  <link rel="stylesheet" data-lx-workplace-auth-modal href="/assets/frontend/css/core/workplace-auth-modal.css?p0v=9e414dbce04ff1ef">
-  <link rel="stylesheet" data-lx-enterprise-member-auth-modal href="/assets/frontend/css/core/enterprise-member-auth-modal.css?p0v=663d6f86d0dd12a4">
-  <script id="p0-home-feature-config" type="application/json">{"memberStyle":"/assets/frontend/bundles/p0-home-member.css?p0v=e28ca7df0da5eae9","features":{"detail":{"styles":[{"anchor":"p0-commerce-style-2","url":"/assets/frontend/bundles/p0-shared-1897ffc493bf.css?p0v=1897ffc493bf0bb5?p0v=1897ffc493bf0bb5"},{"anchor":"p0-commerce-style-3","url":"/assets/frontend/bundles/p0-shared-08dd25b63874.css?p0v=08dd25b63874065c?p0v=08dd25b63874065c"},{"anchor":"p0-commerce-style-4","url":"/assets/frontend/bundles/p0-shared-12c7b4eac601.css?p0v=12c7b4eac601e3b4?p0v=12c7b4eac601e3b4"},{"anchor":"p0-commerce-style-5","url":"/assets/frontend/bundles/p0-shared-f054b000c8c6.css?p0v=f054b000c8c6f79f?p0v=f054b000c8c6f79f"},{"anchor":"p0-commerce-style-6","url":"/assets/frontend/bundles/p0-shared-2abd72502c25.css?p0v=2abd72502c25e611?p0v=2abd72502c25e611"},{"anchor":"p0-commerce-style-7","url":"/assets/frontend/bundles/p0-shared-cb8e2ca3f9d5.css?p0v=cb8e2ca3f9d57fe1?p0v=cb8e2ca3f9d57fe1"}],"script":"/assets/frontend/bundles/p0-shared-ad829c58dcc0.js?p0v=ad829c58dcc0d0f0?p0v=ad829c58dcc0d0f0?p0v=9fa5dc406d48bf7b"},"orders":{"styles":[{"anchor":"p0-commerce-style-1","url":"/assets/frontend/bundles/p0-shared-e0e9c414dedb.css?p0v=e0e9c414dedb98a6?p0v=e0e9c414dedb98a6"}],"script":"/assets/frontend/bundles/p0-shared-ed8f45144e8f.js?p0v=ed8f45144e8fb2d9?p0v=ed8f45144e8fb2d9?p0v=cd4772679918f438"},"checkout":{"depends":["detail","orders"],"styles":[{"anchor":"p0-commerce-style-0","url":"/assets/frontend/bundles/p0-shared-4cd8a5a5d35a.css?p0v=4cd8a5a5d35aa42c?p0v=4cd8a5a5d35aa42c"}],"script":"/assets/frontend/bundles/p0-shared-ddfb481cbe66.js?p0v=ddfb481cbe66083d?p0v=ddfb481cbe66083d?p0v=1ea8204fc5cd20d7"}}}</script>
-<script data-p0-inline-source="/assets/frontend/js/core/p0-home-features-v1.js">/* Explicit feature boundaries: detail / orders / checkout. No eager business downloads. */
-(() => {
-  'use strict';
-  if(window.__lxHomeFeatures?.version===2)return;
-  const config=JSON.parse(document.getElementById('p0-home-feature-config').textContent);
-  const resources=new Map(), features=new Map();let actionToken=0,replaying=false;
-  function load(tag,url,anchor,id){
-    const key=tag+':'+url;if(resources.has(key))return resources.get(key);
-    const task=new Promise((resolve,reject)=>{
-      const node=document.createElement(tag);let settled=false,timer;
-      if(id)node.id=id;
-      if(tag==='link'){node.rel='stylesheet';node.href=url;}else{node.src=url;node.async=false;}
-      function finish(error){if(settled)return;settled=true;clearTimeout(timer);node.onload=node.onerror=null;if(error){node.remove();reject(error);}else resolve(node);}
-      node.onload=()=>finish();node.onerror=()=>finish(new Error('功能资源加载失败，请重试'));
-      timer=setTimeout(()=>finish(new Error('网络连接超时，请重试')),60000);
-      try{if(anchor)anchor.before(node);else document.head.appendChild(node);}catch(error){finish(error);}
-    });resources.set(key,task);task.catch(()=>{if(resources.get(key)===task)resources.delete(key);});return task;
-  }
-  function ensure(name){
-    if(features.has(name))return features.get(name).task;
-    const spec=config.features[name];if(!spec)return Promise.reject(new Error('未知功能：'+name));
-    const entry={state:'loading'};features.set(name,entry);
-    entry.task=Promise.all((spec.depends||[]).map(ensure)).then(()=>{
-      // Start the script transfer together with CSS; execute only after CSS is ready.
-      const hint=document.createElement('link');hint.rel='preload';hint.as='script';hint.href=spec.script;document.head.appendChild(hint);
-      return Promise.all(spec.styles.map(s=>load('link',s.url,document.getElementById(s.anchor))))
-        .then(()=>load('script',spec.script)).finally(()=>hint.remove());
-    }).then(()=>{
-      if(name==='orders' && document.readyState==='loading')return new Promise((resolve,reject)=>{let timer;const done=()=>{clearTimeout(timer);document.removeEventListener('DOMContentLoaded',done);resolve();};document.addEventListener('DOMContentLoaded',done,{once:true});timer=setTimeout(()=>{document.removeEventListener('DOMContentLoaded',done);reject(new Error('页面初始化超时，请重试'));},60000);});
-    }).then(()=>{entry.state='ready';}).catch(error=>{entry.state='error';if(features.get(name)===entry)features.delete(name);throw error;});
-    return entry.task;
-  }
-  const ready=name=>features.get(name)?.state==='ready';
-  window.__lxHomeFeatures={version:2,detail:()=>ensure('detail'),orders:()=>ensure('orders'),commerce:()=>ensure('checkout'),get ready(){return ready('checkout');},states:()=>Object.fromEntries([...features].map(([k,v])=>[k,v.state]))};
-  if(config.memberStyle)window.__lxLoadMemberStyles=()=>Promise.all((config.memberStyles||[{url:config.memberStyle,anchor:'p0-member-style-anchor'}]).map((s,n)=>load('link',s.url,document.getElementById(s.anchor),n===0?'lx-member-component-css':undefined)));
-  function status(message,retry){
-    if(window.__lxToast){window.__lxToast.show(message,{id:'p0-feature-status',title:retry?'加载暂未完成':'正在加载',kind:retry?'error':'info',duration:0,retry});return;}
-    document.getElementById('p0-feature-status')?.remove();const box=document.createElement('div');box.id='p0-feature-status';box.className='lx-p0-toast show';box.setAttribute('role',retry?'alert':'status');box.textContent=message;
-    if(retry){const b=document.createElement('button');b.type='button';b.textContent='重试';b.onclick=retry;box.append(' ',b);}document.body.appendChild(box);
-  }
-  function run(name,action){const token=++actionToken;status(name==='orders'?'正在加载订单…':'正在准备商品与下单信息…');return ensure(name).then(()=>{
-    if(token!==actionToken)return;document.getElementById('p0-feature-status')?.remove();return action();
-  }).catch(()=>{if(token===actionToken)status('连接较慢，功能暂未加载完成',()=>run(name,action));});}
-  for(const name of ['__lxOpenOrdersCenter','lxHandleCommerceQuery','lxHandleCommerceEntry']){
-    const stub=(...args)=>run('orders',()=>{const fn=window[name];if(fn===stub||typeof fn!=='function')throw new Error('订单入口未准备好');return fn(...args);});window[name]=stub;
-  }
-  const orderSelector='.utility-btn[aria-label="订单"],[data-commerce-entry="orders"],[data-lxfd-open="orders"],[data-open-orders],[data-lx-result-id="info:orders"],[data-tab-id="info:orders"]';
-  const sendSelector='.assistant-panel .send-btn,.assistant-panel [data-send],.assistant-panel button[type="submit"],.lxfd-send';
-  const inputSelector='.assistant-panel .composer textarea,.lxfd-composer textarea';
-  const isOrder=input=>/^(?:我要|我想|帮我)?(?:查看|查询|打开)?(?:我的)?订单(?:中心|列表|记录)?$/.test(String(input?.value||'').replace(/[\s，。！？、,.!?]/g,''));
-  function intercept(event,name,action){event.preventDefault();event.stopImmediatePropagation();run(name,()=>{replaying=true;try{return action();}finally{replaying=false;}});}
-  window.addEventListener('click',event=>{
-    if(replaying||!(event.target instanceof Element))return;const button=event.target.closest('button,a,[role="button"]');if(!button||button.closest('.lx-tab-close'))return;
-    const input=button.closest('form')?.querySelector('textarea')||document.querySelector(inputSelector);
-    if(!ready('orders')&&(button.matches(orderSelector)||(button.matches(sendSelector)&&isOrder(input))))return intercept(event,'orders',()=>{if(button.isConnected)button.click();});
-    const buy=!button.closest('[data-buy-modal-direct]')&&!button.dataset.bizQuote&&(button.matches('[data-buy-sku],[data-buy-now],[data-action="buy"],[data-order-action="buy"],[data-cart-checkout]')||/^(?:一键领取?优惠下单|一键领优惠下单|立即购买|立即下单|去购买|去下单|去结算|结算|提交订单)$/.test(button.textContent.replace(/\s+/g,'')));
-    if(config.features.checkout&&!ready('checkout')&&buy)intercept(event,'checkout',()=>{if(button.isConnected)button.click();});
-  },true);
-  window.addEventListener('keydown',event=>{if(replaying||ready('orders')||event.key!=='Enter'||event.shiftKey||event.isComposing||!event.target.matches?.(inputSelector)||!isOrder(event.target))return;const input=event.target;intercept(event,'orders',()=>input.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',code:'Enter',bubbles:true,cancelable:true})));},true);
-  window.addEventListener('submit',event=>{if(replaying||ready('orders')||!event.target.matches?.('.assistant-panel .composer,.lxfd-composer')||!isOrder(event.target.querySelector('textarea')))return;const form=event.target;intercept(event,'orders',()=>form.dispatchEvent(new Event('submit',{bubbles:true,cancelable:true})));},true);
-})();
-</script>
-<link rel="preload" as="script" href="/assets/frontend/bundles/p0-home-core-2.js?p0v=ebe0114bfe8943f8">
+    <link rel="stylesheet" data-template-source="https://leaibot.cn/css/main.css?v=202607150210" href="/modules/pages/home/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fpages%2Fhome%2Finline-04.css"><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/modules/pages/home/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fpages%2Fhome%2Finline-04.css");</script>
+    <link rel="stylesheet" data-template-source="https://leaibot.cn/css/assistant-panel-ng-skin.css?v=202606222610" href="/modules/pages/home/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fpages%2Fhome%2Finline-05.css"><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/modules/pages/home/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fpages%2Fhome%2Finline-05.css");</script>
+    <link rel="stylesheet" data-category-waiting-modal href="/modules/shared/common/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fshared%2Finline-935e2224afac.css"><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/modules/shared/common/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fshared%2Finline-935e2224afac.css");</script>
+  <link rel="stylesheet" href="/modules/shared/agent-content/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Fsplit-frame-composer-sync.css" /><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/modules/shared/agent-content/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Fsplit-frame-composer-sync.css");</script>
+  <link rel="stylesheet" href="/modules/shared/agent-content/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Fright-generation-aurora.css" /><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/modules/shared/agent-content/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Fright-generation-aurora.css");</script>
+  <link rel="stylesheet" href="/modules/modals/login/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Fauth-dialog.css" /><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/modules/modals/login/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Fauth-dialog.css");</script>
+  <link rel="stylesheet" href="/modules/shared/common/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Fhover-ai-disabled.css" /><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/modules/shared/common/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Fhover-ai-disabled.css");</script>
+  <link rel="stylesheet" id="lx-history-modal-standard" href="/modules/pages/home/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fpages%2Fhome%2Finline-07.css"><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/modules/pages/home/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fpages%2Fhome%2Finline-07.css");</script>
+  <link rel="stylesheet" data-lx-modal-overlay-unified href="/modules/shared/common/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Fmodal-overlay-unified.css"><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/modules/shared/common/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Fmodal-overlay-unified.css");</script>
+  <link rel="stylesheet" data-lx-workplace-auth-modal href="/modules/modals/workplace-auth/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Fworkplace-auth-modal.css"><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/modules/modals/workplace-auth/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Fworkplace-auth-modal.css");</script>
+  <link rel="stylesheet" data-lx-enterprise-member-auth-modal href="/modules/modals/enterprise-auth/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Fenterprise-member-auth-modal.css"><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/modules/modals/enterprise-auth/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Fenterprise-member-auth-modal.css");</script>
+  <script id="p0-home-feature-config" type="application/json">{"memberStyle":"/modules/pages/member-center/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fbundles%2Fp0-home-member.css","features":{"detail":{"styles":[{"anchor":"p0-commerce-style-2","url":"/modules/shared/common/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fbundles%2Fp0-shared-1897ffc493bf.css"},{"anchor":"p0-commerce-style-3","url":"/modules/shared/common/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fbundles%2Fp0-shared-08dd25b63874.css"},{"anchor":"p0-commerce-style-4","url":"/modules/shared/common/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fbundles%2Fp0-shared-12c7b4eac601.css"},{"anchor":"p0-commerce-style-5","url":"/modules/shared/common/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fbundles%2Fp0-shared-f054b000c8c6.css"},{"anchor":"p0-commerce-style-6","url":"/modules/shared/common/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fbundles%2Fp0-shared-2abd72502c25.css"},{"anchor":"p0-commerce-style-7","url":"/modules/shared/common/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fbundles%2Fp0-shared-cb8e2ca3f9d5.css"}],"script":"/modules/shared/common/index.js?p0v=7aea23eb1054031f#p0-script=%2Fassets%2Ffrontend%2Fbundles%2Fp0-shared-ad829c58dcc0.js"},"orders":{"styles":[{"anchor":"p0-commerce-style-1","url":"/modules/shared/common/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fbundles%2Fp0-shared-e0e9c414dedb.css"}],"script":"/modules/shared/common/index.js?p0v=7aea23eb1054031f#p0-script=%2Fassets%2Ffrontend%2Fbundles%2Fp0-shared-ed8f45144e8f.js"},"checkout":{"depends":["detail","orders"],"styles":[{"anchor":"p0-commerce-style-0","url":"/modules/shared/common/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fbundles%2Fp0-shared-4cd8a5a5d35a.css"}],"script":"/modules/shared/common/index.js?p0v=7aea23eb1054031f#p0-script=%2Fassets%2Ffrontend%2Fbundles%2Fp0-shared-ddfb481cbe66.js"}}}</script>
+<script data-p0-inline-source="/assets/frontend/js/core/p0-home-features-v1.js">window.__p0Modules.run("/@inline/index.html/27205.js",document.currentScript);</script>
+<link rel="preload" as="script" href="/modules/pages/home/index.js?p0v=7aea23eb1054031f#p0-script=%2Fassets%2Ffrontend%2Fbundles%2Fp0-home-core-2.js">
 <template id="p0-member-style-anchor"></template>
-  <link rel="preload" as="script" media="not all" href="/assets/frontend/js/components/member-service-clean-v45.js?p0v=f6422dbb0508c86d">
+  <link rel="preload" as="script" media="not all" href="/modules/pages/member-center/index.js?p0v=7aea23eb1054031f#p0-script=%2Fassets%2Ffrontend%2Fjs%2Fcomponents%2Fmember-service-clean-v45.js">
   
   
   
   
   
   
-<style id="reco-buy-weight-v138">html body .reco-page .lx-reco-poc-row .lx-reco-poc-buy,html body .reco-page .lx-reco-poc-row .lx-reco-poc-buy *{font-weight:500!important;}</style>
+<link rel="stylesheet" href="/modules/pages/home/index.css?p0v=7aea23eb1054031f#p0-style=%2F%40inline%2Findex.html%2F34250.css"><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/@inline/index.html/34250.css");</script>
 <template id="p0-commerce-style-0"></template>
-  <link rel="stylesheet" href="/assets/frontend/css/core/composer-smart-actions-v1.css?p0v=07bb602f84b7f2d4" />
+  <link rel="stylesheet" href="/modules/shared/agent-content/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Fcomposer-smart-actions-v1.css" /><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/modules/shared/agent-content/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Fcomposer-smart-actions-v1.css");</script>
   
 
-<link rel="stylesheet" href="/assets/frontend/css/core/assistant-scrollbar-hidden-v1.css?p0v=f523ecbede3f74a8" />
-<link rel="stylesheet" href="/assets/frontend/css/core/empty-hover-backplate-collapse-v1.css?p0v=ecb2fd0eb78d7559">
+<link rel="stylesheet" href="/modules/shared/agent-content/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Fassistant-scrollbar-hidden-v1.css" /><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/modules/shared/agent-content/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Fassistant-scrollbar-hidden-v1.css");</script>
+<link rel="stylesheet" href="/modules/shared/common/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Fempty-hover-backplate-collapse-v1.css"><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/modules/shared/common/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Fempty-hover-backplate-collapse-v1.css");</script>
 <meta name="p0-performance-version" content="p0-perf-20260904-v1">
-<style id="lx-detail-list-background">
-/* Product detail canvas uses the same subtle gradient as product lists. */
-html body[data-page]:not(.assistant-fullscreen):not(.lx-auto-fs) main.shell > section.content[data-view="detail"]:has(.product-detail) {
-  background-color:#f5f5f7!important;
-  background-image:linear-gradient(180deg,#fff 0,#fff 74px,#fefefe 96px,#fafafa 122px,#f7f7f8 164px,#f5f5f7 214px,#f5f5f7 100%)!important;
-  background-repeat:no-repeat!important;
-  background-size:100% 100%!important;
-  background-position:left top!important;
-}
-</style>
-<style id="lx-detail-main-radius">
-/* Product hero card: the image and purchase information share an 8px shell. */
-html body[data-page] main.shell > section.content[data-view="detail"] .product-detail > .detail-main {
-  border-radius:8px!important;
-}
-
-/* Keep the white child surfaces inside the shell's lower corners without clipping popovers. */
-html body[data-page] main.shell > section.content[data-view="detail"] .product-detail > .detail-main > :is(.detail-gallery, .detail-info) {
-  border-bottom-left-radius:inherit!important;
-  border-bottom-right-radius:inherit!important;
-}
-</style>
-<style id="lx-member-advice-off">
-/* Remove the complete suggestions row, including its layout space. */
-body .leai-member-page .leai-member-suggestions-panel,
-body .leai-member-page [data-member-section="insights"] { display:none!important; }
-</style>
-<style id="lx-fulfillment-style">
-/* History messages render before the lazy checkout module is loaded. */
-body .lx-fulfillment-suggestion{margin:10px 0 0;color:#353037;font-size:14px;line-height:1.8}
-body .lx-fulfillment-suggestion .lx-fulfillment-link{display:inline;padding:0 2px;border:0;border-bottom:1px solid currentColor;border-radius:0;background:transparent;color:#681057;font:inherit;font-weight:700;line-height:inherit;cursor:pointer;box-shadow:none}
-body .lx-fulfillment-suggestion .lx-fulfillment-link:hover,body .lx-fulfillment-suggestion .lx-fulfillment-link:focus{color:#a51f42}
-</style>
-<style id="lx-prompt-menu-ellipsis">
-html body[data-page] .page-dots .prompt-menu{overflow-x:hidden!important;overflow-y:auto!important;box-sizing:border-box}
-html body[data-page] .page-dots .prompt-menu .menu-row,html body[data-page] .page-dots .prompt-menu .trail-row,html body[data-page] .page-dots .prompt-menu .lx-trail-head{display:block;box-sizing:border-box;width:100%;max-width:100%;min-width:0;overflow:hidden!important;white-space:nowrap!important;text-overflow:ellipsis!important}
-</style>
-<style id="lx-page-dots-small">
-html body[data-page] .assistant-panel .page-dots.page-dots i{width:5px!important;height:5px!important;min-width:5px!important;min-height:5px!important;border-radius:50%!important}
-html body[data-page] .assistant-panel .page-dots.page-dots i.active{background:#4d144a!important}
-</style>
-<style id="lx-match-modal-size">
-html #lx-reco-match-dialog{width:min(720px,calc(100vw - 48px));height:fit-content;max-height:min(760px,88dvh);padding:24px;border:1px solid #e2ddeb;border-radius:8px;box-shadow:0 24px 70px rgba(155,142,182,.62),0 4px 14px rgba(50,29,57,.08);overflow:hidden;color:#252525}
-html #lx-reco-match-dialog[open]{display:flex;flex-direction:column}
-html #lx-reco-match-dialog .lx-match-layout{height:auto;max-height:calc(min(760px,88dvh) - 50px);gap:20px;flex:0 1 auto;min-height:0}
-html #lx-reco-match-dialog h2{font-size:20px;line-height:28px;font-weight:600;padding-right:36px}
-html #lx-reco-match-dialog .lx-match-close{right:18px;top:20px;width:28px;height:28px;border-radius:50%;color:#979797}
-html #lx-reco-match-dialog .lx-match-close:hover{background:#f3f0f7}
-html #lx-reco-match-dialog .lx-match-scroll{flex:0 1 auto;min-height:0;overflow:auto}
-html #lx-reco-match-dialog .lx-match-product{gap:16px;padding:16px;margin-bottom:16px;border:1px solid #e2ddeb;border-radius:8px;background:#faf8fc}
-html #lx-reco-match-dialog .lx-match-product img{width:88px;height:88px;border-radius:8px}
-html #lx-reco-match-dialog h3{font-size:16px;line-height:24px;font-weight:600;margin:0 0 8px;overflow-wrap:anywhere;color:#252525}
-html #lx-reco-match-dialog .lx-match-price{font-size:18px;line-height:26px;font-weight:600;color:#252525}
-html #lx-reco-match-dialog .lx-match-table-wrap{border:1px solid #e2ddeb;border-radius:8px;background:#fff}
-html #lx-reco-match-dialog table{font-size:14px;line-height:22px;table-layout:fixed}
-html #lx-reco-match-dialog th,html #lx-reco-match-dialog td{padding:12px;overflow-wrap:anywhere;border-color:#e2ddeb}
-html #lx-reco-match-dialog th{background:#f3f0f7;font-weight:600}
-html #lx-reco-match-dialog th:first-child,html #lx-reco-match-dialog td:first-child{width:88px}
-html #lx-reco-match-dialog th:nth-child(2){width:124px}
-html #lx-reco-match-dialog .lx-match-status{width:20px;height:20px;font-size:14px;background:#4d144a}
-html #lx-reco-match-dialog .lx-match-status.pending{background:#f3f0f7;color:#979797}
-html #lx-reco-match-dialog .lx-match-footer{padding-top:16px;border-top:1px solid #e2ddeb;flex:none}
-html #lx-reco-match-dialog .lx-match-buy{min-width:104px;height:40px;padding:0 24px;border-radius:8px;font-size:14px;line-height:20px;font-weight:500;background:#4d144a}
-html #lx-reco-match-dialog .lx-match-buy:hover{filter:brightness(1.12)}
-@media(max-width:600px){html #lx-reco-match-dialog{width:calc(100vw - 24px);padding:20px}html #lx-reco-match-dialog .lx-match-layout{max-height:calc(88dvh - 42px)}html #lx-reco-match-dialog th:first-child,html #lx-reco-match-dialog td:first-child{width:72px}html #lx-reco-match-dialog th:nth-child(2){width:92px}html #lx-reco-match-dialog .lx-match-product img{width:64px;height:64px}}
-</style>
-<style id="lx-match-polish">html body #lx-reco-match-dialog{box-shadow:none!important}html body #lx-reco-match-dialog .lx-match-buy{background:linear-gradient(110deg,#4d144a,#b8252e)!important;box-shadow:none!important}</style>
-<style id="lx-compare-ten-chips">html body .composer .lx-ref-chips:has(.lx-ref-chip-mini),html body .lxfd .lx-ref-chips:has(.lx-ref-chip-mini){display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:9px!important;overflow:visible!important}html body .lx-ref-chips .lx-ref-chip-mini{width:100%!important;box-sizing:border-box!important;min-width:0!important}html body .composer:has(.lx-ref-chip-mini){height:auto!important}html body .composer:has(.lx-ref-chip-mini)>.attach{max-height:none!important;height:auto!important;overflow:visible!important}html body[data-page] .assistant-panel form.composer.has:has(.lx-ref-chip-mini:nth-child(6)){min-height:223px!important}html body .composer:has(.lx-ref-chip-mini) textarea{flex-shrink:0!important}</style>
-<style id="lx-ref-chip-close">
-html body .lx-ref-chips .lx-ref-chip-mini{display:grid!important;grid-template-columns:minmax(0,1fr) 16px!important;column-gap:2px!important;padding:5px 4px!important;align-items:center!important}
-html body .lx-ref-chips .lx-ref-chip-mini>img{width:100%!important;max-width:30px!important;min-width:0!important;justify-self:center}
-html body .lx-ref-chips .lx-ref-chip-mini>span{display:none!important}
-html body .lx-ref-chips .lx-ref-chip-mini>[data-ref-remove-idx]{position:static!important;transform:none!important;margin:0!important;width:16px!important;height:16px!important;min-width:0!important;justify-self:end;box-sizing:border-box!important}
-</style>
-<style id="lx-detail-price-weight">
-html body .product-detail .lx-detail-benefits-v182 .lx-detail-benefits-label{font-weight:600!important}
-html body .product-detail .lx-detail-benefits-v182 .lx-detail-benefits-price strong,html body .product-detail .lx-detail-benefits-v182 .lx-detail-benefits-price strong>span{font-weight:700!important}
-</style>
-<link rel="stylesheet" href="/assets/frontend/css/core/enterprise-auth-original-v1.css?p0v=ac59f6fee58df009">
-<script src="/assets/frontend/js/core/gaming-query-v1.js?p0v=9b9dcc5b93b2fdcd"></script>
-<link rel="stylesheet" href="/assets/frontend/css/core/manufacturing-solution-rows-v1.css?p0v=9b83be332b5a2421">
-<script defer src="/assets/frontend/js/core/manufacturing-solution-rows-v1.js?p0v=fbd06926b932b879"></script>
-<link rel="stylesheet" href="/assets/frontend/css/core/recruitment-v1.css?p0v=d82be148e6f69b90">
-<script defer src="/assets/frontend/js/core/query-result-runtime-v1.js?p0v=9c24218ee1c973f5"></script>
-<script defer src="/assets/frontend/js/core/recruitment-v1.js?p0v=177ee9fe5b2d4e25"></script>
-<link rel="stylesheet" href="/assets/frontend/css/core/education-auth-original-v1.css?p0v=984066cfc89d1b86">
-<link rel="stylesheet" href="/assets/frontend/css/components/education-member-products-v1.css?p0v=127a88523cb7399a">
-<link rel="stylesheet" href="/assets/frontend/css/core/recommendation-card-arrow-v1.css?p0v=739e8b86831d0495">
-<link rel="stylesheet" href="/assets/frontend/css/core/tabbar-compression-v1.css?p0v=b56daa295cbafa08">
-<link rel="stylesheet" href="/assets/frontend/css/core/conversation-location-navigation-v1.css?p0v=292f692b4a3cc76d" />
-<link rel="stylesheet" href="/assets/frontend/css/core/recommendation-followups-v1.css?p0v=e673a29bd67fd1ec">
-<script defer src="/assets/frontend/js/core/recommendation-followups-v1.js?p0v=d15577c643e30a5e"></script>
+<link rel="stylesheet" href="/modules/pages/home/index.css?p0v=7aea23eb1054031f#p0-style=%2F%40inline%2Findex.html%2F34891.css"><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/@inline/index.html/34891.css");</script>
+<link rel="stylesheet" href="/modules/pages/home/index.css?p0v=7aea23eb1054031f#p0-style=%2F%40inline%2Findex.html%2F35453.css"><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/@inline/index.html/35453.css");</script>
+<link rel="stylesheet" href="/modules/pages/home/index.css?p0v=7aea23eb1054031f#p0-style=%2F%40inline%2Findex.html%2F36047.css"><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/@inline/index.html/36047.css");</script>
+<link rel="stylesheet" href="/modules/pages/home/index.css?p0v=7aea23eb1054031f#p0-style=%2F%40inline%2Findex.html%2F36300.css"><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/@inline/index.html/36300.css");</script>
+<link rel="stylesheet" href="/modules/pages/home/index.css?p0v=7aea23eb1054031f#p0-style=%2F%40inline%2Findex.html%2F36905.css"><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/@inline/index.html/36905.css");</script>
+<link rel="stylesheet" href="/modules/pages/home/index.css?p0v=7aea23eb1054031f#p0-style=%2F%40inline%2Findex.html%2F37407.css"><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/@inline/index.html/37407.css");</script>
+<link rel="stylesheet" href="/modules/pages/home/index.css?p0v=7aea23eb1054031f#p0-style=%2F%40inline%2Findex.html%2F37726.css"><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/@inline/index.html/37726.css");</script>
+<link rel="stylesheet" href="/modules/pages/home/index.css?p0v=7aea23eb1054031f#p0-style=%2F%40inline%2Findex.html%2F40538.css"><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/@inline/index.html/40538.css");</script>
+<link rel="stylesheet" href="/modules/pages/home/index.css?p0v=7aea23eb1054031f#p0-style=%2F%40inline%2Findex.html%2F40766.css"><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/@inline/index.html/40766.css");</script>
+<link rel="stylesheet" href="/modules/pages/home/index.css?p0v=7aea23eb1054031f#p0-style=%2F%40inline%2Findex.html%2F41545.css"><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/@inline/index.html/41545.css");</script>
+<link rel="stylesheet" href="/modules/pages/home/index.css?p0v=7aea23eb1054031f#p0-style=%2F%40inline%2Findex.html%2F42237.css"><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/@inline/index.html/42237.css");</script>
+<link rel="stylesheet" href="/modules/modals/enterprise-auth/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Fenterprise-auth-original-v1.css"><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/modules/modals/enterprise-auth/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Fenterprise-auth-original-v1.css");</script>
+<script src="/modules/pages/product-list/index.js?p0v=7aea23eb1054031f#p0-script=%2Fassets%2Ffrontend%2Fjs%2Fcore%2Fgaming-query-v1.js"></script>
+<link rel="stylesheet" href="/modules/pages/solution-list/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Fmanufacturing-solution-rows-v1.css"><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/modules/pages/solution-list/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Fmanufacturing-solution-rows-v1.css");</script>
+<script defer src="/modules/pages/solution-list/index.js?p0v=7aea23eb1054031f#p0-script=%2Fassets%2Ffrontend%2Fjs%2Fcore%2Fmanufacturing-solution-rows-v1.js"></script>
+<link rel="stylesheet" href="/modules/pages/product-list/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Frecruitment-v1.css"><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/modules/pages/product-list/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Frecruitment-v1.css");</script>
+<script defer src="/modules/shared/agent-content/index.js?p0v=7aea23eb1054031f#p0-script=%2Fassets%2Ffrontend%2Fjs%2Fcore%2Fquery-result-runtime-v1.js"></script>
+<script defer src="/modules/pages/product-list/index.js?p0v=7aea23eb1054031f#p0-script=%2Fassets%2Ffrontend%2Fjs%2Fcore%2Frecruitment-v1.js"></script>
+<link rel="stylesheet" href="/modules/modals/education-auth/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Feducation-auth-original-v1.css"><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/modules/modals/education-auth/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Feducation-auth-original-v1.css");</script>
+<link rel="stylesheet" href="/modules/pages/member-center/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcomponents%2Feducation-member-products-v1.css"><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/modules/pages/member-center/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcomponents%2Feducation-member-products-v1.css");</script>
+<link rel="stylesheet" href="/modules/shared/common/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Frecommendation-card-arrow-v1.css"><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/modules/shared/common/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Frecommendation-card-arrow-v1.css");</script>
+<link rel="stylesheet" href="/modules/shared/agent-content/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Ftabbar-compression-v1.css"><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/modules/shared/agent-content/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Ftabbar-compression-v1.css");</script>
+<link rel="stylesheet" href="/modules/shared/agent-content/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Fconversation-location-navigation-v1.css" /><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/modules/shared/agent-content/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Fconversation-location-navigation-v1.css");</script>
+<link rel="stylesheet" href="/modules/shared/agent-content/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Frecommendation-followups-v1.css"><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/modules/shared/agent-content/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Frecommendation-followups-v1.css");</script>
+<script defer src="/modules/shared/agent-content/index.js?p0v=7aea23eb1054031f#p0-script=%2Fassets%2Ffrontend%2Fjs%2Fcore%2Frecommendation-followups-v1.js"></script>
 </head>
   <body data-state="default">
-    <script  data-p0-inline-source="/assets/frontend/js/pages/home/inline-08.js">
-if (document.documentElement.classList.contains("lx-root-lxfd-prepaint")) {
-        document.body.classList.add("assistant-fullscreen", "lx-auto-fs");
-        document.body.dataset.state = "chat";
-      }
-
-</script>
-    <script  data-p0-inline-source="/assets/frontend/js/shared/inline-dab1b3ae0743.js">
-// 顶部频道导航仅保留 hover 预览，不响应鼠标、触控或键盘点击。
-      (function () {
-        function blockTopNavActivation(event) {
-          if (!event.isTrusted || !event.target.closest) return;
-          var item = event.target.closest(
-            ".main-nav > button[data-page], .lxfd-nav-sheet > a[data-page]"
-          );
-          if (!item) return;
-          event.preventDefault();
-          event.stopImmediatePropagation();
-        }
-        document.addEventListener("click", blockTopNavActivation, true);
-        document.addEventListener("auxclick", blockTopNavActivation, true);
-      })();
-
-</script>
+    <script  data-p0-inline-source="/modules/pages/home/index.js?p0v=7aea23eb1054031f#p0-script=%2Fassets%2Ffrontend%2Fjs%2Fpages%2Fhome%2Finline-08.js">window.__p0Modules.run("/@inline/index.html/44122.js",document.currentScript);</script>
+    <script  data-p0-inline-source="/assets/frontend/js/shared/inline-dab1b3ae0743.js">window.__p0Modules.run("/@inline/index.html/44420.js",document.currentScript);</script>
     <div class="lx-route-loading" aria-hidden="true"><div class="lx-rl-spin"></div><div class="lx-rl-txt">联想乐享 加载中…</div></div>
     <header class="topbar">
       <!-- 整页跳回 / = 初始全屏欢迎态（非分屏首页），配合全屏首问重置旧对话上下文（真机反馈） -->
@@ -1077,798 +706,54 @@ if (document.documentElement.classList.contains("lx-root-lxfd-prepaint")) {
       </main>
     </div>
 
-    <link rel="stylesheet" data-template-file-top-nav href="/assets/frontend/css/pages/home/inline-10.css?p0v=c951c495deb4d31d">
-    <script src="/assets/frontend/bundles/p0-shared-68e249410c86.js?p0v=68e249410c86c22f"></script>
-<link rel="stylesheet" data-document-insight-module href="/assets/frontend/css/pages/home/inline-12.css?p0v=ee9e7b7bd8907ece">
-    <link rel="stylesheet" href="/assets/frontend/css/core/product-specs-grouped-v1.css?p0v=1026a542c206036b">
-<script src="/assets/frontend/js/core/product-specs-grouped-v1.js?p0v=e4edbdcfb53c4d7c"></script>
-<link rel="stylesheet" href="/assets/frontend/css/core/arrival-notice-v1.css?p0v=3b09e9a2b19c58ae">
-<link rel="stylesheet" href="/assets/frontend/css/core/member-coupon-center-v1.css?p0v=9f11b28b9d95e66d">
-<script src="/assets/frontend/js/core/enterprise-auth-original-v1.js?p0v=6fa7a08121402d64"></script>
-<script src="/assets/frontend/js/core/member-coupon-center-v1.js?p0v=0940425517a453a5"></script>
-<script src="/assets/frontend/bundles/p0-home-core-2.js?p0v=ebe0114bfe8943f8"></script>
-<link rel="stylesheet" id="lxfd-home-composer-control-sync" href="/assets/frontend/css/pages/home/inline-13.css?p0v=e27a2751c7fd0e54">
-    <script src="/assets/frontend/js/core/app-lxfd.home-conversation-v122.placeholder-v147.controls-v150.js?p0v=cfd257a885af82b6"></script>
-<script src="/assets/frontend/js/core/app-agent.js?p0v=2533e1dec0d991d4"></script>
-<script data-template-file-top-nav src="/assets/frontend/js/pages/home/inline-14.js?p0v=b999d5bad4a1ed8a"></script>
-<script src="/assets/frontend/js/pages/home/inline-15.js?p0v=638df9a970495484"></script>
-<script data-template-nav-init src="/assets/frontend/js/pages/home/inline-16.js?p0v=1b0475066f47365d"></script>
-<link rel="stylesheet" data-lexiang-user-bubble-token href="/assets/frontend/css/pages/home/inline-17.css?p0v=b22ed30cc1628e0d">
-  <link rel="stylesheet" data-lxfd-chat-dock-bottom-gap href="/assets/frontend/css/pages/home/inline-18.css?p0v=fe5273230845c48f">
-  <link rel="stylesheet" data-lxfd-new-chat-border-final href="/assets/frontend/css/pages/home/inline-19.css?p0v=7a8bd9640ebfbc33">
-  <link rel="stylesheet" data-solution-result-shared href="/assets/frontend/css/core/solution-result.css?p0v=43a1a617617bc647">
-  <script src="/assets/frontend/bundles/p0-shared-8491f3cdf2b3.js?p0v=8491f3cdf2b31a08"></script>
+    <link rel="stylesheet" data-template-file-top-nav href="/modules/pages/home/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fpages%2Fhome%2Finline-10.css"><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/modules/pages/home/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fpages%2Fhome%2Finline-10.css");</script>
+    <script src="/modules/shared/common/index.js?p0v=7aea23eb1054031f#p0-script=%2Fassets%2Ffrontend%2Fbundles%2Fp0-shared-68e249410c86.js"></script>
+<link rel="stylesheet" data-document-insight-module href="/modules/pages/home/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fpages%2Fhome%2Finline-12.css"><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/modules/pages/home/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fpages%2Fhome%2Finline-12.css");</script>
+    <link rel="stylesheet" href="/modules/pages/product-detail/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Fproduct-specs-grouped-v1.css"><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/modules/pages/product-detail/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Fproduct-specs-grouped-v1.css");</script>
+<script src="/modules/pages/product-detail/index.js?p0v=7aea23eb1054031f#p0-script=%2Fassets%2Ffrontend%2Fjs%2Fcore%2Fproduct-specs-grouped-v1.js"></script>
+<link rel="stylesheet" href="/modules/shared/common/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Farrival-notice-v1.css"><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/modules/shared/common/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Farrival-notice-v1.css");</script>
+<link rel="stylesheet" href="/modules/pages/coupon-center/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Fmember-coupon-center-v1.css"><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/modules/pages/coupon-center/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Fmember-coupon-center-v1.css");</script>
+<script src="/modules/modals/enterprise-auth/index.js?p0v=7aea23eb1054031f#p0-script=%2Fassets%2Ffrontend%2Fjs%2Fcore%2Fenterprise-auth-original-v1.js"></script>
+<script src="/modules/pages/coupon-center/index.js?p0v=7aea23eb1054031f#p0-script=%2Fassets%2Ffrontend%2Fjs%2Fcore%2Fmember-coupon-center-v1.js"></script>
+<script src="/modules/pages/home/index.js?p0v=7aea23eb1054031f#p0-script=%2Fassets%2Ffrontend%2Fbundles%2Fp0-home-core-2.js"></script>
+<link rel="stylesheet" id="lxfd-home-composer-control-sync" href="/modules/pages/home/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fpages%2Fhome%2Finline-13.css"><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/modules/pages/home/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fpages%2Fhome%2Finline-13.css");</script>
+    <script src="/modules/shared/agent-content/index.js?p0v=7aea23eb1054031f#p0-script=%2Fassets%2Ffrontend%2Fjs%2Fcore%2Fapp-lxfd.home-conversation-v122.placeholder-v147.controls-v150.js"></script>
+<script src="/modules/shared/agent-content/index.js?p0v=7aea23eb1054031f#p0-script=%2Fassets%2Ffrontend%2Fjs%2Fcore%2Fapp-agent.js"></script>
+<script data-template-file-top-nav src="/modules/pages/home/index.js?p0v=7aea23eb1054031f#p0-script=%2Fassets%2Ffrontend%2Fjs%2Fpages%2Fhome%2Finline-14.js"></script>
+<script src="/modules/pages/home/index.js?p0v=7aea23eb1054031f#p0-script=%2Fassets%2Ffrontend%2Fjs%2Fpages%2Fhome%2Finline-15.js"></script>
+<script data-template-nav-init src="/modules/pages/home/index.js?p0v=7aea23eb1054031f#p0-script=%2Fassets%2Ffrontend%2Fjs%2Fpages%2Fhome%2Finline-16.js"></script>
+<link rel="stylesheet" data-lexiang-user-bubble-token href="/modules/pages/home/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fpages%2Fhome%2Finline-17.css"><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/modules/pages/home/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fpages%2Fhome%2Finline-17.css");</script>
+  <link rel="stylesheet" data-lxfd-chat-dock-bottom-gap href="/modules/pages/home/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fpages%2Fhome%2Finline-18.css"><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/modules/pages/home/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fpages%2Fhome%2Finline-18.css");</script>
+  <link rel="stylesheet" data-lxfd-new-chat-border-final href="/modules/pages/home/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fpages%2Fhome%2Finline-19.css"><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/modules/pages/home/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fpages%2Fhome%2Finline-19.css");</script>
+  <link rel="stylesheet" data-solution-result-shared href="/modules/pages/solution-list/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Fsolution-result.css"><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/modules/pages/solution-list/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Fsolution-result.css");</script>
+  <script src="/modules/shared/common/index.js?p0v=7aea23eb1054031f#p0-script=%2Fassets%2Ffrontend%2Fbundles%2Fp0-shared-8491f3cdf2b3.js"></script>
 <template id="p0-commerce-style-1"></template>
   
   
-  <script src="/assets/frontend/bundles/p0-home-core-4.js?p0v=8cafcb77ce9674dc"></script>
+  <script src="/modules/pages/home/index.js?p0v=7aea23eb1054031f#p0-script=%2Fassets%2Ffrontend%2Fbundles%2Fp0-home-core-4.js"></script>
 <template id="p0-commerce-style-2"></template>
 <template id="p0-commerce-style-3"></template>
 
 <template id="p0-commerce-style-4"></template>
 
 <template id="p0-commerce-style-5"></template>
-<style data-home-detail-alignment>.content[data-view="detail"] .detail-primary{background:linear-gradient(90deg,#4d144a 11.9%,#b8252e 100%)!important;box-shadow:none!important}.content[data-view="detail"] .detail-title{font-weight:600!important}.content[data-view="detail"] .detail-image-stage{min-height:0}.content[data-view="detail"] .detail-image-stage img{display:block;width:100%;height:auto}</style>
+<link rel="stylesheet" href="/modules/pages/home/index.css?p0v=7aea23eb1054031f#p0-style=%2F%40inline%2Findex.html%2F80021.css"><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/@inline/index.html/80021.css");</script>
 <template id="p0-commerce-style-6"></template>
 <template id="p0-commerce-style-7"></template>
-<script src="/assets/frontend/js/core/followup-chevron-v1.js?p0v=845b3e54e80e4b4a"></script>
+<script src="/modules/shared/agent-content/index.js?p0v=7aea23eb1054031f#p0-script=%2Fassets%2Ffrontend%2Fjs%2Fcore%2Ffollowup-chevron-v1.js"></script>
 
 <!-- Deferred composer code stays after parsing; no additional network dependency. -->
-<script data-p0-inline-source="/assets/frontend/js/core/composer-autogrow-v1.js">(function () {
-  "use strict";
+<script data-p0-inline-source="/modules/shared/agent-content/index.js?p0v=7aea23eb1054031f#p0-script=%2Fassets%2Ffrontend%2Fjs%2Fcore%2Fcomposer-autogrow-v1.js">window.__p0Modules.run("/@inline/index.html/80702.js",document.currentScript);</script>
+<script data-p0-inline-source="/modules/shared/agent-content/index.js?p0v=7aea23eb1054031f#p0-script=%2Fassets%2Ffrontend%2Fjs%2Fcore%2Fcomposer-smart-actions-v1.js">window.__p0Modules.run("/@inline/index.html/82214.js",document.currentScript);</script>
+<script src="/modules/shared/agent-content/index.js?p0v=7aea23eb1054031f#p0-script=%2Fassets%2Ffrontend%2Fjs%2Fcore%2Fanswer-actions-v1.js"></script>
+<script src="/modules/pages/product-detail/index.js?p0v=7aea23eb1054031f#p0-script=%2Fassets%2Ffrontend%2Fjs%2Fcore%2Freview-media-v1.js"></script>
+<script src="/modules/modals/login/index.js?p0v=7aea23eb1054031f#p0-script=%2Fassets%2Ffrontend%2Fjs%2Fcore%2Forder-login-v1.js"></script>
+<script src="/modules/shared/agent-content/index.js?p0v=7aea23eb1054031f#p0-script=%2Fassets%2Ffrontend%2Fjs%2Fcore%2Fthinking-auto-v1.js"></script>
+<script src="/modules/modals/product-match/index.js?p0v=7aea23eb1054031f#p0-script=%2Fassets%2Ffrontend%2Fjs%2Fcore%2Freco-match-v1.js"></script>
+<script src="/modules/shared/agent-content/index.js?p0v=7aea23eb1054031f#p0-script=%2Fassets%2Ffrontend%2Fjs%2Fcore%2Ftab-reorder-v1.js"></script>
+<script src="/modules/shared/agent-content/index.js?p0v=7aea23eb1054031f#p0-script=%2Fassets%2Ffrontend%2Fjs%2Fcore%2Fprompt-menu-height-v1.js"></script>
+<script src="/modules/modals/education-auth/index.js?p0v=7aea23eb1054031f#p0-script=%2Fassets%2Ffrontend%2Fjs%2Fcore%2Feducation-auth-accessibility-v1.js"></script>
 
-  var SELECTOR = ".assistant-panel .assistant-bottom .composer textarea";
-  var MIN_HEIGHT = 21;
-  var MAX_HEIGHT = 90;
-
-  function resize(textarea) {
-    if (!textarea || !textarea.matches(SELECTOR)) return;
-
-    textarea.style.setProperty("height", MIN_HEIGHT + "px", "important");
-    var nextHeight = Math.max(MIN_HEIGHT, Math.min(textarea.scrollHeight, MAX_HEIGHT));
-    textarea.style.setProperty("height", nextHeight + "px", "important");
-    textarea.style.setProperty(
-      "overflow-y",
-      textarea.scrollHeight > MAX_HEIGHT ? "auto" : "hidden",
-      "important"
-    );
-  }
-
-  function resizeCurrent() {
-    document.querySelectorAll(SELECTOR).forEach(resize);
-  }
-
-  document.addEventListener("input", function (event) {
-    resize(event.target);
-  });
-
-  document.addEventListener("focusin", function (event) {
-    resize(event.target);
-  });
-
-  document.addEventListener(
-    "submit",
-    function (event) {
-      if (!event.target.matches(".assistant-panel .assistant-bottom .composer")) return;
-      window.requestAnimationFrame(function () {
-        window.requestAnimationFrame(resizeCurrent);
-      });
-    },
-    true
-  );
-
-  window.addEventListener("resize", resizeCurrent, { passive: true });
-
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", resizeCurrent, { once: true });
-  } else {
-    resizeCurrent();
-  }
-})();
-</script>
-<script data-p0-inline-source="/assets/frontend/js/core/composer-smart-actions-v1.js">(function () {
-  "use strict";
-  var pageScenes = Object.create(null), currentScene = null;
-  var shownScenes = new Set(), sceneCandidate = '', sceneSince = 0;
-  var suppressRevealUntil = 0, lastUserMessageSignature = '', wasSending = false;
-  var syncTimer = 0;
-  var actions = ["推荐购买第2款商品", "我要对比1、3、4"];
-  // 乐享输入框按钮展示全套：all pages share readiness, first reveal and motion.
-  window.__lxComposerButtonSuite = {
-    name: '乐享输入框按钮展示全套',
-    register: function(name, scene) { pageScenes[name] = scene; scheduleSync(); }
-  };
-  function activeTabId(content) {
-    var tab = content.querySelector('.lx-tab[aria-selected="true"], .lx-tab.is-active');
-    return tab && (tab.getAttribute('data-shop-tab-id') || tab.getAttribute('data-tab-id')) || '';
-  }
-  var serviceActions = ["推荐购买第1款商品", "我要对比1、2"];
-  function visibleRecommendation(content) {
-    var pages = content.querySelectorAll('.reco-page, .lx-reco-poc-page');
-    return Array.prototype.find.call(pages, function(page) { var rect = page.getBoundingClientRect(); return rect.width && rect.height; }) || null;
-  }
-  function isServiceRecommendation(content) {
-    var page = visibleRecommendation(content);
-    if (!page) return false;
-    if (page.matches('.lx-service-reco-page, [data-member-service-page]')) return true;
-    var rows = page.querySelectorAll('.reco-row, .lx-reco-poc-row');
-    if (rows.length && Array.prototype.every.call(rows, function(row) { return /^SERVICE-/i.test(row.getAttribute('data-sku') || '') || row.hasAttribute('data-service-id'); })) return true;
-    var heading = page.querySelector('h2, h1, .reco-head');
-    return !!heading && /服务推荐|推荐服务|延保|保修/.test(heading.textContent || '');
-  }
-  var recommendationScene = {
-    labels: function(content) {
-      return isServiceRecommendation(content) ? serviceActions : actions;
-    },
-    source: '.reco-page, .lx-reco-poc-page',
-    identity: function(content) {
-      var rows = content.querySelectorAll('.reco-row, .lx-reco-poc-row');
-      return activeTabId(content) || Array.prototype.map.call(rows, function(row) {
-        return row.getAttribute('data-sku') || row.textContent.trim();
-      }).join('|');
-    },
-    ready: function(content) {
-      var page = content.querySelector('.reco-page, .lx-reco-poc-page');
-      return page && page.querySelector('.reco-row, .lx-reco-poc-row') && /为你推荐|推荐商品|AI\s*推荐|服务推荐/.test(page.textContent || '');
-    },
-    invoke: function(content, label) {
-      var state = window.__lxState;
-      if (!isServiceRecommendation(content) && state && (label === actions[0] || label === actions[1])) {
-        var tab = (state.tabs || []).find(function(tab) { return tab.id === state.activeTabId; });
-        var page = visibleRecommendation(content);
-        var rows = page ? Array.from(page.querySelectorAll('.reco-row[data-sku], .lx-reco-poc-row[data-sku]')) : [];
-        var pool = tab && Array.isArray(tab.products) ? tab.products : [];
-        var products = rows.length ? rows.map(function(row) { return pool.find(function(p) { return String(p.sku) === row.getAttribute('data-sku'); }); }) : pool;
-        var indices = label === actions[0] ? [1] : [0,2,3];
-        var selected = indices.map(function(index) { return products[index]; });
-        if (selected.every(function(p) { return p && p.sku; })) {
-          state.refProducts = label === actions[1] ? selected.map(function(p) { return Object.assign({}, p); }) : [];
-          state.refProduct = null;
-          state._composerRecoPurchase = label === actions[0] ? {query:label,product:Object.assign({},selected[0])} : null;
-        } else { return; }
-      }
-      if (window.__lxBridge && window.__lxBridge.sendChat) window.__lxBridge.sendChat(label);
-    }
-  };
-  // Coupon results reuse the complete suite, with actions bound to the visible list.
-  var couponActions = ['对比前两款商品', '我要购买第2款'];
-  function couponRecommendationProducts(content) {
-    var state = window.__lxState, page = visibleRecommendation(content);
-    var tab = state && (state.tabs || []).find(function(item) { return item.id === state.activeTabId; });
-    var pool = tab && Array.isArray(tab.products) ? tab.products : [];
-    if (!page || !window.__lxCouponCenter || !window.__lxCouponCenter.productsCoupon(pool)) return null;
-    return Array.from(page.querySelectorAll('.reco-row, .lx-reco-poc-row')).map(function(row) {
-      var sku = row.getAttribute('data-open-product') || row.getAttribute('data-sku');
-      return pool.find(function(product) { return String(product.sku) === sku; });
-    });
-  }
-  window.__lxComposerButtonSuite.register('coupon-recommendation', {
-    labels: function(content) {
-      var products = couponRecommendationProducts(content);
-      return products && products.length >= 2 && products[0] && products[1] ? couponActions : [];
-    },
-    source: recommendationScene.source,
-    identity: recommendationScene.identity,
-    ready: function(content) {
-      var products = couponRecommendationProducts(content);
-      return !!(products && products.length && products.every(function(product) { return product && product.sku; }));
-    },
-    invoke: function(content, label) {
-      var products = couponRecommendationProducts(content), state = window.__lxState;
-      if (!state || state.sending || !products || !products[0] || !products[1]) return;
-      if (label !== couponActions[0] && label !== couponActions[1]) return;
-      var compare = label === couponActions[0];
-      state.refProducts = compare ? products.slice(0, 2).map(function(product) { return Object.assign({}, product); }) : [];
-      state.refProduct = null;
-      state._composerRecoPurchase = compare ? null : { query: label, product: Object.assign({}, products[1]) };
-      if (window.__lxBridge && window.__lxBridge.sendChat) window.__lxBridge.sendChat(label);
-    }
-  });
-  window.__lxComposerButtonSuite.register('compare', {
-    labels: function() { return window.__lxComparisonDisplay?.labels() || []; },
-    source: '.compare-page .lx-product-compare',
-    identity: function(content) { return activeTabId(content) || 'product-compare'; },
-    ready: function() { return !!window.__lxCompareDisplayView?.snapshot(); },
-    invoke: function(content,label) {
-      if(window.__lxState?.sending||!window.__lxComparisonDisplay?.labels().includes(label))return;
-      window.__lxBridge?.sendChat?.(label);
-    }
-  });
-  window.__lxComposerButtonSuite.register('reco', recommendationScene);
-  window.__lxComposerButtonSuite.register('recommendation', recommendationScene);
-  window.__lxComposerButtonSuite.register('service', {
-    labels: serviceActions,
-    source: '[data-member-service-page]',
-    identity: function(content) {
-      var page = content.querySelector('[data-member-service-page]');
-      return activeTabId(content) + ':' + Array.prototype.map.call(page.querySelectorAll('[data-service-id]'), function(row) { return row.getAttribute('data-service-id'); }).join('|');
-    },
-    ready: function(content) { return !!content.querySelector('[data-member-service-page] .reco-row[data-service-id]'); },
-    invoke: recommendationScene.invoke
-  });
-  function storeDocument(content) {
-    var frame = content.querySelector('.lx-store-exact-frame iframe');
-    try { return frame && frame.contentDocument; } catch (e) { return null; }
-  }
-  window.__lxComposerButtonSuite.register('stores', {
-    labels: function() {
-      var id = window.__lxState && window.__lxState.activeTabId;
-      return String(id || '').startsWith('info:store-navigation:') ? ['我要预约这个门店'] : ['我要预约这个门店', '我要导航到这个门店'];
-    },
-    source: '.lx-store-component-host, .lx-store-exact-frame',
-    identity: function(content) { return activeTabId(content) || 'stores'; },
-    ready: function(content) { var host = content.querySelector('.lx-store-component-host'); if (host && host.__lxStoreApi) return !!host.__lxStoreApi.getCurrentStore(); var doc = storeDocument(content); return !!(doc && doc.querySelector('[data-prototype-action="导航"]')); },
-    invoke: function(content, label) {
-      var host = content.querySelector('.lx-store-component-host');
-      var api = host && host.__lxStoreApi;
-      if (api) {
-        var store = api.getCurrentStore(); if (!store) return;
-        var isDetail = !!(window.__lxState && String(window.__lxState.activeTabId).startsWith('info:store-detail:'));
-        if (label === '我要预约这个门店') {
-          window.__lxPendingStoreAppointment = Object.assign({}, store, {tel:store.tel || store.phone});
-          window.__lxStoreAppointmentById = window.__lxStoreAppointmentById || {};
-          window.__lxStoreAppointmentById[String(store.id)] = window.__lxPendingStoreAppointment;
-          if (window.__lxState) { window.__lxState.refProducts = []; window.__lxState.refProduct = null; }
-          if (isDetail && window.__lxOpenFeature) window.__lxOpenFeature('stores');
-          if (window.__lxBridge && window.__lxBridge.sendChat) window.__lxBridge.sendChat(label);
-        }
-        else if (isDetail && window.__lxOpenStoreNavigationTab) { window.__lxStoreNavigationQuery = label; window.__lxOpenStoreNavigationTab(store); }
-        else api.openNavigation(store.id);
-        return;
-      }
-      var doc = storeDocument(content); if (!doc) return;
-      var action = label === '我要预约这个门店' ? '预约' : '导航';
-      var detail = doc.querySelector('.lx-store-detail-page.is-active');
-      var target = detail && detail.querySelector('[data-detail-action="' + action + '"]') || doc.querySelector('[data-prototype-action="' + action + '"]');
-      if (target) target.click();
-      else if (window.__lxBridge && window.__lxBridge.sendChat) window.__lxBridge.sendChat(label);
-    }
-  });
-  window.__lxComposerButtonSuite.register('solution-detail', {
-    labels: ['请专家联系我'],
-    source: '.lx-specific-solution-detail',
-    identity: function(content) { var title = content.querySelector('.lx-specific-solution-detail h1'); return (activeTabId(content) || 'solution-detail') + ':' + (title ? title.textContent.trim() : ''); },
-    ready: function(content) { var title = content.querySelector('.lx-specific-solution-detail h1'); return !!title && !!title.textContent.trim(); },
-    invoke: function(content, label) {
-      if (window.__lxState) { window.__lxState.refProducts = []; window.__lxState.refProduct = null; }
-      if (window.__lxBridge && window.__lxBridge.sendChat) window.__lxBridge.sendChat(label);
-    }
-  });
-  window.__lxComposerButtonSuite.register('solution-compare', {
-    labels: ['请专家联系我'],
-    source: '.lx-solution-compare-page',
-    identity: function(content) { var title = content.querySelector('.lx-solution-compare-page h2'); return (activeTabId(content) || 'solution-compare') + ':' + (title ? title.textContent.trim() : ''); },
-    ready: function(content) { var title = content.querySelector('.lx-solution-compare-page h2'); return !!title && content.querySelectorAll(".lx-solution-compare-page .phead").length >= 2; },
-    invoke: function(content, label) {
-      if (window.__lxState) { window.__lxState.refProducts = []; window.__lxState.refProduct = null; }
-      if (window.__lxBridge && window.__lxBridge.sendChat) window.__lxBridge.sendChat(label);
-    }
-  });
-  window.__lxComposerButtonSuite.register('solutions', {
-    labels: function(content) {
-      var page = content.querySelector('.lx-solution-center-page');
-      var industry = page && page.getAttribute('data-solution-selected');
-      return ['请专家联系我', industry && industry !== 'all' ? '对比1、3、4方案' : '对比教育行业的2、3方案'];
-    },
-    source: '.lx-solution-center-page',
-    identity: function(content) { var page = content.querySelector('.lx-solution-center-page'); return (activeTabId(content) || 'solutions') + ':' + (page.getAttribute('data-solution-selected') || 'all'); },
-    ready: function(content) { return !!content.querySelector('.lx-solution-center-page .lx-solution-card'); },
-    invoke: function(content, label) {
-      if (label === '请专家联系我') {
-        if (window.__lxState) { window.__lxState.refProducts = []; window.__lxState.refProduct = null; }
-        recommendationScene.invoke(content, label); return;
-      }
-      var page = content.querySelector('.lx-solution-center-page');
-      var industry = page.getAttribute('data-solution-selected');
-      var all = !industry || industry === 'all';
-      var floor = Array.prototype.find.call(page.querySelectorAll('.lx-solution-floor'), function(node) { return node.getAttribute('data-solution-industry') === (all ? '教育' : industry); });
-      if (!floor) return;
-      var cards = floor.querySelectorAll('.lx-solution-card');
-      var refs = (all ? [1,2] : [0,2,3]).map(function(index) {
-        var card = cards[index]; if (!card) return null;
-        var title = card.getAttribute('data-solution-title');
-        return {type:'solution',sku:'solution:' + title,name:title,sector:card.getAttribute('data-solution-sector'),scenario:card.getAttribute('data-solution-scenario'),description:card.getAttribute('data-solution-intro'),img:card.querySelector('img') && card.querySelector('img').getAttribute('src')};
-      }).filter(Boolean);
-      if (refs.length < 2 || !window.__lxState) return;
-      window.__lxState.refProducts = refs;
-      window.__lxState.refProduct = null;
-      recommendationScene.invoke(content, '对比这些解决方案：' + refs.map(function(ref) { return '「' + ref.name + '」'; }).join('、'));
-    }
-  });
-  window.__lxComposerButtonSuite.register('devices', {
-    labels: ['一键绑定', '绑定其他设备'],
-    source: '.leai-device-center',
-    identity: function(content) { return activeTabId(content) || 'my-devices'; },
-    ready: function(content) { return !!content.querySelector('.leai-device-center [data-device-unified-list]'); },
-    invoke: function(content, label) {
-      var page = content.querySelector('.leai-device-center');
-      if (!page) return;
-      var target = label === '一键绑定' ? page.querySelector('[data-device-bind-purchased]') : page.querySelector('[data-device-add]');
-      if (!target && label === '一键绑定') {
-        var all = page.querySelector('[data-device-filter="all"]');
-        if (all) all.click();
-        page = content.querySelector('.leai-device-center');
-        target = page && (page.querySelector('[data-device-bind-purchased]') || page.querySelector('[data-device-add]'));
-      }
-      if (target) target.click();
-    }
-  });
-  window.__lxComposerButtonSuite.register('device-detail', {
-    labels: function(content) {
-      var page = content.querySelector('[data-member-device-detail-page]');
-      return page && page.getAttribute('data-device-warranty-eligible') === 'true' ? ['查看维保方案'] : [];
-    },
-    source: '[data-member-device-detail-page] .leai-device-detail-hero',
-    identity: function(content) {
-      var page = content.querySelector('[data-member-device-detail-page]');
-      return page && page.getAttribute('data-device-detail-id') || '';
-    },
-    ready: function(content) {
-      return !!content.querySelector('[data-member-device-detail-page] .leai-device-detail-hero') &&
-        !!window.LXMemberService && typeof window.LXMemberService.recommendDeviceWarranty === 'function';
-    },
-    invoke: function(content, label) {
-      var page = content && content.querySelector('[data-member-device-detail-page]');
-      if (label !== '查看维保方案' || !page || page.getAttribute('data-device-warranty-eligible') !== 'true') return;
-      if (window.__lxState && window.__lxState.sending) return;
-      if (window.LXMemberService && typeof window.LXMemberService.recommendDeviceWarranty === 'function') {
-        window.LXMemberService.recommendDeviceWarranty(page.getAttribute('data-device-detail-id'));
-      }
-    }
-  });
-  window.__lxComposerButtonSuite.register('detail', {
-    labels: function(content) {
-      var enterprise = /^\/(b-chat|biz-chat)(?:\/|$)/.test(location.pathname);
-      var primary = content && content.querySelector('.product-detail .detail-actions .detail-primary');
-      var labels = enterprise && primary && primary.textContent.trim() === '一键领优惠下单' ? ['咨询客服'] : [];
-      var skus = content ? Array.prototype.map.call(content.querySelectorAll('.lx-spu-chip[data-variant-sku]'), function(chip) { return chip.getAttribute('data-variant-sku'); }).filter(Boolean) : [];
-      if (new Set(skus).size > 1) labels.unshift('对比所有系列');
-      return labels;
-    },
-    source: '.product-detail',
-    identity: function(content) {
-      var product = window.__lxState && window.__lxState.currentProduct;
-      var title = content.querySelector('[data-detail-title]');
-      // A configuration change is still the same detail scene.
-      var variants = Array.prototype.map.call(content.querySelectorAll('.lx-spu-chip[data-variant-sku]'), function(chip) { return chip.getAttribute('data-variant-sku'); }).filter(Boolean).sort();
-      if (variants.length) return 'series:' + Array.from(new Set(variants)).join('|');
-      return product && (product.spu_id || product.sku || product.id) || title && title.textContent || '';
-    },
-    ready: function(content) {
-      var title = content.querySelector('[data-detail-title]');
-      return title && title.textContent.trim() && content.querySelector('.lx-spu-chip');
-    },
-    invoke: function(content, label) {
-      if (label === '咨询客服') {
-        window.open('https://b.lenovo.com.cn/activity/qygzxdhym.html', '_blank', 'noopener,noreferrer');
-        return;
-      }
-      var state = window.__lxState;
-      if (!state) return;
-      var seen = new Set();
-      var products = Array.from(content.querySelectorAll('.lx-spu-chip[data-variant-sku]')).map(function(chip) {
-        var sku = chip.getAttribute('data-variant-sku');
-        if (!sku || seen.has(sku)) return null;
-        seen.add(sku);
-        var cached = state.officialProducts && state.officialProducts[sku];
-        return Object.assign({}, cached || {}, {sku:sku,name:cached && cached.name || chip.getAttribute('title') || state.currentProduct && state.currentProduct.name || '当前系列商品'});
-      }).filter(Boolean);
-      if (products.length < 2) return;
-      state.refProducts = products;
-      state.refProduct = null;
-      state._composerRecoPurchase = null;
-      if (window.__lxBridge && window.__lxBridge.sendChat) window.__lxBridge.sendChat('对比所有系列');
-    }
-  });
-  function getRightContent() {
-    return document.querySelector("body > .shell > .content, main.shell > .content, .shell > section.content");
-  }
-
-  function createActions(bottom) {
-    if (!bottom) return;
-    var labels = currentScene ? currentScene.labels : actions;
-    var existing = bottom.querySelector('.lx-smart-actions');
-    if (existing) {
-      var actual = Array.prototype.map.call(existing.querySelectorAll('.lx-smart-action span'), function(node) { return node.textContent; });
-      if (JSON.stringify(actual) === JSON.stringify(labels)) return;
-      existing.remove();
-    }
-
-    var panel = document.createElement("section");
-    panel.className = "lx-smart-actions";
-    panel.setAttribute("aria-label", "为你选择");
-    panel.innerHTML =
-      '<button class="lx-smart-actions-close" type="button" aria-label="关闭为你选择">' +
-        '<span aria-hidden="true"></span>' +
-      '</button>' +
-      '<div class="lx-smart-actions-title">' +
-        '<img src="/assets/icons/global-sparkle.svg" alt="" aria-hidden="true">' +
-        '<span>为你选择</span>' +
-      '</div>' +
-      '<div class="lx-smart-actions-list"></div>';
-
-    var list = panel.querySelector(".lx-smart-actions-list");
-    labels.forEach(function (label) {
-      var button = document.createElement("button");
-      button.className = "lx-smart-action";
-      button.type = "button";
-      button.innerHTML =
-        '<span></span>' +
-        '<img src="/assets/icons/arrow-down.svg" alt="" aria-hidden="true">';
-      button.querySelector("span").textContent = label;
-      button.addEventListener("click", function () {
-        if (window.__lxState && window.__lxState.sending) return;
-        collapseCurrent();
-        if (currentScene) { currentScene.definition.invoke(getRightContent(), label); return; }
-        if (window.__lxBridge && typeof window.__lxBridge.sendChat === "function") {
-          window.__lxBridge.sendChat(label);
-          return;
-        }
-        var textarea = bottom.querySelector(".composer textarea");
-        if (!textarea) return;
-        textarea.value = label;
-        textarea.dispatchEvent(new Event("input", { bubbles: true }));
-        var sendButton = bottom.querySelector(".send-btn, .lxfd-send, #lxfdSend");
-        if (sendButton) sendButton.click();
-        else textarea.dispatchEvent(new KeyboardEvent("keydown", {
-          key: "Enter",
-          code: "Enter",
-          bubbles: true,
-          cancelable: true
-        }));
-      });
-      list.appendChild(button);
-    });
-
-    panel.querySelector(".lx-smart-actions-close").addEventListener("click", function () {
-      cancelMotion(bottom);
-      bottom.classList.remove("lx-smart-actions-active", "lx-smart-actions-arrived", "lx-smart-actions-motion", "lx-smart-actions-compact");
-      restoreCurrentShortcuts(bottom, true);
-    });
-
-    var composer = bottom.querySelector(".composer");
-    bottom.insertBefore(panel, composer || null);
-
-  }
-
-  function runSmartActionsMotion(bottom, panel) {
-    cancelMotion(bottom);
-    if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) { bottom.classList.add("lx-smart-actions-arrived"); return; }
-    if (!panel) {
-      bottom.classList.add("lx-smart-actions-arrived");
-      return;
-    }
-    var source = getRightContent();
-    var target = panel.querySelector(".lx-smart-actions-list") || panel;
-    if (!source || !target || !Element.prototype.animate) {
-      bottom.classList.add("lx-smart-actions-arrived");
-      return;
-    }
-    var sourceView = source.querySelector(currentScene ? currentScene.definition.source : ".reco-page, .lx-reco-poc-page") || source;
-    var sourceRect = sourceView.getBoundingClientRect();
-    var targetRect = target.getBoundingClientRect();
-    if (!sourceRect.width || !sourceRect.height || !targetRect.width || !targetRect.height) {
-      bottom.classList.add("lx-smart-actions-arrived");
-      return;
-    }
-
-    bottom.classList.add("lx-smart-actions-motion");
-    var guide = document.createElement("div");
-    guide.className = "lx-smart-actions-guide lx-smart-actions-snapshot";
-    guide.setAttribute("aria-hidden", "true");
-    guide.style.left = sourceRect.left + "px";
-    guide.style.top = sourceRect.top + "px";
-    guide.style.width = sourceRect.width + "px";
-    guide.style.height = sourceRect.height + "px";
-
-    var snapshot = sourceView.cloneNode(true);
-    if (sourceView.shadowRoot) {
-      var visual = sourceView.shadowRoot.querySelector('.lx-store-page') || sourceView.shadowRoot.querySelector('main') || sourceView.shadowRoot;
-      snapshot = document.createElement('div');
-      var shadow = snapshot.attachShadow({mode:'open'});
-      Array.prototype.forEach.call(sourceView.shadowRoot.children, function(node) { if (node.tagName !== 'SCRIPT') shadow.appendChild(node.cloneNode(true)); });
-    }
-    snapshot.removeAttribute("id");
-    snapshot.classList.add("lx-smart-actions-snapshot-content");
-    snapshot.querySelectorAll("script, iframe, video, audio").forEach(function (node) {
-      node.remove();
-    });
-    snapshot.querySelectorAll("[id]").forEach(function (node) {
-      node.removeAttribute("id");
-    });
-    snapshot.querySelectorAll("button, input, textarea, select, a").forEach(function (node) {
-      node.setAttribute("tabindex", "-1");
-    });
-    snapshot.style.width = sourceRect.width + "px";
-    snapshot.style.height = sourceRect.height + "px";
-    guide.appendChild(snapshot);
-    document.body.appendChild(guide);
-
-    var endWidth = Math.min(targetRect.width, 270);
-    var endHeight = Math.min(targetRect.height, 82);
-    var endLeft = targetRect.left;
-    var endTop = targetRect.top;
-    var deltaX = endLeft - sourceRect.left;
-    var deltaY = endTop - sourceRect.top;
-    var scaleX = endWidth / sourceRect.width;
-    var scaleY = endHeight / sourceRect.height;
-    var motionDuration = 3050;
-    var controlsRevealLead = 2000;
-    var animation = guide.animate([
-      {
-        transform: "translate3d(0,0,0) scale(.992)",
-        borderRadius: "12px",
-        opacity: 1,
-        offset: 0
-      },
-      {
-        transform: "translate3d(0,0,0) scale(.985)",
-        borderRadius: "12px",
-        opacity: 1,
-        offset: .16
-      },
-      {
-        transform: "translate3d(" + (deltaX * .18) + "px," + (deltaY * .18) + "px,0) scale(.78)",
-        borderRadius: "12px",
-        opacity: .88,
-        offset: .38
-      },
-      {
-        transform: "translate3d(" + (deltaX * .72) + "px," + (deltaY * .72) + "px,0) scale(" + (scaleX * 1.45) + "," + (scaleY * 1.45) + ")",
-        borderRadius: "10px",
-        opacity: .68,
-        offset: .72
-      },
-      {
-        transform: "translate3d(" + deltaX + "px," + deltaY + "px,0) scale(" + scaleX + "," + scaleY + ")",
-        borderRadius: "10px",
-        opacity: .34,
-        offset: .9
-      },
-      {
-        transform: "translate3d(" + deltaX + "px," + deltaY + "px,0) scale(" + scaleX + "," + scaleY + ")",
-        borderRadius: "10px",
-        opacity: 0,
-        offset: 1
-      }
-    ], {
-      duration: motionDuration,
-      easing: "cubic-bezier(.22,.78,.22,1)",
-      fill: "forwards"
-    });
-
-    var motion = { animation: animation, guide: guide, timer: 0 };
-    bottom._lxSmartMotion = motion;
-    var controlsRevealTimer = window.setTimeout(function () {
-      if (!bottom.classList.contains("lx-smart-actions-collapsing") && !bottom.classList.contains("lx-smart-actions-compact") && bottom.classList.contains("lx-smart-actions-active")) bottom.classList.add("lx-smart-actions-arrived");
-    }, motionDuration - controlsRevealLead);
-
-    motion.timer = controlsRevealTimer;
-    function finish() {
-      if (bottom._lxSmartMotion !== motion) return;
-      bottom._lxSmartMotion = null;
-      window.clearTimeout(controlsRevealTimer);
-      guide.remove();
-      bottom.classList.remove("lx-smart-actions-motion");
-      if (!bottom.classList.contains("lx-smart-actions-collapsing") && !bottom.classList.contains("lx-smart-actions-compact") && bottom.classList.contains("lx-smart-actions-active")) bottom.classList.add("lx-smart-actions-arrived");
-    }
-    animation.addEventListener("finish", finish, { once: true });
-    animation.addEventListener("cancel", finish, { once: true });
-  }
-
-  function revealCurrent() {
-    if (Date.now() < suppressRevealUntil) return false;
-    if (!currentScene) {
-      hideCurrent();
-      return false;
-    }
-    var revealed = false;
-    document.querySelectorAll(".assistant-panel .assistant-bottom").forEach(function (bottom) {
-      if (!bottom.getBoundingClientRect().width || !bottom.getBoundingClientRect().height) return;
-      createActions(bottom);
-      if (bottom.classList.contains("lx-smart-actions-active") && !bottom.classList.contains("lx-smart-actions-compact")) return;
-      bottom.classList.remove("lx-smart-actions-active", "lx-smart-actions-compact", "lx-smart-actions-collapsing");
-      bottom.classList.remove("lx-smart-actions-arrived", "lx-smart-actions-motion");
-      bottom.querySelectorAll(".shortcut-row, .lx-personal-quick-actions, [data-lx-personal-quick-count]").forEach(function (currentActions) {
-        currentActions.style.setProperty("display", "none", "important");
-        currentActions.setAttribute("aria-hidden", "true");
-      });
-      bottom.classList.add("lx-smart-actions-active");
-      runSmartActionsMotion(bottom, bottom.querySelector(".lx-smart-actions"));
-      revealed = true;
-    });
-    return revealed;
-  }
-
-  function restoreCurrentShortcuts(bottom, animate) {
-    bottom.querySelectorAll(".shortcut-row, .lx-personal-quick-actions, [data-lx-personal-quick-count]").forEach(function (currentActions) {
-      currentActions.style.removeProperty("display");
-      currentActions.removeAttribute("aria-hidden");
-    });
-    if (!animate) return;
-    bottom.classList.remove("lx-shortcuts-arriving");
-    void bottom.offsetWidth;
-    bottom.classList.add("lx-shortcuts-arriving");
-    window.setTimeout(function () {
-      bottom.classList.remove("lx-shortcuts-arriving");
-    }, 2750);
-  }
-
-  function hideCurrent() {
-    document.querySelectorAll(".assistant-panel .assistant-bottom").forEach(function (bottom) {
-      cancelMotion(bottom);
-      var shouldAnimateShortcuts = bottom.classList.contains("lx-smart-actions-active");
-      bottom.classList.remove("lx-smart-actions-active", "lx-smart-actions-arrived", "lx-smart-actions-motion", "lx-smart-actions-compact", "lx-smart-actions-collapsing");
-      restoreCurrentShortcuts(bottom, shouldAnimateShortcuts);
-    });
-  }
-
-  function showCompactCurrent() {
-    document.querySelectorAll(".assistant-panel .assistant-bottom").forEach(function (bottom) {
-      createActions(bottom);
-      bottom.querySelectorAll(".shortcut-row, .lx-personal-quick-actions, [data-lx-personal-quick-count]").forEach(function (currentActions) {
-        currentActions.style.setProperty("display", "none", "important");
-        currentActions.setAttribute("aria-hidden", "true");
-      });
-      cancelMotion(bottom);
-      bottom.classList.remove("lx-smart-actions-motion", "lx-smart-actions-collapsing");
-      bottom.classList.add("lx-smart-actions-active", "lx-smart-actions-arrived", "lx-smart-actions-compact");
-    });
-  }
-
-
-  function scheduleSync(delay) {
-    if (syncTimer) return;
-    syncTimer = window.setTimeout(function() { syncTimer = 0; syncPageScene(); }, delay == null ? 60 : delay);
-  }
-  function userMessageSignature() {
-    var nodes = document.querySelectorAll('.lx-p0-message.user, .msg.user, .message.user, .lxfd-msg-user, .lxfd-msg.user, [data-role="user"]');
-    return nodes.length ? nodes.length + ':' + String(nodes[nodes.length - 1].textContent || '').trim() : '0';
-  }
-  function syncSendCollapse() {
-    var signature = userMessageSignature();
-    var sending = !!(window.__lxState && window.__lxState.sending);
-    if (signature === '0' && lastUserMessageSignature && lastUserMessageSignature !== '0') {
-      shownScenes.clear(); currentScene = null; sceneCandidate = ''; hideCurrent();
-      document.querySelectorAll('.lx-smart-actions').forEach(function(panel) { panel.remove(); });
-    } else if ((sending && !wasSending) || (lastUserMessageSignature && signature !== lastUserMessageSignature)) collapseCurrent();
-    wasSending = sending; lastUserMessageSignature = signature;
-  }
-  function syncPageScene() {
-    syncSendCollapse();
-    var content = getRightContent();
-    var servicePage = content && content.querySelector('[data-member-service-page]');
-    var serviceVisible = servicePage && servicePage.getBoundingClientRect().width && servicePage.getBoundingClientRect().height;
-    var deviceDetailPage = content && content.querySelector('[data-member-device-detail-page]');
-    var deviceDetailVisible = deviceDetailPage && deviceDetailPage.getBoundingClientRect().width && deviceDetailPage.getBoundingClientRect().height;
-    var devicePage = content && content.querySelector('.leai-device-center');
-    var deviceVisible = devicePage && devicePage.getBoundingClientRect().width && devicePage.getBoundingClientRect().height;
-    var storePage = content && content.querySelector('.lx-store-component-host, .lx-store-exact-frame');
-    var storeVisible = storePage && storePage.getBoundingClientRect().width && storePage.getBoundingClientRect().height;
-    var solutionDetail = content && content.querySelector('.lx-specific-solution-detail');
-    var solutionDetailVisible = solutionDetail && solutionDetail.getBoundingClientRect().width && solutionDetail.getBoundingClientRect().height;
-    var solutionCompare = content && content.querySelector('.lx-solution-compare-page');
-    var solutionCompareVisible = solutionCompare && solutionCompare.getBoundingClientRect().width && solutionCompare.getBoundingClientRect().height;
-    var solutionPage = content && content.querySelector('.lx-solution-center-page');
-    var solutionVisible = solutionPage && solutionPage.getBoundingClientRect().width && solutionPage.getBoundingClientRect().height;
-    var couponVisible = content && couponRecommendationProducts(content);
-    var scene = content && pageScenes[couponVisible ? 'coupon-recommendation' : solutionCompareVisible ? 'solution-compare' : solutionDetailVisible ? 'solution-detail' : solutionVisible ? 'solutions' : storeVisible ? 'stores' : deviceDetailVisible ? 'device-detail' : deviceVisible ? 'devices' : serviceVisible ? 'service' : content.getAttribute('data-view')];
-    if (!scene) {
-      if (currentScene) { currentScene = null; sceneCandidate = ''; hideCurrent(); document.querySelectorAll('.lx-smart-actions').forEach(function(panel) { panel.remove(); }); }
-      if (wasSending) scheduleSync(100);
-      return;
-    }
-    // Wait for the answer and page-generation animation, including the first query.
-    if (wasSending || content.getAttribute('aria-busy') === 'true' || content.classList.contains('is-generating-tab') || content.querySelector('.lx-page-generating') || !scene.ready(content)) {
-      sceneCandidate = ''; sceneSince = 0; scheduleSync(100); return;
-    }
-    var key = (couponVisible ? 'coupon-recommendation' : solutionCompareVisible ? 'solution-compare' : solutionDetailVisible ? 'solution-detail' : solutionVisible ? 'solutions' : storeVisible ? 'stores' : deviceDetailVisible ? 'device-detail' : deviceVisible ? 'devices' : serviceVisible || scene === recommendationScene && isServiceRecommendation(content) ? 'service' : content.getAttribute('data-view')) + ':' + scene.identity(content);
-    var labels = typeof scene.labels === 'function' ? scene.labels(content) : scene.labels;
-    var labelKey = JSON.stringify(labels);
-    if (!currentScene || currentScene.key !== key) {
-      hideCurrent(); document.querySelectorAll('.lx-smart-actions').forEach(function(panel) { panel.remove(); });
-      currentScene = { key: key, definition: scene, labels: labels.slice(), labelKey: labelKey };
-      sceneCandidate = ''; sceneSince = 0;
-      // Compact is only for a scene which really completed its first reveal.
-      if (shownScenes.has(key) && labels.length) showCompactCurrent();
-    } else if (currentScene.labelKey !== labelKey) {
-      currentScene.labelKey = labelKey; currentScene.labels = labels.slice(); currentScene.definition = scene;
-      document.querySelectorAll('.assistant-panel .assistant-bottom .lx-smart-actions').forEach(function(panel) { var bottom = panel.parentElement; panel.remove(); createActions(bottom); });
-    }
-    if (!labels.length) { if (!currentScene.empty) { hideCurrent(); currentScene.empty = true; } return; }
-    currentScene.empty = false;
-    document.querySelectorAll(".assistant-panel .assistant-bottom").forEach(createActions);
-    if (shownScenes.has(key)) return;
-    var source = content.querySelector(scene.source);
-    if (!source || !source.getBoundingClientRect().width || !source.getBoundingClientRect().height) { scheduleSync(100); return; }
-    if (sceneCandidate !== key + labelKey) { sceneCandidate = key + labelKey; sceneSince = Date.now(); }
-    if (Date.now() - sceneSince < 450 || Date.now() < suppressRevealUntil) { scheduleSync(100); return; }
-    if (revealCurrent()) shownScenes.add(key);
-    else scheduleSync(100);
-  }
-  function cancelMotion(bottom) {
-    window.clearTimeout(bottom._lxSmartCollapseTimer);
-    bottom._lxSmartCollapseTimer = 0;
-    var motion = bottom._lxSmartMotion;
-    if (!motion) return;
-    bottom._lxSmartMotion = null;
-    window.clearTimeout(motion.timer);
-    motion.animation.cancel(); motion.guide.remove();
-    bottom.classList.remove('lx-smart-actions-motion');
-  }
-  function collapseCurrent() {
-    suppressRevealUntil = Date.now() + 1600;
-    document.querySelectorAll('.assistant-panel .assistant-bottom').forEach(function(bottom) {
-      if (!bottom.classList.contains('lx-smart-actions-active')) return;
-      if (bottom.classList.contains('lx-smart-actions-collapsing') || bottom.classList.contains('lx-smart-actions-compact')) return;
-      cancelMotion(bottom);
-      bottom.classList.add('lx-smart-actions-collapsing');
-      bottom._lxSmartCollapseTimer = window.setTimeout(function() {
-        bottom._lxSmartCollapseTimer = 0;
-        bottom.classList.remove('lx-smart-actions-arrived', 'lx-smart-actions-collapsing');
-        bottom.classList.add('lx-smart-actions-compact');
-      }, 720);
-    });
-    scheduleSync();
-  }
-  function activateDeviceRow(event) {
-    var row = event.target.closest && event.target.closest('[data-device-unified-list] [data-device-list-item]');
-    if (!row || event.target.closest('button, a, input, select, textarea')) return;
-    if (event.type === 'keydown' && event.key !== 'Enter' && event.key !== ' ') return;
-    var action = row.querySelector('[data-device-detail]');
-    if (!action) return;
-    event.preventDefault();
-    action.click();
-  }
-  function prepareDeviceRows() {
-    document.querySelectorAll('[data-device-unified-list] [data-device-list-item]').forEach(function(row) {
-      if (!row.querySelector('[data-device-detail]')) return;
-      if (!row.hasAttribute('tabindex')) row.setAttribute('tabindex', '0');
-      row.style.cursor = 'pointer';
-    });
-  }
-  function init() {
-    document.addEventListener('click', activateDeviceRow);
-    document.addEventListener('keydown', activateDeviceRow);
-    var deviceRowObserver = new MutationObserver(prepareDeviceRows);
-    deviceRowObserver.observe(document.body, {childList:true, subtree:true});
-    prepareDeviceRows();
-    if (!document.getElementById('lx-solution-list-header-hidden')) {
-      var solutionStyle = document.createElement('style');
-      solutionStyle.id = 'lx-solution-list-header-hidden';
-      solutionStyle.textContent = '.info-page:has(> .lx-solution-center-page) > .reco-head, .lx-solution-center-page > .lx-solution-tabs { display: none !important; } .lx-solution-center-page .lx-solution-card > em { display: none !important; } html body .content .lx-sd-entity-card[data-solution-product-detail] .lx-sd-entity-card-copy > em { display:none!important; } html body .content .lx-solution-center-page .lx-solution-card { border:0!important; } html body[data-page] main.shell section.content:has(.lx-solution-center-page) { background-color:#f5f5f7!important; background-image:linear-gradient(180deg,#fff 0,#fff 74px,#fefefe 96px,#fafafa 122px,#f7f7f8 164px,#f5f5f7 214px,#f5f5f7 100%)!important; background-repeat:no-repeat!important; } html body[data-page] main.shell section.content .info-page:has(.lx-solution-center-page), html body[data-page] main.shell section.content .page:has(.lx-solution-center-page), html body .content .lx-solution-center-page, html body .content .lx-solution-center-page .lx-solution-floor { background:transparent!important; }';
-      document.head.appendChild(solutionStyle);
-    }
-    lastUserMessageSignature = userMessageSignature();
-    var observer = new MutationObserver(function() { scheduleSync(); });
-    document.querySelectorAll('.content, .assistant-panel, #lxfdThread').forEach(function(root) {
-      observer.observe(root, {childList:true,subtree:true,attributes:true,attributeFilter:['class','data-view','aria-busy','aria-selected','data-variant-sku','data-solution-selected']});
-    });
-    observer.observe(document.body, {attributes:true,attributeFilter:['class']});
-    observer.observe(document.documentElement, {attributes:true,attributeFilter:['class']});
-    window.addEventListener('resize', function() { scheduleSync(); });
-    document.addEventListener('load', function(event) { if (event.target.matches && event.target.matches('.content img')) scheduleSync(); }, true);
-    window.addEventListener('click', function(event) { if (event.target.closest && event.target.closest('.send-btn, .hero-send-btn, .lxfd-send, #lxfdSend')) collapseCurrent(); }, true);
-    window.addEventListener('keydown', function(event) { if (event.key === 'Enter' && !event.shiftKey && !event.isComposing && event.target.matches && event.target.matches('.composer textarea, .lxfd-composer textarea')) collapseCurrent(); }, true);
-    window.addEventListener('submit', function(event) { if (event.target.matches && event.target.matches('.composer, .lxfd-composer')) collapseCurrent(); }, true);
-    scheduleSync();
-  }
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, {once:true});
-  else init();
-})();
-
-/* Shared modal-entry small card, available before checkout assets load. */
-(()=>{const style=document.createElement("style");style.id="lx-enterprise-lead-small-card";style.textContent="html body .lx-p0-message.ai .lx-enterprise-lead-reco,\nhtml body .lx-p0-message.assistant .lx-enterprise-lead-reco { width:50%!important; min-width:190px!important; max-width:240px!important; min-height:48px!important; display:flex!important; align-items:center!important; justify-content:space-between!important; gap:16px!important; margin-top:14px!important; padding:0 14px 0 16px!important; border:1px solid var(--answer-card-border,#e2ddeb)!important; border-radius:8px!important; background:#fff!important; box-shadow:none!important; }\nhtml body .lx-p0-message.ai .lx-enterprise-lead-reco .answer-cta-title,\nhtml body .lx-p0-message.assistant .lx-enterprise-lead-reco .answer-cta-title { overflow:hidden!important; color:#4d144a!important; font-size:14px!important; line-height:20px!important; font-weight:600!important; white-space:nowrap!important; text-overflow:ellipsis!important; }\nhtml body .lx-p0-message.ai .lx-enterprise-lead-reco .answer-cta-icon,\nhtml body .lx-p0-message.assistant .lx-enterprise-lead-reco .answer-cta-icon { flex:0 0 24px!important; width:24px!important; height:24px!important; display:grid!important; place-items:center!important; }\nhtml body .lx-p0-message.ai .lx-enterprise-lead-reco .answer-cta-icon img,\nhtml body .lx-p0-message.assistant .lx-enterprise-lead-reco .answer-cta-icon img { width:16px!important; height:16px!important; }\nhtml body .lx-p0-message.ai .lx-enterprise-lead-reco:hover,\nhtml body .lx-p0-message.ai .lx-enterprise-lead-reco:focus-visible,\nhtml body .lx-p0-message.assistant .lx-enterprise-lead-reco:hover,\nhtml body .lx-p0-message.assistant .lx-enterprise-lead-reco:focus-visible { border-color:#4d144a!important; background:#fcfaff!important; outline:none!important; }\n\n/* Fullscreen assistant reuses the same authentication recommendation card. */\n.lxfd-msg-ai.lx-auth-flow-answer .lxfd-ai-body strong { font-weight:600!important; }\nhtml body .lxfd-msg-ai .lx-enterprise-lead-reco { width:50%!important; min-width:190px!important; max-width:240px!important; min-height:48px!important; display:flex!important; align-items:center!important; justify-content:space-between!important; gap:16px!important; margin-top:14px!important; padding:0 14px 0 16px!important; border:1px solid var(--answer-card-border,#e2ddeb)!important; border-radius:8px!important; background:#fff!important; box-shadow:none!important; }\nhtml body .lxfd-msg-ai .lx-enterprise-lead-reco .answer-cta-title { overflow:hidden!important; color:#4d144a!important; font-size:14px!important; line-height:20px!important; font-weight:600!important; white-space:nowrap!important; text-overflow:ellipsis!important; }\nhtml body .lxfd-msg-ai .lx-enterprise-lead-reco .answer-cta-icon { flex:0 0 24px!important; width:24px!important; height:24px!important; display:grid!important; place-items:center!important; }\nhtml body .lxfd-msg-ai .lx-enterprise-lead-reco .answer-cta-icon img { width:16px!important; height:16px!important; }\nhtml body .lxfd-msg-ai .lx-enterprise-lead-reco:hover,\nhtml body .lxfd-msg-ai .lx-enterprise-lead-reco:focus-visible { border-color:#4d144a!important; background:#fcfaff!important; outline:none!important; }\n\n";document.head.appendChild(style);})();
-</script>
-<script src="/assets/frontend/js/core/answer-actions-v1.js?p0v=cc3f7487fbe1651b"></script>
-<script src="/assets/frontend/js/core/review-media-v1.js?p0v=af95f5cdffda1d1e"></script>
-<script src="/assets/frontend/js/core/order-login-v1.js?p0v=ac02d9bf296f0fc2"></script>
-<script src="/assets/frontend/js/core/thinking-auto-v1.js?p0v=8ee2a897a3409390"></script>
-<script src="/assets/frontend/js/core/reco-match-v1.js?p0v=9a56eae55aad4bea"></script>
-<script src="/assets/frontend/js/core/tab-reorder-v1.js?p0v=8dc5ecbb5c5b9ed3"></script>
-<script src="/assets/frontend/js/core/prompt-menu-height-v1.js?p0v=d360d6b8c137a088"></script>
-<script src="/assets/frontend/js/core/education-auth-accessibility-v1.js?p0v=214a3172388c51d8"></script>
-
-<script defer src="/assets/frontend/js/core/tabbar-compression-v1.js?p0v=3d614472748a0996"></script>
+<script defer src="/modules/shared/agent-content/index.js?p0v=7aea23eb1054031f#p0-script=%2Fassets%2Ffrontend%2Fjs%2Fcore%2Ftabbar-compression-v1.js"></script>
 </body>
 </html>

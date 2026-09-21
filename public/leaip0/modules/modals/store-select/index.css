@@ -1,0 +1,19 @@
+/* 选择门店 — ordered style fragments. */
+@media (-p0-part: p35865a0aa6c1908c70f1) {
+      .lx-appointment-store-list { display: grid; gap: 8px; max-height: 340px; overflow: auto; padding-right: 4px; }
+      .lx-appointment-store-option {
+        min-height: 64px;
+        padding: 12px 14px;
+        border: 1px solid #e6e0ed;
+        border-radius: 10px;
+        background: #ffffff;
+        color: #252525;
+        text-align: left;
+      }
+      .lx-appointment-store-option b,
+      .lx-appointment-store-option span { display: block; }
+      .lx-appointment-store-option b { font-size: 13px; }
+      .lx-appointment-store-option span { margin-top: 4px; color: #979797; font-size: 11px; }
+      .lx-appointment-store-option.is-selected { border-color: #5b1452; background: #fcfaff; }
+}
+

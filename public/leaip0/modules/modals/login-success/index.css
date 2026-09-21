@@ -1,0 +1,13 @@
+/* 登录成功 — ordered style fragments. */
+@media (-p0-part: pfcdb71ff41519e7308d4) {
+.lx-auth-modal .lx-auth-form-panel.success>*:not(.lx-auth-success-message){display:none}
+}
+@media (-p0-part: pcd347bba3352d4bc32ed) {
+.lx-auth-modal .lx-auth-success-message{text-align:center;padding:34px 0 28px;animation:lx-auth-success-in .32s cubic-bezier(.2,.8,.2,1)}
+.lx-auth-modal .lx-auth-success-icon{width:54px;height:54px;margin:0 auto 14px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,var(--brand-deep),var(--brand-red));color:#fff;box-shadow:0 10px 24px rgba(184,37,46,.2)}
+.lx-auth-modal .lx-auth-success-icon svg{width:28px;height:28px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.lx-auth-modal .lx-auth-success-title{font-size:20px;font-weight:800;color:var(--brand-deep)}
+.lx-auth-modal .lx-auth-success-subtitle{margin-top:7px;color:#8b828e;font-size:13px}
+@keyframes lx-auth-success-in{from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:none}}
+}
+

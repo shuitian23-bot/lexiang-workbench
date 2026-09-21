@@ -1,0 +1,41 @@
+/* 商品对比 — ordered style fragments. */
+@media (-p0-part: pde9f7e39b05045e471b4) {
+
+/* 商品 1:N 对比：严格复用 product-comparison-1toN.html 的结构、尺寸与状态。 */
+.compare-page:has(.lx-product-compare){width:100%;max-width:none;padding:18px 0 24px!important;color:#252525;font-family:"Source Han Sans CN","PingFang SC","Microsoft YaHei",system-ui,sans-serif}
+.compare-page:has(.lx-product-compare) .lx-pc-head{margin-bottom:18px}
+.compare-page:has(.lx-product-compare) .lx-pc-head h2{margin:0;padding:0 0 0 10px!important;color:#252525;font-size:22px!important;line-height:32px!important;font-weight:500!important;letter-spacing:0}
+.compare-page:has(.lx-product-compare) .lx-pc-head p{margin:13px 0 18px;color:#979797;font-size:14px;line-height:1.4;font-weight:500}
+}
+@media (-p0-part: ped73ea271c64af1d4458) {
+.lx-product-compare{position:relative;width:100%}
+}
+@media (-p0-part: p2c355e76c6d2b9d98aab) {.lx-product-compare .lx-pc-cell.column-hover{background:#fcfaff!important}
+}
+@media (-p0-part: p6295bc48c00c1404034e) {
+.lx-product-compare .best-tag{display:none!important}
+}
+@media (-p0-part: p57dd227a70e9374baa2a) {
+.lx-product-compare .lx-pc-cell.recommended{background:#f3edf6!important;box-shadow:inset 1px 0 #b79bbc,inset -1px 0 #b79bbc}
+.lx-product-compare .lx-pc-cell.recommended.column-hover{background:#eee4f2!important}
+.lx-product-compare .lx-pc-cell.recommended.top{box-shadow:inset 1px 0 #b79bbc,inset -1px 0 #b79bbc,inset 0 1px #b79bbc}
+.lx-product-compare .lx-pc-cell.recommended.bottom{box-shadow:inset 1px 0 #b79bbc,inset -1px 0 #b79bbc,inset 0 -1px #b79bbc}
+.lx-product-compare .lx-pc-grid .lx-pc-product-head.recommended{padding-top:33px!important;padding-bottom:12px!important}
+.lx-product-compare .lx-pc-rec-badge{position:absolute;top:0;left:0;z-index:1;display:inline-flex!important;align-items:center;height:22px;padding:0 10px;border-radius:0 0 8px 0;background:linear-gradient(90deg,#4d144a 11.9%,#b8252e 100%);color:#fff;font-size:11px;font-weight:600;line-height:22px;white-space:nowrap;pointer-events:none}
+}
+@media (-p0-part: pb4668a79638f7817ceea) {.lx-product-compare button:focus-visible,.lx-product-compare [tabindex="0"]:focus-visible{outline:3px solid rgba(155,142,182,.62);outline-offset:2px}
+.lx-product-compare.is-hide-same .lx-pc-same-row{display:none}
+}
+@media (-p0-part: pafa4bec381b3abf2e171) {
+      .compare-page { display: none; padding: 4px 2px 40px; }
+}
+@media (-p0-part: p08f002e3cf9a32aa04f9) {
+      .content[data-view="compare"] .compare-page { display: block; }
+}
+@media (-p0-part: p651e6d92511ca4924f32) {.compare-page{display:none;padding:4px 2px 40px;}
+}
+@media (-p0-part: pecf76a40c8136ad28f81) {.content[data-view="compare"] .compare-page{display:block;}
+}
+@media (-p0-part: p43f133e671a005417f60) {.lx-product-compare .lx-pc-grid > .lx-pc-cell[data-col]{cursor:pointer}.lx-product-compare .lx-pc-grid > .lx-pc-cell[data-col]:focus-visible{outline:2px solid #4d144a;outline-offset:-2px}
+}
+

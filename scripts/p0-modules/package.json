@@ -1,0 +1,11 @@
+{
+  "name": "p0-module-migration-tools",
+  "private": true,
+  "description": "One-time migration helpers; never loaded by P0 pages",
+  "dependencies": {
+    "acorn": "^8.15.0",
+    "eslint-scope": "^8.4.0",
+    "parse5": "^7.3.0",
+    "postcss": "^8.5.6"
+  }
+}

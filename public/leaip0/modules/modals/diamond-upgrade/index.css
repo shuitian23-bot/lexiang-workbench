@@ -1,0 +1,123 @@
+/* 升级钻石会员 — ordered style fragments. */
+@media (-p0-part: pc4df10213094e43594cf) {
+html body .lx-p0-modal:has(.lx-diamond-application):where(.lx-p0-modal-mask:has(.lx-stuauth-modal,.lx-edu-success-lead),.lx-p0-modal-mask:has(.lx-stuauth-modal,.lx-edu-success-lead) *) {width: min(580px, -32px + 100vw) !important;}
+html body .lx-p0-modal:has(.lx-diamond-application) > .lx-p0-modal-head:where(.lx-p0-modal-mask:has(.lx-stuauth-modal,.lx-edu-success-lead),.lx-p0-modal-mask:has(.lx-stuauth-modal,.lx-edu-success-lead) *) {height: auto !important; min-height: 0px !important; padding-bottom: 0px !important; margin-bottom: 16px !important;}
+html body .lx-p0-modal:has(.lx-diamond-application) > .lx-p0-modal-body:where(.lx-p0-modal-mask:has(.lx-stuauth-modal,.lx-edu-success-lead),.lx-p0-modal-mask:has(.lx-stuauth-modal,.lx-edu-success-lead) *) {padding-top: 0px !important;}
+html body .lx-p0-modal-mask > .lx-p0-modal:not(.lx-service-region-dialog):has(.lx-diamond-application) > .lx-p0-modal-head:where(.lx-p0-modal-mask:has(.lx-stuauth-modal,.lx-edu-success-lead),.lx-p0-modal-mask:has(.lx-stuauth-modal,.lx-edu-success-lead) *) {height: auto !important; min-height: 0px !important; padding-top: 0px !important; padding-bottom: 0px !important; margin: 0px 0px 12px !important;}
+html body .lx-p0-modal-mask > .lx-p0-modal:has(.lx-diamond-application) > .lx-p0-modal-body:where(.lx-p0-modal-mask:has(.lx-stuauth-modal,.lx-edu-success-lead),.lx-p0-modal-mask:has(.lx-stuauth-modal,.lx-edu-success-lead) *) {margin-top: 0px !important; padding-top: 0px !important;}
+html body .lx-p0-modal .lx-diamond-application .lx-diamond-intro:where(.lx-p0-modal-mask:has(.lx-stuauth-modal,.lx-edu-success-lead),.lx-p0-modal-mask:has(.lx-stuauth-modal,.lx-edu-success-lead) *) {font-size: 12px !important; font-weight: 400 !important; line-height: 18px !important;}
+html body .lx-p0-modal .lx-diamond-application .lx-diamond-agree:where(.lx-p0-modal-mask:has(.lx-stuauth-modal,.lx-edu-success-lead),.lx-p0-modal-mask:has(.lx-stuauth-modal,.lx-edu-success-lead) *),
+html body .lx-p0-modal .lx-diamond-application .lx-diamond-agree > span:where(.lx-p0-modal-mask:has(.lx-stuauth-modal,.lx-edu-success-lead),.lx-p0-modal-mask:has(.lx-stuauth-modal,.lx-edu-success-lead) *) {font-size: 12px !important; font-weight: 400 !important; line-height: 20px !important;}
+}
+@media (-p0-part: p9b910f584428b31ca7ec) {
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell:has(.lx-diamond-upgrade) .lx-p0-modal-head),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell:has(.lx-diamond-upgrade) .lx-p0-modal-head){min-height: 60px !important; padding: 0px 28px !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell:has(.lx-diamond-upgrade) .lx-p0-modal-title),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell:has(.lx-diamond-upgrade) .lx-p0-modal-title){font-size: 18px !important; line-height: 26px !important; font-weight: 600 !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell:has(.lx-diamond-upgrade) .lx-p0-modal-body),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell:has(.lx-diamond-upgrade) .lx-p0-modal-body){padding: 4px 28px 24px !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell .lx-lead-modal.lx-enterprise-lead form#lxEnterpriseAuthForm.lx-diamond-upgrade-form),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell .lx-lead-modal.lx-enterprise-lead form#lxEnterpriseAuthForm.lx-diamond-upgrade-form){display: flex !important; flex-direction: column !important; gap: 16px 0px !important; grid-template-columns: none !important; grid-auto-flow: initial !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-field),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-field){display: grid !important; grid-template-columns: 84px minmax(0px, 1fr) !important; gap: 8px !important; align-items: start !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-field > span:first-child),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-field > span:first-child){padding-top: 13px !important; color: rgb(36, 33, 38) !important; font-size: 14px !important; line-height: 20px !important; font-weight: 600 !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-field-control),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-field-control){display: flex !important; align-items: center !important; gap: 16px !important; min-width: 0px !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-field-control > input),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-field-control > input){flex: 0 0 auto !important; width: 260px !important; height: 40px !important; min-height: 40px !important; padding: 0px 14px !important; border: 1px solid rgb(226, 221, 235) !important; border-radius: 8px !important; background: rgb(255, 255, 255) !important; color: rgb(36, 33, 38) !important; font-size: 14px !important; font-weight: 400 !important; line-height: 38px !important; box-shadow: none !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-field-control > input)::placeholder,
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-field-control > input)::placeholder{color: rgb(143, 137, 145) !important; font-size: 13px !important; font-weight: 400 !important; opacity: 1 !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-field-control > small),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-field-control > small){color: rgb(161, 154, 164) !important; font-size: 12px !important; line-height: 18px !important; font-weight: 400 !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-phone-field .lx-diamond-field-control),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-phone-field .lx-diamond-field-control){flex-direction: column !important; align-items: flex-start !important; gap: 6px !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-phone-field .lx-diamond-field-control > small),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-phone-field .lx-diamond-field-control > small){width: max-content !important; max-width: none !important; white-space: nowrap !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-material-field > span:first-child),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-material-field > span:first-child){padding-top: 4px !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-material-field .lx-diamond-field-control),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-material-field .lx-diamond-field-control){display: block !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-upload),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-upload){width: 260px !important; height: 132px !important; display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: center !important; gap: 8px !important; border: 1px solid rgb(231, 225, 235) !important; border-radius: 8px !important; background: rgb(252, 250, 255) !important; color: rgb(143, 135, 146) !important; cursor: pointer !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-upload-plus),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-upload-plus){width: 32px !important; height: 32px !important; display: block !important; overflow: hidden !important; background: url("/assets/icons/full-create.svg") center center / 28px 28px no-repeat !important; color: transparent !important; font-size: 0px !important; line-height: 0 !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-upload strong),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-upload strong){color: rgb(151, 144, 154) !important; font-size: 12px !important; line-height: 18px !important; font-weight: 400 !important; text-align: center !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-upload-preview),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-upload-preview){display: none !important; width: 100% !important; height: 100% !important; object-fit: cover !important; border-radius: 7px !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-upload input),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-upload input){position: absolute !important; width: 1px !important; height: 1px !important; opacity: 0 !important; pointer-events: none !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-material-field .lx-diamond-field-control > small),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-material-field .lx-diamond-field-control > small){display: block !important; max-width: 440px !important; margin-top: 8px !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-agree),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-agree){display: flex !important; align-items: flex-start !important; gap: 9px !important; margin-top: 28px !important; color: rgb(98, 91, 104) !important; font-size: 12px !important; line-height: 18px !important; font-weight: 400 !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-agree > span),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-agree > span){font-weight: 400 !important; flex: 1 1 auto !important; min-width: 0px !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-agree input),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-agree input){position: relative !important; flex: 0 0 16px !important; width: 16px !important; height: 16px !important; margin: 1px 0px 0px !important; appearance: none !important; border: 1px solid rgb(169, 162, 172) !important; border-radius: 50% !important; background: rgb(255, 255, 255) !important; cursor: pointer !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-agree input:checked),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-agree input:checked){border-color: transparent !important; background: linear-gradient(135deg, rgb(91, 20, 82) 0%, rgb(201, 37, 53) 100%) !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-agree input:checked)::after,
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-agree input:checked)::after{content: "" !important; position: absolute !important; left: 4px !important; top: 2px !important; width: 5px !important; height: 8px !important; border-style: solid !important; border-color: rgb(255, 255, 255) !important; border-image: none !important; border-width: 0px 2px 2px 0px !important; background: transparent !important; mask: none !important; transform: rotate(45deg) !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-error),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-error){min-height: 0px !important; margin: -10px 0px 0px 92px !important; color: rgb(197, 42, 50) !important; font-size: 13px !important; line-height: 20px !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-upgrade .lx-lead-actions),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-upgrade .lx-lead-actions){width: min(324px, 100%) !important; margin: 4px 0px 0px auto !important; display: grid !important; grid-template-columns: 140px 172px !important; gap: 12px !important; grid-area: auto !important; flex: 0 0 auto !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-upgrade .lx-lead-actions > button),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-upgrade .lx-lead-actions > button){width: 100% !important; min-width: 0px !important; height: 44px !important; min-height: 44px !important; padding: 0px 18px !important; border-radius: 999px !important; font-size: 16px !important; line-height: 44px !important; font-weight: 600 !important; box-shadow: none !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-upgrade .lx-lead-cancel),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-upgrade .lx-lead-cancel){border: 1px solid rgb(216, 197, 220) !important; background: rgb(255, 255, 255) !important; color: rgb(91, 20, 82) !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-field-control > input),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-field-control > input),
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-field-control > input:hover),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-field-control > input:hover),
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-field-control > input:focus),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-field-control > input:focus),
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-field-control > input:focus-visible),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-field-control > input:focus-visible),
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-field-control > input:valid),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-field-control > input:valid){border-color: rgb(226, 221, 235) !important; background: rgb(255, 255, 255) !important; outline: none !important; box-shadow: none !important;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-upload),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-upload),
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-upload:hover),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-upload:hover),
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-upload:focus),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-upload:focus),
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-upload:focus-visible),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-upload:focus-visible),
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-upload:focus-within),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-upload:focus-within){border: 1px solid rgb(231, 225, 235) !important; background: rgb(252, 250, 255) !important; outline: none !important; box-shadow: none !important;}
+}
+@media (-p0-part: p84d6c571c6ae58f11858) {
+@media (max-width: 720px){html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell:has(.lx-diamond-upgrade) .lx-p0-modal-title),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell:has(.lx-diamond-upgrade) .lx-p0-modal-title){font-size: 18px !important; line-height: 26px !important;}
+}
+}
+@media (-p0-part: pc7ec7d9906f47603d2e6) {
+html body #lxEnterpriseAuthOriginal:is(.lx-diamond-upload),
+html body #lxEnterpriseAuthOriginal :is(.lx-diamond-upload){position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; min-height: 130px; border: 1px dashed rgb(216, 204, 224); border-radius: 10px; background: rgb(252, 250, 255); color: rgb(91, 20, 82); cursor: pointer; text-align: center; padding: 12px;}
+html body #lxEnterpriseAuthOriginal:is(.lx-diamond-upload span),
+html body #lxEnterpriseAuthOriginal :is(.lx-diamond-upload span){color: rgb(139, 132, 144); font-size: 12px;}
+html body #lxEnterpriseAuthOriginal:is(.lx-diamond-upload strong),
+html body #lxEnterpriseAuthOriginal :is(.lx-diamond-upload strong){max-width: 100%; overflow-wrap: anywhere;}
+html body #lxEnterpriseAuthOriginal:is(.lx-diamond-upload input),
+html body #lxEnterpriseAuthOriginal :is(.lx-diamond-upload input){position: absolute; width: 1px; height: 1px; opacity: 0;}
+html body #lxEnterpriseAuthOriginal:is(.lx-diamond-upload:focus-within),
+html body #lxEnterpriseAuthOriginal :is(.lx-diamond-upload:focus-within){outline: rgb(162, 98, 215) solid 2px; outline-offset: 2px;}
+html body #lxEnterpriseAuthOriginal:is(.lx-diamond-agree),
+html body #lxEnterpriseAuthOriginal :is(.lx-diamond-agree){display: flex; align-items: flex-start; gap: 8px; font-size: 12px; line-height: 1.7; margin-top: 4px;}
+html body #lxEnterpriseAuthOriginal:is(.lx-diamond-agree input),
+html body #lxEnterpriseAuthOriginal :is(.lx-diamond-agree input){appearance: none; width: 16px; height: 16px; flex: 0 0 16px; border: 1px solid rgb(188, 180, 193); border-radius: 50%; margin: 3px 0px 0px;}
+html body #lxEnterpriseAuthOriginal:is(.lx-diamond-agree input:checked),
+html body #lxEnterpriseAuthOriginal :is(.lx-diamond-agree input:checked){background: linear-gradient(90deg, rgb(77, 20, 74), rgb(184, 37, 46)); border-color: transparent;}
+html body #lxEnterpriseAuthOriginal:is(.lx-diamond-agree input:checked)::after,
+html body #lxEnterpriseAuthOriginal :is(.lx-diamond-agree input:checked)::after{content: ""; display: block; width: 7px; height: 4px; border-left: 2px solid white; border-bottom: 2px solid white; transform: translate(3px, 3px) rotate(-45deg);}
+html body #lxEnterpriseAuthOriginal:is(.lx-diamond-error),
+html body #lxEnterpriseAuthOriginal :is(.lx-diamond-error){color: rgb(184, 37, 46); font-size: 12px;}
+html body #lxEnterpriseAuthOriginal:is(.lx-diamond-error:empty),
+html body #lxEnterpriseAuthOriginal :is(.lx-diamond-error:empty){display: none;}
+html body #lxEnterpriseAuthOriginal:is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-field-control > input, html body .lx-p0-modal.lx-lead-shell .lx-diamond-field-control > input:hover, html body .lx-p0-modal.lx-lead-shell .lx-diamond-field-control > input:focus, html body .lx-p0-modal.lx-lead-shell .lx-diamond-field-control > input:focus-visible, html body .lx-p0-modal.lx-lead-shell .lx-diamond-field-control > input:valid),
+html body #lxEnterpriseAuthOriginal :is(html body .lx-p0-modal.lx-lead-shell .lx-diamond-field-control > input, html body .lx-p0-modal.lx-lead-shell .lx-diamond-field-control > input:hover, html body .lx-p0-modal.lx-lead-shell .lx-diamond-field-control > input:focus, html body .lx-p0-modal.lx-lead-shell .lx-diamond-field-control > input:focus-visible, html body .lx-p0-modal.lx-lead-shell .lx-diamond-field-control > input:valid){border-color: rgb(226, 221, 235) !important; background: rgb(255, 255, 255) !important; outline: none !important; box-shadow: none !important;}
+}
+

@@ -1,0 +1,22 @@
+/* 到店时间 — ordered style fragments. */
+@media (-p0-part: p51fd4b48f13397be9c2d) {
+      .lx-date-grid { display: grid; grid-template-columns: repeat(7, minmax(68px, 1fr)); gap: 9px; }
+      .lx-date-option,
+      .lx-time-option {
+        min-height: 58px;
+        border: 1px solid #e2ddeb;
+        border-radius: 10px;
+        background: #ffffff;
+        color: #5b1452;
+        font-size: 12px;
+      }
+      .lx-date-option b,
+      .lx-date-option span { display: block; }
+      .lx-date-option span { margin-top: 4px; color: #979797; }
+      .lx-date-option.is-selected,
+      .lx-time-option.is-selected { border-color: #5b1452; background: #fcf2f8; }
+      .lx-date-option.is-selected span { color: #5b1452; }
+      .lx-time-grid { display: grid; grid-template-columns: repeat(4, minmax(88px, 1fr)); gap: 10px; margin-top: 20px; }
+      .lx-time-option { min-height: 40px; border-radius: 999px; }
+}
+

@@ -1,0 +1,165 @@
+/* 捆绑设备 — ordered style fragments. */
+@media (-p0-part: p0d9d32b04633dda987f8) {
+
+/* Direct device binding uses the same PC 5.0 modal shell, with the POC's three device classes and SN guidance. */
+.leai-device-bind-kinds {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.leai-device-bind-kinds legend {
+  grid-column: 1 / -1;
+  margin-bottom: 2px;
+  color: var(--ms-text);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.leai-device-bind-kinds label { position: relative; }
+.leai-device-bind-kinds input { position: absolute; opacity: 0; pointer-events: none; }
+.leai-device-bind-kinds span {
+  min-height: 42px;
+  display: grid;
+  place-items: center;
+  border-bottom: 2px solid transparent;
+  color: var(--ms-text-soft);
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.leai-device-bind-kinds label:has(input:checked) span {
+  border-color: var(--ms-brand);
+  color: var(--ms-brand);
+  font-weight: 700;
+}
+
+.leai-device-bind-kinds label:has(input:focus-visible) span { outline: 2px solid var(--ms-line); outline-offset: 2px; }
+.leai-device-bind-help { padding: 15px; border-radius: 12px; background: var(--ms-page); }
+.leai-device-bind-help strong { display: block; color: var(--ms-brand); font-size: 14px; text-align: center; }
+.leai-device-bind-help > span { width: fit-content; display: block; margin: 12px auto 8px; padding: 3px 14px; border-radius: 999px; background: var(--ms-line-soft); color: var(--ms-brand); font-size: 12px; font-weight: 700; }
+.leai-device-bind-help p { margin: 0; color: var(--ms-text); font-size: 12px; line-height: 19px; }
+.leai-device-bind-help small { display: block; margin-top: 7px; color: var(--ms-muted); font-size: 11px; line-height: 17px; }
+}
+@media (-p0-part: p6d136d735d9a2d57a44e) {
+
+
+/* public/leaip0/assets/frontend/css/components/member-device-bind-fix-v39.css */
+.leai-modal:has(.leai-device-bind-kinds) {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  max-height: calc(100dvh - 48px);
+  overflow: hidden !important;
+  scrollbar-width: none;
+}
+
+.leai-modal:has(.leai-device-bind-kinds)::-webkit-scrollbar,
+.leai-modal:has(.leai-device-bind-kinds) .leai-modal-body::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+.leai-modal:has(.leai-device-bind-kinds) .leai-modal-body {
+  min-height: 0;
+  overflow: hidden !important;
+  scrollbar-width: none;
+}
+
+body .leai-modal:has(.leai-device-bind-kinds) .leai-modal-close {
+  width: 34px;
+  min-width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: #625b66;
+  font-size: 25px;
+  font-weight: 400;
+  line-height: 1;
+}
+
+body .leai-modal:has(.leai-device-bind-kinds) .leai-modal-close:hover,
+body .leai-modal:has(.leai-device-bind-kinds) .leai-modal-close:focus-visible {
+  background: transparent;
+  color: #3f3944;
+}
+
+.leai-modal:has(.leai-device-bind-kinds) .leai-modal-actions {
+  position: relative;
+  top: -12px;
+}
+
+.leai-modal:has(.leai-device-bind-kinds) .leai-form-note {
+  display: none;
+}
+}
+@media (-p0-part: p5c5f967d0a65fc4adaeb) {
+/* public/leaip0/assets/frontend/css/components/member-device-bind-fix-v39.css */
+.leai-modal:has(.leai-device-bind-kinds) {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  max-height: calc(100dvh - 48px);
+  overflow: hidden !important;
+  scrollbar-width: none;
+}
+
+.leai-modal:has(.leai-device-bind-kinds)::-webkit-scrollbar,
+.leai-modal:has(.leai-device-bind-kinds) .leai-modal-body::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+.leai-modal:has(.leai-device-bind-kinds) .leai-modal-body {
+  min-height: 0;
+  overflow: hidden !important;
+  scrollbar-width: none;
+}
+
+body .leai-modal:has(.leai-device-bind-kinds) .leai-modal-close {
+  width: 34px;
+  min-width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: #625b66;
+  font-size: 25px;
+  font-weight: 400;
+  line-height: 1;
+}
+
+body .leai-modal:has(.leai-device-bind-kinds) .leai-modal-close:hover,
+body .leai-modal:has(.leai-device-bind-kinds) .leai-modal-close:focus-visible {
+  background: transparent;
+  color: #3f3944;
+}
+
+.leai-modal:has(.leai-device-bind-kinds) .leai-modal-actions {
+  position: relative;
+  top: -12px;
+}
+
+.leai-modal:has(.leai-device-bind-kinds) .leai-form-note {
+  display: none;
+}
+}
+@media (-p0-part: pd2d44f2b7ca422221760) {
+  
+    /* store-phone-binding-v52-20260904 */
+    .lx-phone-bind-dialog{width:min(520px,calc(100vw - 40px));padding:30px 32px 26px}
+    .lx-phone-bind-dialog h2{margin-bottom:4px;font-size:24px;line-height:34px}
+}
+

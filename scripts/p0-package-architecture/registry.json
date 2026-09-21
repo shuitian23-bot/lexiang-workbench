@@ -1,298 +1,298 @@
 {
-  "version": 1,
-  "contract": "P0 页面、弹窗和智能体公共内容的源码所有权入口；运行输出保持生产基线字节一致。",
+  "version": 2,
+  "contract": "P0 48个实际业务模块；96个JS/CSS位于public/leaip0/modules，兼容调度器保留原执行顺序和CSS插入位置。",
   "pages": [
     {
       "id": "home",
       "name": "首页（包括全屏对话）",
-      "css": "scripts/p0-package-architecture/pages/home/index.css",
-      "js": "scripts/p0-package-architecture/pages/home/index.js"
+      "css": "public/leaip0/modules/pages/home/index.css",
+      "js": "public/leaip0/modules/pages/home/index.js"
     },
     {
       "id": "consumer-home",
       "name": "个人及家庭首页",
-      "css": "scripts/p0-package-architecture/pages/consumer-home/index.css",
-      "js": "scripts/p0-package-architecture/pages/consumer-home/index.js"
+      "css": "public/leaip0/modules/pages/consumer-home/index.css",
+      "js": "public/leaip0/modules/pages/consumer-home/index.js"
     },
     {
       "id": "smb-home",
       "name": "中小企业首页",
-      "css": "scripts/p0-package-architecture/pages/smb-home/index.css",
-      "js": "scripts/p0-package-architecture/pages/smb-home/index.js"
+      "css": "public/leaip0/modules/pages/smb-home/index.css",
+      "js": "public/leaip0/modules/pages/smb-home/index.js"
     },
     {
       "id": "enterprise-home",
       "name": "政教及大企业首页",
-      "css": "scripts/p0-package-architecture/pages/enterprise-home/index.css",
-      "js": "scripts/p0-package-architecture/pages/enterprise-home/index.js"
+      "css": "public/leaip0/modules/pages/enterprise-home/index.css",
+      "js": "public/leaip0/modules/pages/enterprise-home/index.js"
     },
     {
       "id": "brand-home",
       "name": "品牌首页",
-      "css": "scripts/p0-package-architecture/pages/brand-home/index.css",
-      "js": "scripts/p0-package-architecture/pages/brand-home/index.js"
+      "css": "public/leaip0/modules/pages/brand-home/index.css",
+      "js": "public/leaip0/modules/pages/brand-home/index.js"
     },
     {
       "id": "product-list",
       "name": "推荐商品列表",
-      "css": "scripts/p0-package-architecture/pages/product-list/index.css",
-      "js": "scripts/p0-package-architecture/pages/product-list/index.js"
+      "css": "public/leaip0/modules/pages/product-list/index.css",
+      "js": "public/leaip0/modules/pages/product-list/index.js"
     },
     {
       "id": "solution-list",
       "name": "推荐方案列表",
-      "css": "scripts/p0-package-architecture/pages/solution-list/index.css",
-      "js": "scripts/p0-package-architecture/pages/solution-list/index.js"
+      "css": "public/leaip0/modules/pages/solution-list/index.css",
+      "js": "public/leaip0/modules/pages/solution-list/index.js"
     },
     {
       "id": "store-list",
       "name": "推荐门店列表",
-      "css": "scripts/p0-package-architecture/pages/store-list/index.css",
-      "js": "scripts/p0-package-architecture/pages/store-list/index.js"
+      "css": "public/leaip0/modules/pages/store-list/index.css",
+      "js": "public/leaip0/modules/pages/store-list/index.js"
     },
     {
       "id": "device-list",
       "name": "设备列表",
-      "css": "scripts/p0-package-architecture/pages/device-list/index.css",
-      "js": "scripts/p0-package-architecture/pages/device-list/index.js"
+      "css": "public/leaip0/modules/pages/device-list/index.css",
+      "js": "public/leaip0/modules/pages/device-list/index.js"
     },
     {
       "id": "product-detail",
       "name": "商品详情",
-      "css": "scripts/p0-package-architecture/pages/product-detail/index.css",
-      "js": "scripts/p0-package-architecture/pages/product-detail/index.js"
+      "css": "public/leaip0/modules/pages/product-detail/index.css",
+      "js": "public/leaip0/modules/pages/product-detail/index.js"
     },
     {
       "id": "solution-detail",
       "name": "方案详情",
-      "css": "scripts/p0-package-architecture/pages/solution-detail/index.css",
-      "js": "scripts/p0-package-architecture/pages/solution-detail/index.js"
+      "css": "public/leaip0/modules/pages/solution-detail/index.css",
+      "js": "public/leaip0/modules/pages/solution-detail/index.js"
     },
     {
       "id": "store-detail",
       "name": "门店详情",
-      "css": "scripts/p0-package-architecture/pages/store-detail/index.css",
-      "js": "scripts/p0-package-architecture/pages/store-detail/index.js"
+      "css": "public/leaip0/modules/pages/store-detail/index.css",
+      "js": "public/leaip0/modules/pages/store-detail/index.js"
     },
     {
       "id": "device-detail",
       "name": "设备详情",
-      "css": "scripts/p0-package-architecture/pages/device-detail/index.css",
-      "js": "scripts/p0-package-architecture/pages/device-detail/index.js"
+      "css": "public/leaip0/modules/pages/device-detail/index.css",
+      "js": "public/leaip0/modules/pages/device-detail/index.js"
     },
     {
       "id": "product-compare",
       "name": "商品对比",
-      "css": "scripts/p0-package-architecture/pages/product-compare/index.css",
-      "js": "scripts/p0-package-architecture/pages/product-compare/index.js"
+      "css": "public/leaip0/modules/pages/product-compare/index.css",
+      "js": "public/leaip0/modules/pages/product-compare/index.js"
     },
     {
       "id": "solution-compare",
       "name": "方案对比",
-      "css": "scripts/p0-package-architecture/pages/solution-compare/index.css",
-      "js": "scripts/p0-package-architecture/pages/solution-compare/index.js"
+      "css": "public/leaip0/modules/pages/solution-compare/index.css",
+      "js": "public/leaip0/modules/pages/solution-compare/index.js"
     },
     {
       "id": "order-list",
       "name": "我的订单列表",
-      "css": "scripts/p0-package-architecture/pages/order-list/index.css",
-      "js": "scripts/p0-package-architecture/pages/order-list/index.js"
+      "css": "public/leaip0/modules/pages/order-list/index.css",
+      "js": "public/leaip0/modules/pages/order-list/index.js"
     },
     {
       "id": "order-detail",
       "name": "我的订单详情",
-      "css": "scripts/p0-package-architecture/pages/order-detail/index.css",
-      "js": "scripts/p0-package-architecture/pages/order-detail/index.js"
+      "css": "public/leaip0/modules/pages/order-detail/index.css",
+      "js": "public/leaip0/modules/pages/order-detail/index.js"
     },
     {
       "id": "member-center",
       "name": "我的会员中心",
-      "css": "scripts/p0-package-architecture/pages/member-center/index.css",
-      "js": "scripts/p0-package-architecture/pages/member-center/index.js"
+      "css": "public/leaip0/modules/pages/member-center/index.css",
+      "js": "public/leaip0/modules/pages/member-center/index.js"
     },
     {
       "id": "coupon-center",
       "name": "我的优惠券",
-      "css": "scripts/p0-package-architecture/pages/coupon-center/index.css",
-      "js": "scripts/p0-package-architecture/pages/coupon-center/index.js"
+      "css": "public/leaip0/modules/pages/coupon-center/index.css",
+      "js": "public/leaip0/modules/pages/coupon-center/index.js"
     },
     {
       "id": "voucher-center",
       "name": "我的代金券",
-      "css": "scripts/p0-package-architecture/pages/voucher-center/index.css",
-      "js": "scripts/p0-package-architecture/pages/voucher-center/index.js"
+      "css": "public/leaip0/modules/pages/voucher-center/index.css",
+      "js": "public/leaip0/modules/pages/voucher-center/index.js"
     },
     {
       "id": "red-envelope",
       "name": "我的限时红包",
-      "css": "scripts/p0-package-architecture/pages/red-envelope/index.css",
-      "js": "scripts/p0-package-architecture/pages/red-envelope/index.js"
+      "css": "public/leaip0/modules/pages/red-envelope/index.css",
+      "js": "public/leaip0/modules/pages/red-envelope/index.js"
     },
     {
       "id": "ledou-center",
       "name": "我的乐豆",
-      "css": "scripts/p0-package-architecture/pages/ledou-center/index.css",
-      "js": "scripts/p0-package-architecture/pages/ledou-center/index.js"
+      "css": "public/leaip0/modules/pages/ledou-center/index.css",
+      "js": "public/leaip0/modules/pages/ledou-center/index.js"
     }
   ],
   "modals": [
     {
       "id": "login",
       "name": "登录",
-      "css": "scripts/p0-package-architecture/modals/login/index.css",
-      "js": "scripts/p0-package-architecture/modals/login/index.js"
+      "css": "public/leaip0/modules/modals/login/index.css",
+      "js": "public/leaip0/modules/modals/login/index.js"
     },
     {
       "id": "register",
       "name": "注册",
-      "css": "scripts/p0-package-architecture/modals/register/index.css",
-      "js": "scripts/p0-package-architecture/modals/register/index.js"
+      "css": "public/leaip0/modules/modals/register/index.css",
+      "js": "public/leaip0/modules/modals/register/index.js"
     },
     {
       "id": "login-success",
       "name": "登录成功",
-      "css": "scripts/p0-package-architecture/modals/login-success/index.css",
-      "js": "scripts/p0-package-architecture/modals/login-success/index.js"
+      "css": "public/leaip0/modules/modals/login-success/index.css",
+      "js": "public/leaip0/modules/modals/login-success/index.js"
     },
     {
       "id": "lead-form",
       "name": "留资",
-      "css": "scripts/p0-package-architecture/modals/lead-form/index.css",
-      "js": "scripts/p0-package-architecture/modals/lead-form/index.js"
+      "css": "public/leaip0/modules/modals/lead-form/index.css",
+      "js": "public/leaip0/modules/modals/lead-form/index.js"
     },
     {
       "id": "education-auth",
       "name": "教育认证",
-      "css": "scripts/p0-package-architecture/modals/education-auth/index.css",
-      "js": "scripts/p0-package-architecture/modals/education-auth/index.js"
+      "css": "public/leaip0/modules/modals/education-auth/index.css",
+      "js": "public/leaip0/modules/modals/education-auth/index.js"
     },
     {
       "id": "workplace-auth",
       "name": "职场认证",
-      "css": "scripts/p0-package-architecture/modals/workplace-auth/index.css",
-      "js": "scripts/p0-package-architecture/modals/workplace-auth/index.js"
+      "css": "public/leaip0/modules/modals/workplace-auth/index.css",
+      "js": "public/leaip0/modules/modals/workplace-auth/index.js"
     },
     {
       "id": "enterprise-auth",
       "name": "企业认证",
-      "css": "scripts/p0-package-architecture/modals/enterprise-auth/index.css",
-      "js": "scripts/p0-package-architecture/modals/enterprise-auth/index.js"
+      "css": "public/leaip0/modules/modals/enterprise-auth/index.css",
+      "js": "public/leaip0/modules/modals/enterprise-auth/index.js"
     },
     {
       "id": "diamond-upgrade",
       "name": "升级钻石会员",
-      "css": "scripts/p0-package-architecture/modals/diamond-upgrade/index.css",
-      "js": "scripts/p0-package-architecture/modals/diamond-upgrade/index.js"
+      "css": "public/leaip0/modules/modals/diamond-upgrade/index.css",
+      "js": "public/leaip0/modules/modals/diamond-upgrade/index.js"
     },
     {
       "id": "profile-edit",
       "name": "编辑个人资料",
-      "css": "scripts/p0-package-architecture/modals/profile-edit/index.css",
-      "js": "scripts/p0-package-architecture/modals/profile-edit/index.js"
+      "css": "public/leaip0/modules/modals/profile-edit/index.css",
+      "js": "public/leaip0/modules/modals/profile-edit/index.js"
     },
     {
       "id": "store-appointment-confirm",
       "name": "预约到店确认",
-      "css": "scripts/p0-package-architecture/modals/store-appointment-confirm/index.css",
-      "js": "scripts/p0-package-architecture/modals/store-appointment-confirm/index.js"
+      "css": "public/leaip0/modules/modals/store-appointment-confirm/index.css",
+      "js": "public/leaip0/modules/modals/store-appointment-confirm/index.js"
     },
     {
       "id": "store-select",
       "name": "选择门店",
-      "css": "scripts/p0-package-architecture/modals/store-select/index.css",
-      "js": "scripts/p0-package-architecture/modals/store-select/index.js"
+      "css": "public/leaip0/modules/modals/store-select/index.css",
+      "js": "public/leaip0/modules/modals/store-select/index.js"
     },
     {
       "id": "arrival-time",
       "name": "到店时间",
-      "css": "scripts/p0-package-architecture/modals/arrival-time/index.css",
-      "js": "scripts/p0-package-architecture/modals/arrival-time/index.js"
+      "css": "public/leaip0/modules/modals/arrival-time/index.css",
+      "js": "public/leaip0/modules/modals/arrival-time/index.js"
     },
     {
       "id": "store-purpose",
       "name": "门店预约目的",
-      "css": "scripts/p0-package-architecture/modals/store-purpose/index.css",
-      "js": "scripts/p0-package-architecture/modals/store-purpose/index.js"
+      "css": "public/leaip0/modules/modals/store-purpose/index.css",
+      "js": "public/leaip0/modules/modals/store-purpose/index.js"
     },
     {
       "id": "order-payment-confirm",
       "name": "支付订单确认",
-      "css": "scripts/p0-package-architecture/modals/order-payment-confirm/index.css",
-      "js": "scripts/p0-package-architecture/modals/order-payment-confirm/index.js"
+      "css": "public/leaip0/modules/modals/order-payment-confirm/index.css",
+      "js": "public/leaip0/modules/modals/order-payment-confirm/index.js"
     },
     {
       "id": "order-edit",
       "name": "修改订单",
-      "css": "scripts/p0-package-architecture/modals/order-edit/index.css",
-      "js": "scripts/p0-package-architecture/modals/order-edit/index.js"
+      "css": "public/leaip0/modules/modals/order-edit/index.css",
+      "js": "public/leaip0/modules/modals/order-edit/index.js"
     },
     {
       "id": "configuration-edit",
       "name": "修改配置",
-      "css": "scripts/p0-package-architecture/modals/configuration-edit/index.css",
-      "js": "scripts/p0-package-architecture/modals/configuration-edit/index.js"
+      "css": "public/leaip0/modules/modals/configuration-edit/index.css",
+      "js": "public/leaip0/modules/modals/configuration-edit/index.js"
     },
     {
       "id": "invoice-edit",
       "name": "修改发票",
-      "css": "scripts/p0-package-architecture/modals/invoice-edit/index.css",
-      "js": "scripts/p0-package-architecture/modals/invoice-edit/index.js"
+      "css": "public/leaip0/modules/modals/invoice-edit/index.css",
+      "js": "public/leaip0/modules/modals/invoice-edit/index.js"
     },
     {
       "id": "payment-processing",
       "name": "正在支付",
-      "css": "scripts/p0-package-architecture/modals/payment-processing/index.css",
-      "js": "scripts/p0-package-architecture/modals/payment-processing/index.js"
+      "css": "public/leaip0/modules/modals/payment-processing/index.css",
+      "js": "public/leaip0/modules/modals/payment-processing/index.js"
     },
     {
       "id": "payment-success",
       "name": "支付成功",
-      "css": "scripts/p0-package-architecture/modals/payment-success/index.css",
-      "js": "scripts/p0-package-architecture/modals/payment-success/index.js"
+      "css": "public/leaip0/modules/modals/payment-success/index.css",
+      "js": "public/leaip0/modules/modals/payment-success/index.js"
     },
     {
       "id": "store-coupon-verify",
       "name": "门店优惠券核销",
-      "css": "scripts/p0-package-architecture/modals/store-coupon-verify/index.css",
-      "js": "scripts/p0-package-architecture/modals/store-coupon-verify/index.js"
+      "css": "public/leaip0/modules/modals/store-coupon-verify/index.css",
+      "js": "public/leaip0/modules/modals/store-coupon-verify/index.js"
     },
     {
       "id": "product-match",
       "name": "商品匹配度",
-      "css": "scripts/p0-package-architecture/modals/product-match/index.css",
-      "js": "scripts/p0-package-architecture/modals/product-match/index.js"
+      "css": "public/leaip0/modules/modals/product-match/index.css",
+      "js": "public/leaip0/modules/modals/product-match/index.js"
     },
     {
       "id": "device-bind",
       "name": "捆绑设备",
-      "css": "scripts/p0-package-architecture/modals/device-bind/index.css",
-      "js": "scripts/p0-package-architecture/modals/device-bind/index.js"
+      "css": "public/leaip0/modules/modals/device-bind/index.css",
+      "js": "public/leaip0/modules/modals/device-bind/index.js"
     },
     {
       "id": "toast",
       "name": "最普通的 toast",
-      "css": "scripts/p0-package-architecture/modals/toast/index.css",
-      "js": "scripts/p0-package-architecture/modals/toast/index.js"
+      "css": "public/leaip0/modules/modals/toast/index.css",
+      "js": "public/leaip0/modules/modals/toast/index.js"
     },
     {
       "id": "conversation-history",
       "name": "对话历史记录",
-      "css": "scripts/p0-package-architecture/modals/conversation-history/index.css",
-      "js": "scripts/p0-package-architecture/modals/conversation-history/index.js"
+      "css": "public/leaip0/modules/modals/conversation-history/index.css",
+      "js": "public/leaip0/modules/modals/conversation-history/index.js"
     }
   ],
   "shared": [
     {
       "id": "common",
       "name": "全站公共基础",
-      "css": "scripts/p0-package-architecture/shared/common/index.css",
-      "js": "scripts/p0-package-architecture/shared/common/index.js"
+      "css": "public/leaip0/modules/shared/common/index.css",
+      "js": "public/leaip0/modules/shared/common/index.js"
     },
     {
       "id": "agent-content",
       "name": "智能体生成内容",
-      "css": "scripts/p0-package-architecture/shared/agent-content/index.css",
-      "js": "scripts/p0-package-architecture/shared/agent-content/index.js",
+      "css": "public/leaip0/modules/shared/agent-content/index.css",
+      "js": "public/leaip0/modules/shared/agent-content/index.js",
       "layoutModes": [
         "fullscreen",
         "split"

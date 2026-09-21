@@ -1,0 +1,22 @@
+/* 门店优惠券核销 — ordered style fragments. */
+@media (-p0-part: p913961de5e5f66c8918e) {
+      .lx-store-coupon { margin-left: auto; padding: 2px 6px; border-radius: 4px; background: #fff4e3; color: #ff6b21; }
+}
+@media (-p0-part: p8b7592a008b0e7f81d1a) {
+      .lx-store-coupon-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+      .lx-store-coupon-card { display: grid; grid-template-columns: 68px minmax(0, 1fr); min-height: 116px; overflow: hidden; border: 1px solid #efe4f1; border-radius: 12px; background: #fcfaff; }
+      .lx-store-coupon-value { display: grid; place-items: center; padding: 9px; background: linear-gradient(96deg, #fcf2f8 22.83%, #e3eafd 98.41%); color: #5b1452; font-size: 15px; font-weight: 700; text-align: center; }
+      .lx-store-coupon-copy { display: flex; min-width: 0; flex-direction: column; padding: 10px; }
+      .lx-store-coupon-copy b { display: block; margin-bottom: 5px; overflow: hidden; color: #252525; font-size: 12px; line-height: 1.45; text-overflow: ellipsis; white-space: nowrap; }
+      .lx-store-coupon-copy p { margin: 0 0 10px; color: #625b68; font-size: 11px; line-height: 1.55; }
+}
+@media (-p0-part: pfb5443d7c51c3cff62b4) {
+    .lx-store-detail-page .lx-store-coupon-card[data-coupon-use]{cursor:pointer;transition:border-color .16s ease,box-shadow .16s ease,transform .16s ease}
+    .lx-store-detail-page .lx-store-coupon-card[data-coupon-use]:hover{border-color:#cbaed2;box-shadow:0 6px 18px rgba(50,29,57,.08);transform:translateY(-1px)}
+    .lx-store-detail-page .lx-store-coupon-card[data-coupon-use]:focus-visible{border-color:#681057;box-shadow:0 0 0 3px rgba(104,16,87,.1);outline:none}
+    .lx-store-detail-page .lx-store-coupon-copy{align-self:center}
+    .lx-store-detail-page .lx-store-coupon-card[data-coupon-pack]{cursor:pointer;transition:border-color .16s ease,box-shadow .16s ease,transform .16s ease}
+    .lx-store-detail-page .lx-store-coupon-card[data-coupon-pack]:hover{border-color:#cbaed2;box-shadow:0 6px 18px rgba(50,29,57,.08);transform:translateY(-1px)}
+    .lx-store-detail-page .lx-store-coupon-card[data-coupon-pack]:focus-visible{border-color:#681057;box-shadow:0 0 0 3px rgba(104,16,87,.1);outline:none}
+}
+

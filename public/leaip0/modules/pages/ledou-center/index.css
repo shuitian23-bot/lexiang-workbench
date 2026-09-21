@@ -1,0 +1,680 @@
+/* 我的乐豆 — ordered style fragments. */
+@media (-p0-part: pb67154893abbb4e4fb1a) {
+.leai-ledou-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.leai-ledou-grid button { min-height: 72px; padding: 13px; border: 1px solid var(--ms-line); border-radius: 10px; background: var(--ms-surface); color: var(--ms-brand); text-align: left; }
+.leai-ledou-grid button:hover, .leai-ledou-grid button:focus-visible { border-color: var(--ms-brand); background: var(--ms-hover); outline: none; }
+.leai-ledou-grid strong, .leai-ledou-grid span { display: block; }
+.leai-ledou-grid strong { font-size: 13px; }
+.leai-ledou-grid span { margin-top: 5px; color: var(--ms-text-soft); font-size: 11px; }
+.leai-ledou-more { display: inline-flex; align-items: center; gap: 6px; padding: 0; border: 0; background: transparent; color: var(--ms-brand); font-size: 12px; font-weight: 600; }
+.leai-ledou-more:hover, .leai-ledou-more:focus-visible { text-decoration: underline; outline: none; }
+.leai-ledou-more img { width: 13px; height: 13px; }
+.leai-ledou-products { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.leai-ledou-product { width: 100%; min-width: 0; min-height: 104px; display: grid; grid-template-columns: 72px minmax(0, 1fr) 14px; align-items: center; gap: 12px; padding: 10px 12px; border: 1px solid var(--ms-line-soft); border-radius: 12px; background: var(--ms-page); color: inherit; text-align: left; }
+.leai-ledou-product:hover, .leai-ledou-product:focus-visible { border-color: var(--ms-brand); background: var(--ms-hover); box-shadow: var(--ms-card-shadow); outline: none; transform: translateY(-1px); }
+.leai-ledou-product > span:first-child { width: 72px; height: 72px; display: grid; place-items: center; border-radius: 10px; background: var(--ms-surface); }
+.leai-ledou-product > span:first-child img { width: 38px; height: 38px; }
+.leai-ledou-product > span:nth-child(2) { min-width: 0; }
+.leai-ledou-product small, .leai-ledou-product strong, .leai-ledou-product em { display: block; }
+.leai-ledou-product small { color: var(--ms-muted); font-size: 9px; }
+.leai-ledou-product strong { overflow: hidden; margin-top: 4px; color: var(--ms-text); font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+.leai-ledou-product em { margin-top: 7px; color: var(--ms-brand); font-size: 12px; font-style: normal; font-weight: 700; }
+.leai-ledou-product > img { width: 13px; height: 13px; }
+}
+@media (-p0-part: pdd7546cd0e72fb88c05f) {
+.leai-ledou-detail-visual img { width: 92px; height: 92px; }
+}
+@media (-p0-part: p868f016d2af7f3f48466) {
+
+.leai-member-page .leai-ledou-product > span:first-child {
+  border-radius: 7px;
+}
+}
+@media (-p0-part: p82ab8cfd73687a316d8c) {
+
+/* LX_MEMBER_ASSET_COMMERCE_LINKAGE_V27_20260827 */
+.leai-ledou-record {
+  padding: 14px 0;
+  border-bottom: 1px solid var(--ms-line-soft);
+}
+
+.leai-ledou-record:first-child {
+  border-top: 1px solid var(--ms-line-soft);
+}
+
+.leai-ledou-record header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.leai-ledou-record header small,
+.leai-ledou-record header strong,
+.leai-ledou-record dl dt,
+.leai-ledou-record dl dd {
+  display: block;
+  margin: 0;
+}
+
+.leai-ledou-record header small,
+.leai-ledou-record dl dt {
+  color: var(--ms-muted);
+  font-size: 10px;
+}
+
+.leai-ledou-record header strong {
+  margin-top: 4px;
+  color: var(--ms-text);
+  font-size: 14px;
+}
+
+.leai-ledou-record header em {
+  color: var(--ms-brand);
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 700;
+}
+
+.leai-ledou-record dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 18px;
+  margin: 12px 0 0;
+}
+
+.leai-ledou-record dl dd {
+  margin-top: 3px;
+  color: var(--ms-text-soft);
+  font-size: 11px;
+  line-height: 17px;
+}
+}
+@media (-p0-part: p881a1b08e3bcc3f00aaa) {
+
+/* LX_MEMBER_LEDOU_SHOWCASE_TEMP_HIDE_20260824: reversible style-only switch. */
+.leai-member-page > .leai-ledou-showcase {
+  display: none !important;
+}
+}
+@media (-p0-part: p8fd273b75fa11f617011) {
+
+/* All member-asset secondary pages share the Ledou page visual system. */
+body .lx-member-component-host > .leai-member-asset-page:not(.leai-ledou-ledger-page) {
+  gap: 18px !important;
+  padding: 22px 24px 32px !important;
+  background: #fff !important;
+}
+}
+@media (-p0-part: p6723f5c4f82e5e7b8258) {
+
+/* Ledou ledger follows the compact banner, filter, and table reference layout. */
+.leai-ledou-ledger-page {
+  gap: 18px !important;
+  padding: 22px 24px 32px !important;
+  background: #fff !important;
+}
+
+.leai-ledou-ledger-page > .leai-ledou-sticky-header {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  min-height: 58px;
+  margin: -22px -24px 0;
+  padding: 14px 24px 10px;
+  border-bottom: 0;
+  background: rgba(255, 255, 255, .97);
+  box-shadow: none;
+  backdrop-filter: blur(8px);
+  transform: none !important;
+}
+
+.leai-ledou-ledger-page > .leai-ledou-sticky-header .leai-page-title-row {
+  min-height: 34px;
+  margin: 0;
+}
+
+.leai-ledou-balance-banner {
+  position: relative;
+  width: min(520px, 100%);
+  min-height: 190px;
+  display: flex;
+  align-items: center;
+  padding: 24px 34px;
+  overflow: visible;
+  border-radius: 18px;
+  background: linear-gradient(118deg, #efffe2 0%, #f5ffe7 45%, #fff1f3 100%);
+}
+
+.leai-ledou-overview-row {
+  display: grid;
+  grid-template-columns: minmax(380px, 1.2fr) minmax(0, 1.5fr);
+  align-items: stretch;
+  gap: 14px;
+}
+
+.leai-ledou-overview-row .leai-ledou-balance-banner {
+  width: 100%;
+  min-height: 132px;
+  padding: 18px 22px;
+}
+
+.leai-ledou-overview-row .leai-ledou-balance-banner > div {
+  grid-template-columns: auto auto;
+  grid-template-rows: auto auto auto;
+  align-items: center;
+  column-gap: 14px;
+  row-gap: 6px;
+}
+
+.leai-ledou-overview-row .leai-ledou-balance-banner > div > span,
+.leai-ledou-overview-row .leai-ledou-balance-banner > div > strong {
+  grid-column: 1;
+}
+
+.leai-ledou-overview-row .leai-ledou-balance-banner > div > small {
+  grid-column: 1 / -1;
+}
+
+.leai-ledou-overview-row .leai-ledou-balance-banner > div > :is(button, .leai-ledou-shop-link) {
+  position: absolute;
+  right: 22px;
+  bottom: 18px;
+  min-width: 126px;
+  margin: 0;
+}
+
+.leai-ledou-overview-row .leai-ledou-balance-banner > div > strong {
+  font-size: 30px;
+}
+
+.leai-ledou-balance-banner > div {
+  display: grid;
+  justify-items: start;
+  gap: 8px;
+}
+
+.leai-ledou-balance-banner > div > span {
+  color: #5f7d50;
+  font-size: 12px;
+}
+
+.leai-ledou-balance-banner > div > strong {
+  color: #252525;
+  font-size: 38px;
+  line-height: 1;
+}
+
+.leai-ledou-balance-banner > div > small {
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: rgba(155, 226, 107, .24);
+  color: #56843c;
+  font-size: 11px;
+}
+
+.leai-ledou-balance-banner > div > :is(button, .leai-ledou-shop-link) {
+  min-height: 36px;
+  margin-top: 8px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 999px;
+  background: #49a92f;
+  color: #fff;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.leai-ledou-rule-link {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  border: 0;
+  background: transparent;
+  color: #aaa3ac;
+  font: inherit;
+  font-size: 11px;
+}
+
+.leai-ledou-rule-popover {
+  top: 42px;
+  right: 14px;
+  width: min(250px, calc(100vw - 40px));
+  display: block;
+  padding: 12px 14px;
+  border-color: var(--ms-line);
+  border-radius: 10px;
+  background: var(--ms-surface);
+  box-shadow: 0 8px 22px rgba(50, 29, 57, .10);
+}
+
+.leai-ledou-rule-popover strong {
+  font-size: 13px;
+  line-height: 19px;
+  font-weight: 600;
+}
+
+.leai-ledou-rule-popover p {
+  margin-top: 6px;
+  font-size: 11px;
+  line-height: 18px;
+}
+
+.leai-ledou-ledger-page .leai-asset-filterbar {
+  padding: 4px 0 14px;
+  border: 0;
+  border-bottom: 1px solid var(--ms-line-soft);
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.leai-ledou-ledger-page .leai-asset-filterbar select {
+  min-width: 132px;
+  min-height: 38px;
+  padding: 0 38px 0 14px;
+  appearance: none;
+  -webkit-appearance: none;
+  border: 1px solid var(--ms-line);
+  border-radius: 9px;
+  background-color: #fff;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath d='m4 6 4 4 4-4' fill='none' stroke='%23252525' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  background-size: 16px 16px;
+}
+
+.leai-ledou-ledger-page .leai-asset-filterbar select:focus,
+.leai-ledou-ledger-page .leai-asset-filterbar select:focus-visible {
+  border-color: var(--ms-brand);
+  outline: none;
+  box-shadow: none;
+}
+
+.leai-ledou-period-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--ms-muted);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.leai-ledou-period-picker {
+  position: relative;
+}
+
+.leai-ledou-period-picker > button {
+  min-width: 126px;
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 0 14px;
+  border: 1px solid var(--ms-line);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--ms-text);
+  font: inherit;
+  font-size: 12px;
+}
+
+.leai-ledou-period-picker > button > i {
+  width: 8px;
+  height: 8px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: translateY(-2px) rotate(45deg);
+}
+
+.leai-ledou-period-picker > button[aria-expanded="true"] > i {
+  transform: translateY(2px) rotate(225deg);
+}
+
+.leai-ledou-period-menu {
+  position: absolute;
+  top: calc(100% - 1px);
+  right: 0;
+  z-index: 80;
+  width: 100%;
+  padding: 6px 0;
+  border: 1px solid #ece9ed;
+  border-radius: 0 0 8px 8px;
+  background: #fff;
+  box-shadow: 0 8px 18px rgba(50, 29, 57, .12);
+  overflow: hidden;
+}
+
+.leai-ledou-period-picker > button[aria-expanded="true"] {
+  border-radius: 8px 8px 0 0;
+}
+
+.leai-ledou-period-menu[hidden] {
+  display: none;
+}
+
+.leai-ledou-period-menu button {
+  width: 100%;
+  min-height: 34px;
+  display: grid;
+  grid-template-columns: 18px 1fr;
+  align-items: center;
+  padding: 0 12px;
+  border: 0;
+  background: #fff;
+  color: #4e494f;
+  font: inherit;
+  font-size: 12px;
+  text-align: left;
+}
+
+.leai-ledou-period-menu button:hover {
+  background: #faf8fb;
+}
+
+.leai-ledou-period-menu button.is-selected {
+  color: #ff2f2f;
+}
+
+.leai-ledou-period-menu button > span {
+  color: #ff2f2f;
+  font-size: 14px;
+}
+}
+@media (-p0-part: p86a38f01b0563815fd1a) {
+
+/* LX_LEDOU_FILTER_TAB_DENSITY_V113_20260828 */
+body .leai-ledou-ledger-page .leai-asset-filterbar {
+  padding-top: 0;
+  padding-bottom: 8px;
+}
+
+body .leai-ledou-ledger-page .leai-asset-filter-tabs {
+  gap: 16px;
+  align-self: flex-end;
+}
+
+body .leai-ledou-ledger-page .leai-asset-filter-tabs button {
+  min-height: 32px;
+  padding-inline: 2px;
+  font-size: 15px;
+  line-height: 22px;
+}
+
+body .leai-ledou-ledger-page .leai-asset-filter-tabs button.is-active::after {
+  bottom: -9px;
+}
+
+/* LX_LEDOU_STICKY_HEADER_ALIGNMENT_V114_20260828 */
+body .leai-ledou-ledger-page > .leai-ledou-sticky-header {
+  width: 100%;
+  min-height: 52px;
+  margin: 0;
+  padding: 8px 0 10px;
+  border-radius: 0;
+  background: rgba(255, 255, 255, .98);
+  box-shadow: none;
+}
+
+body .leai-ledou-ledger-page > .leai-ledou-sticky-header .leai-page-title-row {
+  min-height: 34px;
+  margin: 0;
+}
+
+/* LX_ASSET_DETAIL_VISUAL_HIERARCHY_V115_20260828 */
+body .leai-member-asset-page:not(.leai-ledou-ledger-page) > .leai-panel {
+  padding: 0;
+  overflow: hidden;
+  border-color: var(--ms-line);
+  background: #fff;
+}
+
+body .leai-member-asset-page:not(.leai-ledou-ledger-page) > .leai-panel > .leai-panel-head {
+  min-height: 94px;
+  align-items: flex-start;
+  margin: 0;
+  padding: 18px 20px 16px;
+  border-bottom: 1px solid var(--ms-line-soft);
+  background: linear-gradient(105deg, rgba(247, 243, 249, .96), rgba(252, 250, 253, .96));
+}
+
+body .leai-member-asset-page:not(.leai-ledou-ledger-page) > .leai-panel > .leai-panel-head .leai-panel-title {
+  color: var(--ms-text);
+  font-size: 17px;
+  line-height: 24px;
+  font-weight: 700;
+}
+
+body .leai-member-asset-page:not(.leai-ledou-ledger-page) > .leai-panel > .leai-panel-head p {
+  margin-top: 4px;
+  color: var(--ms-text-soft);
+  font-size: 11px;
+}
+
+body .leai-member-asset-page:not(.leai-ledou-ledger-page) > .leai-panel > .leai-panel-head .leai-section-meta {
+  margin-top: 2px;
+  color: var(--ms-muted);
+  font-weight: 500;
+}
+
+body .leai-member-asset-page:not(.leai-ledou-ledger-page) > .leai-panel > .leai-asset-ledger,
+body .leai-member-asset-page:not(.leai-ledou-ledger-page) > .leai-panel > .leai-coupon-list {
+  margin: 0;
+  padding: 6px 20px 12px;
+  border-top: 0;
+  background: #fff;
+}
+
+body .leai-member-asset-page:not(.leai-ledou-ledger-page) > .leai-panel .leai-asset-ledger > div {
+  min-height: 64px;
+  padding-block: 8px;
+}
+
+body .leai-member-asset-page:not(.leai-ledou-ledger-page) > .leai-panel .leai-asset-ledger strong {
+  color: var(--ms-text);
+  font-size: 14px;
+  line-height: 21px;
+  font-weight: 650;
+}
+
+body .leai-member-asset-page:not(.leai-ledou-ledger-page) > .leai-panel .leai-asset-ledger small {
+  color: var(--ms-muted);
+  font-size: 10px;
+}
+
+body .leai-member-asset-page:not(.leai-ledou-ledger-page) > .leai-panel .leai-asset-ledger em {
+  color: var(--ms-brand);
+  font-size: 14px;
+  font-weight: 700;
+}
+}
+@media (-p0-part: pe9d17e94e9132f7dd541) {
+
+/* LX_DROPDOWN_CHECK_RULE_DISMISS_AND_COUPON_SPACING_V123_20260828 */
+body .leai-ledou-period-menu button > span {
+  width: 16px;
+  height: 16px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  color: transparent;
+  font-size: 0;
+}
+
+body .leai-ledou-period-menu button.is-selected > span::after {
+  width: 8px;
+  height: 4px;
+  display: block;
+  border-bottom: 2px solid #ff2f2f;
+  border-left: 2px solid #ff2f2f;
+  content: "";
+  transform: translateY(-1px) rotate(-45deg);
+}
+}
+@media (-p0-part: p77a18a73c2ab6662fc55) {
+
+.leai-ledou-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.leai-ledou-overview-row .leai-ledou-metrics {
+  height: 100%;
+  gap: 10px;
+}
+
+.leai-ledou-metrics article {
+  min-height: 92px;
+  display: grid;
+  align-content: center;
+  gap: 4px;
+  padding: 14px 18px;
+  border: 1px solid var(--ms-line);
+  border-radius: 12px;
+  background: #fff;
+}
+
+.leai-ledou-overview-row .leai-ledou-metrics article {
+  min-height: 132px;
+  padding: 16px;
+}
+
+.leai-ledou-metrics span,
+.leai-ledou-metrics small {
+  color: var(--ms-muted);
+  font-size: 11px;
+}
+
+.leai-ledou-metrics strong {
+  color: var(--ms-brand);
+  font-size: 24px;
+  line-height: 1.2;
+}
+
+.leai-ledou-ledger-page .leai-asset-filter-tabs {
+  gap: 14px;
+}
+
+.leai-ledou-ledger-page .leai-asset-filter-tabs button {
+  position: relative;
+  padding: 0 2px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  font-size: 14px;
+}
+
+.leai-ledou-ledger-page .leai-asset-filter-tabs button.is-active {
+  color: var(--ms-brand);
+  background: transparent;
+  font-weight: 700;
+}
+
+.leai-ledou-ledger-page .leai-asset-filter-tabs button.is-active::after {
+  position: absolute;
+  right: 0;
+  bottom: -15px;
+  left: 0;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--ms-brand);
+  content: "";
+}
+
+.leai-ledou-ledger-panel {
+  overflow: hidden;
+  border: 1px solid var(--ms-line-soft);
+  border-radius: 12px;
+}
+
+.leai-ledou-table-head,
+.leai-ledou-record {
+  display: grid;
+  grid-template-columns: minmax(220px, 2fr) minmax(82px, .7fr) minmax(68px, .6fr) minmax(100px, .9fr) minmax(135px, 1.05fr) minmax(135px, 1.05fr);
+  align-items: center;
+  column-gap: 18px;
+}
+
+.leai-ledou-table-head {
+  min-height: 48px;
+  padding: 0 22px;
+  background: var(--ms-page, #fcfaff);
+  color: #625b68;
+  font-size: 12px;
+}
+
+.leai-ledou-ledger-page .leai-ledou-record {
+  border-top: .5px solid #f1eef2;
+  border-bottom: 0;
+}
+
+.leai-ledou-ledger-page .leai-ledou-record:first-child {
+  border-top: .5px solid #f1eef2;
+}
+
+.leai-ledou-record {
+  min-height: 84px;
+  padding: 14px 22px;
+  border-top: 1px solid #f0edf1;
+  color: #918b94;
+  font-size: 12px;
+}
+
+.leai-ledou-record-name {
+  display: grid;
+  gap: 4px;
+}
+
+.leai-ledou-record-name strong {
+  color: #252525;
+  font-size: 14px;
+}
+
+.leai-ledou-record-name small {
+  overflow: hidden;
+  color: #aaa5ad;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.leai-ledou-record > em {
+  color: #625b68;
+  font-size: 15px;
+  font-style: normal;
+}
+
+@media (max-width: 900px) {
+  .leai-ledou-overview-row {
+    grid-template-columns: 1fr;
+  }
+
+  .leai-ledou-table-head,
+  .leai-ledou-record {
+    grid-template-columns: minmax(180px, 2fr) 72px 58px 90px 120px 120px;
+  }
+}
+}
+@media (-p0-part: p619d24e07f0c4030c023) {
+
+
+.leai-ledou-balance-banner .leai-ledou-shop-link { display: inline-flex; align-items: center; justify-content: center; text-decoration: none; }
+}
+@media (-p0-part: p1987d2cd2be86c9e0cb4) {
+body .lx-member-component-host > .leai-member-asset-page:not(.leai-ledou-ledger-page):is(.lx-coupon-center, .lx-coupon-center *) { gap: 18px !important; padding: 22px 24px 32px !important; background: rgb(255, 255, 255) !important; }
+}
+@media (-p0-part: p85d1b45bc6cbc7566ff1) {
+.lx-mhc-bean-card {
+  background: transparent !important;
+  border: 1px solid transparent !important;
+  color: #FFFFFF;
+  grid-column: 1 / -1;
+}
+.lx-mhc-bean-card strong { color: #e2ddeb !important; }
+.lx-mhc-bean-card span { color: rgba(250, 248, 252, 0.68) !important; }
+}
+@media (-p0-part: p8425ae92e76fcf136f37) {.lx-mhc-bean-card{background:transparent !important;border:1px solid transparent !important;color:#FFFFFF;grid-column:1 / -1;}.lx-mhc-bean-card strong{color:#e2ddeb !important;}.lx-mhc-bean-card span{color:rgba(250,248,252,0.68) !important;}
+}
+

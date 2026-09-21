@@ -1,0 +1,8 @@
+/* 注册 — ordered style fragments. */
+@media (-p0-part: p49fbc6e2caf5ab8987d9) {
+.lx-auth-modal .lx-auth-tabs.register-active:after{left:56%}
+}
+@media (-p0-part: pacc400aa321c4f479197) {
+.lx-auth-modal .lx-auth-register-title{margin:0 0 24px;font-size:18px;font-weight:800;color:#2b2430}
+}
+

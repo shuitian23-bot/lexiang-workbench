@@ -1,0 +1,56 @@
+/* 设备详情 — ordered style fragments. */
+@media (-p0-part: p4295435a6e39415f65bb) {
+.leai-device-detail-hero { display: grid; grid-template-columns: minmax(230px, .62fr) minmax(0, 1.38fr); align-items: center; gap: 24px; margin-top: 0; padding: 18px; }
+.leai-device-detail-hero .leai-device-detail-visual { min-height: 220px; }
+.leai-device-detail-hero .leai-device-detail-visual img { width: auto; height: auto; max-width: 260px; max-height: 190px; object-fit: contain; }
+.leai-device-detail-summary span, .leai-device-detail-summary strong { display: block; }
+.leai-device-detail-summary span { color: var(--ms-brand); font-size: 12px; font-weight: 600; }
+.leai-device-detail-summary h2 { margin: 7px 0 0; color: var(--ms-text); font-size: 22px; line-height: 30px; }
+.leai-device-detail-summary p { margin: 6px 0 0; color: var(--ms-text-soft); font-size: 12px; }
+.leai-device-detail-summary strong { margin-top: 14px; color: var(--ms-text); font-size: 14px; }
+.leai-device-detail-summary button { margin-top: 18px; }
+.leai-device-detail-sections { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; margin-top: 14px; }
+}
+@media (-p0-part: p1487ebc533e135ef07d9) {
+.leai-device-detail-visual img { max-width: 260px; max-height: 190px; object-fit: contain; }
+.leai-device-detail-list { margin: 0 0 16px; }
+.leai-device-detail-list > div { min-height: 50px; display: grid; grid-template-columns: 90px minmax(0, 1fr); align-items: center; gap: 14px; border-bottom: 1px solid var(--ms-line-soft); }
+.leai-device-detail-list dt, .leai-device-detail-list dd { margin: 0; font-size: 12px; }
+.leai-device-detail-list dt { color: var(--ms-muted); }
+.leai-device-detail-list dd { color: var(--ms-text); }
+}
+@media (-p0-part: p40fc5d154ffe6765f815) {
+
+/* Account-device detail canvas matches the product-detail canvas. */
+html body[data-page]:not(.assistant-fullscreen):not(.lx-auto-fs) main.shell > section.content:has([data-member-device-detail-page]) {
+  background-color: #f5f5f7 !important;
+  background-image: linear-gradient(180deg, #fff 0, #fff 74px, #fefefe 96px, #fafafa 122px, #f7f7f8 164px, #f5f5f7 214px, #f5f5f7 100%) !important;
+  background-repeat: no-repeat !important;
+  background-size: 100% 100% !important;
+  background-position: left top !important;
+}
+html body .lx-member-component-host.leai-aui-view:has(> [data-member-device-detail-page].leai-page:not(.leai-member-page)),
+html body .lx-member-component-host.leai-aui-view > [data-member-device-detail-page].leai-page:not(.leai-member-page) {
+  background: transparent !important;
+}
+/* Device summary and basic parameters keep clean, borderless white surfaces. */
+body [data-member-device-detail-page] > :is(.leai-device-detail-hero, .leai-device-specifications) {
+  border: 0;
+  box-shadow: none;
+}
+
+/* Account-device details use one flat list of basic parameters. */
+[data-member-device-detail-page] .leai-device-detail-visual { background: #fff; }
+}
+@media (-p0-part: pa198b1b3e0328cc6c144) {
+body .lx-member-component-host > [data-member-device-detail-page].leai-page:not(.leai-member-page) > .leai-device-specifications {
+  padding-top: 32px;
+  padding-left: calc(var(--secondary-panel-pad-x, 18px) * 2);
+}
+}
+@media (-p0-part: pf5b55f08d743ea2ee7fa) {
+.leai-device-specifications .leai-device-detail-list { margin: 0; }
+}
+@media (-p0-part: pcf4a9dfb5501c95ac791) {.lx-device-detail-tab [data-member-device-detail-page] .leai-page-back {display:none!important}
+}
+

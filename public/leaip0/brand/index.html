@@ -40,217 +40,155 @@
 <!doctype html>
 <html lang="zh-CN" data-lx-conversation-location-nav="hidden">
   <head>
-<link rel="stylesheet" href="/assets/frontend/css/core/notification-toast-v1.css?p0v=22951c7db61a0d50" />
-<script src="/assets/frontend/js/core/product-detail-navigation-v1.js?p0v=34b3bcacde0c016f"></script>
-<script src="/assets/frontend/js/core/notification-toast-v1.js?p0v=20c3cef677d1a7ca"></script>
-<script src="/assets/frontend/js/core/comparison-display-actions-v1.js?p0v=0eef0e297ad3b765"></script>
-<script src="/assets/frontend/js/core/detail-operating-system-v1.js?p0v=6bb29bcc43fff595"></script>
-<script src="/assets/frontend/js/core/service-products-query-v1.js?p0v=d0b6fc0181529458"></script>
-<script src="/assets/frontend/js/core/education-member-state-sync-v1.js?p0v=642a431b6eaf7aa2"></script>
-<script src="/assets/frontend/js/core/education-offer-query-v1.js?p0v=b21e263c0b382cd8" defer></script>
-<script src="/assets/frontend/js/core/generation-control-v1.js?p0v=ecf34ea3f3d35b9e"></script>
-<script src="/channel-customer-service-v126.js?p0v=6663a15bf799c69e"></script>
+<!-- P0 48 business modules: register only; run at the original document slots. -->
+<link rel="stylesheet" data-p0-style-library href="/modules/shared/common/index.css?p0v=7aea23eb1054031f">
+<link rel="stylesheet" data-p0-style-library href="/modules/shared/agent-content/index.css?p0v=7aea23eb1054031f">
+<link rel="stylesheet" data-p0-style-library href="/modules/pages/brand-home/index.css?p0v=7aea23eb1054031f">
+<link rel="stylesheet" data-p0-style-library href="/modules/pages/product-list/index.css?p0v=7aea23eb1054031f">
+<link rel="stylesheet" data-p0-style-library href="/modules/pages/solution-list/index.css?p0v=7aea23eb1054031f">
+<link rel="stylesheet" data-p0-style-library href="/modules/pages/store-list/index.css?p0v=7aea23eb1054031f">
+<link rel="stylesheet" data-p0-style-library href="/modules/pages/device-list/index.css?p0v=7aea23eb1054031f">
+<link rel="stylesheet" data-p0-style-library href="/modules/pages/product-detail/index.css?p0v=7aea23eb1054031f">
+<link rel="stylesheet" data-p0-style-library href="/modules/pages/solution-detail/index.css?p0v=7aea23eb1054031f">
+<link rel="stylesheet" data-p0-style-library href="/modules/pages/store-detail/index.css?p0v=7aea23eb1054031f">
+<link rel="stylesheet" data-p0-style-library href="/modules/pages/device-detail/index.css?p0v=7aea23eb1054031f">
+<link rel="stylesheet" data-p0-style-library href="/modules/pages/product-compare/index.css?p0v=7aea23eb1054031f">
+<link rel="stylesheet" data-p0-style-library href="/modules/pages/solution-compare/index.css?p0v=7aea23eb1054031f">
+<link rel="stylesheet" data-p0-style-library href="/modules/pages/order-list/index.css?p0v=7aea23eb1054031f">
+<link rel="stylesheet" data-p0-style-library href="/modules/pages/order-detail/index.css?p0v=7aea23eb1054031f">
+<link rel="stylesheet" data-p0-style-library href="/modules/pages/member-center/index.css?p0v=7aea23eb1054031f">
+<link rel="stylesheet" data-p0-style-library href="/modules/pages/coupon-center/index.css?p0v=7aea23eb1054031f">
+<link rel="stylesheet" data-p0-style-library href="/modules/pages/ledou-center/index.css?p0v=7aea23eb1054031f">
+<link rel="stylesheet" data-p0-style-library href="/modules/modals/login/index.css?p0v=7aea23eb1054031f">
+<link rel="stylesheet" data-p0-style-library href="/modules/modals/register/index.css?p0v=7aea23eb1054031f">
+<link rel="stylesheet" data-p0-style-library href="/modules/modals/login-success/index.css?p0v=7aea23eb1054031f">
+<link rel="stylesheet" data-p0-style-library href="/modules/modals/lead-form/index.css?p0v=7aea23eb1054031f">
+<link rel="stylesheet" data-p0-style-library href="/modules/modals/education-auth/index.css?p0v=7aea23eb1054031f">
+<link rel="stylesheet" data-p0-style-library href="/modules/modals/workplace-auth/index.css?p0v=7aea23eb1054031f">
+<link rel="stylesheet" data-p0-style-library href="/modules/modals/diamond-upgrade/index.css?p0v=7aea23eb1054031f">
+<link rel="stylesheet" data-p0-style-library href="/modules/modals/store-appointment-confirm/index.css?p0v=7aea23eb1054031f">
+<link rel="stylesheet" data-p0-style-library href="/modules/modals/store-select/index.css?p0v=7aea23eb1054031f">
+<link rel="stylesheet" data-p0-style-library href="/modules/modals/arrival-time/index.css?p0v=7aea23eb1054031f">
+<link rel="stylesheet" data-p0-style-library href="/modules/modals/store-purpose/index.css?p0v=7aea23eb1054031f">
+<link rel="stylesheet" data-p0-style-library href="/modules/modals/order-payment-confirm/index.css?p0v=7aea23eb1054031f">
+<link rel="stylesheet" data-p0-style-library href="/modules/modals/invoice-edit/index.css?p0v=7aea23eb1054031f">
+<link rel="stylesheet" data-p0-style-library href="/modules/modals/payment-processing/index.css?p0v=7aea23eb1054031f">
+<link rel="stylesheet" data-p0-style-library href="/modules/modals/payment-success/index.css?p0v=7aea23eb1054031f">
+<link rel="stylesheet" data-p0-style-library href="/modules/modals/store-coupon-verify/index.css?p0v=7aea23eb1054031f">
+<link rel="stylesheet" data-p0-style-library href="/modules/modals/product-match/index.css?p0v=7aea23eb1054031f">
+<link rel="stylesheet" data-p0-style-library href="/modules/modals/device-bind/index.css?p0v=7aea23eb1054031f">
+<link rel="stylesheet" data-p0-style-library href="/modules/modals/toast/index.css?p0v=7aea23eb1054031f">
+<link rel="stylesheet" data-p0-style-library href="/modules/modals/conversation-history/index.css?p0v=7aea23eb1054031f">
+<script data-p0-library src="/modules/shared/common/index.js?p0v=7aea23eb1054031f"></script>
+<script data-p0-library src="/modules/shared/agent-content/index.js?p0v=7aea23eb1054031f"></script>
+<script data-p0-library src="/modules/pages/smb-home/index.js?p0v=7aea23eb1054031f"></script>
+<script data-p0-library src="/modules/pages/brand-home/index.js?p0v=7aea23eb1054031f"></script>
+<script data-p0-library src="/modules/pages/product-list/index.js?p0v=7aea23eb1054031f"></script>
+<script data-p0-library src="/modules/pages/solution-list/index.js?p0v=7aea23eb1054031f"></script>
+<script data-p0-library src="/modules/pages/store-list/index.js?p0v=7aea23eb1054031f"></script>
+<script data-p0-library src="/modules/pages/device-list/index.js?p0v=7aea23eb1054031f"></script>
+<script data-p0-library src="/modules/pages/product-detail/index.js?p0v=7aea23eb1054031f"></script>
+<script data-p0-library src="/modules/pages/solution-detail/index.js?p0v=7aea23eb1054031f"></script>
+<script data-p0-library src="/modules/pages/store-detail/index.js?p0v=7aea23eb1054031f"></script>
+<script data-p0-library src="/modules/pages/device-detail/index.js?p0v=7aea23eb1054031f"></script>
+<script data-p0-library src="/modules/pages/product-compare/index.js?p0v=7aea23eb1054031f"></script>
+<script data-p0-library src="/modules/pages/solution-compare/index.js?p0v=7aea23eb1054031f"></script>
+<script data-p0-library src="/modules/pages/order-list/index.js?p0v=7aea23eb1054031f"></script>
+<script data-p0-library src="/modules/pages/member-center/index.js?p0v=7aea23eb1054031f"></script>
+<script data-p0-library src="/modules/pages/coupon-center/index.js?p0v=7aea23eb1054031f"></script>
+<script data-p0-library src="/modules/pages/voucher-center/index.js?p0v=7aea23eb1054031f"></script>
+<script data-p0-library src="/modules/pages/red-envelope/index.js?p0v=7aea23eb1054031f"></script>
+<script data-p0-library src="/modules/pages/ledou-center/index.js?p0v=7aea23eb1054031f"></script>
+<script data-p0-library src="/modules/modals/login/index.js?p0v=7aea23eb1054031f"></script>
+<script data-p0-library src="/modules/modals/register/index.js?p0v=7aea23eb1054031f"></script>
+<script data-p0-library src="/modules/modals/login-success/index.js?p0v=7aea23eb1054031f"></script>
+<script data-p0-library src="/modules/modals/lead-form/index.js?p0v=7aea23eb1054031f"></script>
+<script data-p0-library src="/modules/modals/education-auth/index.js?p0v=7aea23eb1054031f"></script>
+<script data-p0-library src="/modules/modals/workplace-auth/index.js?p0v=7aea23eb1054031f"></script>
+<script data-p0-library src="/modules/modals/enterprise-auth/index.js?p0v=7aea23eb1054031f"></script>
+<script data-p0-library src="/modules/modals/profile-edit/index.js?p0v=7aea23eb1054031f"></script>
+<script data-p0-library src="/modules/modals/store-appointment-confirm/index.js?p0v=7aea23eb1054031f"></script>
+<script data-p0-library src="/modules/modals/store-select/index.js?p0v=7aea23eb1054031f"></script>
+<script data-p0-library src="/modules/modals/arrival-time/index.js?p0v=7aea23eb1054031f"></script>
+<script data-p0-library src="/modules/modals/store-purpose/index.js?p0v=7aea23eb1054031f"></script>
+<script data-p0-library src="/modules/modals/store-coupon-verify/index.js?p0v=7aea23eb1054031f"></script>
+<script data-p0-library src="/modules/modals/product-match/index.js?p0v=7aea23eb1054031f"></script>
+<script data-p0-library src="/modules/modals/device-bind/index.js?p0v=7aea23eb1054031f"></script>
+<script data-p0-library src="/modules/modals/toast/index.js?p0v=7aea23eb1054031f"></script>
+<script data-p0-library src="/modules/modals/conversation-history/index.js?p0v=7aea23eb1054031f"></script>
+<script>window.__p0Modules.collectStyles();</script>
+
+<link rel="stylesheet" href="/modules/modals/toast/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Fnotification-toast-v1.css" /><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/modules/modals/toast/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Fnotification-toast-v1.css");</script>
+<script src="/modules/pages/product-detail/index.js?p0v=7aea23eb1054031f#p0-script=%2Fassets%2Ffrontend%2Fjs%2Fcore%2Fproduct-detail-navigation-v1.js"></script>
+<script src="/modules/modals/toast/index.js?p0v=7aea23eb1054031f#p0-script=%2Fassets%2Ffrontend%2Fjs%2Fcore%2Fnotification-toast-v1.js"></script>
+<script src="/modules/pages/product-compare/index.js?p0v=7aea23eb1054031f#p0-script=%2Fassets%2Ffrontend%2Fjs%2Fcore%2Fcomparison-display-actions-v1.js"></script>
+<script src="/modules/shared/common/index.js?p0v=7aea23eb1054031f#p0-script=%2Fassets%2Ffrontend%2Fjs%2Fcore%2Fdetail-operating-system-v1.js"></script>
+<script src="/modules/shared/common/index.js?p0v=7aea23eb1054031f#p0-script=%2Fassets%2Ffrontend%2Fjs%2Fcore%2Fservice-products-query-v1.js"></script>
+<script src="/modules/pages/member-center/index.js?p0v=7aea23eb1054031f#p0-script=%2Fassets%2Ffrontend%2Fjs%2Fcore%2Feducation-member-state-sync-v1.js"></script>
+<script src="/modules/shared/common/index.js?p0v=7aea23eb1054031f#p0-script=%2Fassets%2Ffrontend%2Fjs%2Fcore%2Feducation-offer-query-v1.js" defer></script>
+<script src="/modules/shared/agent-content/index.js?p0v=7aea23eb1054031f#p0-script=%2Fassets%2Ffrontend%2Fjs%2Fcore%2Fgeneration-control-v1.js"></script>
+<script src="/modules/shared/common/index.js?p0v=7aea23eb1054031f#p0-script=%2Fchannel-customer-service-v126.js"></script>
     <base href="../assets/templates/">
     <!-- Temporary full-storage diagnostic disabled: preserve user storage. -->
-    <script src="/assets/frontend/bundles/p0-brand-core-1.js?p0v=a50a9f7d0bb2fa92"></script>
+    <script src="/modules/pages/brand-home/index.js?p0v=7aea23eb1054031f#p0-script=%2Fassets%2Ffrontend%2Fbundles%2Fp0-brand-core-1.js"></script>
 <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>品牌 · 联想乐享</title>
-    <script src="/assets/frontend/js/shared/inline-1cbc376bb123.js?p0v=6b7b2946a7296fd1"></script>
-<link rel="stylesheet" href="/assets/frontend/css/shared/inline-91661584194a.css?p0v=aaee018f3b5c55c7">
+    <script src="/modules/shared/common/index.js?p0v=7aea23eb1054031f#p0-script=%2Fassets%2Ffrontend%2Fjs%2Fshared%2Finline-1cbc376bb123.js"></script>
+<link rel="stylesheet" href="/modules/shared/common/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fshared%2Finline-91661584194a.css"><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/modules/shared/common/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fshared%2Finline-91661584194a.css");</script>
     <link rel="preload" as="image" href="../logos/logo-full-red.png">
     <link rel="preload" as="image" href="../img/lxfd-gallery-1-1.jpg">
     <link rel="preload" as="image" href="../img/lxfd-gallery-1-2.jpg">
     <link rel="preload" as="image" href="../img/lxfd-gallery-1-3.jpg">
-    <link rel="stylesheet" data-template-file="shop-chat-page-template-main.css" data-template-source="https://leaibot.cn/css/main.css?v=202607150210" href="/assets/frontend/css/shared/inline-3bc2eb74f360.css?p0v=c150d59bc6fca2c2">
-    <link rel="stylesheet" data-template-file="shop-chat-page-template-assistant.css" data-template-source="https://leaibot.cn/css/assistant-panel-ng-skin.css?v=202606222610" href="/assets/frontend/css/shared/inline-d52d38244aa9.css?p0v=ac9a96953c66511a">
-    <link rel="stylesheet" data-template-file="shop-chat-page-template.css" data-shop-template-styles href="/assets/frontend/css/shared/inline-642ec9aa4eee.css?p0v=89166c1e1040257a">
-    <link rel="stylesheet" href="/assets/frontend/css/shared/inline-2104d0ed7dd2.css?p0v=0536b69ea8ac9ff2">
-    <link rel="stylesheet" data-category-waiting-modal href="/assets/frontend/css/shared/inline-935e2224afac.css?p0v=44194d31b465439c">
-  <link rel="stylesheet" href="/assets/frontend/css/core/split-frame-composer-sync.css?p0v=3da557c3cd6b065b" />
-  <link rel="stylesheet" href="/assets/frontend/css/core/right-generation-aurora.css?p0v=9fb0189512e6318b" />
-  <link rel="stylesheet" href="/assets/frontend/css/core/auth-dialog.css?p0v=8dc00cd03756d00a" />
-  <link rel="stylesheet" href="/assets/frontend/css/core/hover-ai-disabled.css?p0v=316a5c45d5e7cb4a" />
-  <link rel="stylesheet" href="/assets/frontend/css/core/history-standard.css?p0v=9e50eac89407ca47" />
-  <link rel="stylesheet" href="/assets/frontend/css/core/channel-home-surface.css?p0v=2f2b1f2bbf474075" />
-  <link rel="stylesheet" data-lx-modal-overlay-unified href="/assets/frontend/css/core/modal-overlay-unified.css?p0v=3500c9504569dc0a">
-  <link rel="stylesheet" data-lx-workplace-auth-modal href="/assets/frontend/css/core/workplace-auth-modal.css?p0v=9e414dbce04ff1ef">
-<script id="p0-home-feature-config" type="application/json">{"features":{"detail":{"styles":[{"anchor":"p0-brand-detail-0","url":"/assets/frontend/bundles/p0-p0-brand-detail-0.css?p0v=0f29239b924a1fed"},{"anchor":"p0-brand-detail-1","url":"/assets/frontend/bundles/p0-shared-2abd72502c25.css?p0v=2abd72502c25e611?p0v=2abd72502c25e611"},{"anchor":"p0-brand-detail-2","url":"/assets/frontend/bundles/p0-shared-cb8e2ca3f9d5.css?p0v=cb8e2ca3f9d57fe1?p0v=cb8e2ca3f9d57fe1"}],"script":"/assets/frontend/bundles/p0-brand-detail.js?p0v=357aad865d02fae1"},"orders":{"styles":[{"anchor":"p0-brand-orders-0","url":"/assets/frontend/bundles/p0-shared-e0e9c414dedb.css?p0v=e0e9c414dedb98a6?p0v=e0e9c414dedb98a6"}],"script":"/assets/frontend/bundles/p0-brand-orders.js?p0v=90cdf5874a8cc9a1"}}}</script>
-<script data-p0-inline-source="/assets/frontend/js/core/p0-home-features-v1.js">/* Explicit feature boundaries: detail / orders / checkout. No eager business downloads. */
-(() => {
-  'use strict';
-  if(window.__lxHomeFeatures?.version===2)return;
-  const config=JSON.parse(document.getElementById('p0-home-feature-config').textContent);
-  const resources=new Map(), features=new Map();let actionToken=0,replaying=false;
-  function load(tag,url,anchor,id){
-    const key=tag+':'+url;if(resources.has(key))return resources.get(key);
-    const task=new Promise((resolve,reject)=>{
-      const node=document.createElement(tag);let settled=false,timer;
-      if(id)node.id=id;
-      if(tag==='link'){node.rel='stylesheet';node.href=url;}else{node.src=url;node.async=false;}
-      function finish(error){if(settled)return;settled=true;clearTimeout(timer);node.onload=node.onerror=null;if(error){node.remove();reject(error);}else resolve(node);}
-      node.onload=()=>finish();node.onerror=()=>finish(new Error('功能资源加载失败，请重试'));
-      timer=setTimeout(()=>finish(new Error('网络连接超时，请重试')),60000);
-      try{if(anchor)anchor.before(node);else document.head.appendChild(node);}catch(error){finish(error);}
-    });resources.set(key,task);task.catch(()=>{if(resources.get(key)===task)resources.delete(key);});return task;
-  }
-  function ensure(name){
-    if(features.has(name))return features.get(name).task;
-    const spec=config.features[name];if(!spec)return Promise.reject(new Error('未知功能：'+name));
-    const entry={state:'loading'};features.set(name,entry);
-    entry.task=Promise.all((spec.depends||[]).map(ensure)).then(()=>{
-      // Start the script transfer together with CSS; execute only after CSS is ready.
-      const hint=document.createElement('link');hint.rel='preload';hint.as='script';hint.href=spec.script;document.head.appendChild(hint);
-      return Promise.all(spec.styles.map(s=>load('link',s.url,document.getElementById(s.anchor))))
-        .then(()=>load('script',spec.script)).finally(()=>hint.remove());
-    }).then(()=>{
-      if(name==='orders' && document.readyState==='loading')return new Promise((resolve,reject)=>{let timer;const done=()=>{clearTimeout(timer);document.removeEventListener('DOMContentLoaded',done);resolve();};document.addEventListener('DOMContentLoaded',done,{once:true});timer=setTimeout(()=>{document.removeEventListener('DOMContentLoaded',done);reject(new Error('页面初始化超时，请重试'));},60000);});
-    }).then(()=>{entry.state='ready';}).catch(error=>{entry.state='error';if(features.get(name)===entry)features.delete(name);throw error;});
-    return entry.task;
-  }
-  const ready=name=>features.get(name)?.state==='ready';
-  window.__lxHomeFeatures={version:2,detail:()=>ensure('detail'),orders:()=>ensure('orders'),commerce:()=>ensure('checkout'),get ready(){return ready('checkout');},states:()=>Object.fromEntries([...features].map(([k,v])=>[k,v.state]))};
-  if(config.memberStyle)window.__lxLoadMemberStyles=()=>Promise.all((config.memberStyles||[{url:config.memberStyle,anchor:'p0-member-style-anchor'}]).map((s,n)=>load('link',s.url,document.getElementById(s.anchor),n===0?'lx-member-component-css':undefined)));
-  function status(message,retry){
-    if(window.__lxToast){window.__lxToast.show(message,{id:'p0-feature-status',title:retry?'加载暂未完成':'正在加载',kind:retry?'error':'info',duration:0,retry});return;}
-    document.getElementById('p0-feature-status')?.remove();const box=document.createElement('div');box.id='p0-feature-status';box.className='lx-p0-toast show';box.setAttribute('role',retry?'alert':'status');box.textContent=message;
-    if(retry){const b=document.createElement('button');b.type='button';b.textContent='重试';b.onclick=retry;box.append(' ',b);}document.body.appendChild(box);
-  }
-  function run(name,action){const token=++actionToken;status(name==='orders'?'正在加载订单…':'正在准备商品与下单信息…');return ensure(name).then(()=>{
-    if(token!==actionToken)return;document.getElementById('p0-feature-status')?.remove();return action();
-  }).catch(()=>{if(token===actionToken)status('连接较慢，功能暂未加载完成',()=>run(name,action));});}
-  for(const name of ['__lxOpenOrdersCenter','lxHandleCommerceQuery','lxHandleCommerceEntry']){
-    const stub=(...args)=>run('orders',()=>{const fn=window[name];if(fn===stub||typeof fn!=='function')throw new Error('订单入口未准备好');return fn(...args);});window[name]=stub;
-  }
-  const orderSelector='.utility-btn[aria-label="订单"],[data-commerce-entry="orders"],[data-lxfd-open="orders"],[data-open-orders],[data-lx-result-id="info:orders"],[data-tab-id="info:orders"]';
-  const sendSelector='.assistant-panel .send-btn,.assistant-panel [data-send],.assistant-panel button[type="submit"],.lxfd-send';
-  const inputSelector='.assistant-panel .composer textarea,.lxfd-composer textarea';
-  const isOrder=input=>/^(?:我要|我想|帮我)?(?:查看|查询|打开)?(?:我的)?订单(?:中心|列表|记录)?$/.test(String(input?.value||'').replace(/[\s，。！？、,.!?]/g,''));
-  function intercept(event,name,action){event.preventDefault();event.stopImmediatePropagation();run(name,()=>{replaying=true;try{return action();}finally{replaying=false;}});}
-  window.addEventListener('click',event=>{
-    if(replaying||!(event.target instanceof Element))return;const button=event.target.closest('button,a,[role="button"]');if(!button||button.closest('.lx-tab-close'))return;
-    const input=button.closest('form')?.querySelector('textarea')||document.querySelector(inputSelector);
-    if(!ready('orders')&&(button.matches(orderSelector)||(button.matches(sendSelector)&&isOrder(input))))return intercept(event,'orders',()=>{if(button.isConnected)button.click();});
-    const buy=!button.closest('[data-buy-modal-direct]')&&!button.dataset.bizQuote&&(button.matches('[data-buy-sku],[data-buy-now],[data-action="buy"],[data-order-action="buy"],[data-cart-checkout]')||/^(?:一键领取?优惠下单|一键领优惠下单|立即购买|立即下单|去购买|去下单|去结算|结算|提交订单)$/.test(button.textContent.replace(/\s+/g,'')));
-    if(config.features.checkout&&!ready('checkout')&&buy)intercept(event,'checkout',()=>{if(button.isConnected)button.click();});
-  },true);
-  window.addEventListener('keydown',event=>{if(replaying||ready('orders')||event.key!=='Enter'||event.shiftKey||event.isComposing||!event.target.matches?.(inputSelector)||!isOrder(event.target))return;const input=event.target;intercept(event,'orders',()=>input.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',code:'Enter',bubbles:true,cancelable:true})));},true);
-  window.addEventListener('submit',event=>{if(replaying||ready('orders')||!event.target.matches?.('.assistant-panel .composer,.lxfd-composer')||!isOrder(event.target.querySelector('textarea')))return;const form=event.target;intercept(event,'orders',()=>form.dispatchEvent(new Event('submit',{bubbles:true,cancelable:true})));},true);
-})();
-</script>
-<style id="lx-brand-fluid-width">
-/* Brand content follows its result pane, including resized split layouts. */
-body[data-page="brand"] .shell > .content > .brand-page.brand {
-  width:100%!important;inline-size:100%!important;max-width:none!important;max-inline-size:none!important;min-width:0!important;box-sizing:border-box;container-type:inline-size;
-}
-body[data-page="brand"] .brand-page.brand > * {min-width:0;max-width:100%;box-sizing:border-box}
-body[data-page="brand"] .brand-page.brand .bento {grid-template-columns:minmax(0,1.3fr) minmax(0,1fr)}
-body[data-page="brand"] .brand-page.brand .bento > * {min-width:0}
-@container(max-width:860px){body[data-page="brand"] .brand-page.brand .bento{grid-template-columns:minmax(0,1fr)}body[data-page="brand"] .brand-page.brand .tl3{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@container(max-width:540px){body[data-page="brand"] .brand-page.brand .tl3{grid-template-columns:minmax(0,1fr)}body[data-page="brand"] .brand-page.brand .hero .inner{padding:24px}body[data-page="brand"] .brand-page.brand .hero .chips{flex-wrap:wrap}}
-@media(max-width:1200px){body[data-page="brand"] .shell{min-width:0!important;grid-template-columns:minmax(260px,32%) minmax(0,1fr)!important}body[data-page="brand"] .shell>.content{min-width:0!important}}
-@media(max-width:1200px){html:has(body[data-page="brand"]),body[data-page="brand"]{min-width:0!important;width:100%!important}body[data-page="brand"] .shell{width:100%!important;max-width:100vw!important}}
-</style>
-<style id="lx-detail-list-background">
-/* Product detail canvas uses the same subtle gradient as product lists. */
-html body[data-page]:not(.assistant-fullscreen):not(.lx-auto-fs) main.shell > section.content[data-view="detail"]:has(.product-detail) {
-  background-color:#f5f5f7!important;
-  background-image:linear-gradient(180deg,#fff 0,#fff 74px,#fefefe 96px,#fafafa 122px,#f7f7f8 164px,#f5f5f7 214px,#f5f5f7 100%)!important;
-  background-repeat:no-repeat!important;
-  background-size:100% 100%!important;
-  background-position:left top!important;
-}
-</style>
-<style id="lx-detail-main-radius">
-/* Product hero card: the image and purchase information share an 8px shell. */
-html body[data-page] main.shell > section.content[data-view="detail"] .product-detail > .detail-main {
-  border-radius:8px!important;
-}
-
-/* Keep the white child surfaces inside the shell's lower corners without clipping popovers. */
-html body[data-page] main.shell > section.content[data-view="detail"] .product-detail > .detail-main > :is(.detail-gallery, .detail-info) {
-  border-bottom-left-radius:inherit!important;
-  border-bottom-right-radius:inherit!important;
-}
-</style>
-<style id="lx-member-advice-off">
-/* Remove the complete suggestions row, including its layout space. */
-body .leai-member-page .leai-member-suggestions-panel,
-body .leai-member-page [data-member-section="insights"] { display:none!important; }
-</style>
-<style id="lx-fulfillment-style">
-/* History messages render before the lazy checkout module is loaded. */
-body .lx-fulfillment-suggestion{margin:10px 0 0;color:#353037;font-size:14px;line-height:1.8}
-body .lx-fulfillment-suggestion .lx-fulfillment-link{display:inline;padding:0 2px;border:0;border-bottom:1px solid currentColor;border-radius:0;background:transparent;color:#681057;font:inherit;font-weight:700;line-height:inherit;cursor:pointer;box-shadow:none}
-body .lx-fulfillment-suggestion .lx-fulfillment-link:hover,body .lx-fulfillment-suggestion .lx-fulfillment-link:focus{color:#a51f42}
-</style>
-<style id="lx-prompt-menu-ellipsis">
-html body[data-page] .page-dots .prompt-menu{overflow-x:hidden!important;overflow-y:auto!important;box-sizing:border-box}
-html body[data-page] .page-dots .prompt-menu .menu-row,html body[data-page] .page-dots .prompt-menu .trail-row,html body[data-page] .page-dots .prompt-menu .lx-trail-head{display:block;box-sizing:border-box;width:100%;max-width:100%;min-width:0;overflow:hidden!important;white-space:nowrap!important;text-overflow:ellipsis!important}
-</style>
-<style id="lx-page-dots-small">
-html body[data-page] .assistant-panel .page-dots.page-dots i{width:5px!important;height:5px!important;min-width:5px!important;min-height:5px!important;border-radius:50%!important}
-html body[data-page] .assistant-panel .page-dots.page-dots i.active{background:#4d144a!important}
-</style>
-<style id="lx-match-modal-size">
-html #lx-reco-match-dialog{width:min(720px,calc(100vw - 48px));height:fit-content;max-height:min(760px,88dvh);padding:24px;border:1px solid #e2ddeb;border-radius:8px;box-shadow:0 24px 70px rgba(155,142,182,.62),0 4px 14px rgba(50,29,57,.08);overflow:hidden;color:#252525}
-html #lx-reco-match-dialog[open]{display:flex;flex-direction:column}
-html #lx-reco-match-dialog .lx-match-layout{height:auto;max-height:calc(min(760px,88dvh) - 50px);gap:20px;flex:0 1 auto;min-height:0}
-html #lx-reco-match-dialog h2{font-size:20px;line-height:28px;font-weight:600;padding-right:36px}
-html #lx-reco-match-dialog .lx-match-close{right:18px;top:20px;width:28px;height:28px;border-radius:50%;color:#979797}
-html #lx-reco-match-dialog .lx-match-close:hover{background:#f3f0f7}
-html #lx-reco-match-dialog .lx-match-scroll{flex:0 1 auto;min-height:0;overflow:auto}
-html #lx-reco-match-dialog .lx-match-product{gap:16px;padding:16px;margin-bottom:16px;border:1px solid #e2ddeb;border-radius:8px;background:#faf8fc}
-html #lx-reco-match-dialog .lx-match-product img{width:88px;height:88px;border-radius:8px}
-html #lx-reco-match-dialog h3{font-size:16px;line-height:24px;font-weight:600;margin:0 0 8px;overflow-wrap:anywhere;color:#252525}
-html #lx-reco-match-dialog .lx-match-price{font-size:18px;line-height:26px;font-weight:600;color:#252525}
-html #lx-reco-match-dialog .lx-match-table-wrap{border:1px solid #e2ddeb;border-radius:8px;background:#fff}
-html #lx-reco-match-dialog table{font-size:14px;line-height:22px;table-layout:fixed}
-html #lx-reco-match-dialog th,html #lx-reco-match-dialog td{padding:12px;overflow-wrap:anywhere;border-color:#e2ddeb}
-html #lx-reco-match-dialog th{background:#f3f0f7;font-weight:600}
-html #lx-reco-match-dialog th:first-child,html #lx-reco-match-dialog td:first-child{width:88px}
-html #lx-reco-match-dialog th:nth-child(2){width:124px}
-html #lx-reco-match-dialog .lx-match-status{width:20px;height:20px;font-size:14px;background:#4d144a}
-html #lx-reco-match-dialog .lx-match-status.pending{background:#f3f0f7;color:#979797}
-html #lx-reco-match-dialog .lx-match-footer{padding-top:16px;border-top:1px solid #e2ddeb;flex:none}
-html #lx-reco-match-dialog .lx-match-buy{min-width:104px;height:40px;padding:0 24px;border-radius:8px;font-size:14px;line-height:20px;font-weight:500;background:#4d144a}
-html #lx-reco-match-dialog .lx-match-buy:hover{filter:brightness(1.12)}
-@media(max-width:600px){html #lx-reco-match-dialog{width:calc(100vw - 24px);padding:20px}html #lx-reco-match-dialog .lx-match-layout{max-height:calc(88dvh - 42px)}html #lx-reco-match-dialog th:first-child,html #lx-reco-match-dialog td:first-child{width:72px}html #lx-reco-match-dialog th:nth-child(2){width:92px}html #lx-reco-match-dialog .lx-match-product img{width:64px;height:64px}}
-</style>
-<style id="lx-match-polish">html body #lx-reco-match-dialog{box-shadow:none!important}html body #lx-reco-match-dialog .lx-match-buy{background:linear-gradient(110deg,#4d144a,#b8252e)!important;box-shadow:none!important}</style>
-<style id="lx-compare-ten-chips">html body .composer .lx-ref-chips:has(.lx-ref-chip-mini),html body .lxfd .lx-ref-chips:has(.lx-ref-chip-mini){display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:9px!important;overflow:visible!important}html body .lx-ref-chips .lx-ref-chip-mini{width:100%!important;box-sizing:border-box!important;min-width:0!important}html body .composer:has(.lx-ref-chip-mini){height:auto!important}html body .composer:has(.lx-ref-chip-mini)>.attach{max-height:none!important;height:auto!important;overflow:visible!important}html body[data-page] .assistant-panel form.composer.has:has(.lx-ref-chip-mini:nth-child(6)){min-height:223px!important}html body .composer:has(.lx-ref-chip-mini) textarea{flex-shrink:0!important}</style>
-<style id="lx-ref-chip-close">
-html body .lx-ref-chips .lx-ref-chip-mini{display:grid!important;grid-template-columns:minmax(0,1fr) 16px!important;column-gap:2px!important;padding:5px 4px!important;align-items:center!important}
-html body .lx-ref-chips .lx-ref-chip-mini>img{width:100%!important;max-width:30px!important;min-width:0!important;justify-self:center}
-html body .lx-ref-chips .lx-ref-chip-mini>span{display:none!important}
-html body .lx-ref-chips .lx-ref-chip-mini>[data-ref-remove-idx]{position:static!important;transform:none!important;margin:0!important;width:16px!important;height:16px!important;min-width:0!important;justify-self:end;box-sizing:border-box!important}
-</style>
-<style id="lx-detail-price-weight">
-html body .product-detail .lx-detail-benefits-v182 .lx-detail-benefits-label{font-weight:600!important}
-html body .product-detail .lx-detail-benefits-v182 .lx-detail-benefits-price strong,html body .product-detail .lx-detail-benefits-v182 .lx-detail-benefits-price strong>span{font-weight:700!important}
-</style>
-<link rel="stylesheet" href="/assets/frontend/css/pages/brand/channel-list-v1.css?p0v=5a1b9503e14f4088">
-<script src="/assets/frontend/js/core/gaming-query-v1.js?p0v=9b9dcc5b93b2fdcd"></script>
-<link rel="stylesheet" href="/assets/frontend/css/core/manufacturing-solution-rows-v1.css?p0v=9b83be332b5a2421">
-<script defer src="/assets/frontend/js/core/manufacturing-solution-rows-v1.js?p0v=fbd06926b932b879"></script>
-<link rel="stylesheet" href="/assets/frontend/css/core/recruitment-v1.css?p0v=d82be148e6f69b90">
-<script defer src="/assets/frontend/js/core/query-result-runtime-v1.js?p0v=9c24218ee1c973f5"></script>
-<script defer src="/assets/frontend/js/core/recruitment-v1.js?p0v=177ee9fe5b2d4e25"></script>
-<link rel="stylesheet" href="/assets/frontend/css/core/education-auth-original-v1.css?p0v=984066cfc89d1b86">
-<link rel="stylesheet" href="/assets/frontend/css/components/education-member-products-v1.css?p0v=127a88523cb7399a">
-<link rel="stylesheet" href="/assets/frontend/css/pages/brand/brand-ai-hero-v1.css?p0v=45b4ffa123897888">
-<link rel="stylesheet" href="/assets/frontend/css/pages/brand/brand-about-layout-v1.css?p0v=907a2312555d608d">
-<link rel="stylesheet" href="/assets/frontend/css/pages/brand/brand-news-covers-v1.css?p0v=1a538874331bb201">
-<script src="/assets/frontend/js/core/member-coupon-center-v1.js?p0v=0940425517a453a5"></script>
-<link rel="stylesheet" href="/assets/frontend/css/core/member-coupon-center-v1.css?p0v=9f11b28b9d95e66d">
-<link rel="stylesheet" href="/assets/frontend/css/core/recommendation-card-arrow-v1.css?p0v=739e8b86831d0495">
-<link rel="stylesheet" href="/assets/frontend/css/core/tabbar-compression-v1.css?p0v=b56daa295cbafa08">
-<link rel="stylesheet" href="/assets/frontend/css/core/conversation-location-navigation-v1.css?p0v=292f692b4a3cc76d" />
-<link rel="stylesheet" href="/assets/frontend/css/core/recommendation-followups-v1.css?p0v=e673a29bd67fd1ec">
-<script defer src="/assets/frontend/js/core/recommendation-followups-v1.js?p0v=d15577c643e30a5e"></script>
+    <link rel="stylesheet" data-template-file="shop-chat-page-template-main.css" data-template-source="https://leaibot.cn/css/main.css?v=202607150210" href="/modules/shared/common/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fshared%2Finline-3bc2eb74f360.css"><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/modules/shared/common/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fshared%2Finline-3bc2eb74f360.css");</script>
+    <link rel="stylesheet" data-template-file="shop-chat-page-template-assistant.css" data-template-source="https://leaibot.cn/css/assistant-panel-ng-skin.css?v=202606222610" href="/modules/shared/common/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fshared%2Finline-d52d38244aa9.css"><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/modules/shared/common/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fshared%2Finline-d52d38244aa9.css");</script>
+    <link rel="stylesheet" data-template-file="shop-chat-page-template.css" data-shop-template-styles href="/modules/shared/common/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fshared%2Finline-642ec9aa4eee.css"><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/modules/shared/common/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fshared%2Finline-642ec9aa4eee.css");</script>
+    <link rel="stylesheet" href="/modules/shared/common/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fshared%2Finline-2104d0ed7dd2.css"><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/modules/shared/common/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fshared%2Finline-2104d0ed7dd2.css");</script>
+    <link rel="stylesheet" data-category-waiting-modal href="/modules/shared/common/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fshared%2Finline-935e2224afac.css"><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/modules/shared/common/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fshared%2Finline-935e2224afac.css");</script>
+  <link rel="stylesheet" href="/modules/shared/agent-content/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Fsplit-frame-composer-sync.css" /><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/modules/shared/agent-content/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Fsplit-frame-composer-sync.css");</script>
+  <link rel="stylesheet" href="/modules/shared/agent-content/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Fright-generation-aurora.css" /><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/modules/shared/agent-content/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Fright-generation-aurora.css");</script>
+  <link rel="stylesheet" href="/modules/modals/login/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Fauth-dialog.css" /><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/modules/modals/login/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Fauth-dialog.css");</script>
+  <link rel="stylesheet" href="/modules/shared/common/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Fhover-ai-disabled.css" /><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/modules/shared/common/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Fhover-ai-disabled.css");</script>
+  <link rel="stylesheet" href="/modules/modals/conversation-history/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Fhistory-standard.css" /><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/modules/modals/conversation-history/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Fhistory-standard.css");</script>
+  <link rel="stylesheet" href="/modules/pages/consumer-home/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Fchannel-home-surface.css" /><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/modules/pages/consumer-home/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Fchannel-home-surface.css");</script>
+  <link rel="stylesheet" data-lx-modal-overlay-unified href="/modules/shared/common/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Fmodal-overlay-unified.css"><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/modules/shared/common/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Fmodal-overlay-unified.css");</script>
+  <link rel="stylesheet" data-lx-workplace-auth-modal href="/modules/modals/workplace-auth/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Fworkplace-auth-modal.css"><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/modules/modals/workplace-auth/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Fworkplace-auth-modal.css");</script>
+<script id="p0-home-feature-config" type="application/json">{"features":{"detail":{"styles":[{"anchor":"p0-brand-detail-0","url":"/modules/pages/brand-home/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fbundles%2Fp0-p0-brand-detail-0.css"},{"anchor":"p0-brand-detail-1","url":"/modules/shared/common/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fbundles%2Fp0-shared-2abd72502c25.css"},{"anchor":"p0-brand-detail-2","url":"/modules/shared/common/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fbundles%2Fp0-shared-cb8e2ca3f9d5.css"}],"script":"/modules/pages/brand-home/index.js?p0v=7aea23eb1054031f#p0-script=%2Fassets%2Ffrontend%2Fbundles%2Fp0-brand-detail.js"},"orders":{"styles":[{"anchor":"p0-brand-orders-0","url":"/modules/shared/common/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fbundles%2Fp0-shared-e0e9c414dedb.css"}],"script":"/modules/pages/brand-home/index.js?p0v=7aea23eb1054031f#p0-script=%2Fassets%2Ffrontend%2Fbundles%2Fp0-brand-orders.js"}}}</script>
+<script data-p0-inline-source="/assets/frontend/js/core/p0-home-features-v1.js">window.__p0Modules.run("/@inline/brand/index.html/6813.js",document.currentScript);</script>
+<link rel="stylesheet" href="/modules/pages/brand-home/index.css?p0v=7aea23eb1054031f#p0-style=%2F%40inline%2Fbrand%2Findex.html%2F13548.css"><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/@inline/brand/index.html/13548.css");</script>
+<link rel="stylesheet" href="/modules/pages/brand-home/index.css?p0v=7aea23eb1054031f#p0-style=%2F%40inline%2Fbrand%2Findex.html%2F15051.css"><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/@inline/brand/index.html/15051.css");</script>
+<link rel="stylesheet" href="/modules/pages/brand-home/index.css?p0v=7aea23eb1054031f#p0-style=%2F%40inline%2Fbrand%2Findex.html%2F15613.css"><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/@inline/brand/index.html/15613.css");</script>
+<link rel="stylesheet" href="/modules/pages/brand-home/index.css?p0v=7aea23eb1054031f#p0-style=%2F%40inline%2Fbrand%2Findex.html%2F16207.css"><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/@inline/brand/index.html/16207.css");</script>
+<link rel="stylesheet" href="/modules/pages/brand-home/index.css?p0v=7aea23eb1054031f#p0-style=%2F%40inline%2Fbrand%2Findex.html%2F16460.css"><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/@inline/brand/index.html/16460.css");</script>
+<link rel="stylesheet" href="/modules/pages/brand-home/index.css?p0v=7aea23eb1054031f#p0-style=%2F%40inline%2Fbrand%2Findex.html%2F17065.css"><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/@inline/brand/index.html/17065.css");</script>
+<link rel="stylesheet" href="/modules/pages/brand-home/index.css?p0v=7aea23eb1054031f#p0-style=%2F%40inline%2Fbrand%2Findex.html%2F17567.css"><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/@inline/brand/index.html/17567.css");</script>
+<link rel="stylesheet" href="/modules/pages/brand-home/index.css?p0v=7aea23eb1054031f#p0-style=%2F%40inline%2Fbrand%2Findex.html%2F17886.css"><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/@inline/brand/index.html/17886.css");</script>
+<link rel="stylesheet" href="/modules/pages/brand-home/index.css?p0v=7aea23eb1054031f#p0-style=%2F%40inline%2Fbrand%2Findex.html%2F20698.css"><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/@inline/brand/index.html/20698.css");</script>
+<link rel="stylesheet" href="/modules/pages/brand-home/index.css?p0v=7aea23eb1054031f#p0-style=%2F%40inline%2Fbrand%2Findex.html%2F20926.css"><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/@inline/brand/index.html/20926.css");</script>
+<link rel="stylesheet" href="/modules/pages/brand-home/index.css?p0v=7aea23eb1054031f#p0-style=%2F%40inline%2Fbrand%2Findex.html%2F21705.css"><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/@inline/brand/index.html/21705.css");</script>
+<link rel="stylesheet" href="/modules/pages/brand-home/index.css?p0v=7aea23eb1054031f#p0-style=%2F%40inline%2Fbrand%2Findex.html%2F22397.css"><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/@inline/brand/index.html/22397.css");</script>
+<link rel="stylesheet" href="/modules/pages/brand-home/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fpages%2Fbrand%2Fchannel-list-v1.css"><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/modules/pages/brand-home/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fpages%2Fbrand%2Fchannel-list-v1.css");</script>
+<script src="/modules/pages/product-list/index.js?p0v=7aea23eb1054031f#p0-script=%2Fassets%2Ffrontend%2Fjs%2Fcore%2Fgaming-query-v1.js"></script>
+<link rel="stylesheet" href="/modules/pages/solution-list/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Fmanufacturing-solution-rows-v1.css"><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/modules/pages/solution-list/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Fmanufacturing-solution-rows-v1.css");</script>
+<script defer src="/modules/pages/solution-list/index.js?p0v=7aea23eb1054031f#p0-script=%2Fassets%2Ffrontend%2Fjs%2Fcore%2Fmanufacturing-solution-rows-v1.js"></script>
+<link rel="stylesheet" href="/modules/pages/product-list/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Frecruitment-v1.css"><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/modules/pages/product-list/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Frecruitment-v1.css");</script>
+<script defer src="/modules/shared/agent-content/index.js?p0v=7aea23eb1054031f#p0-script=%2Fassets%2Ffrontend%2Fjs%2Fcore%2Fquery-result-runtime-v1.js"></script>
+<script defer src="/modules/pages/product-list/index.js?p0v=7aea23eb1054031f#p0-script=%2Fassets%2Ffrontend%2Fjs%2Fcore%2Frecruitment-v1.js"></script>
+<link rel="stylesheet" href="/modules/modals/education-auth/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Feducation-auth-original-v1.css"><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/modules/modals/education-auth/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Feducation-auth-original-v1.css");</script>
+<link rel="stylesheet" href="/modules/pages/member-center/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcomponents%2Feducation-member-products-v1.css"><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/modules/pages/member-center/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcomponents%2Feducation-member-products-v1.css");</script>
+<link rel="stylesheet" href="/modules/pages/brand-home/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fpages%2Fbrand%2Fbrand-ai-hero-v1.css"><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/modules/pages/brand-home/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fpages%2Fbrand%2Fbrand-ai-hero-v1.css");</script>
+<link rel="stylesheet" href="/modules/pages/brand-home/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fpages%2Fbrand%2Fbrand-about-layout-v1.css"><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/modules/pages/brand-home/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fpages%2Fbrand%2Fbrand-about-layout-v1.css");</script>
+<link rel="stylesheet" href="/modules/pages/brand-home/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fpages%2Fbrand%2Fbrand-news-covers-v1.css"><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/modules/pages/brand-home/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fpages%2Fbrand%2Fbrand-news-covers-v1.css");</script>
+<script src="/modules/pages/coupon-center/index.js?p0v=7aea23eb1054031f#p0-script=%2Fassets%2Ffrontend%2Fjs%2Fcore%2Fmember-coupon-center-v1.js"></script>
+<link rel="stylesheet" href="/modules/pages/coupon-center/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Fmember-coupon-center-v1.css"><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/modules/pages/coupon-center/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Fmember-coupon-center-v1.css");</script>
+<link rel="stylesheet" href="/modules/shared/common/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Frecommendation-card-arrow-v1.css"><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/modules/shared/common/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Frecommendation-card-arrow-v1.css");</script>
+<link rel="stylesheet" href="/modules/shared/agent-content/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Ftabbar-compression-v1.css"><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/modules/shared/agent-content/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Ftabbar-compression-v1.css");</script>
+<link rel="stylesheet" href="/modules/shared/agent-content/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Fconversation-location-navigation-v1.css" /><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/modules/shared/agent-content/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Fconversation-location-navigation-v1.css");</script>
+<link rel="stylesheet" href="/modules/shared/agent-content/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Frecommendation-followups-v1.css"><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/modules/shared/agent-content/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Frecommendation-followups-v1.css");</script>
+<script defer src="/modules/shared/agent-content/index.js?p0v=7aea23eb1054031f#p0-script=%2Fassets%2Ffrontend%2Fjs%2Fcore%2Frecommendation-followups-v1.js"></script>
 </head>
   <body data-page="brand" data-state="default">
-    <script src="/assets/frontend/bundles/p0-shared-4c83dffe8380.js?p0v=4c83dffe83802597"></script>
+    <script src="/modules/shared/common/index.js?p0v=7aea23eb1054031f#p0-script=%2Fassets%2Ffrontend%2Fbundles%2Fp0-shared-4c83dffe8380.js"></script>
 <div class="lx-route-loading" aria-hidden="true"><div class="lx-rl-spin"></div><div class="lx-rl-txt">联想乐享 加载中…</div></div>
     <header class="topbar">
       <!-- 整页跳回 / = 初始全屏欢迎态（非分屏首页），配合全屏首问重置旧对话上下文（真机反馈） -->
@@ -281,7 +219,7 @@ html body .product-detail .lx-detail-benefits-v182 .lx-detail-benefits-price str
           </div>
         </div>
       </div>
-      <script src="/assets/frontend/js/shared/inline-f6883bac7348.js?p0v=68b904105831909e"></script>
+      <script src="/modules/shared/common/index.js?p0v=7aea23eb1054031f#p0-script=%2Fassets%2Ffrontend%2Fjs%2Fshared%2Finline-f6883bac7348.js"></script>
 </header>
 
     <main class="shell">
@@ -811,24 +749,24 @@ html body .product-detail .lx-detail-benefits-v182 .lx-detail-benefits-price str
         <p class="lxfd-legal-line">京ICP备11035381-2 | 京公网安备110108007970号 | 营业执照：91110108700000458B</p>
       </main>
     </div>
-    <script src="/assets/frontend/bundles/p0-shared-68e249410c86.js?p0v=68e249410c86c22f"></script>
-<link rel="stylesheet" href="/assets/frontend/css/core/product-specs-grouped-v1.css?p0v=1026a542c206036b">
-<script src="/assets/frontend/js/core/product-specs-grouped-v1.js?p0v=e4edbdcfb53c4d7c"></script>
-<link rel="stylesheet" href="/assets/frontend/css/core/arrival-notice-v1.css?p0v=3b09e9a2b19c58ae">
-<script src="/assets/frontend/js/pages/brand/brand-summary-v1.js?p0v=a2918bf0b0c03289"></script>
-<script src="/assets/frontend/bundles/p0-brand-core-4.js?p0v=3b03826171d9ce3c"></script>
-<script src="/assets/frontend/js/core/app-agent.js?p0v=2533e1dec0d991d4"></script>
-<script data-shop-chat-template-behavior src="/assets/frontend/js/pages/brand/inline-13.js?p0v=0e49fb7a83fb30aa"></script>
-<link rel="stylesheet" data-shop-smart-cursor-fix href="/assets/frontend/css/shared/inline-592f8f851e1f.css?p0v=d23bde0be30dd69a">
-    <script src="/assets/frontend/js/shared/inline-6495b30fa986.js?p0v=7da36c0b14856c77"></script>
-<link rel="stylesheet" href="/assets/frontend/css/shared/inline-e75ae5be9405.css?p0v=41f49a6af45dc0ad">
-    <script src="/assets/frontend/js/pages/brand/inline-17.js?p0v=3b6ed5f2d41b46ba"></script>
-<link rel="stylesheet" data-lexiang-user-bubble-token href="/assets/frontend/css/shared/inline-c7bce3f5e8ce.css?p0v=62208ba8b56ca6f8">
-<link rel="stylesheet" data-unified-answer-card-selected href="/assets/frontend/css/shared/inline-77378062a204.css?p0v=27688947e31b0dd0">
-    <link rel="stylesheet" data-lxfd-chat-dock-bottom-gap href="/assets/frontend/css/shared/inline-a6719541b94f.css?p0v=44d6d4e3a0791559">
-  <link rel="stylesheet" data-solution-result-shared href="/assets/frontend/css/core/solution-result.css?p0v=43a1a617617bc647">
-  <link rel="stylesheet" data-product-card-borderless-final href="/assets/frontend/css/core/product-card-borderless-v3.css?p0v=1f7ee610df9402fa">
-  <script src="/assets/frontend/bundles/p0-shared-8491f3cdf2b3.js?p0v=8491f3cdf2b31a08"></script>
+    <script src="/modules/shared/common/index.js?p0v=7aea23eb1054031f#p0-script=%2Fassets%2Ffrontend%2Fbundles%2Fp0-shared-68e249410c86.js"></script>
+<link rel="stylesheet" href="/modules/pages/product-detail/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Fproduct-specs-grouped-v1.css"><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/modules/pages/product-detail/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Fproduct-specs-grouped-v1.css");</script>
+<script src="/modules/pages/product-detail/index.js?p0v=7aea23eb1054031f#p0-script=%2Fassets%2Ffrontend%2Fjs%2Fcore%2Fproduct-specs-grouped-v1.js"></script>
+<link rel="stylesheet" href="/modules/shared/common/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Farrival-notice-v1.css"><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/modules/shared/common/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Farrival-notice-v1.css");</script>
+<script src="/modules/pages/brand-home/index.js?p0v=7aea23eb1054031f#p0-script=%2Fassets%2Ffrontend%2Fjs%2Fpages%2Fbrand%2Fbrand-summary-v1.js"></script>
+<script src="/modules/pages/brand-home/index.js?p0v=7aea23eb1054031f#p0-script=%2Fassets%2Ffrontend%2Fbundles%2Fp0-brand-core-4.js"></script>
+<script src="/modules/shared/agent-content/index.js?p0v=7aea23eb1054031f#p0-script=%2Fassets%2Ffrontend%2Fjs%2Fcore%2Fapp-agent.js"></script>
+<script data-shop-chat-template-behavior src="/modules/pages/brand-home/index.js?p0v=7aea23eb1054031f#p0-script=%2Fassets%2Ffrontend%2Fjs%2Fpages%2Fbrand%2Finline-13.js"></script>
+<link rel="stylesheet" data-shop-smart-cursor-fix href="/modules/shared/common/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fshared%2Finline-592f8f851e1f.css"><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/modules/shared/common/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fshared%2Finline-592f8f851e1f.css");</script>
+    <script src="/modules/shared/common/index.js?p0v=7aea23eb1054031f#p0-script=%2Fassets%2Ffrontend%2Fjs%2Fshared%2Finline-6495b30fa986.js"></script>
+<link rel="stylesheet" href="/modules/shared/common/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fshared%2Finline-e75ae5be9405.css"><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/modules/shared/common/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fshared%2Finline-e75ae5be9405.css");</script>
+    <script src="/modules/pages/brand-home/index.js?p0v=7aea23eb1054031f#p0-script=%2Fassets%2Ffrontend%2Fjs%2Fpages%2Fbrand%2Finline-17.js"></script>
+<link rel="stylesheet" data-lexiang-user-bubble-token href="/modules/shared/common/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fshared%2Finline-c7bce3f5e8ce.css"><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/modules/shared/common/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fshared%2Finline-c7bce3f5e8ce.css");</script>
+<link rel="stylesheet" data-unified-answer-card-selected href="/modules/shared/common/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fshared%2Finline-77378062a204.css"><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/modules/shared/common/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fshared%2Finline-77378062a204.css");</script>
+    <link rel="stylesheet" data-lxfd-chat-dock-bottom-gap href="/modules/shared/common/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fshared%2Finline-a6719541b94f.css"><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/modules/shared/common/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fshared%2Finline-a6719541b94f.css");</script>
+  <link rel="stylesheet" data-solution-result-shared href="/modules/pages/solution-list/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Fsolution-result.css"><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/modules/pages/solution-list/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Fsolution-result.css");</script>
+  <link rel="stylesheet" data-product-card-borderless-final href="/modules/pages/product-list/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Fproduct-card-borderless-v3.css"><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/modules/pages/product-list/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Fproduct-card-borderless-v3.css");</script>
+  <script src="/modules/shared/common/index.js?p0v=7aea23eb1054031f#p0-script=%2Fassets%2Ffrontend%2Fbundles%2Fp0-shared-8491f3cdf2b3.js"></script>
 <template id="p0-brand-orders-0"></template>
   
   
@@ -836,22 +774,20 @@ html body .product-detail .lx-detail-benefits-v182 .lx-detail-benefits-price str
   
 <template id="p0-brand-detail-1"></template>
 <template id="p0-brand-detail-2"></template>
-<link rel="stylesheet" href="/assets/frontend/css/core/composer-smart-actions-v1.css?p0v=07bb602f84b7f2d4">
-<script src="/assets/frontend/bundles/p0-brand-core-6.js?p0v=3ad1be3a83f62d16"></script>
-<script src="/assets/frontend/js/core/answer-actions-v1.js?p0v=cc3f7487fbe1651b"></script>
-<script src="/assets/frontend/js/core/review-media-v1.js?p0v=af95f5cdffda1d1e"></script>
-<script src="/assets/frontend/js/core/order-login-v1.js?p0v=ac02d9bf296f0fc2"></script>
-<script src="/assets/frontend/js/core/thinking-auto-v1.js?p0v=8ee2a897a3409390"></script>
-<script src="/assets/frontend/js/core/reco-match-v1.js?p0v=9a56eae55aad4bea"></script>
-<script src="/assets/frontend/js/core/tab-reorder-v1.js?p0v=8dc5ecbb5c5b9ed3"></script>
-<script src="/assets/frontend/js/core/prompt-menu-height-v1.js?p0v=d360d6b8c137a088"></script>
-<script data-brand-responsive>
-(function(){const seen=new WeakSet();function size(el){const width=el.clientWidth;const count=width>=1800?6:width>=1420?5:4;if(el.dataset.brandColumns!==String(count))el.dataset.brandColumns=String(count);}const resize=new ResizeObserver(entries=>entries.forEach(e=>size(e.target)));function attach(){document.querySelectorAll('.lx-brand-home').forEach(el=>{if(seen.has(el))return;seen.add(el);size(el);resize.observe(el);});}attach();const content=document.querySelector('.shell>.content');if(content)new MutationObserver(attach).observe(content,{childList:true,subtree:true});})();
-</script>
-<script src="/assets/frontend/js/pages/brand/brand-query-v1.js?p0v=1243637abf86a7ad"></script>
-<script src="/assets/frontend/js/core/education-auth-accessibility-v1.js?p0v=214a3172388c51d8"></script>
+<link rel="stylesheet" href="/modules/shared/agent-content/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Fcomposer-smart-actions-v1.css"><script>window.__p0Modules.mountStyle(document.currentScript.previousElementSibling,"/modules/shared/agent-content/index.css?p0v=7aea23eb1054031f#p0-style=%2Fassets%2Ffrontend%2Fcss%2Fcore%2Fcomposer-smart-actions-v1.css");</script>
+<script src="/modules/pages/brand-home/index.js?p0v=7aea23eb1054031f#p0-script=%2Fassets%2Ffrontend%2Fbundles%2Fp0-brand-core-6.js"></script>
+<script src="/modules/shared/agent-content/index.js?p0v=7aea23eb1054031f#p0-script=%2Fassets%2Ffrontend%2Fjs%2Fcore%2Fanswer-actions-v1.js"></script>
+<script src="/modules/pages/product-detail/index.js?p0v=7aea23eb1054031f#p0-script=%2Fassets%2Ffrontend%2Fjs%2Fcore%2Freview-media-v1.js"></script>
+<script src="/modules/modals/login/index.js?p0v=7aea23eb1054031f#p0-script=%2Fassets%2Ffrontend%2Fjs%2Fcore%2Forder-login-v1.js"></script>
+<script src="/modules/shared/agent-content/index.js?p0v=7aea23eb1054031f#p0-script=%2Fassets%2Ffrontend%2Fjs%2Fcore%2Fthinking-auto-v1.js"></script>
+<script src="/modules/modals/product-match/index.js?p0v=7aea23eb1054031f#p0-script=%2Fassets%2Ffrontend%2Fjs%2Fcore%2Freco-match-v1.js"></script>
+<script src="/modules/shared/agent-content/index.js?p0v=7aea23eb1054031f#p0-script=%2Fassets%2Ffrontend%2Fjs%2Fcore%2Ftab-reorder-v1.js"></script>
+<script src="/modules/shared/agent-content/index.js?p0v=7aea23eb1054031f#p0-script=%2Fassets%2Ffrontend%2Fjs%2Fcore%2Fprompt-menu-height-v1.js"></script>
+<script data-brand-responsive>window.__p0Modules.run("/@inline/brand/index.html/68477.js",document.currentScript);</script>
+<script src="/modules/pages/brand-home/index.js?p0v=7aea23eb1054031f#p0-script=%2Fassets%2Ffrontend%2Fjs%2Fpages%2Fbrand%2Fbrand-query-v1.js"></script>
+<script src="/modules/modals/education-auth/index.js?p0v=7aea23eb1054031f#p0-script=%2Fassets%2Ffrontend%2Fjs%2Fcore%2Feducation-auth-accessibility-v1.js"></script>
 
-<script src="/assets/frontend/js/core/brand-ai-hero-v1.js?p0v=8d33f720fb06477b"></script>
-<script defer src="/assets/frontend/js/core/tabbar-compression-v1.js?p0v=3d614472748a0996"></script>
+<script src="/modules/pages/brand-home/index.js?p0v=7aea23eb1054031f#p0-script=%2Fassets%2Ffrontend%2Fjs%2Fcore%2Fbrand-ai-hero-v1.js"></script>
+<script defer src="/modules/shared/agent-content/index.js?p0v=7aea23eb1054031f#p0-script=%2Fassets%2Ffrontend%2Fjs%2Fcore%2Ftabbar-compression-v1.js"></script>
 </body>
 </html>
