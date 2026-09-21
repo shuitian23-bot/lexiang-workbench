@@ -30,6 +30,12 @@
 
 门店图片、图标和地图底图位于 `public/leaip0/assets/img/stores/`，门店模块与预约弹窗共享引用。评价演示视频位于 `assets/media/reviews/review-demo-v1.webm`，由商品详情模块的评价播放器加载。媒体原样迁移，旧 `assets/pages/` 内两个独立 HTML 和 gzip 副本已移除；旧目录不能作为页面模板运行依赖。改变懒加载模块时同步更新各首页模块内的 store-detail URL 版本及页面入口缓存版本，已有页面刷新后使用新资源地址。
 
+## 品牌资源、数据与文档
+
+品牌图片统一位于 `public/leaip0/assets/img/brand/`，品牌首页背景视频位于 `assets/media/brand/`；`brand/index.html` 直接引用这些资源。旧 `assets/brand/` 已移除，未引用的旧首屏 JPG 保存在清理前备份中。迁移保留媒体字节及原有视频播放属性，资源路径变化后已有品牌页面需刷新。
+
+招聘数据继续位于 `assets/data/recruitment-20260911.json`，白皮书继续位于 `assets/docs/solution-industry-whitepaper-demo.pdf`，分别供招聘展示及白皮书阅读、下载使用。
+
 ## 一次性迁移重现
 
 先在此目录安装 package.json 中的开发依赖，或通过 P0_NODE_MODULES、P0_POSTCSS_PATH、P0_PARSE5_PATH 指定已安装依赖。然后在隔离 Git 工作区根目录执行：

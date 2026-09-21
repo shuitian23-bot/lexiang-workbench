@@ -1,0 +1,77 @@
+{
+  "baseline": "9ef2e271023fcb8a2faea5052abea894bf349d55",
+  "moves": [
+    {
+      "from": "assets/brand/company-introduction-20260915.png.webp",
+      "to": "assets/img/brand/company-introduction-20260915.png.webp",
+      "bytes": 606620,
+      "sha256": "4e3c5cafaad23e5bcc1b81302ce067490ad35e547dcb5d9f85d5e189c76f0b4d"
+    },
+    {
+      "from": "assets/brand/brand-ai-hero-video-20260915.mp4",
+      "to": "assets/media/brand/brand-ai-hero-video-20260915.mp4",
+      "bytes": 19048546,
+      "sha256": "791a85c8ea76d11eaed97863bd427a655acdbaa66ad53ae220d2225ce82982d3"
+    }
+  ],
+  "deleted": [
+    {
+      "path": "assets/brand/brand-ai-hero-20260915.jpg",
+      "bytes": 387733,
+      "sha256": "b41a97494321d59864c9f68bdb5eeb5795a1952ed041d128fbf6a131fbbe99d0",
+      "reason": "No references in current P0 or repository text; brand video has no poster, hero CSS uses flat/gradient background."
+    }
+  ],
+  "backups": [
+    {
+      "path": "/tmp/p0-brand-assets-before-20260921.tar.gz",
+      "sha256": "c3a95a42fb9dd9da4fa9ef496ba5005fab184af50ec662f9fac4059a687ee6a9"
+    },
+    {
+      "path": "/Users/guan/联想乐享PC5.0链接leaibot/.codex-online-edit/p0-brand-assets-backup-20260921.tar.gz",
+      "sha256": "e0a094fe45b8c180c8c81cb918a9b3767d7588527764cf2b41bdf185bcd75f55"
+    }
+  ],
+  "candidate": {
+    "files": 1118,
+    "bytes": 77220031,
+    "js": 48,
+    "css": 48
+  },
+  "validation": {
+    "localBackupMediaHashes": "pass",
+    "staticAssetValidator": "pass",
+    "gitDiffCheck": "pass",
+    "independentDiffAudit": "pass: 2 HTML URL substitutions only; moved media byte-identical; 96 JS/CSS, recruitment JSON and whitepaper PDF unchanged",
+    "deletedImageAuditScope": "Current repository text references and brand hero markup/CSS; no active reference found. External deep links and previously cached pages are outside this static audit.",
+    "browser": {
+      "report": "p0-brand-assets-candidate/report.json",
+      "pass": true,
+      "checks": 9,
+      "matchedSnapshots": 10,
+      "imagesDecoded": 14,
+      "video": {
+        "first": {
+          "src": "https://p0.leaibot.cn/assets/media/brand/brand-ai-hero-video-20260915.mp4?v=791a85c8ea76",
+          "readyState": 4,
+          "error": null,
+          "currentTime": 1.79007,
+          "duration": 140.291667,
+          "width": 1920,
+          "height": 822,
+          "paused": false
+        },
+        "second": {
+          "currentTime": 2.598019,
+          "paused": false,
+          "error": null
+        },
+        "progress": 0.8079489999999998
+      },
+      "errors": [],
+      "missing": [],
+      "blockedWrites": [],
+      "scope": "Brand desktop and narrowed split view, recruitment list/detail, whitepaper read/download URLs, and basic shells at /, /shop-chat/, /b-chat/, /biz-chat/. API reads use deterministic fixtures; write requests blocked."
+    }
+  }
+}
