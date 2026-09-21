@@ -18,6 +18,7 @@
     catch (error) { return []; }
   }
   function upgradeMatching(card, orders) {
+    if (card.dataset.checkoutOrderId) return; // A frozen checkout card remains a read-only checkout entry.
     var id = card.getAttribute("data-lx-order-id");
     if (!id) return; // Legacy cards without an identity must not borrow another order's status.
     var order = orders.find(function (item) { return String(item.orderId || "") === id; });
@@ -95,3 +96,5 @@
     start();
   }
 })();
+
+;

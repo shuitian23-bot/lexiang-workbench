@@ -287,6 +287,8 @@
 
 ;
 
+;
+
 
 ;/* public/leaip0/assets/frontend/js/core/view-orders-recommendation-card-v103.js */
 (function () {
@@ -451,6 +453,8 @@
     start();
   }
 })();
+
+;
 
 ;
 
@@ -2272,3 +2276,5 @@ window.__lxAddressRegionsV142=[{"code":"11","name":"北京市","children":[{"cod
     }, 50);
   }
 })();
+
+;

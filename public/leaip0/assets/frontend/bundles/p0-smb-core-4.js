@@ -2721,7 +2721,7 @@ function Fs(t){d.leadScenario=t||("enterprise"===d.page?"biz_intent":"b_purchase
   async function lxfdRunCouponProductsQuery(query) {
     const token = window.__lxGeneration.capture(); let ai;
     return window.__lxCouponCenter.runProducts({query,token,
-      
+
       busy:active=>{chatState.sending=active;syncSend();},
       trace:(lines,complete)=>{
         if(!ai){ai=document.createElement('div');ai.className='lxfd-msg-ai lx-chat-skin';ai._loadingStarted=Date.now()-5000;ai.innerHTML='<div class="lxfd-ai-body"></div>';thread?.appendChild(ai);}

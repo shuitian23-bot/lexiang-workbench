@@ -1,5 +1,5 @@
 
-/* public/leaip0/assets/frontend/css/components/member-service-exact-0827.css */
+/* scripts/p0-source-variants/member-service-exact-0827-1.css */
 /* POC-local combinations only. Every authored color resolves to the PC 5.0 closed palette. */
 :root {
   --ms-brand: #4d144a;
@@ -11509,7 +11509,7 @@ body .leai-modal:has(.leai-device-bind-kinds) .leai-modal-close:focus-visible {
 }
 
 
-/* public/leaip0/assets/frontend/css/components/member-device-actions-v38.css */
+/* scripts/p0-source-variants/member-device-actions-v38-1.css */
 body [data-member-device-page] .leai-device-center > .leai-panel-head > [data-device-add],
 body [data-member-device-page] .leai-device-row-actions .leai-primary {
   border: 1px solid transparent !important;

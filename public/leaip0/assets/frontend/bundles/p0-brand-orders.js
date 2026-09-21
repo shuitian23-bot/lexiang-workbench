@@ -385,7 +385,7 @@
 ;
 
 
-;/* public/leaip0/assets/frontend/js/core/order-center.js */
+;/* scripts/p0-source-variants/order-center-1.js */
 /* order-card-entry-v32-20260903 */
 (function () {
         var body;
@@ -1335,5 +1335,7 @@
           boot();
         }
       })();
+
+;
 
 ;

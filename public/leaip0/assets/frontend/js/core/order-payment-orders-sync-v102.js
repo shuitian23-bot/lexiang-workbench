@@ -186,12 +186,14 @@
   }
 
   document.addEventListener("pointerdown", function (event) {
+    if (event.target.closest?.("[data-buy-modal-direct]")) return;
     if (event.target.closest && event.target.closest("[data-occ-pay-confirm], [data-confirm-payment], .lx-scanpay-confirm")) capturePendingOrder();
   }, true);
 
   document.addEventListener("click", function (event) {
     var target = event.target.closest && event.target.closest("[data-occ-pay-confirm], [data-confirm-payment], .lx-scanpay-confirm");
     if (target) {
+      if (target.closest("[data-buy-modal-direct]")) return;
       capturePendingOrder();
       [50, 350, 900, 1600].forEach(function (delay) { window.setTimeout(function () { reconcileLatestOrder(); syncOrdersDom(); }, delay); });
       return;
@@ -219,3 +221,5 @@
   }).observe(document.documentElement, { childList: true, subtree: true });
   window.setTimeout(scheduleSync, 600); // Startup is read-only; never infer payment success.
 })();
+
+;
