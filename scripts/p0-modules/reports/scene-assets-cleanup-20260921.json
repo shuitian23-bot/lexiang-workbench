@@ -1,0 +1,106 @@
+{
+  "baselineCommit": "efb02e4132bb7b33b9ea18302652c450de7b749e",
+  "buildVersion": "scene-assets-20260921-1",
+  "backup": {
+    "local": "P0旧轮播目录清理前备份-20260921.tar.gz",
+    "server": "/tmp/p0-components-cleanup-before-20260921.tar.gz",
+    "sha256": "a19147e972beb1f472be17e91fa65753f06690cffa5b55724087a96a32afbdfe"
+  },
+  "moved": [
+    {
+      "from": "public/leaip0/assets/components/scene-banner-v154/personal-scene-mobile-lenovo-v3.png.webp",
+      "to": "public/leaip0/assets/img/personal-scene-mobile-lenovo-v3.png.webp",
+      "bytes": 270948,
+      "sha256": "0f1756836d01de7cac7900a83363c7861f0a1d972292a09cb522a224003d38c3"
+    },
+    {
+      "from": "public/leaip0/assets/components/scene-banner-v154/personal-scene-travel-lenovo-v4.png.webp",
+      "to": "public/leaip0/assets/img/personal-scene-travel-lenovo-v4.png.webp",
+      "bytes": 130870,
+      "sha256": "d4c664f5a5f68ef7b27e1b19b17f6377903d655dfbcb73eaa6587f2f81bfcaaf"
+    }
+  ],
+  "deleted": [
+    {
+      "path": "public/leaip0/assets/components/scene-banner-v153/scene-banner-original.html",
+      "bytes": 5011532,
+      "sha256": "f04500bf1847f530c15eaec2443f005e010bc98b09f7e5cb0f4b7905610fba12"
+    },
+    {
+      "path": "public/leaip0/assets/components/scene-banner-v154/1a1ee5badda7ffce.jpg",
+      "bytes": 176104,
+      "sha256": "1a1ee5badda7ffce1cf41485eea832f1d03777db8aa3acd5c366d07565c0cbc8"
+    },
+    {
+      "path": "public/leaip0/assets/components/scene-banner-v154/1a1ee5badda7ffce.jpg.webp",
+      "bytes": 114428,
+      "sha256": "33d1e8062724716b3d6224c1e7b6aed986a646298896876ef9cebe12393a9abd"
+    },
+    {
+      "path": "public/leaip0/assets/components/scene-banner-v154/1faaf8893b2863ba.jpg",
+      "bytes": 164178,
+      "sha256": "1faaf8893b2863ba98b0cb6cd354cba56826c0dc5e9b05ae2c777466bafe4a20"
+    },
+    {
+      "path": "public/leaip0/assets/components/scene-banner-v154/1faaf8893b2863ba.jpg.webp",
+      "bytes": 110572,
+      "sha256": "b04bc8ebe47a81af46c1665396aef552ff1c64a9aab80ba56bfe2007f2c35173"
+    },
+    {
+      "path": "public/leaip0/assets/components/scene-banner-v154/821306b6a3b66209.webp",
+      "bytes": 65312,
+      "sha256": "454a9362c5811d5588a4f56def0fd8f06ee94c420f56fa5ce144220ef5151809"
+    },
+    {
+      "path": "public/leaip0/assets/components/scene-banner-v154/a507f0a98967435b.webp",
+      "bytes": 88866,
+      "sha256": "fe725bdcde4b9b6c4fc20373f277396c79758dcadfb8fe0d2bce2a7f7a4105d5"
+    },
+    {
+      "path": "public/leaip0/assets/components/scene-banner-v154/ab787895da52422f.webp",
+      "bytes": 132972,
+      "sha256": "8c67b76523661f607b2adb474f35d9a522f9e4f910f22033dad8d3f06ffb5fb1"
+    },
+    {
+      "path": "public/leaip0/assets/components/scene-banner-v154/be8564fb000dcc39.jpg",
+      "bytes": 175671,
+      "sha256": "be8564fb000dcc397deec40c56e6c651b35c001c5d925aca98ddc4464ed9f2c3"
+    },
+    {
+      "path": "public/leaip0/assets/components/scene-banner-v154/be8564fb000dcc39.jpg.webp",
+      "bytes": 109426,
+      "sha256": "89954d124d93c011b44a1dcaa16a0e90d1a4f5d14b5ec5508ae17517b541c92a"
+    }
+  ],
+  "bytesRemoved": 6149061,
+  "validation": {
+    "hero": {
+      "pass": true,
+      "viewport": [
+        1440,
+        1000
+      ],
+      "channels": 3,
+      "checks": 14,
+      "snapshots": 11,
+      "errors": 0,
+      "missing": 0
+    },
+    "shell": {
+      "pass": true,
+      "checks": 8,
+      "snapshots": 15
+    },
+    "static": {
+      "pass": true,
+      "js": 48,
+      "css": 48
+    },
+    "notes": [
+      "Two moved images retain identical bytes and SHA256.",
+      "No references to deleted scene-banner component asset directories remain in public runtime files.",
+      "Legacy logical module registry identifiers are retained; they do not load assets from the deleted directory.",
+      "GET API fixtures used; business write requests blocked."
+    ]
+  }
+}

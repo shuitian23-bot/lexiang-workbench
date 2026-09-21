@@ -22,6 +22,8 @@
 
 组件保留 980/1280 画布缩放和短屏高度规则。局部宽高断点使用容器查询，字号和间距使用 `cqw`，不能直接换回主窗口的 `vw`。校园标签的渐变使用 `background-image` 长写，避免 CSSOM 收集样式时背景简写与 `background-clip` 组合丢失。宿主重建时会清理旧计时器及尺寸监听并重新挂载。
 
+场景背景统一从 `public/leaip0/assets/img/` 加载，包括移动场景 `personal-scene-mobile-lenovo-v3.png.webp` 和差旅场景 `personal-scene-travel-lenovo-v4.png.webp`。旧 `assets/components/` 已清理；模块注册表中保留的历史路径是兼容标识，不代表需要恢复同名静态目录。
+
 中小企业 `/b-chat/`、政教及大企业 `/biz-chat/` 原本就是页面内轮播，继续使用现有模块。两频道也依赖 consumer-home 中的共用高度适配，不能把整个 consumer-home 模块当成仅个人频道代码删除。
 
 ## 一次性迁移重现

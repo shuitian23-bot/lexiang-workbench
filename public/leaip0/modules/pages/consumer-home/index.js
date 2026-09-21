@@ -2823,7 +2823,7 @@ window.__p0Modules.sources["u88751115a1d6b6d6"]=function(){
           ]
         },
         mobile: {
-          eyebrow:'移动场景', product:'联想小新 Air 13', title:'轻一点，灵感走得更远', desc:'小巧机身、可靠续航与清晰屏幕，让通勤、咖啡馆和移动学习都更轻松。', price:'5,499', sku:'1053879', image:'/assets/components/scene-banner-v154/personal-scene-mobile-lenovo-v3.png.webp', alt:'联想小新 Air 13 城市咖啡馆移动使用场景',
+          eyebrow:'移动场景', product:'联想小新 Air 13', title:'轻一点，灵感走得更远', desc:'小巧机身、可靠续航与清晰屏幕，让通勤、咖啡馆和移动学习都更轻松。', price:'5,499', sku:'1053879', image:'/assets/img/personal-scene-mobile-lenovo-v3.png.webp', alt:'联想小新 Air 13 城市咖啡馆移动使用场景',
           products:[
             { name:'联想小新 Air 13', price:'¥5,499', sku:'1053879', image:'/leai product data/shop-chat product data/笔记本/08_SPU_联想小新_Air_13/白底图.jpg' },
             { name:'Air Pro 双模鼠标', price:'¥99.9', sku:'1050750', image:'/leai product data/shop-chat product data/选件/08_SPU_联想_Air_Pro_双模鼠标/白底图.jpg' },
@@ -2839,7 +2839,7 @@ window.__p0Modules.sources["u88751115a1d6b6d6"]=function(){
           ]
         },
         travel: {
-          eyebrow:'差旅场景', product:'YOGA Air 14s', title:'从登机到开会，一台就够', desc:'轻薄便携、快速唤醒和长续航组合，让移动会议、远程沟通与旅途娱乐从容切换。', price:'7,999', sku:'1030691', image:'/assets/components/scene-banner-v154/personal-scene-travel-lenovo-v4.png.webp', alt:'联想 YOGA Air 14s 机场候机厅差旅使用场景',
+          eyebrow:'差旅场景', product:'YOGA Air 14s', title:'从登机到开会，一台就够', desc:'轻薄便携、快速唤醒和长续航组合，让移动会议、远程沟通与旅途娱乐从容切换。', price:'7,999', sku:'1030691', image:'/assets/img/personal-scene-travel-lenovo-v4.png.webp', alt:'联想 YOGA Air 14s 机场候机厅差旅使用场景',
           products:[
             { name:'YOGA Air 14s', price:'¥7,999', sku:'1030691', image:'/leai product data/shop-chat product data/笔记本/02_SPU_YOGA_Air_14s/白底图.jpg' },
             { name:'USB-C 标准电源适配器', price:'¥149', sku:'1050929', image:'/leai product data/shop-chat product data/选件/11_SPU_联想_USB-C_标准电源适配器/白底图.jpg' },
