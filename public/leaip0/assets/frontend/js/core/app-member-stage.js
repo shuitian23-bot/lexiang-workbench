@@ -7168,7 +7168,7 @@ async function openEduZone() {
           const heroSummary = cleanText(s.overview || intro || `${title}围绕${scenario || sector || "核心业务"}场景，提供一体化建设与持续服务能力。`);
           const valueText = cleanText(s.gains || intro || "通过统一规划、平台建设与持续运营，提升业务效率并降低全生命周期成本。");
           const heroImageFile = title === "多擎云桌面解决方案"
-            ? "多擎云桌面解决方案-原创科技头图.png"
+            ? "多擎云桌面解决方案-原创科技头图.png.webp"
             : image;
           const heroImage = `../img/solution/${esc(heroImageFile)}`;
           const architectureImage = title === "多擎云桌面解决方案"
@@ -7196,7 +7196,7 @@ async function openEduZone() {
             "../img/solution/智慧校园解决方案1.jpg",
             "../img/solution/智慧教室解决方案2.jpg",
             "../img/solution/智慧校园解决方案2.jpg",
-            "../img/solution/多擎云桌面解决方案-原创科技头图.png"
+            "../img/solution/多擎云桌面解决方案-原创科技头图.png.webp"
           ];
           const caseCards = visibleCaseItems.slice(0, 4).map((item, index) => {
             const caseImage = industry === "智慧教育" ? educationCaseImages[index % educationCaseImages.length] : heroImage;
