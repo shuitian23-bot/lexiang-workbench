@@ -1,0 +1,363 @@
+{
+  "baselineCommit": "d6f45c1a07d301b7fcf1f964e71fe86c42ac0dd7",
+  "buildVersion": "store-media-20260921-1",
+  "backup": {
+    "local": "/Users/guan/联想乐享PC5.0链接leaibot/P0线上代码-20260921-183559/p0-d6f45c1a.tar.gz",
+    "localSHA256": "a7c2bbf04c63f963240068f130ac391b7471db6b87298ed9be1294f177653320",
+    "server": "/tmp/p0-store-media-before-20260921.tar.gz",
+    "serverSHA256": "430a359aeca77de84aba623bee00e224d88ef5e431381f996132d4a0883c1f92"
+  },
+  "moved": [
+    {
+      "from": "public/leaip0/assets/pages/store-v5-media/00c97a4e69a0f738e56a.webp",
+      "to": "public/leaip0/assets/img/stores/00c97a4e69a0f738e56a.webp",
+      "bytes": 20690,
+      "sha256": "00c97a4e69a0f738e56a0ad949ff7aa21b6d3aeb5a30415242aac756ff832385"
+    },
+    {
+      "from": "public/leaip0/assets/pages/store-v5-media/094f62905de4f99ff5b5.svg",
+      "to": "public/leaip0/assets/img/stores/094f62905de4f99ff5b5.svg",
+      "bytes": 634,
+      "sha256": "094f62905de4f99ff5b5373fa41f67d169edc65e2fd62bcb268b8e92aaa8023e"
+    },
+    {
+      "from": "public/leaip0/assets/pages/store-v5-media/118e045784d257cd9c29.svg",
+      "to": "public/leaip0/assets/img/stores/118e045784d257cd9c29.svg",
+      "bytes": 3220,
+      "sha256": "118e045784d257cd9c2929b30a1c0a955977f2125369c6ad3edfff04a2cf9dec"
+    },
+    {
+      "from": "public/leaip0/assets/pages/store-v5-media/11c869545ce574094cf4.svg",
+      "to": "public/leaip0/assets/img/stores/11c869545ce574094cf4.svg",
+      "bytes": 1304,
+      "sha256": "11c869545ce574094cf44c8fe88fff61d78e4aa6630c44e66418601e6bc55f95"
+    },
+    {
+      "from": "public/leaip0/assets/pages/store-v5-media/1564de56a6183cc3a018.svg",
+      "to": "public/leaip0/assets/img/stores/1564de56a6183cc3a018.svg",
+      "bytes": 671,
+      "sha256": "1564de56a6183cc3a018aaf0326d2445dc3792b32e35697a8bbe7df234a0ff07"
+    },
+    {
+      "from": "public/leaip0/assets/pages/store-v5-media/1937b60617191e843e1c.svg",
+      "to": "public/leaip0/assets/img/stores/1937b60617191e843e1c.svg",
+      "bytes": 410,
+      "sha256": "1937b60617191e843e1cd8e39ccbf70d274e33587febbe51c6b8746ae98a0219"
+    },
+    {
+      "from": "public/leaip0/assets/pages/store-v5-media/1b92128e8af0d8970eb4.svg",
+      "to": "public/leaip0/assets/img/stores/1b92128e8af0d8970eb4.svg",
+      "bytes": 417,
+      "sha256": "1b92128e8af0d8970eb433f19988c1d0b0d3b9abc26cb765e0f102145fc4352c"
+    },
+    {
+      "from": "public/leaip0/assets/pages/store-v5-media/1ddb65869523c01e2792.webp",
+      "to": "public/leaip0/assets/img/stores/1ddb65869523c01e2792.webp",
+      "bytes": 112246,
+      "sha256": "1ddb65869523c01e2792ee89ff063170f36bde909805b353caef8ce227efd33e"
+    },
+    {
+      "from": "public/leaip0/assets/pages/store-v5-media/200682f870f5c2cf5e74.webp",
+      "to": "public/leaip0/assets/img/stores/200682f870f5c2cf5e74.webp",
+      "bytes": 194068,
+      "sha256": "200682f870f5c2cf5e744cc49052f9d9ec51a1c27e07f2437a142e5913dd5cc0"
+    },
+    {
+      "from": "public/leaip0/assets/pages/store-v5-media/204d3fd747b48d83baa6.svg",
+      "to": "public/leaip0/assets/img/stores/204d3fd747b48d83baa6.svg",
+      "bytes": 551,
+      "sha256": "204d3fd747b48d83baa67b694ffc263982133a3e54b72a68b3afce31f7233e14"
+    },
+    {
+      "from": "public/leaip0/assets/pages/store-v5-media/2246edd2be18a221e786.svg",
+      "to": "public/leaip0/assets/img/stores/2246edd2be18a221e786.svg",
+      "bytes": 705,
+      "sha256": "2246edd2be18a221e786382d0124c74ace77b0ae1e49dd193ba7a30ac4e2ae16"
+    },
+    {
+      "from": "public/leaip0/assets/pages/store-v5-media/23f3749312b46071939f.webp",
+      "to": "public/leaip0/assets/img/stores/23f3749312b46071939f.webp",
+      "bytes": 24838,
+      "sha256": "23f3749312b46071939fe9982c3feb63bfd9a6b13b520d5f809e182573db44eb"
+    },
+    {
+      "from": "public/leaip0/assets/pages/store-v5-media/267d1beefbad0ace1d89.webp",
+      "to": "public/leaip0/assets/img/stores/267d1beefbad0ace1d89.webp",
+      "bytes": 12278,
+      "sha256": "267d1beefbad0ace1d89b6c0282f257aa70fdbc997e8906a4baf7db8a42eee7b"
+    },
+    {
+      "from": "public/leaip0/assets/pages/store-v5-media/35f1d941ac0554696046.svg",
+      "to": "public/leaip0/assets/img/stores/35f1d941ac0554696046.svg",
+      "bytes": 879,
+      "sha256": "35f1d941ac0554696046ce6abaca22073036ae519dc8ecd1e976ed9028907d93"
+    },
+    {
+      "from": "public/leaip0/assets/pages/store-v5-media/48fbd484790e424a0319.webp",
+      "to": "public/leaip0/assets/img/stores/48fbd484790e424a0319.webp",
+      "bytes": 14140,
+      "sha256": "48fbd484790e424a031946cfeee4e69e610c234f4886dd6874e81fc1bb056bf3"
+    },
+    {
+      "from": "public/leaip0/assets/pages/store-v5-media/4940df8bedfeae40a959.svg",
+      "to": "public/leaip0/assets/img/stores/4940df8bedfeae40a959.svg",
+      "bytes": 763,
+      "sha256": "4940df8bedfeae40a9599dda6f3263a528bffcdd197203545123ca73c45b0760"
+    },
+    {
+      "from": "public/leaip0/assets/pages/store-v5-media/4c9c0e679180afba9499.svg",
+      "to": "public/leaip0/assets/img/stores/4c9c0e679180afba9499.svg",
+      "bytes": 424,
+      "sha256": "4c9c0e679180afba9499fab4d01fc0736b51ea128145ceba628f6bbd2d9056fc"
+    },
+    {
+      "from": "public/leaip0/assets/pages/store-v5-media/54feeec4d8cc46d6871d.svg",
+      "to": "public/leaip0/assets/img/stores/54feeec4d8cc46d6871d.svg",
+      "bytes": 403,
+      "sha256": "54feeec4d8cc46d6871dbaa8137a8eb34e0ae155cd71006a28a2d5a62d07479a"
+    },
+    {
+      "from": "public/leaip0/assets/pages/store-v5-media/5914dde2c32bff2ff947.svg",
+      "to": "public/leaip0/assets/img/stores/5914dde2c32bff2ff947.svg",
+      "bytes": 2062,
+      "sha256": "5914dde2c32bff2ff9478fe66fe57915e1b5159999d384a7af561611385a7cc5"
+    },
+    {
+      "from": "public/leaip0/assets/pages/store-v5-media/608c4cbf04af6e993e79.webp",
+      "to": "public/leaip0/assets/img/stores/608c4cbf04af6e993e79.webp",
+      "bytes": 30754,
+      "sha256": "608c4cbf04af6e993e79240b3fa2bd2b104ec329cc5258faf78898ff2f898cae"
+    },
+    {
+      "from": "public/leaip0/assets/pages/store-v5-media/620670ea2bcc32e04f8a.webp",
+      "to": "public/leaip0/assets/img/stores/620670ea2bcc32e04f8a.webp",
+      "bytes": 21152,
+      "sha256": "620670ea2bcc32e04f8a5d7233032d51798fefca10b241ecb86ce33c90095eb3"
+    },
+    {
+      "from": "public/leaip0/assets/pages/store-v5-media/63d05fcb5f152051b7fe.svg",
+      "to": "public/leaip0/assets/img/stores/63d05fcb5f152051b7fe.svg",
+      "bytes": 634,
+      "sha256": "63d05fcb5f152051b7fe069817c6da31a212b8072ccc348e0b8403c7cbffe928"
+    },
+    {
+      "from": "public/leaip0/assets/pages/store-v5-media/6815dc9228079ce04532.svg",
+      "to": "public/leaip0/assets/img/stores/6815dc9228079ce04532.svg",
+      "bytes": 508,
+      "sha256": "6815dc9228079ce045322c390d7825b1f4c248013b528322e62a5866182bceee"
+    },
+    {
+      "from": "public/leaip0/assets/pages/store-v5-media/690695641a9dd741244d.webp",
+      "to": "public/leaip0/assets/img/stores/690695641a9dd741244d.webp",
+      "bytes": 18798,
+      "sha256": "690695641a9dd741244de2ff6a06ce1e090b0ae41805f775e93b8be479b6b3ae"
+    },
+    {
+      "from": "public/leaip0/assets/pages/store-v5-media/765d8a5f287fba8fc614.svg",
+      "to": "public/leaip0/assets/img/stores/765d8a5f287fba8fc614.svg",
+      "bytes": 362,
+      "sha256": "765d8a5f287fba8fc614e32bcc249714ad377403075aa55b6222371233c39442"
+    },
+    {
+      "from": "public/leaip0/assets/pages/store-v5-media/7761371167612b3fc642.webp",
+      "to": "public/leaip0/assets/img/stores/7761371167612b3fc642.webp",
+      "bytes": 10554,
+      "sha256": "7761371167612b3fc642b69a2d5a216e1e029b52263506dd07371ccea61492f5"
+    },
+    {
+      "from": "public/leaip0/assets/pages/store-v5-media/7ac3931154c45aa1fc86.svg",
+      "to": "public/leaip0/assets/img/stores/7ac3931154c45aa1fc86.svg",
+      "bytes": 359,
+      "sha256": "7ac3931154c45aa1fc86a4b547095a9402fba3d6427df6dba05d9a06a283e505"
+    },
+    {
+      "from": "public/leaip0/assets/pages/store-v5-media/7b9c635603de45d6ae88.svg",
+      "to": "public/leaip0/assets/img/stores/7b9c635603de45d6ae88.svg",
+      "bytes": 450,
+      "sha256": "7b9c635603de45d6ae886fc30d6804669cfa9adb3e5eb4feb1ca1f4255ab242e"
+    },
+    {
+      "from": "public/leaip0/assets/pages/store-v5-media/7e4f2d2b9db6610be910.svg",
+      "to": "public/leaip0/assets/img/stores/7e4f2d2b9db6610be910.svg",
+      "bytes": 200,
+      "sha256": "7e4f2d2b9db6610be910c56f41c44d5b2ac4a35f1f2056da6c7aae11a722d8d7"
+    },
+    {
+      "from": "public/leaip0/assets/pages/store-v5-media/8174ff59739e16c4d406.svg",
+      "to": "public/leaip0/assets/img/stores/8174ff59739e16c4d406.svg",
+      "bytes": 880,
+      "sha256": "8174ff59739e16c4d40660c96a1f861dd2261b307a4434f5d47388a7cce7b2b8"
+    },
+    {
+      "from": "public/leaip0/assets/pages/store-v5-media/83b26ea00e4c096b42f6.svg",
+      "to": "public/leaip0/assets/img/stores/83b26ea00e4c096b42f6.svg",
+      "bytes": 831,
+      "sha256": "83b26ea00e4c096b42f64b897fc4c1beee25126be2ed4c1fafbe93c84d774644"
+    },
+    {
+      "from": "public/leaip0/assets/pages/store-v5-media/8c88148bdf6234281d2a.webp",
+      "to": "public/leaip0/assets/img/stores/8c88148bdf6234281d2a.webp",
+      "bytes": 18714,
+      "sha256": "8c88148bdf6234281d2a130467b82f92a94756ad84e14f775c9501a0a16c8781"
+    },
+    {
+      "from": "public/leaip0/assets/pages/store-v5-media/8f47fe84e7d0786cbb58.svg",
+      "to": "public/leaip0/assets/img/stores/8f47fe84e7d0786cbb58.svg",
+      "bytes": 200,
+      "sha256": "8f47fe84e7d0786cbb58edd5c9baaab60a0e10f35c52bbe77af7a27f771710ad"
+    },
+    {
+      "from": "public/leaip0/assets/pages/store-v5-media/902aef4dc4e2780b2055.webp",
+      "to": "public/leaip0/assets/img/stores/902aef4dc4e2780b2055.webp",
+      "bytes": 21824,
+      "sha256": "902aef4dc4e2780b20555ba6de0576b33ca07f1d65b9a7937042ff70762cecd4"
+    },
+    {
+      "from": "public/leaip0/assets/pages/store-v5-media/a43a2b3f9a581c2d5fc1.svg",
+      "to": "public/leaip0/assets/img/stores/a43a2b3f9a581c2d5fc1.svg",
+      "bytes": 1720,
+      "sha256": "a43a2b3f9a581c2d5fc1bce1cd29f5f491b6c0bf61f35d832f045c166dba4776"
+    },
+    {
+      "from": "public/leaip0/assets/pages/store-v5-media/a8661402ee992deed65a.svg",
+      "to": "public/leaip0/assets/img/stores/a8661402ee992deed65a.svg",
+      "bytes": 518,
+      "sha256": "a8661402ee992deed65ae9acf8d5c4d26f6a9427ebf1d74cac50edc820c7c661"
+    },
+    {
+      "from": "public/leaip0/assets/pages/store-v5-media/ab3a5b305d59ccc15330.svg",
+      "to": "public/leaip0/assets/img/stores/ab3a5b305d59ccc15330.svg",
+      "bytes": 1387,
+      "sha256": "ab3a5b305d59ccc15330efc36e581a736ecdbf21c245380f1e1e75308067f6da"
+    },
+    {
+      "from": "public/leaip0/assets/pages/store-v5-media/bba5825195ccca14f78b.webp",
+      "to": "public/leaip0/assets/img/stores/bba5825195ccca14f78b.webp",
+      "bytes": 52772,
+      "sha256": "bba5825195ccca14f78b404b1a64b92c0cb0ee23b651fb5adc3461647517164b"
+    },
+    {
+      "from": "public/leaip0/assets/pages/store-v5-media/d401b64f4094beb4745d.svg",
+      "to": "public/leaip0/assets/img/stores/d401b64f4094beb4745d.svg",
+      "bytes": 270,
+      "sha256": "d401b64f4094beb4745da429c69daea8945ec40c0174b44a19b8d7d8b2f268e9"
+    },
+    {
+      "from": "public/leaip0/assets/pages/store-v5-media/d478101ef893c0f1a563.svg",
+      "to": "public/leaip0/assets/img/stores/d478101ef893c0f1a563.svg",
+      "bytes": 899,
+      "sha256": "d478101ef893c0f1a563303d72409c202a9cc9d6bc2f26fac788fcf48aeded59"
+    },
+    {
+      "from": "public/leaip0/assets/pages/store-v5-media/d892a7642c69436628bf.webp",
+      "to": "public/leaip0/assets/img/stores/d892a7642c69436628bf.webp",
+      "bytes": 46578,
+      "sha256": "d892a7642c69436628bfdc1615614aaaba84b733bd175031be2fd98949e100a2"
+    },
+    {
+      "from": "public/leaip0/assets/pages/store-v5-media/e424a73b1c6cc1530537.svg",
+      "to": "public/leaip0/assets/img/stores/e424a73b1c6cc1530537.svg",
+      "bytes": 698,
+      "sha256": "e424a73b1c6cc15305379a723755ff52b38c98069ebed1bc33eb62fa797c22a8"
+    },
+    {
+      "from": "public/leaip0/assets/pages/store-v5-media/f93ebd9805cc90f2f0a1.svg",
+      "to": "public/leaip0/assets/img/stores/f93ebd9805cc90f2f0a1.svg",
+      "bytes": 400,
+      "sha256": "f93ebd9805cc90f2f0a122cabf9c5f17cc60015f11583482dcd0ef899ffdb81e"
+    },
+    {
+      "from": "public/leaip0/assets/pages/store-v5-media/fabebbb38233dae62c3b.webp",
+      "to": "public/leaip0/assets/img/stores/fabebbb38233dae62c3b.webp",
+      "bytes": 62624,
+      "sha256": "fabebbb38233dae62c3b34084300fb4cf836845d09bd373652e71fd2f218d75e"
+    },
+    {
+      "from": "public/leaip0/assets/pages/store-v5-media/fb7677421e33c616ac35.webp",
+      "to": "public/leaip0/assets/img/stores/fb7677421e33c616ac35.webp",
+      "bytes": 36156,
+      "sha256": "fb7677421e33c616ac35e8a3ef4fe158e3047a2459d76dea2490de0d3babb6cb"
+    },
+    {
+      "from": "public/leaip0/assets/media/review-demo-v1.webm",
+      "to": "public/leaip0/assets/media/reviews/review-demo-v1.webm",
+      "bytes": 781014,
+      "sha256": "9d53c5fcf70c46cf37d80a2c360924e5f57e911a02b255eb82b13edfe6495e62"
+    }
+  ],
+  "deleted": [
+    {
+      "path": "public/leaip0/assets/pages/shop-chat-appointment-offline.html",
+      "bytes": 5861972,
+      "sha256": "8180f43280ab46fc91df8636c91a584b69433ee854be9a28558a8e9cb4b0e227"
+    },
+    {
+      "path": "public/leaip0/assets/pages/shop-chat-appointment-offline.html.gz",
+      "bytes": 3174390,
+      "sha256": "8408e0e276210c69ec3705f82c1da3927a573204215b5e4a8e7d045af3be40b5"
+    },
+    {
+      "path": "public/leaip0/assets/pages/store-v5-exact.html",
+      "bytes": 1227836,
+      "sha256": "8233ae013f62cef973f9e0f4cad211cbcb5ba84b97170fe508c5879faa02c394"
+    }
+  ],
+  "references": {
+    "modules/pages/store-detail/index.js": 116,
+    "modules/pages/store-detail/index.css": 1,
+    "modules/modals/store-appointment-confirm/index.css": 1,
+    "modules/pages/product-detail/index.js": 1
+  },
+  "bytesRemoved": 10264198,
+  "validation": {
+    "business": {
+      "pass": true,
+      "checks": 8,
+      "snapshots": 8,
+      "errors": 0,
+      "missing": 0,
+      "imagesDecoded": 45,
+      "video": {
+        "first": {
+          "src": "https://p0.leaibot.cn/assets/media/reviews/review-demo-v1.webm",
+          "readyState": 4,
+          "error": null,
+          "currentTime": 0.116738,
+          "duration": 5.953726,
+          "videoWidth": 960,
+          "videoHeight": 540,
+          "paused": false
+        },
+        "second": {
+          "readyState": 4,
+          "error": null,
+          "currentTime": 0.830484,
+          "paused": false
+        },
+        "progress": 0.713746
+      },
+      "mapFallback": {
+        "provider": "static",
+        "zoomChangesTransform": true,
+        "backgroundImage": "url(\"https://p0.leaibot.cn/assets/img/stores/200682f870f5c2cf5e74.webp\")"
+      },
+      "imageStatesChecked": 8
+    },
+    "shell": {
+      "pass": true,
+      "checks": 17,
+      "snapshots": 31
+    },
+    "static": {
+      "pass": true,
+      "js": 48,
+      "css": 48,
+      "movedFilesByteIdentical": 46
+    },
+    "limitations": [
+      "Existing open pages must refresh to use the new media URLs.",
+      "Business regression uses GET fixtures and blocks writes; no real appointment submitted.",
+      "Map SDK failure is injected for deterministic fallback comparison."
+    ]
+  }
+}

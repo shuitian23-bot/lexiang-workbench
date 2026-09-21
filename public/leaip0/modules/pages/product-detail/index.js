@@ -751,7 +751,7 @@ window.__p0Modules.sources["ue4edbdcfb53c4d7c"]=function(){
 window.__p0Modules.sources["uaf95f5cdffda1d1e"]=function(){
 /* Shared product review media viewer, including restored product detail tabs. */
 (()=>{'use strict';if(window.__lxReviewMedia)return;
-const VIDEO='/assets/media/review-demo-v1.webm';let dialog=null,trigger=null,items=[],index=0,oldOverflow='',queued=false;
+const VIDEO='/assets/media/reviews/review-demo-v1.webm';let dialog=null,trigger=null,items=[],index=0,oldOverflow='',queued=false;
 function enhance(){document.querySelectorAll('.product-detail .lx-market-review-list').forEach(list=>{const row=list.querySelector('[data-review-id="lenovo161508778"]')||list.querySelector('.lx-market-review-item:not([data-review-id])'),buttons=row?.querySelectorAll('.lx-market-review-media button');if(buttons?.length>=3){const b=buttons[2];if(!b.dataset.reviewVideo){b.dataset.reviewVideo=VIDEO;b.setAttribute('aria-label','播放评价演示视频');b.title='播放评价演示视频';const badge=document.createElement('span');badge.className='lx-review-play';badge.textContent='▶';badge.setAttribute('aria-hidden','true');b.append(badge);const label=document.createElement('span');label.className='lx-review-video-label';label.textContent='演示视频';b.append(label);}}});}
 function schedule(){if(!queued){queued=true;requestAnimationFrame(()=>{queued=false;enhance();});}}
 function stopVideo(){const video=dialog?.querySelector('video');if(video){video.pause();video.removeAttribute('src');video.load();}}

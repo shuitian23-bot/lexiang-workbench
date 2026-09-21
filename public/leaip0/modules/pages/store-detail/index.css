@@ -100,7 +100,7 @@
         position: absolute;
         inset: -12%;
         z-index: 1;
-        background: #f3f0f7 url("/assets/pages/store-v5-media/200682f870f5c2cf5e74.webp") center / cover no-repeat;
+        background: #f3f0f7 url("/assets/img/stores/200682f870f5c2cf5e74.webp") center / cover no-repeat;
         transform: translate3d(0, 0, 0) scale(1);
         transform-origin: center;
         will-change: transform;

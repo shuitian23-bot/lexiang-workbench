@@ -26,6 +26,10 @@
 
 中小企业 `/b-chat/`、政教及大企业 `/biz-chat/` 原本就是页面内轮播，继续使用现有模块。两频道也依赖 consumer-home 中的共用高度适配，不能把整个 consumer-home 模块当成仅个人频道代码删除。
 
+## 门店与评价媒体
+
+门店图片、图标和地图底图位于 `public/leaip0/assets/img/stores/`，门店模块与预约弹窗共享引用。评价演示视频位于 `assets/media/reviews/review-demo-v1.webm`，由商品详情模块的评价播放器加载。媒体原样迁移，旧 `assets/pages/` 内两个独立 HTML 和 gzip 副本已移除；旧目录不能作为页面模板运行依赖。改变懒加载模块时同步更新各首页模块内的 store-detail URL 版本及页面入口缓存版本，已有页面刷新后使用新资源地址。
+
 ## 一次性迁移重现
 
 先在此目录安装 package.json 中的开发依赖，或通过 P0_NODE_MODULES、P0_POSTCSS_PATH、P0_PARSE5_PATH 指定已安装依赖。然后在隔离 Git 工作区根目录执行：

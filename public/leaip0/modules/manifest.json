@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "buildVersion": "scene-assets-20260921-1",
+  "buildVersion": "store-media-20260921-1",
   "baseline": "9585cb03a47c5a63d9049cc79a6f50c7e449d620",
   "moduleCount": 48,
   "fileCount": 96,
@@ -143,7 +143,7 @@
       "js": "/modules/pages/store-detail/index.js",
       "sourceUnits": 2,
       "implementations": 0,
-      "cssBytes": 25917
+      "cssBytes": 25907
     },
     {
       "id": "device-detail",
@@ -343,7 +343,7 @@
       "js": "/modules/modals/store-appointment-confirm/index.js",
       "sourceUnits": 0,
       "implementations": 2,
-      "cssBytes": 9194
+      "cssBytes": 9184
     },
     {
       "id": "store-select",
