@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "buildVersion": "7aea23eb1054031f",
+  "buildVersion": "native-hero-20260921-1",
   "baseline": "9585cb03a47c5a63d9049cc79a6f50c7e449d620",
   "moduleCount": 48,
   "fileCount": 96,
@@ -43,7 +43,7 @@
       "js": "/modules/pages/consumer-home/index.js",
       "sourceUnits": 10,
       "implementations": 0,
-      "cssBytes": 85860
+      "cssBytes": 123880
     },
     {
       "id": "smb-home",
@@ -2458,10 +2458,10 @@
     }
   ],
   "styles": {
-    "entryCount": 395,
-    "ruleCount": 21749,
-    "partCount": 2170,
-    "uniquePartCount": 1767,
+    "entryCount": 396,
+    "ruleCount": 21942,
+    "partCount": 2171,
+    "uniquePartCount": 1768,
     "reusedPartCount": 403,
     "deduplicatedBytes": 671474,
     "rebasedUrls": 11,
@@ -4835,6 +4835,12 @@
         "id": "/@script-style/13a18e6b07aff840b41dde11.css",
         "sourceHash": "2e85293f616de074ab9146147116074c49b1303bf5effdf9eeb32b1e6512d2bb",
         "rules": 1,
+        "parts": 1
+      },
+      {
+        "id": "/@native/consumer-home/scene.css",
+        "sourceHash": "78e18c49644d6e7d3af28691ae2a187813723b9ba468f96e755ca87bd9a82f0d",
+        "rules": 193,
         "parts": 1
       }
     ],

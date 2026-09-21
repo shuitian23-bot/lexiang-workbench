@@ -16,6 +16,14 @@
 
 运行 `node scripts/validate-p0-public-assets.cjs` 检查 96 个实际文件、语法和所有 HTML 的资源引用。运行 `node scripts/check-p0-performance.cjs --report` 输出体积测量；不带 `--report` 时继续执行旧性能预算。2026-09-04 的预算在本次迁移前也已超限，不能把文件数量减少等同于首屏更快，也不能把测量模式当作性能验收通过。
 
+## 首页场景轮播
+
+个人及家庭 `/shop-chat/` 的轮播由 `pages/consumer-home/index.js` 直接创建在当前页面中，使用开放的 Shadow DOM 隔离通用 `.hero`、`.page` 样式，不再加载 iframe 页面。六个场景的数据、按钮和商品跳转在同一模块；样式在对应 `index.css` 的 `p0-personal-native-scene` 片段，注册项位于 `shared/common/index.js` 的 CSS 表中。
+
+组件保留 980/1280 画布缩放和短屏高度规则。局部宽高断点使用容器查询，字号和间距使用 `cqw`，不能直接换回主窗口的 `vw`。校园标签的渐变使用 `background-image` 长写，避免 CSSOM 收集样式时背景简写与 `background-clip` 组合丢失。宿主重建时会清理旧计时器及尺寸监听并重新挂载。
+
+中小企业 `/b-chat/`、政教及大企业 `/biz-chat/` 原本就是页面内轮播，继续使用现有模块。两频道也依赖 consumer-home 中的共用高度适配，不能把整个 consumer-home 模块当成仅个人频道代码删除。
+
 ## 一次性迁移重现
 
 先在此目录安装 package.json 中的开发依赖，或通过 P0_NODE_MODULES、P0_POSTCSS_PATH、P0_PARSE5_PATH 指定已安装依赖。然后在隔离 Git 工作区根目录执行：

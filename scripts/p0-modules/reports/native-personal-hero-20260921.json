@@ -1,0 +1,49 @@
+{
+  "baselineCommit": "ee128e0076099d2b83994dd9c99dfd4408871f5e",
+  "buildVersion": "native-hero-20260921-1",
+  "backup": {
+    "server": "/tmp/p0-before-native-hero-20260921.tar.gz",
+    "local": "P0首焦去iframe前备份-20260921.tar.gz",
+    "sha256": "91cc882fe9c67bcf2528a52f544f781c5fb7d808cd3e4c8ba8731289eef89939"
+  },
+  "changes": [
+    "Personal homepage carousel is native Shadow DOM in consumer-home module pair.",
+    "Removed standalone scene-banner-v154/scene-banner.html. Image assets retained.",
+    "SMB and enterprise heroes already native; business logic/styles unchanged.",
+    "Still 48 JS and 48 CSS files."
+  ],
+  "heroRegression": {
+    "pass": true,
+    "checks": 47,
+    "snapshots": 41,
+    "viewports": [
+      [
+        1440,
+        1000
+      ],
+      [
+        1280,
+        800
+      ],
+      [
+        1920,
+        1080
+      ],
+      [
+        390,
+        844
+      ]
+    ],
+    "errors": 0,
+    "missing": 0
+  },
+  "shellRegression": {
+    "pass": true,
+    "checks": 17,
+    "snapshots": 31
+  },
+  "limitations": [
+    "Screenshot pixel differences up to 0.874% remain at scaled antialiased edges after replacing iframe; measured geometry/content/computed styles match.",
+    "Business API writes blocked; product route validated without order/payment side effects."
+  ]
+}

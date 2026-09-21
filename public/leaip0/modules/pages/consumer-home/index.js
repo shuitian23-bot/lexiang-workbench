@@ -2728,115 +2728,302 @@ window.__p0Modules.sources["u468a061bdb41f88b"]=function(){
 
 };
 
-/* public/leaip0/assets/frontend/js/pages/shop/scene-banner-v154.js */
+/* Personal scene carousel: native DOM, scoped CSS, direct product routing. */
 window.__p0Modules.sources["u88751115a1d6b6d6"]=function(){
-/* Original scene-banner styles and interactions run in their own document.
- * This adapter owns only host sizing, existing mall visibility, and product routing.
- */
 (function () {
   'use strict';
+  if (document.body && document.body.dataset.page !== 'personal') return;
+  let instance;
   function mount() {
-  if (document.body?.dataset.page !== 'personal') return;
-  const legacy = document.querySelector('.content > .device-scene-hall');
-  if (!legacy || document.getElementById('p0OriginalSceneBanner')) return;
-  const content = legacy.parentElement;
-  const host = document.createElement('section');
-  host.id = 'p0OriginalSceneBanner';
-  host.setAttribute('aria-label', '个人及家庭场景推荐');
-  const frame = document.createElement('iframe');
-  frame.title = '个人及家庭场景 Banner';
-  frame.src = '/assets/components/scene-banner-v154/scene-banner.html?v=12e1d0c813cf78f5';
-  frame.setAttribute('scrolling', 'no');
-  frame.setAttribute('loading', 'eager');
-  frame.style.cssText = 'display:block;border:0;position:absolute;left:0;top:0;transform-origin:0 0;width:1280px;height:650px;max-width:none;';
-  host.style.cssText = 'position:relative;width:100%;min-width:0;height:auto;aspect-ratio:1280/624;overflow:hidden;margin:0;';
-  const style = document.createElement('style');
-  style.textContent = window.__p0Modules.styleText("/@script-style/48efdbc89ffd0d3b65a1f8a2.css");
-  document.head.append(style);
-  host.append(frame);
-  legacy.before(host);
-  let frameDocument;
-  let resizePending = false;
-  function resize() {
-    resizePending = false;
-    const contentStyle = getComputedStyle(content);
-    const sideInset = parseFloat(contentStyle.paddingLeft || 0);
-    const width = content.clientWidth - sideInset - parseFloat(contentStyle.paddingRight || 0);
-    if (!width || !frameDocument) return;
-    // Keep the desktop composition on wide screens. In a narrow laptop panel,
-    // render from a compact 980px canvas instead of shrinking a 1280px canvas;
-    // this keeps the three product cards comfortably readable.
-    const compactHost = window.innerWidth > 760 && width < 1100;
-    const naturalWidth = window.innerWidth <= 760
-      ? width
-      : compactHost
-        ? Math.max(980, width)
-        : Math.max(1280, width);
-    const scale = width / naturalWidth;
-    // Keep the content offset at 10 visible pixels when the iframe is scaled.
-    frameDocument.documentElement.style.setProperty('--lx-copy5-content-rise', (10 / scale) + 'px');
-    frameDocument.documentElement.classList.toggle('is-compact-host', compactHost);
-    // Keep enough of the first product floor visible on short laptop panels.
-    // The target is expressed in host pixels and converted back to the iframe's
-    // natural canvas, so compact and wide layouts land at the same visual height.
-    const baseNaturalHeroHeight = compactHost ? 500 : 560;
-    const baseVisibleHeroHeight = baseNaturalHeroHeight * scale;
-    const targetVisibleHeroHeight = Math.max(360, Math.min(baseVisibleHeroHeight, window.innerHeight - 360));
-    const shortHost = window.innerWidth > 760 && targetVisibleHeroHeight < baseVisibleHeroHeight - 1;
-    frameDocument.documentElement.classList.toggle('is-short-host', shortHost);
-    frameDocument.documentElement.style.setProperty('--short-hero-height', (targetVisibleHeroHeight / scale) + 'px');
-    frame.style.width = naturalWidth + 'px';
-    const page = frameDocument.querySelector('.page');
-    if (!page) return;
-    // Match the visible top inset to the parent card's side inset at every scale.
-    page.style.paddingTop = (sideInset / scale) + 'px';
-    // Match SMB/BIZ hero-to-floor spacing in visible host pixels at every scale.
-    const bottomInset = window.innerWidth > 760 && window.innerHeight <= 820 ? 12 : 20;
-    page.style.paddingBottom = (bottomInset / scale) + 'px';
-    const padding = parseFloat(frame.contentWindow.getComputedStyle(frameDocument.body).paddingBottom) || 0;
-    const height = Math.ceil(page.getBoundingClientRect().bottom + padding);
-    frame.style.height = height + 'px';
-    frame.style.transform = 'scale(' + scale + ')';
-    host.style.height = Math.ceil(height * scale) + 'px';
-  }
-  function scheduleResize() {
-    if (!resizePending) { resizePending = true; requestAnimationFrame(resize); }
-  }
-  function initialize() {
-    if (frameDocument === frame.contentDocument && host.dataset.ready) return;
-    frameDocument = frame.contentDocument;
-    if (!frameDocument || !frameDocument.querySelector('#bannerHero')) return;
-    host.dataset.ready = 'true';
+    if (document.body?.dataset.page !== 'personal') return false;
+    const legacy = document.querySelector('.content > .device-scene-hall');
+    if (!legacy) return false;
+    if (document.getElementById('p0OriginalSceneBanner')) return true;
+    const content = legacy.parentElement;
+    const host = document.createElement('section');
+    host.id = 'p0OriginalSceneBanner';
+    host.setAttribute('aria-label', '个人及家庭场景推荐');
+    host.style.cssText = 'position:relative;width:100%;min-width:0;height:auto;aspect-ratio:1280/624;overflow:hidden;margin:0;';
+    const root = host.attachShadow({mode:'open'});
+    const style = document.createElement('style');
+    style.textContent = window.__p0Modules.styleText('/@native/consumer-home/scene.css');
+    root.append(style);
+    const canvas = document.createElement('div');
+    canvas.className = 'scene-viewport';
+    canvas.innerHTML = "<p0-scene-document class=\"scene-document\"><p0-scene-body><main class=\"page\">\n    <section class=\"hero\" id=\"bannerHero\" aria-live=\"polite\">\n      <div class=\"hero-copy\">\n        <span class=\"eyebrow\" id=\"sceneEyebrow\">校园场景</span>\n        <p class=\"product-name\" id=\"heroProduct\">YOGA Air 14 Aura</p>\n        <h1 class=\"hero-title\" id=\"heroTitle\">轻装上课，也能从早用到晚</h1>\n        <p class=\"hero-desc\" id=\"heroDesc\">轻薄机身兼顾长续航与高素质屏幕，课堂记录、课程作业和社团创作都更从容。</p>\n        <div class=\"hero-purchase\"><div class=\"price\"><span class=\"price-symbol\">¥</span><span class=\"price-value\" id=\"heroPrice\">11,499</span><span class=\"price-suffix\">起</span></div></div>\n      </div>\n      <div class=\"hero-visual\">\n        <img class=\"hero-image is-active\" id=\"heroImage\" src=\"/assets/img/personal-scene-campus-lenovo-v4.png.webp\" alt=\"YOGA Air 14 Aura 校园使用场景\">\n        <img class=\"hero-image\" id=\"heroImageNext\" src=\"/assets/img/personal-scene-campus-lenovo-v4.png.webp\" alt=\"\" aria-hidden=\"true\">\n      </div>\n      <div class=\"hero-products\" id=\"heroProducts\" role=\"group\" aria-label=\"校园场景推荐商品\"></div>\n      <button class=\"carousel-arrow carousel-prev\" id=\"heroPrev\" type=\"button\" aria-label=\"上一个场景\"><svg viewBox=\"0 0 24 24\"><path d=\"m15 5-7 7 7 7\"/></svg></button>\n      <button class=\"carousel-arrow carousel-next\" id=\"heroNext\" type=\"button\" aria-label=\"下一个场景\"><svg viewBox=\"0 0 24 24\"><path d=\"m9 5 7 7-7 7\"/></svg></button>\n      <div class=\"carousel-pagination\" id=\"heroPagination\" aria-label=\"场景轮播\"></div>\n    </section>\n\n  </main></p0-scene-body></p0-scene-document>";
+    root.append(canvas);
+    const visibilityStyle = document.createElement('style');
+    visibilityStyle.textContent = window.__p0Modules.styleText('/@script-style/48efdbc89ffd0d3b65a1f8a2.css');
+    document.head.append(visibilityStyle);
+    legacy.before(host);
     legacy.inert = true;
+    host.dataset.ready = 'true';
+    host.dataset.renderer = 'native';
+    const sceneDocument = root.querySelector('p0-scene-document');
+    const page = root.querySelector('.page');
+    let resizePending = false;
+    let stopCarousel = () => {};
+    function resize() {
+      resizePending = false;
+      if (!host.isConnected) return;
+      const contentStyle = getComputedStyle(content);
+      const sideInset = parseFloat(contentStyle.paddingLeft) || 0;
+      const width = content.clientWidth - sideInset - (parseFloat(contentStyle.paddingRight) || 0);
+      if (!width) return;
+      const compactHost = window.innerWidth > 760 && width < 1100;
+      const naturalWidth = window.innerWidth <= 760 ? width : compactHost ? Math.max(980,width) : Math.max(1280,width);
+      const scale = width / naturalWidth;
+      sceneDocument.style.setProperty('--lx-copy5-content-rise',(10 / scale)+'px');
+      sceneDocument.classList.toggle('is-compact-host',compactHost);
+      const baseVisibleHeroHeight = (compactHost ? 500 : 560) * scale;
+      const targetVisibleHeroHeight = Math.max(360,Math.min(baseVisibleHeroHeight,window.innerHeight-360));
+      sceneDocument.classList.toggle('is-short-host',window.innerWidth>760 && targetVisibleHeroHeight<baseVisibleHeroHeight-1);
+      sceneDocument.style.setProperty('--short-hero-height',(targetVisibleHeroHeight/scale)+'px');
+      canvas.style.width = naturalWidth+'px';
+      page.style.paddingTop = (sideInset/scale)+'px';
+      page.style.paddingBottom = ((window.innerWidth>760 && window.innerHeight<=820 ? 12 : 20)/scale)+'px';
+      const height = Math.ceil(parseFloat(getComputedStyle(page).height));
+      canvas.style.height = height+'px';
+      canvas.style.transform = 'scale('+scale+')';
+      host.style.height = Math.ceil(height*scale)+'px';
+    }
+    function scheduleResize() {
+      if (!resizePending) {resizePending=true;requestAnimationFrame(resize);}
+    }
+    async function openProduct(sku) {
+      const api=window.__lxAgentAPI;
+      if (!api || typeof api.openProduct!=='function') return;
+      try {await api.openProduct(String(sku));}
+      catch(error) {console.error('[scene-banner] Product details could not open',error);}
+    }
+    (function () {
+      const scenes = {
+        campus: {
+          eyebrow:'校园场景', product:'YOGA Air 14 Aura', title:'轻装上课，也能从早用到晚', desc:'轻薄机身兼顾长续航与高素质屏幕，课堂记录、课程作业和社团创作都更从容。', price:'11,499', sku:'1053892', image:'/assets/img/personal-scene-campus-lenovo-v4.png.webp', alt:'YOGA Air 14 Aura 校园使用场景',
+          products:[
+            { name:'YOGA Air 14 Aura', price:'¥11,499', sku:'1053892', image:'/leai product data/shop-chat product data/笔记本/07_SPU_YOGA_Air_14_Aura/白底图.jpg' },
+            { name:'联想小新平板 11', price:'¥1,499', sku:'1045775', image:'/leai product data/shop-chat product data/平板/01_SPU_联想小新平板_11/白底图.jpg' },
+            { name:'小新 K2-82 三模键盘', price:'¥129', sku:'1050756', image:'/leai product data/shop-chat product data/选件/04_SPU_联想小新_K2-82_三模键盘/白底图.jpg' }
+          ]
+        },
+        office: {
+          eyebrow:'办公场景', product:'ThinkBook 16p', title:'专注工作，把复杂留给性能', desc:'大屏高效协作，兼顾多任务处理与稳定连接，让日常办公和专业应用流畅衔接。', price:'9,999', sku:'1055124', image:'/assets/img/working-scene.jpg', alt:'ThinkBook 办公使用场景',
+          products:[
+            { name:'ThinkBook 16p', price:'¥9,999', sku:'1055124', image:'/assets/img/thinkbook.jpg' },
+            { name:'联想小新 16', price:'¥5,299', sku:'1048565', image:'/leai product data/shop-chat product data/笔记本/09_SPU_联想小新_16/白底图.jpg' },
+            { name:'Air Pro 双模鼠标', price:'¥99.9', sku:'1050750', image:'/leai product data/shop-chat product data/选件/08_SPU_联想_Air_Pro_双模鼠标/白底图.jpg' }
+          ]
+        },
+        gaming: {
+          eyebrow:'游戏场景', product:'拯救者 Y9000P', title:'高能全开，沉浸每一局', desc:'强劲性能与高刷新屏幕协同释放，兼顾竞技响应、画面表现与稳定散热。', price:'11,820', sku:'1054054', image:'/assets/img/game-scene.jpg', alt:'拯救者 Y9000P 游戏使用场景',
+          products:[
+            { name:'拯救者 Y9000P', price:'¥11,820', sku:'1054054', image:'/leai product data/shop-chat product data/笔记本/12_SPU_联想拯救者_Y9000P/白底图.jpg' },
+            { name:'R360 无线电竞耳机', price:'¥149', sku:'1045990', image:'/leai product data/shop-chat product data/选件/01_SPU_联想拯救者无线电竞耳机_R360/白底图.jpg' },
+            { name:'M7X 游戏鼠标', price:'¥189', sku:'1050794', image:'/leai product data/shop-chat product data/选件/03_SPU_联想拯救者_M7X_游戏鼠标/白底图.jpg' }
+          ]
+        },
+        mobile: {
+          eyebrow:'移动场景', product:'联想小新 Air 13', title:'轻一点，灵感走得更远', desc:'小巧机身、可靠续航与清晰屏幕，让通勤、咖啡馆和移动学习都更轻松。', price:'5,499', sku:'1053879', image:'/assets/components/scene-banner-v154/personal-scene-mobile-lenovo-v3.png.webp', alt:'联想小新 Air 13 城市咖啡馆移动使用场景',
+          products:[
+            { name:'联想小新 Air 13', price:'¥5,499', sku:'1053879', image:'/leai product data/shop-chat product data/笔记本/08_SPU_联想小新_Air_13/白底图.jpg' },
+            { name:'Air Pro 双模鼠标', price:'¥99.9', sku:'1050750', image:'/leai product data/shop-chat product data/选件/08_SPU_联想_Air_Pro_双模鼠标/白底图.jpg' },
+            { name:'USB-C 标准电源适配器', price:'¥149', sku:'1050929', image:'/leai product data/shop-chat product data/选件/11_SPU_联想_USB-C_标准电源适配器/白底图.jpg' }
+          ]
+        },
+        creative: {
+          eyebrow:'创作场景', product:'YOGA Pro 15', title:'让每一次创作，都接近成片', desc:'高性能平台与高素质屏幕兼顾色彩、效率和稳定输出，适合影像、设计与音乐创作。', price:'19,999', sku:'1056246', image:'/assets/img/creation-scene.jpg', alt:'YOGA Pro 15 创作使用场景',
+          products:[
+            { name:'YOGA Pro 15', price:'¥19,999', sku:'1056246', image:'/leai product data/shop-chat product data/笔记本/03_SPU_YOGA_Pro_15/白底图.jpg' },
+            { name:'YOGA Pro 16 Aura', price:'¥23,999', sku:'1052919', image:'/leai product data/shop-chat product data/笔记本/06_SPU_YOGA_Pro_16_Aura/白底图.jpg' },
+            { name:'拯救者 Z7 增高支架', price:'¥199', sku:'1055217', image:'/leai product data/shop-chat product data/选件/09_SPU_联想拯救者_Z7_增高支架/白底图.jpg' }
+          ]
+        },
+        travel: {
+          eyebrow:'差旅场景', product:'YOGA Air 14s', title:'从登机到开会，一台就够', desc:'轻薄便携、快速唤醒和长续航组合，让移动会议、远程沟通与旅途娱乐从容切换。', price:'7,999', sku:'1030691', image:'/assets/components/scene-banner-v154/personal-scene-travel-lenovo-v4.png.webp', alt:'联想 YOGA Air 14s 机场候机厅差旅使用场景',
+          products:[
+            { name:'YOGA Air 14s', price:'¥7,999', sku:'1030691', image:'/leai product data/shop-chat product data/笔记本/02_SPU_YOGA_Air_14s/白底图.jpg' },
+            { name:'USB-C 标准电源适配器', price:'¥149', sku:'1050929', image:'/leai product data/shop-chat product data/选件/11_SPU_联想_USB-C_标准电源适配器/白底图.jpg' },
+            { name:'小新蓝牙无线鼠标 Plus', price:'¥59', sku:'1046511', image:'/leai product data/shop-chat product data/选件/10_SPU_联想小新蓝牙无线鼠标_Plus/白底图.jpg' }
+          ]
+        }
+      };
+      const sceneKeys = Object.keys(scenes);
+      const hero = root.getElementById('bannerHero');
+      const eyebrow = root.getElementById('sceneEyebrow');
+      const product = root.getElementById('heroProduct');
+      const title = root.getElementById('heroTitle');
+      const desc = root.getElementById('heroDesc');
+      const price = root.getElementById('heroPrice');
+      const imageA = root.getElementById('heroImage');
+      const imageB = root.getElementById('heroImageNext');
+      const prev = root.getElementById('heroPrev');
+      const nextButton = root.getElementById('heroNext');
+      const pagination = root.getElementById('heroPagination');
+      const products = root.getElementById('heroProducts');
+      let activeIndex = 0;
+      let activeImage = imageA;
+      let transitionToken = 0;
+      let changeTimer;
+      let autoTimer;
+      const autoplayDuration = 6500;
+      function renderProducts(scene) {
+        products.textContent = '';
+        products.setAttribute('aria-label', scene.eyebrow + '推荐商品');
+        scene.products.forEach(function (item) {
+          const card = document.createElement('button');
+          card.type = 'button';
+          card.className = 'hero-product-card';
+          card.setAttribute('aria-label', '查看' + item.name + '，' + item.price);
+          card.innerHTML = '<span class="hero-product-image-wrap"><img class="hero-product-image" alt="" src="' + item.image + '"></span>' +
+            '<span class="hero-product-info"><strong class="hero-product-name">' + item.name + '</strong><span class="hero-product-price">' + item.price + '</span></span>';
+          card.addEventListener('click', function () {
+            openProduct(item.sku);
+          });
+          products.appendChild(card);
+        });
+      }
+      renderProducts(scenes[sceneKeys[activeIndex]]);
+      sceneKeys.forEach(function (key) {
+        const preload = new Image();
+        preload.src = scenes[key].image;
+      });
+      sceneKeys.forEach(function (key, index) {
+        const dot = document.createElement('button');
+        dot.type = 'button';
+        dot.className = 'carousel-dot' + (index === 0 ? ' is-active' : '');
+        dot.setAttribute('role', 'tab');
+        dot.setAttribute('aria-label', '切换到' + scenes[key].eyebrow);
+        dot.setAttribute('aria-current', index === 0 ? 'true' : 'false');
+        dot.setAttribute('aria-selected', index === 0 ? 'true' : 'false');
+        dot.innerHTML = '<span class="carousel-label">' + scenes[key].eyebrow.replace(/场景$/, '') + '</span>';
+        dot.addEventListener('click', function () { goTo(index, true); });
+        pagination.appendChild(dot);
+      });
+      function setScene(index, onCommitted) {
+        const normalized = (index + sceneKeys.length) % sceneKeys.length;
+        const token = ++transitionToken;
+        clearTimeout(changeTimer);
+        if (normalized === activeIndex) {
+          hero.classList.remove('is-changing');
+          if (typeof onCommitted === 'function') onCommitted();
+          return;
+        }
+        const scene = scenes[sceneKeys[normalized]];
+        const incomingImage = activeImage === imageA ? imageB : imageA;
+        hero.classList.add('is-changing');
+        incomingImage.src = scene.image;
+        incomingImage.alt = scene.alt;
+        incomingImage.setAttribute('aria-hidden', 'false');
+        function scheduleCommit() {
+          if (token !== transitionToken) return;
+          clearTimeout(changeTimer);
+          changeTimer = setTimeout(function () {
+            if (token !== transitionToken) return;
+            activeIndex = normalized;
+            eyebrow.textContent = scene.eyebrow;
+            product.textContent = scene.product;
+            title.textContent = scene.title;
+            desc.textContent = scene.desc;
+            price.textContent = scene.price;
+            renderProducts(scene);
+            incomingImage.classList.add('is-active');
+            activeImage.classList.remove('is-active');
+            activeImage.setAttribute('aria-hidden', 'true');
+            activeImage = incomingImage;
+            pagination.querySelectorAll('.carousel-dot').forEach(function (dot, dotIndex) {
+              const selected = dotIndex === activeIndex;
+              dot.classList.toggle('is-active', selected);
+              dot.setAttribute('aria-current', selected ? 'true' : 'false');
+              dot.setAttribute('aria-selected', selected ? 'true' : 'false');
+            });
+            requestAnimationFrame(function () { hero.classList.remove('is-changing'); });
+            if (typeof onCommitted === 'function') onCommitted();
+          },110);
+        }
+        if (incomingImage.complete && incomingImage.naturalWidth) scheduleCommit();
+        else {
+          incomingImage.addEventListener('load', scheduleCommit, { once:true });
+          incomingImage.addEventListener('error', scheduleCommit, { once:true });
+        }
+      }
+      function pauseAuto() {
+        clearTimeout(autoTimer);
+        autoTimer = 0;
+        hero.classList.add('is-paused');
+      }
+      function restartProgress() {
+        const activeDot = pagination.querySelector('.carousel-dot.is-active');
+        if (!activeDot) return;
+        activeDot.classList.remove('is-active');
+        void pagination.offsetWidth;
+        activeDot.classList.add('is-active');
+      }
+      function startAuto(forceReset) {
+        if (autoTimer && !forceReset) {
+          hero.classList.remove('is-paused');
+          return;
+        }
+        clearTimeout(autoTimer);
+        autoTimer = 0;
+        hero.classList.remove('is-paused');
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        restartProgress();
+        autoTimer = setTimeout(function () {
+          autoTimer = 0;
+          setScene(activeIndex + 1, function () {
+            if (!hero.classList.contains('is-paused')) startAuto(false);
+          });
+        }, autoplayDuration);
+      }
+      function goTo(index, fromUser) {
+        if (!fromUser) {
+          setScene(index);
+          return;
+        }
+        pauseAuto();
+        setScene(index, function () { startAuto(true); });
+      }
+      prev.addEventListener('click', function () { goTo(activeIndex - 1, true); });
+      nextButton.addEventListener('click', function () { goTo(activeIndex + 1, true); });
+      hero.addEventListener('mouseenter', pauseAuto);
+      hero.addEventListener('mouseleave', function () { startAuto(false); });
+      hero.addEventListener('focusin', pauseAuto);
+      hero.addEventListener('focusout', function (event) {
+        if (!hero.contains(event.relatedTarget)) startAuto(false);
+      });
+      startAuto(true);
+      stopCarousel = () => {
+        ++transitionToken;
+        clearTimeout(changeTimer);
+        clearTimeout(autoTimer);
+      };
+    })();
     resize();
     const observer = new ResizeObserver(scheduleResize);
     observer.observe(content);
-    observer.observe(frameDocument.querySelector('.page'));
-    window.addEventListener('resize', scheduleResize);
-    frameDocument.fonts.ready.then(scheduleResize);
+    observer.observe(page);
+    window.addEventListener('resize',scheduleResize);
+    document.fonts.ready.then(scheduleResize);
     scheduleResize();
+    instance = {host, destroy() {
+      stopCarousel();
+      observer.disconnect();
+      window.removeEventListener('resize',scheduleResize);
+      visibilityStyle.remove();
+      legacy.inert = false;
+    }};
+    return true;
   }
-  frame.addEventListener('load', initialize);
-  window.addEventListener('message', async function(event) {
-    if (event.origin !== location.origin || event.source !== frame.contentWindow) return;
-    if (event.data?.type === 'p0-scene-dom-ready-v158') {
-      initialize();
-      return;
-    }
-    if (event.data?.type === 'p0-scene-open-product' && event.data.sku) {
-      const api = window.__lxAgentAPI;
-      if (!api || typeof api.openProduct !== 'function') return;
-      try { await api.openProduct(String(event.data.sku)); }
-      catch (error) { console.error('[scene-banner] Product details could not open', error); }
-    }
-  });
+  function ensureMounted() {
+    if (instance?.host.isConnected) return;
+    if (instance) {instance.destroy();instance=null;}
+    mount();
   }
-  mount();
-  // Async head entry: initialize as soon as the actual mall markup is parsed.
-  const mountObserver = new MutationObserver(mount);
-  mountObserver.observe(document.documentElement, {childList:true,subtree:true});
+  ensureMounted();
+  // Keep the established remount behavior when the mall replaces its content.
+  const mountObserver=new MutationObserver(ensureMounted);
+  mountObserver.observe(document.documentElement,{childList:true,subtree:true});
 })();
-
 };
 
 /* /@inline/shop-chat/index.html/63896.js */
