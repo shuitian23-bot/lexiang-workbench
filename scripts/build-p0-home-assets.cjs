@@ -1,18 +1,21 @@
 #!/usr/bin/env node
 // Canonical, non-deploying build for all five P0 entry points.
 const fs=require('fs'),path=require('path'),crypto=require('crypto'),vm=require('vm');
-const base='public/leaip0',manifestFile=base+'/assets/frontend/bundles/p0-home-manifest.json',manifest=JSON.parse(fs.readFileSync(manifestFile,'utf8'));
+const base='public/leaip0',sourceBase='scripts/p0-source-runtime/leaip0',manifestFile=base+'/assets/frontend/bundles/p0-home-manifest.json',manifest=JSON.parse(fs.readFileSync(manifestFile,'utf8'));
 const hash=s=>crypto.createHash('sha256').update(s).digest('hex'),staged=new Map(),read=f=>staged.get(f)??fs.readFileSync(f,'utf8');
+// Pure build inputs live outside the public tree. Preserve their former public
+// path for bundle comments and CSS URL resolution so runtime output is stable.
+const logicalFile=f=>f.startsWith(sourceBase+'/')?base+f.slice(sourceBase.length):f;
 const pages=manifest.pages||[base+'/index.html'];for(const f of pages)staged.set(f,read(f));
 for(const e of manifest.embedded||[]){const s=read(e.source);new vm.Script(s);const t=read(e.target),a=t.indexOf(e.start),b=t.indexOf(e.end);if(a<0||b<a)throw Error('Missing module markers: '+e.target);staged.set(e.target,t.slice(0,a)+e.start+'\n'+s+'\n'+t.slice(b));}
 for(const g of manifest.groups){
- const content=g.files.map(f=>{let s=read(f);if(g.type==='js'){if(/document\.currentScript|document\.write\s*\(/.test(s))throw Error('Unsafe bundle: '+f);new vm.Script(s,{filename:f});return '\n;/* '+f+' */\n'+s+'\n;\n';}
- if(/@import\b/i.test(s))throw Error('Review CSS import: '+f);s=s.replace(/@charset\s+["'][^"']+["'];?/gi,'');s=s.replace(/url\(\s*(?:"([^"]*)"|'([^']*)'|([^\s)]*))\s*\)/gi,(m,a,b,c)=>{const u=a??b??c;if(!u||/^(?:data:|https?:|\/|#)/i.test(u))return m;if(u.includes('\\'))throw Error('Escaped URL: '+f);const full=new URL(u,'https://p0.leaibot.cn'+f.slice(base.length));return 'url("'+full.pathname+full.search+full.hash+'")';});return '\n/* '+f+' */\n'+s;
+ const content=g.files.map(f=>{const logical=logicalFile(f);let s=read(f);if(g.type==='js'){if(/document\.currentScript|document\.write\s*\(/.test(s))throw Error('Unsafe bundle: '+f);new vm.Script(s,{filename:logical});return '\n;/* '+logical+' */\n'+s+'\n;\n';}
+ if(/@import\b/i.test(s))throw Error('Review CSS import: '+f);s=s.replace(/@charset\s+["'][^"']+["'];?/gi,'');s=s.replace(/url\(\s*(?:"([^"]*)"|'([^']*)'|([^\s)]*))\s*\)/gi,(m,a,b,c)=>{const u=a??b??c;if(!u||/^(?:data:|https?:|\/|#)/i.test(u))return m;if(u.includes('\\'))throw Error('Escaped URL: '+f);const full=new URL(u,'https://p0.leaibot.cn'+logical.slice(base.length));return 'url("'+full.pathname+full.search+full.hash+'")';});return '\n/* '+logical+' */\n'+s;
  }).join('\n');if(g.type==='js')new vm.Script(content,{filename:g.label});const digest=hash(content),url=g.url.split('?')[0]+'?p0v='+digest.slice(0,16);staged.set(base+url.split('?')[0],content);
  for(const f of pages)staged.set(f,read(f).split(g.url).join(url).split(g.url.replaceAll('&','&amp;')).join(url.replaceAll('&','&amp;')));
  g.url=url;g.hash=digest;g.sourceHashes=g.files.map(f=>hash(read(f)));
 }
-for(const item of manifest.inlineSources||[]){const file=typeof item==='string'?item:item.source,targets=typeof item==='string'?[base+'/index.html']:item.pages;const s=read(file);new vm.Script(s);for(const f of targets){const html=read(f),start='<script data-p0-inline-source="'+file.slice(base.length)+'">',i=html.indexOf(start),end=html.indexOf('</script>',i);if(i<0||end<i)throw Error('Missing inline module '+file+' in '+f);staged.set(f,html.slice(0,i)+start+s.replace(/<\/script/gi,'<\\/script')+'</script>'+html.slice(end+9));}}
+for(const item of manifest.inlineSources||[]){const file=typeof item==='string'?item:item.source,targets=typeof item==='string'?[base+'/index.html']:item.pages;const s=read(file);new vm.Script(s);for(const f of targets){const html=read(f),start='<script data-p0-inline-source="'+logicalFile(file).slice(base.length)+'">',i=html.indexOf(start),end=html.indexOf('</script>',i);if(i<0||end<i)throw Error('Missing inline module '+file+' in '+f);staged.set(f,html.slice(0,i)+start+s.replace(/<\/script/gi,'<\\/script')+'</script>'+html.slice(end+9));}}
 for(const e of manifest.standaloneEntrypoints||[]){const page=read(e.file),url=e.url.split('?')[0],escaped=url.replace(/[.*+?^$()|[\]\\]/g,'\\$&'),re=new RegExp(escaped+'(?:\\?[^"<>]*)?','g');if(!re.test(page))throw Error('Missing entry '+url+' in '+e.file);e.url=url;staged.set(e.file,page.replace(re,url+'?p0v='+hash(read(e.source)).slice(0,16)));}
 staged.set(manifestFile,JSON.stringify(manifest,null,2)+'\n');const changed=[...staged].filter(([f,s])=>!fs.existsSync(f)||hash(fs.readFileSync(f))!==hash(s));
 if(process.argv[2]==='--check'){console.log(JSON.stringify({consistent:!changed.length,changed:changed.map(([f])=>f)}));process.exitCode=changed.length?1:0;}

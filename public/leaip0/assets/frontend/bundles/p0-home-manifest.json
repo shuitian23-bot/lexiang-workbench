@@ -6,11 +6,11 @@
       "label": "member",
       "files": [
         "scripts/p0-source-variants/member-service-exact-0827-1.css",
-        "public/leaip0/assets/frontend/css/components/member-insights-v134.css",
-        "public/leaip0/assets/frontend/css/components/member-asset-rules-v135.css",
-        "public/leaip0/assets/frontend/css/components/member-asset-ledger-v137.css",
-        "public/leaip0/assets/frontend/css/components/member-demo-off-v35.css",
-        "public/leaip0/assets/frontend/css/components/member-device-bind-fix-v39.css",
+        "scripts/p0-source-runtime/leaip0/assets/frontend/css/components/member-insights-v134.css",
+        "scripts/p0-source-runtime/leaip0/assets/frontend/css/components/member-asset-rules-v135.css",
+        "scripts/p0-source-runtime/leaip0/assets/frontend/css/components/member-asset-ledger-v137.css",
+        "scripts/p0-source-runtime/leaip0/assets/frontend/css/components/member-demo-off-v35.css",
+        "scripts/p0-source-runtime/leaip0/assets/frontend/css/components/member-device-bind-fix-v39.css",
         "scripts/p0-source-variants/member-device-actions-v38-1.css"
       ],
       "url": "/assets/frontend/bundles/p0-home-member.css?p0v=e28ca7df0da5eae9",
@@ -29,7 +29,7 @@
       "type": "css",
       "label": "commerce-style-0",
       "files": [
-        "public/leaip0/assets/frontend/js/core/address-dialog-v144.css"
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/address-dialog-v144.css"
       ],
       "url": "/assets/frontend/bundles/p0-shared-4cd8a5a5d35a.css?p0v=4cd8a5a5d35aa42c",
       "hash": "4cd8a5a5d35aa42cab16b28e1dc11039ba56cb537060380006bb6cbac7c191b4",
@@ -41,7 +41,7 @@
       "type": "css",
       "label": "commerce-style-1",
       "files": [
-        "public/leaip0/assets/frontend/css/core/order-center.css"
+        "scripts/p0-source-runtime/leaip0/assets/frontend/css/core/order-center.css"
       ],
       "url": "/assets/frontend/bundles/p0-shared-e0e9c414dedb.css?p0v=e0e9c414dedb98a6",
       "hash": "e0e9c414dedb98a6f6e0256947969c92588cec01546fa7043ad0c474887ecbef",
@@ -53,7 +53,7 @@
       "type": "css",
       "label": "commerce-style-2",
       "files": [
-        "public/leaip0/assets/frontend/css/core/product-detail-strike-price-v190.css"
+        "scripts/p0-source-runtime/leaip0/assets/frontend/css/core/product-detail-strike-price-v190.css"
       ],
       "url": "/assets/frontend/bundles/p0-shared-1897ffc493bf.css?p0v=1897ffc493bf0bb5",
       "hash": "1897ffc493bf0bb5cebfe03a10d8b0859ba49c8b073eedd8f7e2b84156db81c5",
@@ -65,7 +65,7 @@
       "type": "css",
       "label": "commerce-style-3",
       "files": [
-        "public/leaip0/assets/frontend/css/core/product-detail-benefits-v200.css"
+        "scripts/p0-source-runtime/leaip0/assets/frontend/css/core/product-detail-benefits-v200.css"
       ],
       "url": "/assets/frontend/bundles/p0-shared-08dd25b63874.css?p0v=08dd25b63874065c",
       "hash": "08dd25b63874065ce45603ffa7e5ce09b793195f0c806f1ca57df8d7709cda9a",
@@ -77,7 +77,7 @@
       "type": "css",
       "label": "commerce-style-4",
       "files": [
-        "public/leaip0/assets/frontend/css/core/product-detail-review-tab-v202.css"
+        "scripts/p0-source-runtime/leaip0/assets/frontend/css/core/product-detail-review-tab-v202.css"
       ],
       "url": "/assets/frontend/bundles/p0-shared-12c7b4eac601.css?p0v=12c7b4eac601e3b4",
       "hash": "12c7b4eac601e3b4f9bb7135283314d5d9fede004bf9c893de9d2be42547299e",
@@ -89,7 +89,7 @@
       "type": "css",
       "label": "commerce-style-5",
       "files": [
-        "public/leaip0/assets/frontend/css/core/product-detail-trustline-v195.css"
+        "scripts/p0-source-runtime/leaip0/assets/frontend/css/core/product-detail-trustline-v195.css"
       ],
       "url": "/assets/frontend/bundles/p0-shared-f054b000c8c6.css?p0v=f054b000c8c6f79f",
       "hash": "f054b000c8c6f79f8cd0fb54be8dc34c75c27cf245ac8705004f9cb277d618d1",
@@ -101,7 +101,7 @@
       "type": "css",
       "label": "commerce-style-6",
       "files": [
-        "public/leaip0/assets/frontend/css/core/product-review-standard-v1.css"
+        "scripts/p0-source-runtime/leaip0/assets/frontend/css/core/product-review-standard-v1.css"
       ],
       "url": "/assets/frontend/bundles/p0-shared-2abd72502c25.css?p0v=2abd72502c25e611",
       "hash": "2abd72502c25e611f64d66f64b2995b66f59fb7f605715895a1bb83a09781151",
@@ -113,7 +113,7 @@
       "type": "css",
       "label": "commerce-style-7",
       "files": [
-        "public/leaip0/assets/frontend/css/core/product-detail-itemcode-v1.css"
+        "scripts/p0-source-runtime/leaip0/assets/frontend/css/core/product-detail-itemcode-v1.css"
       ],
       "url": "/assets/frontend/bundles/p0-shared-cb8e2ca3f9d5.css?p0v=cb8e2ca3f9d57fe1",
       "hash": "cb8e2ca3f9d57fe114f998522dc8580b4e170a47446c61d5fe9b22b7f4015843",
@@ -125,12 +125,12 @@
       "type": "js",
       "label": "core-1",
       "files": [
-        "public/leaip0/assets/frontend/js/core/model-knowledge-runtime.js",
-        "public/leaip0/assets/frontend/js/shared/inline-5faa7877c846.js",
-        "public/leaip0/assets/frontend/js/core/portal.js",
-        "public/leaip0/assets/frontend/js/core/industry-solutions-v114.js",
-        "public/leaip0/assets/frontend/js/core/app-intent.industry-v114.js",
-        "public/leaip0/assets/frontend/js/core/app-conv.js"
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/model-knowledge-runtime.js",
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/shared/inline-5faa7877c846.js",
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/portal.js",
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/industry-solutions-v114.js",
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/app-intent.industry-v114.js",
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/app-conv.js"
       ],
       "url": "/assets/frontend/bundles/p0-shared-68e249410c86.js?p0v=68e249410c86c22f",
       "hash": "68e249410c86c22f6f279bb4019954a2b23ad2119adcfac26950aca3f2de22ab",
@@ -147,8 +147,8 @@
       "type": "js",
       "label": "core-2",
       "files": [
-        "public/leaip0/assets/frontend/js/core/arrival-notice-flow-v1.js",
-        "public/leaip0/assets/frontend/js/core/home.solution-original-v152.js"
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/arrival-notice-flow-v1.js",
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/home.solution-original-v152.js"
       ],
       "url": "/assets/frontend/bundles/p0-home-core-2.js?p0v=ebe0114bfe8943f8",
       "hash": "ebe0114bfe8943f8d804a2447dfd17f6a4fb97485c3dc5ca03ece2224194a719",
@@ -161,8 +161,8 @@
       "type": "js",
       "label": "core-3",
       "files": [
-        "public/leaip0/assets/frontend/js/core/solution-result.tabs-v120.js",
-        "public/leaip0/assets/frontend/js/core/split-frame-composer-sync.js"
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/solution-result.tabs-v120.js",
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/split-frame-composer-sync.js"
       ],
       "url": "/assets/frontend/bundles/p0-shared-8491f3cdf2b3.js?p0v=8491f3cdf2b31a08",
       "hash": "8491f3cdf2b31a082b7fdcff2da3ed94f2f4e11693a29ed68807513c733ed8e1",
@@ -176,11 +176,11 @@
       "label": "core-4",
       "files": [
         "public/leaip0/assets/frontend/js/core/product-card-detail-loading-v139.js",
-        "public/leaip0/assets/frontend/js/core/composer-association-popup-toggle-v106.js",
-        "public/leaip0/assets/frontend/js/core/reco-names-v137.js",
-        "public/leaip0/assets/frontend/js/core/compare-column-detail-v141.js",
-        "public/leaip0/assets/frontend/js/core/product-intent-turn-guard-v2.js",
-        "public/leaip0/assets/frontend/js/core/empty-hover-backplate-collapse-v1.js"
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/composer-association-popup-toggle-v106.js",
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/reco-names-v137.js",
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/compare-column-detail-v141.js",
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/product-intent-turn-guard-v2.js",
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/empty-hover-backplate-collapse-v1.js"
       ],
       "url": "/assets/frontend/bundles/p0-home-core-4.js?p0v=8cafcb77ce9674dc",
       "hash": "8cafcb77ce9674dcad749051404ff931cb8fa6320021b2b8b7bcd3a97830e949",
@@ -197,10 +197,10 @@
       "type": "js",
       "label": "detail",
       "files": [
-        "public/leaip0/assets/frontend/js/core/order-modal-reference-exact-no-body-max-v58.js",
-        "public/leaip0/assets/frontend/js/core/order-modal-reference-config-sku-v100.js",
-        "public/leaip0/assets/frontend/js/core/product-detail-benefits-v198.js",
-        "public/leaip0/assets/frontend/js/core/product-detail-review-tab-v203.js"
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/order-modal-reference-exact-no-body-max-v58.js",
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/order-modal-reference-config-sku-v100.js",
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/product-detail-benefits-v198.js",
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/product-detail-review-tab-v203.js"
       ],
       "url": "/assets/frontend/bundles/p0-shared-ad829c58dcc0.js?p0v=ad829c58dcc0d0f0",
       "hash": "ad829c58dcc0d0f083f909870df848b10345836129707937770b1d0da25eeac7",
@@ -215,9 +215,9 @@
       "type": "js",
       "label": "orders",
       "files": [
-        "public/leaip0/assets/frontend/js/core/order-demo-data.js",
-        "public/leaip0/assets/frontend/js/core/order-center.js",
-        "public/leaip0/assets/frontend/js/core/hide-legacy-demo-orders-v146.js"
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/order-demo-data.js",
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/order-center.js",
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/hide-legacy-demo-orders-v146.js"
       ],
       "url": "/assets/frontend/bundles/p0-shared-ed8f45144e8f.js?p0v=ed8f45144e8fb2d9",
       "hash": "ed8f45144e8fb2d99ba6eaf01095606a7279f790656b849cba6229485d64fef3",
@@ -231,13 +231,13 @@
       "type": "js",
       "label": "checkout",
       "files": [
-        "public/leaip0/assets/frontend/js/core/scanpay-button-standard-v101.js",
-        "public/leaip0/assets/frontend/js/core/order-payment-orders-sync-v102.js",
-        "public/leaip0/assets/frontend/js/core/view-orders-recommendation-card-v103.js",
-        "public/leaip0/assets/frontend/js/core/paid-order-result-card-v104.js",
-        "public/leaip0/assets/frontend/js/core/address-regions-v142.js",
-        "public/leaip0/assets/frontend/js/core/address-dialog-v142.js",
-        "public/leaip0/assets/frontend/js/core/buy-modal-direct-v1.js"
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/scanpay-button-standard-v101.js",
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/order-payment-orders-sync-v102.js",
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/view-orders-recommendation-card-v103.js",
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/paid-order-result-card-v104.js",
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/address-regions-v142.js",
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/address-dialog-v142.js",
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/buy-modal-direct-v1.js"
       ],
       "url": "/assets/frontend/bundles/p0-shared-ddfb481cbe66.js?p0v=ddfb481cbe66083d",
       "hash": "ddfb481cbe66083d539c7565cfcde69cd0a2a13316351b119eaf7e3b0ceb2796",
@@ -255,7 +255,7 @@
       "type": "css",
       "label": "shop-member-0",
       "files": [
-        "public/leaip0/assets/frontend/css/components/member-service-exact-0827.css"
+        "scripts/p0-source-runtime/leaip0/assets/frontend/css/components/member-service-exact-0827.css"
       ],
       "url": "/assets/frontend/bundles/p0-shared-179757fc33ab.css?p0v=179757fc33ab318a",
       "hash": "179757fc33ab318a4f8c53b0f6fb1e7bb6ab76ac2c1734ce01d110ff27ce0988",
@@ -267,7 +267,7 @@
       "type": "css",
       "label": "shop-member-1",
       "files": [
-        "public/leaip0/assets/frontend/css/components/member-insights-v134.css"
+        "scripts/p0-source-runtime/leaip0/assets/frontend/css/components/member-insights-v134.css"
       ],
       "url": "/assets/frontend/bundles/p0-shared-9db657ec5be8.css?p0v=9db657ec5be83585",
       "hash": "9db657ec5be83585bb3bd45e5acab58223efbe69b5c203bbaf6464b44f5a7dde",
@@ -279,7 +279,7 @@
       "type": "css",
       "label": "shop-member-2",
       "files": [
-        "public/leaip0/assets/frontend/css/components/member-asset-rules-v135.css"
+        "scripts/p0-source-runtime/leaip0/assets/frontend/css/components/member-asset-rules-v135.css"
       ],
       "url": "/assets/frontend/bundles/p0-shared-99b30c17aaa7.css?p0v=99b30c17aaa7b9af",
       "hash": "99b30c17aaa7b9afc93ae6f601124e891ae954b7ab3a2ef58bc1d1e369035d61",
@@ -291,7 +291,7 @@
       "type": "css",
       "label": "shop-member-3",
       "files": [
-        "public/leaip0/assets/frontend/css/components/member-asset-ledger-v137.css"
+        "scripts/p0-source-runtime/leaip0/assets/frontend/css/components/member-asset-ledger-v137.css"
       ],
       "url": "/assets/frontend/bundles/p0-shared-93a36541f7de.css?p0v=93a36541f7dee691",
       "hash": "93a36541f7dee6914c44684787e037a2205ea0f2cd16f65e193a8c47cbb386e1",
@@ -303,7 +303,7 @@
       "type": "css",
       "label": "shop-member-4",
       "files": [
-        "public/leaip0/assets/frontend/css/components/member-demo-off-v35.css"
+        "scripts/p0-source-runtime/leaip0/assets/frontend/css/components/member-demo-off-v35.css"
       ],
       "url": "/assets/frontend/bundles/p0-shared-3260b6cadb01.css?p0v=3260b6cadb013ad0",
       "hash": "3260b6cadb013ad0b1e1f29108a8056dd272752fc26f581aba26d61089b33c52",
@@ -315,7 +315,7 @@
       "type": "css",
       "label": "shop-member-5",
       "files": [
-        "public/leaip0/assets/frontend/css/components/member-device-bind-fix-v39.css"
+        "scripts/p0-source-runtime/leaip0/assets/frontend/css/components/member-device-bind-fix-v39.css"
       ],
       "url": "/assets/frontend/bundles/p0-shared-5378bfc37780.css?p0v=5378bfc377800d50",
       "hash": "5378bfc377800d50fbbf9d254b9fe85823226bd71a452cd2e55dba2f3dab5c90",
@@ -327,7 +327,7 @@
       "type": "css",
       "label": "shop-member-6",
       "files": [
-        "public/leaip0/assets/frontend/css/components/member-device-actions-v38.css"
+        "scripts/p0-source-runtime/leaip0/assets/frontend/css/components/member-device-actions-v38.css"
       ],
       "url": "/assets/frontend/bundles/p0-shared-378fe0bdc91e.css?p0v=378fe0bdc91e5003",
       "hash": "378fe0bdc91e5003c6fbedb552f98d9236a834ebebdbc8862807b4ed0734e624",
@@ -339,8 +339,8 @@
       "type": "js",
       "label": "shop-core-1",
       "files": [
-        "public/leaip0/assets/frontend/js/core/p0-root-nav.js",
-        "public/leaip0/assets/frontend/js/pages/shop/inline-01.js"
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/p0-root-nav.js",
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/pages/shop/inline-01.js"
       ],
       "url": "/assets/frontend/bundles/p0-shop-core-1.js?p0v=06d6f8ab80be8a1c",
       "hash": "06d6f8ab80be8a1c0eabb582e681cb434e33e37d5480e1403bf13f07d1390f15",
@@ -353,8 +353,8 @@
       "type": "js",
       "label": "shop-core-2",
       "files": [
-        "public/leaip0/assets/frontend/js/shared/inline-54fe4c623706.js",
-        "public/leaip0/assets/frontend/js/shared/inline-dab1b3ae0743.js"
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/shared/inline-54fe4c623706.js",
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/shared/inline-dab1b3ae0743.js"
       ],
       "url": "/assets/frontend/bundles/p0-shared-4c83dffe8380.js?p0v=4c83dffe83802597",
       "hash": "4c83dffe838025975b3fe8cd1a84b2a662f913b41d0fef495347eea2e6b2fa3c",
@@ -367,9 +367,9 @@
       "type": "js",
       "label": "shop-core-4",
       "files": [
-        "public/leaip0/assets/frontend/js/core/arrival-notice-flow-v1.js",
-        "public/leaip0/assets/frontend/js/core/shop-chat.solution-original-v152.js",
-        "public/leaip0/assets/frontend/js/core/app-lxfd.industry-v114.controls-v150.js"
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/arrival-notice-flow-v1.js",
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/shop-chat.solution-original-v152.js",
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/app-lxfd.industry-v114.controls-v150.js"
       ],
       "url": "/assets/frontend/bundles/p0-shop-core-4-appointment-v71.js?p0v=62a2b4f257349517",
       "hash": "62a2b4f25734951794d763a1b29a119f9104eaf911a3eff31eea4564b627cc0c",
@@ -383,11 +383,11 @@
       "type": "js",
       "label": "shop-core-6",
       "files": [
-        "public/leaip0/assets/frontend/js/core/product-floor-compare-v127.js",
-        "public/leaip0/assets/frontend/js/core/composer-association-popup-toggle-v106.js",
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/product-floor-compare-v127.js",
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/composer-association-popup-toggle-v106.js",
         "public/leaip0/channel-customer-service-v126.js",
-        "public/leaip0/assets/frontend/js/core/reco-names-v137.js",
-        "public/leaip0/assets/frontend/js/core/compare-column-detail-v141.js"
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/reco-names-v137.js",
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/compare-column-detail-v141.js"
       ],
       "url": "/assets/frontend/bundles/p0-shop-core-6.js?p0v=4b28741b9c33f3bb",
       "hash": "4b28741b9c33f3bb9e9c77ad2d89070d6509c8e70e65f2fbae4bf5626f200b48",
@@ -403,8 +403,8 @@
       "type": "js",
       "label": "shop-core-7",
       "files": [
-        "public/leaip0/assets/frontend/js/core/product-intent-turn-guard-v2.js",
-        "public/leaip0/assets/frontend/js/core/empty-hover-backplate-collapse-v1.js"
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/product-intent-turn-guard-v2.js",
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/empty-hover-backplate-collapse-v1.js"
       ],
       "url": "/assets/frontend/bundles/p0-shared-2193a72921a1.js?p0v=2193a72921a196f6",
       "hash": "2193a72921a196f60b64ff1a0f4e9658c413d52dbd7eb01f0debdabece57fe30",
@@ -417,8 +417,8 @@
       "type": "js",
       "label": "smb-core-1",
       "files": [
-        "public/leaip0/assets/frontend/js/core/p0-root-nav.js",
-        "public/leaip0/assets/frontend/js/pages/smb/inline-01.js"
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/p0-root-nav.js",
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/pages/smb/inline-01.js"
       ],
       "url": "/assets/frontend/bundles/p0-smb-core-1.js?p0v=cf530d80316afa70",
       "hash": "cf530d80316afa703df2bb34aef6a8703cbe02c38c01f3967bd7908a911b501a",
@@ -431,13 +431,13 @@
       "type": "js",
       "label": "smb-core-3",
       "files": [
-        "public/leaip0/assets/frontend/js/core/model-knowledge-runtime.js",
-        "public/leaip0/assets/frontend/js/shared/inline-5faa7877c846.js",
-        "public/leaip0/assets/frontend/js/core/portal.js",
-        "public/leaip0/assets/frontend/js/core/industry-solutions-v114.js",
-        "public/leaip0/assets/frontend/js/core/app-intent.industry-v114.js",
-        "public/leaip0/assets/frontend/js/core/app-conv.js",
-        "public/leaip0/assets/frontend/js/pages/smb/inline-13.js"
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/model-knowledge-runtime.js",
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/shared/inline-5faa7877c846.js",
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/portal.js",
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/industry-solutions-v114.js",
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/app-intent.industry-v114.js",
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/app-conv.js",
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/pages/smb/inline-13.js"
       ],
       "url": "/assets/frontend/bundles/p0-smb-core-3.js?p0v=4208956fe1f05270",
       "hash": "4208956fe1f052704f1132e7e47940ac0808466a02ce6351ea4a8a90a2df35e3",
@@ -455,9 +455,9 @@
       "type": "js",
       "label": "smb-core-4",
       "files": [
-        "public/leaip0/assets/frontend/js/core/arrival-notice-flow-v1.js",
-        "public/leaip0/assets/frontend/js/core/b-chat.solution-original-v152.js",
-        "public/leaip0/assets/frontend/js/core/app-lxfd.industry-v114.controls-v150.js"
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/arrival-notice-flow-v1.js",
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/b-chat.solution-original-v152.js",
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/app-lxfd.industry-v114.controls-v150.js"
       ],
       "url": "/assets/frontend/bundles/p0-smb-core-4.js?p0v=750b002b2f44dc8f",
       "hash": "750b002b2f44dc8feec7a7fc1e1ed31acb7d60dbaf1251c28b1fd6ba77b90afa",
@@ -471,8 +471,8 @@
       "type": "js",
       "label": "smb-core-5",
       "files": [
-        "public/leaip0/assets/frontend/js/pages/smb/inline-20.js",
-        "public/leaip0/assets/frontend/js/pages/smb/inline-21.js"
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/pages/smb/inline-20.js",
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/pages/smb/inline-21.js"
       ],
       "url": "/assets/frontend/bundles/p0-smb-core-5.js?p0v=6a8a96bb58d30640",
       "hash": "6a8a96bb58d306401c08e7e9705459d562804b919f1e6398bcf93faf29e5971b",
@@ -485,10 +485,10 @@
       "type": "js",
       "label": "smb-core-6",
       "files": [
-        "public/leaip0/assets/frontend/js/core/solution-result.tabs-v120.js",
-        "public/leaip0/assets/frontend/js/core/split-frame-composer-sync.js",
-        "public/leaip0/assets/frontend/js/pages/shop/inline-22.smb-products-v121.js",
-        "public/leaip0/assets/components/smb-hero-reference-v1/carousel.js"
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/solution-result.tabs-v120.js",
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/split-frame-composer-sync.js",
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/pages/shop/inline-22.smb-products-v121.js",
+        "scripts/p0-source-runtime/leaip0/assets/components/smb-hero-reference-v1/carousel.js"
       ],
       "url": "/assets/frontend/bundles/p0-smb-core-6.js?p0v=c7fd37e326d1c25e",
       "hash": "c7fd37e326d1c25eb48235b6a2cc9ba93d525cb442581cdd9e4d9feead43d69e",
@@ -503,14 +503,14 @@
       "type": "js",
       "label": "smb-core-7",
       "files": [
-        "public/leaip0/assets/frontend/js/core/product-floor-compare-v127.js",
-        "public/leaip0/assets/frontend/js/core/composer-association-popup-toggle-v106.js",
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/product-floor-compare-v127.js",
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/composer-association-popup-toggle-v106.js",
         "public/leaip0/channel-customer-service-v126.js",
-        "public/leaip0/assets/frontend/js/core/smb-lead-modal-compact-v118.js",
-        "public/leaip0/assets/frontend/js/core/channel-hotline-v125.js",
-        "public/leaip0/assets/frontend/js/core/smb-auth-shortcuts-v132.js",
-        "public/leaip0/assets/frontend/js/core/reco-names-v137.js",
-        "public/leaip0/assets/frontend/js/core/compare-column-detail-v141.js"
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/smb-lead-modal-compact-v118.js",
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/channel-hotline-v125.js",
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/smb-auth-shortcuts-v132.js",
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/reco-names-v137.js",
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/compare-column-detail-v141.js"
       ],
       "url": "/assets/frontend/bundles/p0-smb-core-7.js?p0v=51a68f85c5547a47",
       "hash": "51a68f85c5547a47aa47b6f991b00112545912531bc5fc7668737e24200f4292",
@@ -529,8 +529,8 @@
       "type": "js",
       "label": "biz-core-1",
       "files": [
-        "public/leaip0/assets/frontend/js/core/p0-root-nav.js",
-        "public/leaip0/assets/frontend/js/pages/biz/inline-01.js"
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/p0-root-nav.js",
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/pages/biz/inline-01.js"
       ],
       "url": "/assets/frontend/bundles/p0-biz-core-1.js?p0v=df97c391a47d6f2c",
       "hash": "df97c391a47d6f2caca396a8b964c3eec336802ac299fc40d12be9d9cef43f34",
@@ -543,13 +543,13 @@
       "type": "js",
       "label": "biz-core-3",
       "files": [
-        "public/leaip0/assets/frontend/js/core/model-knowledge-runtime.js",
-        "public/leaip0/assets/frontend/js/shared/inline-5faa7877c846.js",
-        "public/leaip0/assets/frontend/js/core/portal.js",
-        "public/leaip0/assets/frontend/js/core/industry-solutions-v114.js",
-        "public/leaip0/assets/frontend/js/core/app-intent.industry-v114.js",
-        "public/leaip0/assets/frontend/js/core/app-conv.js",
-        "public/leaip0/assets/frontend/js/core/enterprise-banner-v122.js"
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/model-knowledge-runtime.js",
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/shared/inline-5faa7877c846.js",
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/portal.js",
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/industry-solutions-v114.js",
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/app-intent.industry-v114.js",
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/app-conv.js",
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/enterprise-banner-v122.js"
       ],
       "url": "/assets/frontend/bundles/p0-biz-core-3.js?p0v=fc64604751f27d2c",
       "hash": "fc64604751f27d2c85d7a03c2d28334bafa5553fc7bee8ddb6dd7514572b2e03",
@@ -567,9 +567,9 @@
       "type": "js",
       "label": "biz-core-4",
       "files": [
-        "public/leaip0/assets/frontend/js/core/arrival-notice-flow-v1.js",
-        "public/leaip0/assets/frontend/js/core/biz-chat.solution-original-v152.js",
-        "public/leaip0/assets/frontend/js/core/app-lxfd.industry-v114.controls-v150.js"
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/arrival-notice-flow-v1.js",
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/biz-chat.solution-original-v152.js",
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/app-lxfd.industry-v114.controls-v150.js"
       ],
       "url": "/assets/frontend/bundles/p0-biz-core-4.js?p0v=1ea4d9cf6794b86a",
       "hash": "1ea4d9cf6794b86a901e904d3bed6ccbb6b04a89ed1e02d4da9894ebb2e6829a",
@@ -583,10 +583,10 @@
       "type": "js",
       "label": "biz-core-5",
       "files": [
-        "public/leaip0/assets/frontend/js/core/solution-result.tabs-v120.js",
-        "public/leaip0/assets/frontend/js/core/split-frame-composer-sync.js",
-        "public/leaip0/assets/frontend/js/pages/shop/inline-22.biz-details-v122.js",
-        "public/leaip0/assets/components/biz-hero-reference-v1/carousel.js"
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/solution-result.tabs-v120.js",
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/split-frame-composer-sync.js",
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/pages/shop/inline-22.biz-details-v122.js",
+        "scripts/p0-source-runtime/leaip0/assets/components/biz-hero-reference-v1/carousel.js"
       ],
       "url": "/assets/frontend/bundles/p0-biz-core-5.js?p0v=45148168fc6a62af",
       "hash": "45148168fc6a62afe423de69fb2e62e9b69caf545fec90fa62957ee73803ba9e",
@@ -601,13 +601,13 @@
       "type": "js",
       "label": "biz-core-6",
       "files": [
-        "public/leaip0/assets/frontend/js/core/product-floor-compare-v127.js",
-        "public/leaip0/assets/frontend/js/core/composer-association-popup-toggle-v106.js",
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/product-floor-compare-v127.js",
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/composer-association-popup-toggle-v106.js",
         "public/leaip0/channel-customer-service-v126.js",
-        "public/leaip0/assets/frontend/js/core/whitepaper-action-cards-v124.js",
-        "public/leaip0/assets/frontend/js/core/channel-hotline-v125.js",
-        "public/leaip0/assets/frontend/js/core/reco-names-v137.js",
-        "public/leaip0/assets/frontend/js/core/compare-column-detail-v141.js"
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/whitepaper-action-cards-v124.js",
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/channel-hotline-v125.js",
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/reco-names-v137.js",
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/compare-column-detail-v141.js"
       ],
       "url": "/assets/frontend/bundles/p0-biz-core-6.js?p0v=043e149665bdfe1c",
       "hash": "043e149665bdfe1ce19aaa0fc9f5cff2e69306645392bb74c5783b3e20a83b0d",
@@ -625,7 +625,7 @@
       "type": "js",
       "label": "brand-detail",
       "files": [
-        "public/leaip0/assets/frontend/js/core/product-detail-benefits-v182.js",
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/product-detail-benefits-v182.js",
         "scripts/p0-source-variants/product-detail-review-tab-v203-1.js"
       ],
       "url": "/assets/frontend/bundles/p0-brand-detail.js?p0v=357aad865d02fae1",
@@ -639,7 +639,7 @@
       "type": "js",
       "label": "brand-orders",
       "files": [
-        "public/leaip0/assets/frontend/js/core/order-demo-data.js",
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/order-demo-data.js",
         "scripts/p0-source-variants/order-center-1.js"
       ],
       "url": "/assets/frontend/bundles/p0-brand-orders.js?p0v=90cdf5874a8cc9a1",
@@ -653,7 +653,7 @@
       "type": "css",
       "label": "p0-brand-detail-0",
       "files": [
-        "public/leaip0/assets/frontend/css/core/product-detail-benefits-v182.css"
+        "scripts/p0-source-runtime/leaip0/assets/frontend/css/core/product-detail-benefits-v182.css"
       ],
       "url": "/assets/frontend/bundles/p0-p0-brand-detail-0.css?p0v=0f29239b924a1fed",
       "hash": "0f29239b924a1fed2384f32d776684332bed12b1dc925ac50b7ca7f41b45438b",
@@ -665,8 +665,8 @@
       "type": "js",
       "label": "brand-core-1",
       "files": [
-        "public/leaip0/assets/frontend/js/core/p0-root-nav.js",
-        "public/leaip0/assets/frontend/js/pages/brand/inline-01.js"
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/p0-root-nav.js",
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/pages/brand/inline-01.js"
       ],
       "url": "/assets/frontend/bundles/p0-brand-core-1.js?p0v=a50a9f7d0bb2fa92",
       "hash": "a50a9f7d0bb2fa92878ee60d447623de20fc1dc42773aca18444eac356537936",
@@ -679,9 +679,9 @@
       "type": "js",
       "label": "brand-core-4",
       "files": [
-        "public/leaip0/assets/frontend/js/core/arrival-notice-flow-v1.js",
-        "public/leaip0/assets/frontend/js/core/app-brand.industry-v114.trace-first-v117.tabs-v120.min.js",
-        "public/leaip0/assets/frontend/js/core/app-lxfd.industry-v114.js"
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/arrival-notice-flow-v1.js",
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/app-brand.industry-v114.trace-first-v117.tabs-v120.min.js",
+        "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/app-lxfd.industry-v114.js"
       ],
       "url": "/assets/frontend/bundles/p0-brand-core-4.js?p0v=3b03826171d9ce3c",
       "hash": "3b03826171d9ce3c634088b4b6c7ea7e14dc0d5c48f9adbe00e6d3c20ea81cc8",
@@ -708,56 +708,56 @@
   ],
   "embedded": [
     {
-      "source": "public/leaip0/assets/frontend/js/core/purchase-context-v1.js",
-      "target": "public/leaip0/assets/frontend/js/core/buy-modal-direct-v1.js",
+      "source": "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/purchase-context-v1.js",
+      "target": "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/buy-modal-direct-v1.js",
       "start": "/* p0-purchase-context:start */",
       "end": "/* p0-purchase-context:end */"
     },
     {
-      "source": "public/leaip0/assets/frontend/js/core/page-lifecycle-v1.js",
-      "target": "public/leaip0/assets/frontend/js/core/home.solution-original-v152.js",
+      "source": "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/page-lifecycle-v1.js",
+      "target": "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/home.solution-original-v152.js",
       "start": "/* p0-page-lifecycle:start */",
       "end": "/* p0-page-lifecycle:end */"
     },
     {
-      "source": "public/leaip0/assets/frontend/js/core/page-lifecycle-v1.js",
-      "target": "public/leaip0/assets/frontend/js/core/shop-chat.solution-original-v152.js",
+      "source": "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/page-lifecycle-v1.js",
+      "target": "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/shop-chat.solution-original-v152.js",
       "start": "/* p0-page-lifecycle:start */",
       "end": "/* p0-page-lifecycle:end */"
     },
     {
-      "source": "public/leaip0/assets/frontend/js/core/page-lifecycle-v1.js",
-      "target": "public/leaip0/assets/frontend/js/core/b-chat.solution-original-v152.js",
+      "source": "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/page-lifecycle-v1.js",
+      "target": "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/b-chat.solution-original-v152.js",
       "start": "/* p0-page-lifecycle:start */",
       "end": "/* p0-page-lifecycle:end */"
     },
     {
-      "source": "public/leaip0/assets/frontend/js/core/page-lifecycle-v1.js",
-      "target": "public/leaip0/assets/frontend/js/core/biz-chat.solution-original-v152.js",
+      "source": "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/page-lifecycle-v1.js",
+      "target": "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/biz-chat.solution-original-v152.js",
       "start": "/* p0-page-lifecycle:start */",
       "end": "/* p0-page-lifecycle:end */"
     },
     {
-      "source": "public/leaip0/assets/frontend/js/core/page-lifecycle-v1.js",
-      "target": "public/leaip0/assets/frontend/js/core/app-brand.industry-v114.trace-first-v117.tabs-v120.min.js",
+      "source": "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/page-lifecycle-v1.js",
+      "target": "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/app-brand.industry-v114.trace-first-v117.tabs-v120.min.js",
       "start": "/* p0-page-lifecycle:start */",
       "end": "/* p0-page-lifecycle:end */"
     },
     {
-      "source": "public/leaip0/assets/frontend/js/core/stream-view-v1.js",
+      "source": "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/stream-view-v1.js",
       "target": "public/leaip0/assets/frontend/js/core/app-lxfd.home-conversation-v122.placeholder-v147.controls-v150.js",
       "start": "/* p0-stream-view:start */",
       "end": "/* p0-stream-view:end */"
     },
     {
-      "source": "public/leaip0/assets/frontend/js/core/stream-view-v1.js",
-      "target": "public/leaip0/assets/frontend/js/core/app-lxfd.industry-v114.controls-v150.js",
+      "source": "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/stream-view-v1.js",
+      "target": "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/app-lxfd.industry-v114.controls-v150.js",
       "start": "/* p0-stream-view:start */",
       "end": "/* p0-stream-view:end */"
     },
     {
-      "source": "public/leaip0/assets/frontend/js/core/stream-view-v1.js",
-      "target": "public/leaip0/assets/frontend/js/core/app-lxfd.industry-v114.js",
+      "source": "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/stream-view-v1.js",
+      "target": "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/app-lxfd.industry-v114.js",
       "start": "/* p0-stream-view:start */",
       "end": "/* p0-stream-view:end */"
     }
@@ -2596,7 +2596,7 @@
   ],
   "inlineSources": [
     {
-      "source": "public/leaip0/assets/frontend/js/core/p0-home-features-v1.js",
+      "source": "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/p0-home-features-v1.js",
       "pages": [
         "public/leaip0/index.html",
         "public/leaip0/shop-chat/index.html",
@@ -2614,5 +2614,85 @@
     "public/leaip0/b-chat/index.html",
     "public/leaip0/biz-chat/index.html",
     "public/leaip0/brand/index.html"
+  ],
+  "sourceRoot": "scripts/p0-source-runtime/leaip0",
+  "publicSourceRoot": "public/leaip0",
+  "pureBuildSources": [
+    "scripts/p0-source-runtime/leaip0/assets/frontend/css/components/member-insights-v134.css",
+    "scripts/p0-source-runtime/leaip0/assets/frontend/css/components/member-asset-rules-v135.css",
+    "scripts/p0-source-runtime/leaip0/assets/frontend/css/components/member-asset-ledger-v137.css",
+    "scripts/p0-source-runtime/leaip0/assets/frontend/css/components/member-demo-off-v35.css",
+    "scripts/p0-source-runtime/leaip0/assets/frontend/css/components/member-device-bind-fix-v39.css",
+    "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/address-dialog-v144.css",
+    "scripts/p0-source-runtime/leaip0/assets/frontend/css/core/order-center.css",
+    "scripts/p0-source-runtime/leaip0/assets/frontend/css/core/product-detail-strike-price-v190.css",
+    "scripts/p0-source-runtime/leaip0/assets/frontend/css/core/product-detail-benefits-v200.css",
+    "scripts/p0-source-runtime/leaip0/assets/frontend/css/core/product-detail-review-tab-v202.css",
+    "scripts/p0-source-runtime/leaip0/assets/frontend/css/core/product-detail-trustline-v195.css",
+    "scripts/p0-source-runtime/leaip0/assets/frontend/css/core/product-review-standard-v1.css",
+    "scripts/p0-source-runtime/leaip0/assets/frontend/css/core/product-detail-itemcode-v1.css",
+    "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/model-knowledge-runtime.js",
+    "scripts/p0-source-runtime/leaip0/assets/frontend/js/shared/inline-5faa7877c846.js",
+    "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/portal.js",
+    "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/industry-solutions-v114.js",
+    "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/app-intent.industry-v114.js",
+    "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/app-conv.js",
+    "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/arrival-notice-flow-v1.js",
+    "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/home.solution-original-v152.js",
+    "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/solution-result.tabs-v120.js",
+    "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/split-frame-composer-sync.js",
+    "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/composer-association-popup-toggle-v106.js",
+    "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/reco-names-v137.js",
+    "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/compare-column-detail-v141.js",
+    "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/product-intent-turn-guard-v2.js",
+    "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/empty-hover-backplate-collapse-v1.js",
+    "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/order-modal-reference-exact-no-body-max-v58.js",
+    "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/order-modal-reference-config-sku-v100.js",
+    "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/product-detail-benefits-v198.js",
+    "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/product-detail-review-tab-v203.js",
+    "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/order-demo-data.js",
+    "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/order-center.js",
+    "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/hide-legacy-demo-orders-v146.js",
+    "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/scanpay-button-standard-v101.js",
+    "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/order-payment-orders-sync-v102.js",
+    "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/view-orders-recommendation-card-v103.js",
+    "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/paid-order-result-card-v104.js",
+    "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/address-regions-v142.js",
+    "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/address-dialog-v142.js",
+    "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/buy-modal-direct-v1.js",
+    "scripts/p0-source-runtime/leaip0/assets/frontend/css/components/member-service-exact-0827.css",
+    "scripts/p0-source-runtime/leaip0/assets/frontend/css/components/member-device-actions-v38.css",
+    "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/p0-root-nav.js",
+    "scripts/p0-source-runtime/leaip0/assets/frontend/js/pages/shop/inline-01.js",
+    "scripts/p0-source-runtime/leaip0/assets/frontend/js/shared/inline-54fe4c623706.js",
+    "scripts/p0-source-runtime/leaip0/assets/frontend/js/shared/inline-dab1b3ae0743.js",
+    "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/shop-chat.solution-original-v152.js",
+    "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/app-lxfd.industry-v114.controls-v150.js",
+    "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/product-floor-compare-v127.js",
+    "scripts/p0-source-runtime/leaip0/assets/frontend/js/pages/smb/inline-01.js",
+    "scripts/p0-source-runtime/leaip0/assets/frontend/js/pages/smb/inline-13.js",
+    "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/b-chat.solution-original-v152.js",
+    "scripts/p0-source-runtime/leaip0/assets/frontend/js/pages/smb/inline-20.js",
+    "scripts/p0-source-runtime/leaip0/assets/frontend/js/pages/smb/inline-21.js",
+    "scripts/p0-source-runtime/leaip0/assets/frontend/js/pages/shop/inline-22.smb-products-v121.js",
+    "scripts/p0-source-runtime/leaip0/assets/components/smb-hero-reference-v1/carousel.js",
+    "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/smb-lead-modal-compact-v118.js",
+    "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/channel-hotline-v125.js",
+    "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/smb-auth-shortcuts-v132.js",
+    "scripts/p0-source-runtime/leaip0/assets/frontend/js/pages/biz/inline-01.js",
+    "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/enterprise-banner-v122.js",
+    "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/biz-chat.solution-original-v152.js",
+    "scripts/p0-source-runtime/leaip0/assets/frontend/js/pages/shop/inline-22.biz-details-v122.js",
+    "scripts/p0-source-runtime/leaip0/assets/components/biz-hero-reference-v1/carousel.js",
+    "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/whitepaper-action-cards-v124.js",
+    "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/product-detail-benefits-v182.js",
+    "scripts/p0-source-runtime/leaip0/assets/frontend/css/core/product-detail-benefits-v182.css",
+    "scripts/p0-source-runtime/leaip0/assets/frontend/js/pages/brand/inline-01.js",
+    "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/app-brand.industry-v114.trace-first-v117.tabs-v120.min.js",
+    "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/app-lxfd.industry-v114.js",
+    "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/p0-home-features-v1.js",
+    "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/purchase-context-v1.js",
+    "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/page-lifecycle-v1.js",
+    "scripts/p0-source-runtime/leaip0/assets/frontend/js/core/stream-view-v1.js"
   ]
 }
