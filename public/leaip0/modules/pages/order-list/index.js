@@ -75,6 +75,12 @@ window.__p0Modules.sources["u964d5c5f0a92784e"]=function(){
       image: '/assets/img/shop-7.jpg',
       price: 500
     },
+    tencentVideo: {
+      name: '腾讯视频会员',
+      description: '腾讯视频会员在线充值',
+      image: '/assets/img/tencent-video-membership-20260922.png',
+      price: 4.7
+    },
     option: {
       name: '联想小新 Air 蓝牙无线鼠标',
       description: '蓝牙 5.0｜轻音按键｜云墨灰',
@@ -325,6 +331,16 @@ window.__p0Modules.sources["u964d5c5f0a92784e"]=function(){
       shipping: { mode: 'notice', notice: SERVICE_NOTICE }
     },
     {
+      id: '323943186', type: 'recharge', typeLabel: '充值订单', status: '交易完成',
+      createdAt: '2026-07-29 14:28:09', paidAt: '2026-07-29 14:28:15', paymentMethod: '支付宝手机支付', currentIndex: 3,
+      items: [item(products.tencentVideo, 1)], recipient: { name: '', phone: '', address: '' },
+      invoice: { text: '不开发票' }, remark: '非实物交付请参看商品详情页面服务说明为准',
+      payment: payment(4.7, 0, 0, 4.7),
+      tencentVideo: { cardNumber: '无卡号', cardSecret: '', validUntil: '2027-01-13 23:59:59', deliveryMethod: '在线充值', notice: '非实物交付请参看商品详情页面服务说明为准' },
+      timeline: timeline(['提交订单', '支付成功', '充值完成', '交易完成'], 3, ['2026-07-29 14:28:09', '2026-07-29 14:28:15', '2026-07-29 14:28:15', '2026-07-29 14:28:15']),
+      shipping: { mode: 'notice', notice: '非实物交付请参看商品详情页面服务说明为准' }
+    },
+    {
       id: '300000501', type: 'omoPickup', typeLabel: 'OMO 订单', status: '等待自提',
       createdAt: '2026-08-17 15:28:44', paidAt: '2026-08-17 15:29:20', paymentMethod: '微信支付', currentIndex: 2,
       items: [item(products.tablet, 1)], recipient: { name: '李晓琳', phone: '186 1038 5521', address: '' },
@@ -544,6 +560,7 @@ window.__p0Modules.sources["ub6f48396e439846b"]=function(){
 
         function orderAmount(order) {
           var payment = order.payment || {};
+          if (order.tencentVideo) return "¥" + String(payment.payable);
           return formatMixedAmount(payment.payable, payment.beans);
         }
 
@@ -729,9 +746,9 @@ window.__p0Modules.sources["ub6f48396e439846b"]=function(){
           return '<div class="lx-orders-thread">' +
             '<p class="lx-order-user">我有哪些订单？</p>' +
             '<div class="lx-order-ai"><div class="lx-order-skill"><img src="../icons/mall-orders.svg" alt=""><span>已完成 1 个 Skill 调用 · 订单查询</span></div>' +
-              '<p>我为你查到 <strong>22 笔订单</strong>，其中 17 笔正在进行中，最近一笔下单时间为 2026-08-18。</p>' +
+'<p>我为你查到 <strong>23 笔订单</strong>，其中 17 笔正在进行中，最近一笔下单时间为 2026-08-18。</p>' +
               '<p>订单列表已展示在右侧。点击任一订单卡片即可查看完整订单信息与物流轨迹。</p>' +
-              '<button class="lx-order-result-card" type="button" data-open-orders><span class="lx-order-result-icon"><img src="../icons/global-next.svg" alt=""></span><span><strong>查看我的订单</strong><small>共 22 笔 · 17 笔进行中</small></span><img src="../icons/arrow-left.svg" alt=""></button>' +
+              '<button class="lx-order-result-card" type="button" data-open-orders><span class="lx-order-result-icon"><img src="../icons/global-next.svg" alt=""></span><span><strong>查看我的订单</strong><small>共 23 笔 · 17 笔进行中</small></span><img src="../icons/arrow-left.svg" alt=""></button>' +
             '</div>' +
           '</div>';
         }
@@ -939,7 +956,7 @@ window.__p0Modules.sources["ub6f48396e439846b"]=function(){
           if (detail) detail.classList.remove("is-active");
           if (list) list.classList.add("is-active");
           removeLegacyTabs();
-          if (question) streamSkillAnswer(question, "订单查询", ["已为你打开我的订单页面，共查询到 22 笔订单。", "你可以在右侧查看每笔订单的状态、实付款和下单时间；点击“详情”可继续查看订单信息与物流轨迹。"]);
+          if (question) streamSkillAnswer(question, "订单查询", ["已为你打开我的订单页面，共查询到 23 笔订单。", "你可以在右侧查看每笔订单的状态、实付款和下单时间；点击“详情”可继续查看订单信息与物流轨迹。"]);
         }
 
         function clearFreshHomeConversationBeforeOrders() {
@@ -987,9 +1004,9 @@ window.__p0Modules.sources["ub6f48396e439846b"]=function(){
               window.__lxBridge.prepareRootSplitState();
             }
             showOrderGeneration();
-            await streamSkillAnswer(question || "我要查看订单", "订单查询", ["已为你查询到 22 笔订单，包含待付款、待发货和待收货状态。点击右侧订单卡片即可查看商品、金额与物流详情。"], {
-              finalHtml: '<p>已为你查询到 <strong>22 笔订单</strong>，包含待付款、待发货和待收货状态。点击右侧订单卡片即可查看商品、金额与<strong>物流详情</strong>。</p>',
-              cardHtml: '<button class="answer-cta lx-answer-page" type="button" data-open-orders data-lx-result-id="info:orders" aria-pressed="false"><span class="answer-cta-copy"><span class="answer-cta-title">查看我的订单</span><span class="answer-cta-desc">共 22 笔 · 17 笔进行中</span></span><span class="answer-cta-icon" aria-hidden="true"><img class="lx-approved-icon-img" src="../icons/global-next.svg" alt=""></span></button>'
+            await streamSkillAnswer(question || "我要查看订单", "订单查询", ["已为你查询到 23 笔订单，包含待付款、待发货和待收货状态。点击右侧订单卡片即可查看商品、金额与物流详情。"], {
+              finalHtml: '<p>已为你查询到 <strong>23 笔订单</strong>，包含待付款、待发货和待收货状态。点击右侧订单卡片即可查看商品、金额与<strong>物流详情</strong>。</p>',
+              cardHtml: '<button class="answer-cta lx-answer-page" type="button" data-open-orders data-lx-result-id="info:orders" aria-pressed="false"><span class="answer-cta-copy"><span class="answer-cta-title">查看我的订单</span><span class="answer-cta-desc">共 23 笔 · 17 笔进行中</span></span><span class="answer-cta-icon" aria-hidden="true"><img class="lx-approved-icon-img" src="../icons/global-next.svg" alt=""></span></button>'
             });
             openOrdersFromChat("");
           } finally {
@@ -1051,6 +1068,25 @@ window.__p0Modules.sources["ub6f48396e439846b"]=function(){
         }
 
         function detailMarkup(order) {
+          if (order.tencentVideo) {
+            var video = order.tencentVideo;
+            var product = order.items[0];
+            var amount = "¥" + String(order.payment.payable);
+            return '<header class="lx-order-detail-head"><div class="lx-order-detail-title"><div class="lx-order-detail-title-row"><button class="lx-order-back" type="button" data-order-back aria-label="返回订单列表"><img src="../icons/global-next.svg" alt=""></button><h1>订单详情</h1></div></div></header>' +
+              '<div class="lx-video-order-detail">' +
+              '<p class="lx-video-order-notice">' + escapeHtml(video.notice) + '</p>' +
+              '<div class="lx-video-order-product"><img src="' + escapeHtml(product.image) + '" alt="' + escapeHtml(product.name) + '"><strong>' + escapeHtml(amount) + '</strong></div>' +
+              '<div class="lx-video-order-facts"><div><b>充值卡号：</b><span>' + escapeHtml(video.cardNumber) + '</span><button type="button" data-copy-tracking="' + escapeHtml(video.cardNumber) + '">复制</button></div>' +
+              '<div><b>充值密码：</b><button type="button" disabled aria-label="暂无充值密码可复制">复制</button></div>' +
+              '<div><b>有效期至：</b><span>' + escapeHtml(video.validUntil) + '</span></div></div>' +
+              '<div class="lx-video-order-section"><div><b>订单编号：</b><span>' + escapeHtml(order.id) + '</span><button type="button" data-copy-tracking="' + escapeHtml(order.id) + '">复制</button></div>' +
+              '<div><b>下单时间：</b><span>' + escapeHtml(order.createdAt) + '</span></div>' +
+              '<div><b>支付方式：</b><span>' + escapeHtml(order.paymentMethod) + '</span></div>' +
+              '<div><b>支付时间：</b><span>' + escapeHtml(order.paidAt) + '</span></div></div>' +
+              '<div class="lx-video-order-section"><div><b>配送方式：</b><span>' + escapeHtml(video.deliveryMethod) + '</span></div></div>' +
+              '<div class="lx-video-order-section lx-video-order-prices"><div><b>商品金额</b><span>' + escapeHtml(amount) + '</span></div><div><b>运费</b><span>¥0</span></div><div><b>优惠</b><span>-¥0</span></div>' +
+              '<div class="lx-video-order-total"><b>实付款：</b><strong>' + escapeHtml(amount) + '</strong></div></div></div>';
+          }
           var recipient = order.recipient || {};
           var store = order.store || {};
           var payment = order.payment || {};
@@ -1669,6 +1705,7 @@ window.__p0Modules.sources["ufac3b596c3b40014"]=function(){
 
         function orderAmount(order) {
           var payment = order.payment || {};
+          if (order.tencentVideo) return "¥" + String(payment.payable);
           return formatMixedAmount(payment.payable, payment.beans);
         }
 
@@ -1854,9 +1891,9 @@ window.__p0Modules.sources["ufac3b596c3b40014"]=function(){
           return '<div class="lx-orders-thread">' +
             '<p class="lx-order-user">我有哪些订单？</p>' +
             '<div class="lx-order-ai"><div class="lx-order-skill"><img src="../icons/mall-orders.svg" alt=""><span>已完成 1 个 Skill 调用 · 订单查询</span></div>' +
-              '<p>我为你查到 <strong>22 笔订单</strong>，其中 17 笔正在进行中，最近一笔下单时间为 2026-08-18。</p>' +
+              '<p>我为你查到 <strong>23 笔订单</strong>，其中 17 笔正在进行中，最近一笔下单时间为 2026-08-18。</p>' +
               '<p>订单列表已展示在右侧。点击任一订单卡片即可查看完整订单信息与物流轨迹。</p>' +
-              '<button class="lx-order-result-card" type="button" data-open-orders><span class="lx-order-result-icon"><img src="../icons/global-next.svg" alt=""></span><span><strong>查看我的订单</strong><small>共 22 笔 · 17 笔进行中</small></span><img src="../icons/arrow-left.svg" alt=""></button>' +
+              '<button class="lx-order-result-card" type="button" data-open-orders><span class="lx-order-result-icon"><img src="../icons/global-next.svg" alt=""></span><span><strong>查看我的订单</strong><small>共 23 笔 · 17 笔进行中</small></span><img src="../icons/arrow-left.svg" alt=""></button>' +
             '</div>' +
           '</div>';
         }
@@ -2064,7 +2101,7 @@ window.__p0Modules.sources["ufac3b596c3b40014"]=function(){
           if (detail) detail.classList.remove("is-active");
           if (list) list.classList.add("is-active");
           removeLegacyTabs();
-          if (question) streamSkillAnswer(question, "订单查询", ["已为你打开我的订单页面，共查询到 22 笔订单。", "你可以在右侧查看每笔订单的状态、实付款和下单时间；点击“详情”可继续查看订单信息与物流轨迹。"]);
+          if (question) streamSkillAnswer(question, "订单查询", ["已为你打开我的订单页面，共查询到 23 笔订单。", "你可以在右侧查看每笔订单的状态、实付款和下单时间；点击“详情”可继续查看订单信息与物流轨迹。"]);
         }
 
         function clearFreshHomeConversationBeforeOrders() {
@@ -2112,9 +2149,9 @@ window.__p0Modules.sources["ufac3b596c3b40014"]=function(){
               window.__lxBridge.prepareRootSplitState();
             }
             showOrderGeneration();
-            await streamSkillAnswer(question || "我要查看订单", "订单查询", ["已为你查询到 22 笔订单，包含待付款、待发货和待收货状态。点击右侧订单卡片即可查看商品、金额与物流详情。"], {
-              finalHtml: '<p>已为你查询到 <strong>22 笔订单</strong>，包含待付款、待发货和待收货状态。点击右侧订单卡片即可查看商品、金额与<strong>物流详情</strong>。</p>',
-              cardHtml: '<button class="answer-cta lx-answer-page" type="button" data-open-orders data-lx-result-id="info:orders" aria-pressed="false"><span class="answer-cta-copy"><span class="answer-cta-title">查看我的订单</span><span class="answer-cta-desc">共 22 笔 · 17 笔进行中</span></span><span class="answer-cta-icon" aria-hidden="true"><img class="lx-approved-icon-img" src="../icons/global-next.svg" alt=""></span></button>'
+            await streamSkillAnswer(question || "我要查看订单", "订单查询", ["已为你查询到 23 笔订单，包含待付款、待发货和待收货状态。点击右侧订单卡片即可查看商品、金额与物流详情。"], {
+              finalHtml: '<p>已为你查询到 <strong>23 笔订单</strong>，包含待付款、待发货和待收货状态。点击右侧订单卡片即可查看商品、金额与<strong>物流详情</strong>。</p>',
+              cardHtml: '<button class="answer-cta lx-answer-page" type="button" data-open-orders data-lx-result-id="info:orders" aria-pressed="false"><span class="answer-cta-copy"><span class="answer-cta-title">查看我的订单</span><span class="answer-cta-desc">共 23 笔 · 17 笔进行中</span></span><span class="answer-cta-icon" aria-hidden="true"><img class="lx-approved-icon-img" src="../icons/global-next.svg" alt=""></span></button>'
             });
             openOrdersFromChat("");
           } finally {
@@ -2176,6 +2213,25 @@ window.__p0Modules.sources["ufac3b596c3b40014"]=function(){
         }
 
         function detailMarkup(order) {
+          if (order.tencentVideo) {
+            var video = order.tencentVideo;
+            var product = order.items[0];
+            var amount = "¥" + String(order.payment.payable);
+            return '<header class="lx-order-detail-head"><div class="lx-order-detail-title"><div class="lx-order-detail-title-row"><button class="lx-order-back" type="button" data-order-back aria-label="返回订单列表"><img src="../icons/global-next.svg" alt=""></button><h1>订单详情</h1></div></div></header>' +
+              '<div class="lx-video-order-detail">' +
+              '<p class="lx-video-order-notice">' + escapeHtml(video.notice) + '</p>' +
+              '<div class="lx-video-order-product"><img src="' + escapeHtml(product.image) + '" alt="' + escapeHtml(product.name) + '"><strong>' + escapeHtml(amount) + '</strong></div>' +
+              '<div class="lx-video-order-facts"><div><b>充值卡号：</b><span>' + escapeHtml(video.cardNumber) + '</span><button type="button" data-copy-tracking="' + escapeHtml(video.cardNumber) + '">复制</button></div>' +
+              '<div><b>充值密码：</b><button type="button" disabled aria-label="暂无充值密码可复制">复制</button></div>' +
+              '<div><b>有效期至：</b><span>' + escapeHtml(video.validUntil) + '</span></div></div>' +
+              '<div class="lx-video-order-section"><div><b>订单编号：</b><span>' + escapeHtml(order.id) + '</span><button type="button" data-copy-tracking="' + escapeHtml(order.id) + '">复制</button></div>' +
+              '<div><b>下单时间：</b><span>' + escapeHtml(order.createdAt) + '</span></div>' +
+              '<div><b>支付方式：</b><span>' + escapeHtml(order.paymentMethod) + '</span></div>' +
+              '<div><b>支付时间：</b><span>' + escapeHtml(order.paidAt) + '</span></div></div>' +
+              '<div class="lx-video-order-section"><div><b>配送方式：</b><span>' + escapeHtml(video.deliveryMethod) + '</span></div></div>' +
+              '<div class="lx-video-order-section lx-video-order-prices"><div><b>商品金额</b><span>' + escapeHtml(amount) + '</span></div><div><b>运费</b><span>¥0</span></div><div><b>优惠</b><span>-¥0</span></div>' +
+              '<div class="lx-video-order-total"><b>实付款：</b><strong>' + escapeHtml(amount) + '</strong></div></div></div>';
+          }
           var recipient = order.recipient || {};
           var store = order.store || {};
           var payment = order.payment || {};
