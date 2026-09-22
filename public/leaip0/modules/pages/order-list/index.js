@@ -554,6 +554,10 @@ window.__p0Modules.sources["ub6f48396e439846b"]=function(){
           return Number(beans || 0) > 0 ? cash + " + " + Number(beans) + "乐豆" : cash;
         }
 
+        function formatDetailAmount(order, value, beans) {
+          return order.tencentVideo ? "¥" + String(Number(value || 0)) : formatMixedAmount(value, beans);
+        }
+
         function primaryItem(order) {
           return (order.items || [])[0] || {};
         }
@@ -1031,7 +1035,7 @@ window.__p0Modules.sources["ub6f48396e439846b"]=function(){
             var role = item.role && item.role !== "主品" ? '<span class="lx-order-item-role">' + escapeHtml(item.role) + '</span>' : "";
             var mixed = Number(item.beans || 0) > 0 ? " lx-order-mixed-amount" : "";
             var orderMeta = index === 0 ? '<div class="lx-order-detail-meta"><span>订单编号 ' + escapeHtml(order.id) + ' · ' + escapeHtml(order.typeLabel) + '</span><span class="lx-order-detail-status">' + escapeHtml(order.status) + '</span></div>' : "";
-            return '<section class="lx-order-detail-summary' + (index === 0 ? ' has-order-meta' : '') + '">' + orderMeta + '<span class="lx-order-thumb"><img src="' + escapeHtml(item.image) + '" alt="' + escapeHtml(item.name) + '"></span><div class="lx-order-detail-product">' + role + '<h2>' + escapeHtml(item.name) + '</h2><p>' + escapeHtml(item.description) + '</p><p>数量 ×' + escapeHtml(item.quantity) + '</p></div><strong class="lx-order-detail-price' + mixed + '">' + escapeHtml(formatMixedAmount(item.amount, item.beans)) + '</strong></section>';
+            return '<section class="lx-order-detail-summary' + (index === 0 ? ' has-order-meta' : '') + '">' + orderMeta + '<span class="lx-order-thumb"><img src="' + escapeHtml(item.image) + '" alt="' + escapeHtml(item.name) + '"></span><div class="lx-order-detail-product">' + role + '<h2>' + escapeHtml(item.name) + '</h2><p>' + escapeHtml(item.description) + '</p><p>数量 ×' + escapeHtml(item.quantity) + '</p></div><strong class="lx-order-detail-price' + mixed + '">' + escapeHtml(formatDetailAmount(order, item.amount, item.beans)) + '</strong></section>';
           }).join("") + '</div>';
         }
 
@@ -1043,6 +1047,9 @@ window.__p0Modules.sources["ub6f48396e439846b"]=function(){
 
         function renderSpecialSections(order) {
           var html = "";
+          if (order.tencentVideo) {
+            html += '<section class="lx-detail-section"><h3>充值信息</h3>' + infoRows([["充值卡号", order.tencentVideo.cardNumber], ["充值密码", order.tencentVideo.cardSecret || "—"], ["有效期至", order.tencentVideo.validUntil], ["交付方式", order.tencentVideo.deliveryMethod]]) + '</section>';
+          }
           if (order.presale) {
             html += '<section class="lx-detail-section"><h3>预售信息</h3><div class="lx-detail-special"><div><span>定金</span><strong>' + escapeHtml(formatCurrency(order.presale.deposit)) + '</strong></div><div><span>尾款</span><strong>' + escapeHtml(typeof order.presale.tailAmount === "number" ? formatCurrency(order.presale.tailAmount) : order.presale.tailAmount) + '</strong></div><div><span>尾款支付时间</span><strong>' + escapeHtml(order.presale.tailPaymentAt) + '</strong></div><div><span>预计交付</span><strong>' + escapeHtml(order.expectedDelivery || "待确认") + '</strong></div></div></section>';
           }
@@ -1068,34 +1075,17 @@ window.__p0Modules.sources["ub6f48396e439846b"]=function(){
         }
 
         function detailMarkup(order) {
-          if (order.tencentVideo) {
-            var video = order.tencentVideo;
-            var product = order.items[0];
-            var amount = "¥" + String(order.payment.payable);
-            return '<header class="lx-order-detail-head"><div class="lx-order-detail-title"><div class="lx-order-detail-title-row"><button class="lx-order-back" type="button" data-order-back aria-label="返回订单列表"><img src="../icons/global-next.svg" alt=""></button><h1>订单详情</h1></div></div></header>' +
-              '<div class="lx-video-order-detail">' +
-              '<p class="lx-video-order-notice">' + escapeHtml(video.notice) + '</p>' +
-              '<div class="lx-video-order-product"><img src="' + escapeHtml(product.image) + '" alt="' + escapeHtml(product.name) + '"><strong>' + escapeHtml(amount) + '</strong></div>' +
-              '<div class="lx-video-order-facts"><div><b>充值卡号：</b><span>' + escapeHtml(video.cardNumber) + '</span><button type="button" data-copy-tracking="' + escapeHtml(video.cardNumber) + '">复制</button></div>' +
-              '<div><b>充值密码：</b><button type="button" disabled aria-label="暂无充值密码可复制">复制</button></div>' +
-              '<div><b>有效期至：</b><span>' + escapeHtml(video.validUntil) + '</span></div></div>' +
-              '<div class="lx-video-order-section"><div><b>订单编号：</b><span>' + escapeHtml(order.id) + '</span><button type="button" data-copy-tracking="' + escapeHtml(order.id) + '">复制</button></div>' +
-              '<div><b>下单时间：</b><span>' + escapeHtml(order.createdAt) + '</span></div>' +
-              '<div><b>支付方式：</b><span>' + escapeHtml(order.paymentMethod) + '</span></div>' +
-              '<div><b>支付时间：</b><span>' + escapeHtml(order.paidAt) + '</span></div></div>' +
-              '<div class="lx-video-order-section"><div><b>配送方式：</b><span>' + escapeHtml(video.deliveryMethod) + '</span></div></div>' +
-              '<div class="lx-video-order-section lx-video-order-prices"><div><b>商品金额</b><span>' + escapeHtml(amount) + '</span></div><div><b>运费</b><span>¥0</span></div><div><b>优惠</b><span>-¥0</span></div>' +
-              '<div class="lx-video-order-total"><b>实付款：</b><strong>' + escapeHtml(amount) + '</strong></div></div></div>';
-          }
           var recipient = order.recipient || {};
           var store = order.store || {};
           var payment = order.payment || {};
           var shippingLabels = { physical: "快递配送", notice: "服务/虚拟交付", pickup: "到店自提", storeDelivery: "门店闪送" };
+          if (order.tencentVideo) shippingLabels.notice = order.tencentVideo.deliveryMethod;
           var storeSection = order.store ? '<section class="lx-detail-section"><h3>门店信息</h3>' + infoRows([["交付方式", store.method], ["门店名称", store.name], ["门店电话", store.phone], ["门店地址", store.address], ["营业时间", store.hours]]) + '</section>' : "";
+          var recipientSection = order.tencentVideo ? "" : '<section class="lx-detail-section"><h3>收货信息</h3>' + infoRows([["收货人", recipient.name], ["联系电话", recipient.phone], ["收货地址", recipient.address || (order.type === "omoPickup" ? "到店自提" : "未填写")]]) + '</section>';
           return '<header class="lx-order-detail-head"><div class="lx-order-detail-title"><div class="lx-order-detail-title-row"><button class="lx-order-back" type="button" data-order-back aria-label="返回订单列表"><img src="../icons/global-next.svg" alt=""></button><h1>订单详情</h1></div></div></header>' +
             renderDetailProducts(order) +
             '<nav class="lx-detail-tabs" role="tablist" aria-label="订单详情内容切换"><button class="lx-detail-tab is-active" type="button" role="tab" aria-selected="true" data-detail-tab="info">订单信息</button><button class="lx-detail-tab" type="button" role="tab" aria-selected="false" data-detail-tab="logistics">物流信息</button></nav>' +
-            '<div class="lx-detail-pane is-active" data-detail-pane="info"><section class="lx-detail-section"><h3>订单状态</h3>' + renderTimeline(order) + '</section>' + renderSpecialSections(order) + '<section class="lx-detail-section"><h3>收货信息</h3>' + infoRows([["收货人", recipient.name], ["联系电话", recipient.phone], ["收货地址", recipient.address || (order.type === "omoPickup" ? "到店自提" : "未填写")]]) + '</section>' + storeSection + '<section class="lx-detail-section"><h3>订单信息</h3>' + infoRows([["订单编号", order.id], ["订单类型", order.typeLabel], ["下单时间", order.createdAt], ["支付时间", order.paidAt || "未支付"], ["支付方式", order.paymentMethod], ["订单状态", order.status], ["配送方式", shippingLabels[order.shipping && order.shipping.mode] || "待确认"], ["预计送达", order.expectedDelivery]]) + '</section><section class="lx-detail-section"><h3>发票信息</h3>' + renderInvoice(order.invoice) + '</section><section class="lx-detail-section"><h3>订单备注</h3><p class="lx-detail-note">' + escapeHtml(order.remark || "无") + '</p></section><section class="lx-detail-section lx-price-panel"><h3>价格明细</h3><div class="lx-price-row"><span>商品金额</span><strong>' + escapeHtml(formatMixedAmount(payment.goods, payment.beans)) + '</strong></div><div class="lx-price-row"><span>运费</span><strong>' + escapeHtml(formatCurrency(payment.freight)) + '</strong></div><div class="lx-price-row"><span>优惠</span><strong>-' + escapeHtml(formatCurrency(payment.discount)) + '</strong></div><div class="lx-price-row"><span>应付金额</span><strong>' + escapeHtml(formatMixedAmount(payment.payable, payment.beans)) + '</strong></div><div class="lx-price-row is-total"><span>实付款</span><strong>' + escapeHtml(formatCurrency(payment.actual)) + '</strong></div></section></div>' +
+            '<div class="lx-detail-pane is-active" data-detail-pane="info"><section class="lx-detail-section"><h3>订单状态</h3>' + renderTimeline(order) + '</section>' + renderSpecialSections(order) + recipientSection + storeSection + '<section class="lx-detail-section"><h3>订单信息</h3>' + infoRows([["订单编号", order.id], ["订单类型", order.typeLabel], ["下单时间", order.createdAt], ["支付时间", order.paidAt || "未支付"], ["支付方式", order.paymentMethod], ["订单状态", order.status], ["配送方式", shippingLabels[order.shipping && order.shipping.mode] || "待确认"], ["预计送达", order.expectedDelivery]]) + '</section><section class="lx-detail-section"><h3>发票信息</h3>' + renderInvoice(order.invoice) + '</section><section class="lx-detail-section"><h3>订单备注</h3><p class="lx-detail-note">' + escapeHtml(order.remark || "无") + '</p></section><section class="lx-detail-section lx-price-panel"><h3>价格明细</h3><div class="lx-price-row"><span>商品金额</span><strong>' + escapeHtml(formatDetailAmount(order, payment.goods, payment.beans)) + '</strong></div><div class="lx-price-row"><span>运费</span><strong>' + escapeHtml(formatDetailAmount(order, payment.freight)) + '</strong></div><div class="lx-price-row"><span>优惠</span><strong>-' + escapeHtml(formatDetailAmount(order, payment.discount)) + '</strong></div><div class="lx-price-row"><span>应付金额</span><strong>' + escapeHtml(formatDetailAmount(order, payment.payable, payment.beans)) + '</strong></div><div class="lx-price-row is-total"><span>实付款</span><strong>' + escapeHtml(formatDetailAmount(order, payment.actual)) + '</strong></div></section></div>' +
             '<div class="lx-detail-pane" data-detail-pane="logistics">' + renderLogistics(order) + '</div>';
         }
 
@@ -1699,6 +1689,10 @@ window.__p0Modules.sources["ufac3b596c3b40014"]=function(){
           return Number(beans || 0) > 0 ? cash + " + " + Number(beans) + "乐豆" : cash;
         }
 
+        function formatDetailAmount(order, value, beans) {
+          return order.tencentVideo ? "¥" + String(Number(value || 0)) : formatMixedAmount(value, beans);
+        }
+
         function primaryItem(order) {
           return (order.items || [])[0] || {};
         }
@@ -2176,7 +2170,7 @@ window.__p0Modules.sources["ufac3b596c3b40014"]=function(){
             var role = item.role && item.role !== "主品" ? '<span class="lx-order-item-role">' + escapeHtml(item.role) + '</span>' : "";
             var mixed = Number(item.beans || 0) > 0 ? " lx-order-mixed-amount" : "";
             var orderMeta = index === 0 ? '<div class="lx-order-detail-meta"><span>订单编号 ' + escapeHtml(order.id) + ' · ' + escapeHtml(order.typeLabel) + '</span><span class="lx-order-detail-status">' + escapeHtml(order.status) + '</span></div>' : "";
-            return '<section class="lx-order-detail-summary' + (index === 0 ? ' has-order-meta' : '') + '">' + orderMeta + '<span class="lx-order-thumb"><img src="' + escapeHtml(item.image) + '" alt="' + escapeHtml(item.name) + '"></span><div class="lx-order-detail-product">' + role + '<h2>' + escapeHtml(item.name) + '</h2><p>' + escapeHtml(item.description) + '</p><p>数量 ×' + escapeHtml(item.quantity) + '</p></div><strong class="lx-order-detail-price' + mixed + '">' + escapeHtml(formatMixedAmount(item.amount, item.beans)) + '</strong></section>';
+            return '<section class="lx-order-detail-summary' + (index === 0 ? ' has-order-meta' : '') + '">' + orderMeta + '<span class="lx-order-thumb"><img src="' + escapeHtml(item.image) + '" alt="' + escapeHtml(item.name) + '"></span><div class="lx-order-detail-product">' + role + '<h2>' + escapeHtml(item.name) + '</h2><p>' + escapeHtml(item.description) + '</p><p>数量 ×' + escapeHtml(item.quantity) + '</p></div><strong class="lx-order-detail-price' + mixed + '">' + escapeHtml(formatDetailAmount(order, item.amount, item.beans)) + '</strong></section>';
           }).join("") + '</div>';
         }
 
@@ -2188,6 +2182,9 @@ window.__p0Modules.sources["ufac3b596c3b40014"]=function(){
 
         function renderSpecialSections(order) {
           var html = "";
+          if (order.tencentVideo) {
+            html += '<section class="lx-detail-section"><h3>充值信息</h3>' + infoRows([["充值卡号", order.tencentVideo.cardNumber], ["充值密码", order.tencentVideo.cardSecret || "—"], ["有效期至", order.tencentVideo.validUntil], ["交付方式", order.tencentVideo.deliveryMethod]]) + '</section>';
+          }
           if (order.presale) {
             html += '<section class="lx-detail-section"><h3>预售信息</h3><div class="lx-detail-special"><div><span>定金</span><strong>' + escapeHtml(formatCurrency(order.presale.deposit)) + '</strong></div><div><span>尾款</span><strong>' + escapeHtml(typeof order.presale.tailAmount === "number" ? formatCurrency(order.presale.tailAmount) : order.presale.tailAmount) + '</strong></div><div><span>尾款支付时间</span><strong>' + escapeHtml(order.presale.tailPaymentAt) + '</strong></div><div><span>预计交付</span><strong>' + escapeHtml(order.expectedDelivery || "待确认") + '</strong></div></div></section>';
           }
@@ -2213,34 +2210,17 @@ window.__p0Modules.sources["ufac3b596c3b40014"]=function(){
         }
 
         function detailMarkup(order) {
-          if (order.tencentVideo) {
-            var video = order.tencentVideo;
-            var product = order.items[0];
-            var amount = "¥" + String(order.payment.payable);
-            return '<header class="lx-order-detail-head"><div class="lx-order-detail-title"><div class="lx-order-detail-title-row"><button class="lx-order-back" type="button" data-order-back aria-label="返回订单列表"><img src="../icons/global-next.svg" alt=""></button><h1>订单详情</h1></div></div></header>' +
-              '<div class="lx-video-order-detail">' +
-              '<p class="lx-video-order-notice">' + escapeHtml(video.notice) + '</p>' +
-              '<div class="lx-video-order-product"><img src="' + escapeHtml(product.image) + '" alt="' + escapeHtml(product.name) + '"><strong>' + escapeHtml(amount) + '</strong></div>' +
-              '<div class="lx-video-order-facts"><div><b>充值卡号：</b><span>' + escapeHtml(video.cardNumber) + '</span><button type="button" data-copy-tracking="' + escapeHtml(video.cardNumber) + '">复制</button></div>' +
-              '<div><b>充值密码：</b><button type="button" disabled aria-label="暂无充值密码可复制">复制</button></div>' +
-              '<div><b>有效期至：</b><span>' + escapeHtml(video.validUntil) + '</span></div></div>' +
-              '<div class="lx-video-order-section"><div><b>订单编号：</b><span>' + escapeHtml(order.id) + '</span><button type="button" data-copy-tracking="' + escapeHtml(order.id) + '">复制</button></div>' +
-              '<div><b>下单时间：</b><span>' + escapeHtml(order.createdAt) + '</span></div>' +
-              '<div><b>支付方式：</b><span>' + escapeHtml(order.paymentMethod) + '</span></div>' +
-              '<div><b>支付时间：</b><span>' + escapeHtml(order.paidAt) + '</span></div></div>' +
-              '<div class="lx-video-order-section"><div><b>配送方式：</b><span>' + escapeHtml(video.deliveryMethod) + '</span></div></div>' +
-              '<div class="lx-video-order-section lx-video-order-prices"><div><b>商品金额</b><span>' + escapeHtml(amount) + '</span></div><div><b>运费</b><span>¥0</span></div><div><b>优惠</b><span>-¥0</span></div>' +
-              '<div class="lx-video-order-total"><b>实付款：</b><strong>' + escapeHtml(amount) + '</strong></div></div></div>';
-          }
           var recipient = order.recipient || {};
           var store = order.store || {};
           var payment = order.payment || {};
           var shippingLabels = { physical: "快递配送", notice: "服务/虚拟交付", pickup: "到店自提", storeDelivery: "门店闪送" };
+          if (order.tencentVideo) shippingLabels.notice = order.tencentVideo.deliveryMethod;
           var storeSection = order.store ? '<section class="lx-detail-section"><h3>门店信息</h3>' + infoRows([["交付方式", store.method], ["门店名称", store.name], ["门店电话", store.phone], ["门店地址", store.address], ["营业时间", store.hours]]) + '</section>' : "";
+          var recipientSection = order.tencentVideo ? "" : '<section class="lx-detail-section"><h3>收货信息</h3>' + infoRows([["收货人", recipient.name], ["联系电话", recipient.phone], ["收货地址", recipient.address || (order.type === "omoPickup" ? "到店自提" : "未填写")]]) + '</section>';
           return '<header class="lx-order-detail-head"><div class="lx-order-detail-title"><div class="lx-order-detail-title-row"><button class="lx-order-back" type="button" data-order-back aria-label="返回订单列表"><img src="../icons/global-next.svg" alt=""></button><h1>订单详情</h1></div></div></header>' +
             renderDetailProducts(order) +
             '<nav class="lx-detail-tabs" role="tablist" aria-label="订单详情内容切换"><button class="lx-detail-tab is-active" type="button" role="tab" aria-selected="true" data-detail-tab="info">订单信息</button><button class="lx-detail-tab" type="button" role="tab" aria-selected="false" data-detail-tab="logistics">物流信息</button></nav>' +
-            '<div class="lx-detail-pane is-active" data-detail-pane="info"><section class="lx-detail-section"><h3>订单状态</h3>' + renderTimeline(order) + '</section>' + renderSpecialSections(order) + '<section class="lx-detail-section"><h3>收货信息</h3>' + infoRows([["收货人", recipient.name], ["联系电话", recipient.phone], ["收货地址", recipient.address || (order.type === "omoPickup" ? "到店自提" : "未填写")]]) + '</section>' + storeSection + '<section class="lx-detail-section"><h3>订单信息</h3>' + infoRows([["订单编号", order.id], ["订单类型", order.typeLabel], ["下单时间", order.createdAt], ["支付时间", order.paidAt || "未支付"], ["支付方式", order.paymentMethod], ["订单状态", order.status], ["配送方式", shippingLabels[order.shipping && order.shipping.mode] || "待确认"], ["预计送达", order.expectedDelivery]]) + '</section><section class="lx-detail-section"><h3>发票信息</h3>' + renderInvoice(order.invoice) + '</section><section class="lx-detail-section"><h3>订单备注</h3><p class="lx-detail-note">' + escapeHtml(order.remark || "无") + '</p></section><section class="lx-detail-section lx-price-panel"><h3>价格明细</h3><div class="lx-price-row"><span>商品金额</span><strong>' + escapeHtml(formatMixedAmount(payment.goods, payment.beans)) + '</strong></div><div class="lx-price-row"><span>运费</span><strong>' + escapeHtml(formatCurrency(payment.freight)) + '</strong></div><div class="lx-price-row"><span>优惠</span><strong>-' + escapeHtml(formatCurrency(payment.discount)) + '</strong></div><div class="lx-price-row"><span>应付金额</span><strong>' + escapeHtml(formatMixedAmount(payment.payable, payment.beans)) + '</strong></div><div class="lx-price-row is-total"><span>实付款</span><strong>' + escapeHtml(formatCurrency(payment.actual)) + '</strong></div></section></div>' +
+            '<div class="lx-detail-pane is-active" data-detail-pane="info"><section class="lx-detail-section"><h3>订单状态</h3>' + renderTimeline(order) + '</section>' + renderSpecialSections(order) + recipientSection + storeSection + '<section class="lx-detail-section"><h3>订单信息</h3>' + infoRows([["订单编号", order.id], ["订单类型", order.typeLabel], ["下单时间", order.createdAt], ["支付时间", order.paidAt || "未支付"], ["支付方式", order.paymentMethod], ["订单状态", order.status], ["配送方式", shippingLabels[order.shipping && order.shipping.mode] || "待确认"], ["预计送达", order.expectedDelivery]]) + '</section><section class="lx-detail-section"><h3>发票信息</h3>' + renderInvoice(order.invoice) + '</section><section class="lx-detail-section"><h3>订单备注</h3><p class="lx-detail-note">' + escapeHtml(order.remark || "无") + '</p></section><section class="lx-detail-section lx-price-panel"><h3>价格明细</h3><div class="lx-price-row"><span>商品金额</span><strong>' + escapeHtml(formatDetailAmount(order, payment.goods, payment.beans)) + '</strong></div><div class="lx-price-row"><span>运费</span><strong>' + escapeHtml(formatDetailAmount(order, payment.freight)) + '</strong></div><div class="lx-price-row"><span>优惠</span><strong>-' + escapeHtml(formatDetailAmount(order, payment.discount)) + '</strong></div><div class="lx-price-row"><span>应付金额</span><strong>' + escapeHtml(formatDetailAmount(order, payment.payable, payment.beans)) + '</strong></div><div class="lx-price-row is-total"><span>实付款</span><strong>' + escapeHtml(formatDetailAmount(order, payment.actual)) + '</strong></div></section></div>' +
             '<div class="lx-detail-pane" data-detail-pane="logistics">' + renderLogistics(order) + '</div>';
         }
 

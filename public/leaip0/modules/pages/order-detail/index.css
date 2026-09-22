@@ -94,21 +94,6 @@
         font-size: 24px;
         font-weight: 700;
       }
-      .lx-video-order-detail { max-width: 1100px; padding: 0 2px 24px; color: #252525; font-size: 16px; line-height: 1.7; }
-      .lx-video-order-notice { margin: 0 0 20px; font-size: 18px; }
-      .lx-video-order-product { display: flex; align-items: flex-end; gap: 18px; margin: 0 0 12px; }
-      .lx-video-order-product img { display: block; width: 112px; height: 78px; border: 1px solid #e6e0ed; border-radius: 8px; object-fit: contain; background: #fff; }
-      .lx-video-order-product strong { font-size: 18px; }
-      .lx-video-order-facts { padding-bottom: 28px; }
-      .lx-video-order-facts > div, .lx-video-order-section > div { display: flex; align-items: baseline; gap: 10px; min-height: 34px; }
-      .lx-video-order-facts b, .lx-video-order-section b { min-width: 86px; font-weight: 500; }
-      .lx-video-order-facts button, .lx-video-order-section button { align-self: center; padding: 1px 10px; border: 1px solid #d2ced5; border-radius: 16px; background: #fff; color: #47424a; font-size: 13px; line-height: 23px; }
-      .lx-video-order-facts button:disabled { cursor: default; opacity: .65; }
-      .lx-video-order-section { padding: 19px 0; border-top: 1px solid #e6e0ed; color: #79777d; }
-      .lx-video-order-prices { color: #555159; }
-      .lx-video-order-prices b { min-width: auto; }
-      .lx-video-order-prices .lx-video-order-total { margin-top: 17px; color: #252525; font-size: 18px; }
-      .lx-video-order-prices .lx-video-order-total strong { color: #e32622; font-size: 21px; }
 }
 @media (-p0-part: p83a2d21a70c0bdf50b76) {
       .lx-order-detail-products{display:grid;gap:10px;margin-bottom:18px}
