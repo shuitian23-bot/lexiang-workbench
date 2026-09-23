@@ -250,7 +250,7 @@ window.__p0Modules.factories["modals/payment-processing#showPaymentProcessing:b2
       (0,__p0Scope.lockPaymentDialogSize)();
       (0,__p0Scope.stopPaymentTimer)();
       __p0Scope.dialog.className = 'lx-buy-direct-dialog lx-payment-dialog';
-      __p0Scope.dialog.innerHTML = `<button class="lx-buy-direct-close" type="button" aria-label="关闭">×</button><h2 id="lxBuyDirectTitle">正在支付</h2><div class="lx-payment-stage"><p class="lx-payment-state">正在支付</p><div class="lx-payment-wait"><strong>待付款</strong><span>剩余：<b class="lx-payment-countdown" data-payment-countdown>${(0,__p0Scope.formatRemaining)()}</b></span></div><p class="lx-payment-product">【${(0,__p0Scope.escapeHtml)(__p0Scope.product.name)}】正在支付中，请稍等...</p></div><div class="lx-payment-actions"><button type="button" data-go-pay>去支付</button><button type="button" class="primary" data-confirm-payment>确认支付状态</button></div>`;
+      __p0Scope.dialog.innerHTML = `<button class="lx-buy-direct-close" type="button" aria-label="关闭">×</button><h2 id="lxBuyDirectTitle">正在支付</h2><div class="lx-payment-stage"><div class="lx-payment-wait"><strong>待付款</strong><span>剩余：<b class="lx-payment-countdown" data-payment-countdown>${(0,__p0Scope.formatRemaining)()}</b></span></div><p class="lx-payment-product">【${(0,__p0Scope.escapeHtml)(__p0Scope.product.name)}】正在支付中，请稍等...</p></div><div class="lx-payment-actions"><button type="button" data-go-pay>去支付</button><button type="button" class="primary" data-confirm-payment>确认支付状态</button></div>`;
       __p0Scope.paymentState.timer = window.setInterval(() => {
         __p0Scope.paymentState.remaining = Math.max(0, __p0Scope.paymentState.remaining - 1);
         const countdown = __p0Scope.dialog.querySelector('[data-payment-countdown]');

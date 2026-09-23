@@ -1772,7 +1772,7 @@ html body [data-buy-modal-direct] .lx-buy-direct-dialog.lx-payment-dialog:has(> 
   max-height: calc(100vh - 32px) !important;
   overflow-y: auto;
 }
-html body .lx-payment-dialog > .lx-payment-stage { flex: 0 0 auto; }
+html body .lx-payment-dialog > .lx-payment-stage { flex: 0 0 auto; align-items: flex-start; text-align: left; }
 html body .lx-payment-dialog > .lx-payment-actions { margin-top: 0; }
 
 }
