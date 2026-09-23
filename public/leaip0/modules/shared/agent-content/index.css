@@ -787,6 +787,7 @@ html body .answer-cta .answer-cta-icon > :is(img, svg) {
 }
 }
 @media (-p0-part: pfc638eb210234466851b) {/* Lexiang PC tokens; scoped to recommendation follow-ups and their composer draft. */
+.lx-human-service-action { margin:12px 0 4px; }
 .lx-recommendation-followups {
   margin: 20px 0 4px;
   color: var(--lx-text, #101010);
@@ -804,7 +805,8 @@ html body .answer-cta .answer-cta-icon > :is(img, svg) {
 .lx-reco-followup-panel fieldset + fieldset { margin-top: 24px; }
 .lx-reco-followup-panel legend { float: none; width: 100%; padding: 0; margin: 0 0 12px; font: inherit; }
 .lx-reco-followup-options { display: flex; flex-wrap: wrap; gap: 8px; }
-.lx-reco-followup-options > button {
+.lx-reco-followup-options > button,
+.lx-human-service-action > .lx-human-service-link {
   appearance: none;
   min-height: 34px;
   max-width: 100%;
@@ -822,8 +824,10 @@ html body .answer-cta .answer-cta-icon > :is(img, svg) {
   box-shadow: none;
   transition: background-color .15s ease, border-color .15s ease;
 }
+.lx-human-service-action > .lx-human-service-link:hover,
 .lx-reco-followup-options > button:hover,
 .lx-reco-followup-options > button[aria-pressed="true"] { background: var(--lx-surface-weak, #f6f1f8); border-color: var(--lx-border, #e2ddeb); color: var(--lx-aubergine, #5b1452); }
+.lx-human-service-action > .lx-human-service-link:focus-visible,
 .lx-reco-followup-options > button:focus-visible, .lx-reco-draft-tag > button:focus-visible { outline: 2px solid var(--lx-aubergine, #5b1452); outline-offset: 3px; }
 /* Draft rows must participate in the split composer's natural height.
    Its compact fixed-height rule otherwise flex-shrinks tags to a clipped strip. */
@@ -879,8 +883,10 @@ html body:not(.assistant-fullscreen) .assistant-panel .assistant-bottom form.com
   box-shadow: none;
 }
 .lx-reco-draft-tag > button:hover { background: var(--lx-surface-hover, #f0eaf8); }
-.assistant-panel .lx-reco-followup-options > button { padding: 5px 12px; font-size: 13px; }
-@media (prefers-reduced-motion: reduce) { .lx-reco-followup-options > button { transition: none; } }
+.assistant-panel .lx-reco-followup-options > button,
+.assistant-panel .lx-human-service-action > .lx-human-service-link { padding: 5px 12px; font-size: 13px; }
+@media (prefers-reduced-motion: reduce) { .lx-reco-followup-options > button,
+.lx-human-service-action > .lx-human-service-link { transition: none; } }
 }
 @media (-p0-part: p4ff16945545251831523) {
 

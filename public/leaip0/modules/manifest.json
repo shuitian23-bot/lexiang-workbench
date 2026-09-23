@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "buildVersion": "store-media-20260921-1",
+  "buildVersion": "human-service-20260923-1",
   "baseline": "9585cb03a47c5a63d9049cc79a6f50c7e449d620",
   "moduleCount": 48,
   "fileCount": 96,
@@ -23,7 +23,7 @@
       "js": "/modules/shared/agent-content/index.js",
       "sourceUnits": 20,
       "implementations": 0,
-      "cssBytes": 698421
+      "cssBytes": 698819
     },
     {
       "id": "home",

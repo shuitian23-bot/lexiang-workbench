@@ -2380,7 +2380,7 @@ async function lxfdRunEducationOfferQuery(query) {
 
     if (window.__lxCustomerServiceQuery?.matches(value)) {
       await window.__lxGeneration.wait(__lxGenerationToken, window.__lxCustomerServiceQuery.run({
-        token:__lxGenerationToken,
+        query:value,token:__lxGenerationToken,
         busy:active=>{chatState.sending=active;syncSend();},
         answer:async text=>{
           const ai=document.createElement('div');ai.className='lxfd-msg-ai lx-chat-skin';
@@ -5613,7 +5613,7 @@ async function lxfdRunEducationOfferQuery(query) {
 
     if (window.__lxCustomerServiceQuery?.matches(value)) {
       await window.__lxGeneration.wait(__lxGenerationToken, window.__lxCustomerServiceQuery.run({
-        token:__lxGenerationToken,
+        query:value,token:__lxGenerationToken,
         busy:active=>{chatState.sending=active;syncSend();},
         answer:async text=>{
           const ai=document.createElement('div');ai.className='lxfd-msg-ai lx-chat-skin';
@@ -9839,7 +9839,7 @@ async function lxfdRunEducationOfferQuery(query) {
 
     if (window.__lxCustomerServiceQuery?.matches(value)) {
       await window.__lxGeneration.wait(__lxGenerationToken, window.__lxCustomerServiceQuery.run({
-        token:__lxGenerationToken,
+        query:value,token:__lxGenerationToken,
         busy:active=>{chatState.sending=active;syncSend();},
         answer:async text=>{
           const ai=document.createElement('div');ai.className='lxfd-msg-ai lx-chat-skin';

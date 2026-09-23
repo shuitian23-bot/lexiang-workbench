@@ -1181,7 +1181,11 @@ window.__p0Modules.sources["u6663a15bf799c69e"]=function(){
     return location.pathname.split('/').find(part=>Object.hasOwn(urls,part))||
       ({personal:'shop-chat',business:'b-chat',enterprise:'biz-chat'})[document.body?.dataset.page]||'shop-chat';
   }
+  function isHumanQuery(query){
+    return /^(?:(?:请|麻烦)?(?:帮我|给我)?(?:我要|我想|我需要)?(?:找|联系|咨询|接入|转接|转|打开|呼叫)?)?(?:人工|真人)(?:客服|服务)?(?:一下|吧|呢|吗)?$/.test(String(query||'').trim().replace(/[\s，,。.!！?？：:“”"'‘’]/g,''));
+  }
   function matches(query){
+    if(isHumanQuery(query))return true;
     const text=String(query||'').trim().replace(/[\s，,。.!！?？：:“”"'‘’]/g,'');
     return /^(?:(?:请|麻烦)?(?:帮我|给我)?(?:我要|我想|我需要)?(?:找|联系|咨询|接入|转接|转|打开|进入|选择|呼叫|找一下|联系一下)?)?(?:联想|官方|在线|人工|真人|专属)?客服(?:页面|入口|中心)?(?:一下|吧|呢|吗)?$/.test(text)||/^(人工|转人工|找人工|转接人工|人工服务)$/.test(text);
   }
@@ -1192,13 +1196,13 @@ window.__p0Modules.sources["u6663a15bf799c69e"]=function(){
       '<span class="answer-cta-icon" aria-hidden="true">'+window.__lxApprovedIcon('global-next')+'</span></button>';
   }
   async function run(api){
-    const gen=window.__lxGeneration,token=api.token,key=channel(),url=urls[key],label=labels[key];
-    const copy='如需咨询产品、订单或服务问题，请点击下方 **「选择客服」**，进入'+label+'页面，再根据你的咨询内容选择对应服务。';
+    const gen=window.__lxGeneration,token=api.token,key=channel(),human=isHumanQuery(api.query),url=human?urls['shop-chat']:urls[key],label=labels[key];
+    const copy=human?'您可以点击下方 **在线客服咨询**，在新页面联系联想官方客服。':'如需咨询产品、订单或服务问题，请点击下方 **「选择客服」**，进入'+label+'页面，再根据你的咨询内容选择对应服务。';
     api.busy(true);
     try{
       const reply=await gen.wait(token,api.answer(copy));
       if(!gen.current(token)||!reply?.isConnected)return false;
-      api.card(reply,cardHtml(url,label));
+      api.card(reply,human?'<div class="lx-human-service-action"><button type="button" class="lx-human-service-link" data-customer-service-url="'+escape(url)+'" aria-label="在线客服咨询，在新页面打开">在线客服咨询</button></div>':cardHtml(url,label));
       api.save();
       return true;
     }finally{

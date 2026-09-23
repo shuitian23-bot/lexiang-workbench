@@ -400,7 +400,7 @@ if(window.__lxEducationOffers?.matches(e))return void await window.__lxGeneratio
 const __lxEducationKind=lxEducationAuthKindV1(e);if(__lxEducationKind)return void await window.__lxGeneration.wait(__lxGenerationToken,gn(__lxEducationKind));
 const __lxSolutionQuery=window.__lxIntent?.matchSolution(e);if(__lxSolutionQuery)return void await window.__lxGeneration.wait(__lxGenerationToken,en(__lxSolutionQuery.industry||""));
 if(window.__lxCustomerServiceQuery?.matches(e))return await window.__lxGeneration.wait(__lxGenerationToken,window.__lxCustomerServiceQuery.run({
-  token:__lxGenerationToken,
+  query:e,token:__lxGenerationToken,
   busy:value=>{d.sending=value;ot();nt();},
   answer:async text=>{const reply=ye('assistant',text);if(reply?._typingDone)await reply._typingDone;return reply;},
   card:(reply,html)=>Ie(reply,html),
