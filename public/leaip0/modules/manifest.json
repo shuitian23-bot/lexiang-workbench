@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "buildVersion": "payment-line-20260923-1",
+  "buildVersion": "payment-success-20260923-1",
   "baseline": "9585cb03a47c5a63d9049cc79a6f50c7e449d620",
   "moduleCount": 48,
   "fileCount": 96,
@@ -433,7 +433,7 @@
       "js": "/modules/modals/payment-success/index.js",
       "sourceUnits": 0,
       "implementations": 1,
-      "cssBytes": 3634
+      "cssBytes": 4363
     },
     {
       "id": "store-coupon-verify",
