@@ -776,7 +776,7 @@ window.__p0Modules.sources["u40fb7a01ecc3a735"]=function(){
     const cards = [...(root.matches?.('.lx-payment-chat-card') ? [root] : []), ...(root.querySelectorAll?.('.lx-payment-chat-card') || [])];
     cards.forEach((card) => {
       if (!card.hasAttribute('data-payment-chat-card')) return;
-      card.classList.add('answer-cta');
+      card.classList.add('answer-cta', 'lx-answer-page', 'lx-auth-answer-card', 'lx-edu-auth-reco');
       const paid = checkoutRecords[card.dataset.paymentChatCard]?.payment?.paid || card.dataset.paymentStatus === 'paid';
       card.classList.toggle('is-paid', !!paid);
       card.querySelectorAll('.lx-payment-chat-card-state,.lx-payment-chat-card-desc').forEach((node) => node.remove());
@@ -803,6 +803,7 @@ window.__p0Modules.sources["u40fb7a01ecc3a735"]=function(){
         card.appendChild(icon);
       }
       icon.classList.add('answer-cta-icon');
+      if (!icon.querySelector('img,svg')) icon.innerHTML = window.__lxApprovedIcon('global-next');
     });
   };
   normalizeHistoricPaymentCards();
@@ -1045,7 +1046,7 @@ window.__p0Modules.sources["u40fb7a01ecc3a735"]=function(){
       if (fullscreen) userMessage.textContent = query;
       else userMessage.innerHTML = `<div class="user-bubble">${escapeHtml(query)}</div>`;
       host.appendChild(userMessage);
-      const answerMarkup = `<p>已为你打开【${escapeHtml(product.name)}】的支付页面，请完成支付。</p><button class="answer-cta lx-payment-chat-card" type="button" data-payment-chat-card="${escapeHtml(paymentState.orderId)}"><span class="answer-cta-copy"><span class="answer-cta-title lx-payment-chat-card-title">支付信息待确认</span></span><span class="answer-cta-icon lx-payment-chat-card-icon" aria-hidden="true"></span></button>`;
+      const answerMarkup = `<p>已为你打开【${escapeHtml(product.name)}】的支付页面，请完成支付。</p><button class="answer-cta lx-answer-page lx-auth-answer-card lx-edu-auth-reco lx-payment-chat-card" type="button" data-payment-chat-card="${escapeHtml(paymentState.orderId)}"><span class="answer-cta-copy"><span class="answer-cta-title lx-payment-chat-card-title">支付信息待确认</span></span><span class="answer-cta-icon lx-payment-chat-card-icon" aria-hidden="true"></span></button>`;
       let assistantMessage = splitHost ? window.__lxAgentAPI?.addAiMessage?.(answerMarkup) : null;
       if (!assistantMessage) {
         assistantMessage = document.createElement('div');
