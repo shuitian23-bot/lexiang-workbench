@@ -152,7 +152,7 @@ window.__p0Modules.sources["u3856c842123f47d1"]=function(){
   window.__lxMarketReviewTab = true;
 
   var PAGE_SIZE = 10;
-  var VERSION = 'followup-pagination-v3';
+  var VERSION = 'followup-service-reply-v4';
   var followupText = '这款产品开机速度快，屏幕清晰，颜色漂亮，自带流量，出差使用特别方便，追剧玩游戏再也不用考虑流量问题了';
   // The existing review area is explicitly labeled as demonstration content.
   var reviews = [
@@ -169,6 +169,14 @@ window.__p0Modules.sources["u3856c842123f47d1"]=function(){
     ["lenovo162715093", "2026-09-02 15:09", "收货后检查了外观和屏幕，整体状态很好，常用软件运行稳定。", ["/assets/img/shop-4.jpg"]],
     ["lenovo163018527", "2026-09-02 10:36", "浏览网页、处理表格和观看视频都很顺畅，符合我的使用需求。", []]
   ];
+  var serviceReplies = {
+    lenovo161822155: {
+      name: '联想客服',
+      date: '2026/09/17 19:12:44',
+      datetime: '2026-09-17T19:12:44+08:00',
+      text: '感谢您对联想的支持与认可！很高兴产品为您带来满意体验，使用中如有任何疑问，欢迎随时联系我们，祝您使用愉快！'
+    }
+  };
   var filters = [['all', '全部'], ['good', '好评'], ['media', '有图/视频'], ['follow', '追评']];
   function filteredReviews(filter) {
     return reviews.filter(function(review) {
@@ -184,12 +192,19 @@ window.__p0Modules.sources["u3856c842123f47d1"]=function(){
       return '<button type="button" aria-label="查看' + label + ' ' + (index + 1) + '"><img src="' + src + '" alt="' + label + ' ' + (index + 1) + '" loading="lazy"></button>';
     }).join('') + '</div>';
   }
+  function serviceReplyMarkup(review) {
+    var reply = serviceReplies[review[0]];
+    if (!reply) return '';
+    return '<section class="lx-market-review-service-reply" aria-label="联想客服回复">' +
+      '<header class="lx-market-review-service-heading"><strong>' + reply.name + '</strong><time datetime="' + reply.datetime + '">' + reply.date + '</time></header>' +
+      '<p>' + reply.text + '</p></section>';
+  }
   function itemMarkup(review) {
     return '<article class="lx-market-review-item" data-review-id="' + review[0] + '">' +
       '<aside class="lx-market-review-user"><strong>' + review[0] + '</strong><span class="lx-market-stars" aria-label="5 星评价">★★★★★</span><time>' + review[1] + '</time></aside>' +
       '<div class="lx-market-review-body"><p>' + review[2] + '</p>' + mediaMarkup(review[3], false) +
       (review[4] ? '<section class="lx-market-review-followup" aria-label="购买1天后追评"><h3>购买1天后追评</h3><p>' + followupText + '</p>' + mediaMarkup(review[4], true) + '</section>' : '') +
-      '</div></article>';
+      serviceReplyMarkup(review) + '</div></article>';
   }
   function paginationMarkup(page, pages, total) {
     if (pages <= 1) return '';
