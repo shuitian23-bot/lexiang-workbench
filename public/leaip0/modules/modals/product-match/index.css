@@ -25,7 +25,7 @@ html #lx-reco-match-dialog th:nth-child(2){width:124px}
 html #lx-reco-match-dialog .lx-match-status{width:20px;height:20px;font-size:14px;background:#4d144a}
 html #lx-reco-match-dialog .lx-match-status.pending{background:#f3f0f7;color:#979797}
 html #lx-reco-match-dialog .lx-match-footer{padding-top:16px;border-top:1px solid #e2ddeb;flex:none}
-html #lx-reco-match-dialog .lx-match-buy{min-width:104px;height:40px;padding:0 24px;border-radius:8px;font-size:14px;line-height:20px;font-weight:500;background:#4d144a}
+html #lx-reco-match-dialog .lx-match-buy{min-width:104px;height:40px;padding:0 24px;border-radius:999px;font-size:14px;line-height:20px;font-weight:500;background:#4d144a}
 html #lx-reco-match-dialog .lx-match-buy:hover{filter:brightness(1.12)}
 @media(max-width:600px){html #lx-reco-match-dialog{width:calc(100vw - 24px);padding:20px}html #lx-reco-match-dialog .lx-match-layout{max-height:calc(88dvh - 42px)}html #lx-reco-match-dialog th:first-child,html #lx-reco-match-dialog td:first-child{width:72px}html #lx-reco-match-dialog th:nth-child(2){width:92px}html #lx-reco-match-dialog .lx-match-product img{width:64px;height:64px}}
 }
@@ -53,4 +53,3 @@ html #lx-reco-match-dialog .lx-match-buy:hover{filter:brightness(1.12)}
 #lx-reco-match-dialog button:hover{filter:brightness(.96)}#lx-reco-match-dialog button:focus-visible{outline:2px solid #4d144a;outline-offset:3px}
 @media(max-width:700px){#lx-reco-match-dialog{width:calc(100vw - 24px);height:calc(100dvh - 32px);padding:28px 18px}#lx-reco-match-dialog .lx-match-product{padding:12px;gap:12px}#lx-reco-match-dialog .lx-match-product img{width:80px;height:80px}#lx-reco-match-dialog h3{font-size:16px}#lx-reco-match-dialog th,#lx-reco-match-dialog td{padding:12px 10px}#lx-reco-match-dialog table{font-size:14px}}
 }
-
