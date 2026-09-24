@@ -40,7 +40,7 @@
 .leai-device-bind-kinds label:has(input:focus-visible) span { outline: 2px solid var(--ms-line); outline-offset: 2px; }
 .leai-device-bind-help { padding: 15px; border-radius: 12px; background: var(--ms-page); }
 .leai-device-bind-help strong { display: block; color: var(--ms-brand); font-size: 14px; text-align: center; }
-.leai-device-bind-help > span { width: fit-content; display: block; margin: 12px auto 8px; padding: 3px 14px; border-radius: 999px; background: var(--ms-line-soft); color: var(--ms-brand); font-size: 12px; font-weight: 700; }
+.leai-device-bind-help > span { display: none; }
 .leai-device-bind-help p { margin: 0; color: var(--ms-text); font-size: 12px; line-height: 19px; }
 .leai-device-bind-help small { display: block; margin-top: 7px; color: var(--ms-muted); font-size: 11px; line-height: 17px; }
 }
@@ -162,4 +162,3 @@ body .leai-modal:has(.leai-device-bind-kinds) .leai-modal-close:focus-visible {
     .lx-phone-bind-dialog{width:min(520px,calc(100vw - 40px));padding:30px 32px 26px}
     .lx-phone-bind-dialog h2{margin-bottom:4px;font-size:24px;line-height:34px}
 }
-
