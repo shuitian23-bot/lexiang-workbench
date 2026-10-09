@@ -8,6 +8,8 @@ import { fileURLToPath } from 'node:url'
 import { spawnSync } from 'node:child_process'
 
 const appRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..')
+const otherProjectPages = JSON.parse(readFileSync(join(appRoot, 'design-page-extensions.json'), 'utf8')).pages
+  .filter(item => !['points.activity', 'points.activityDetails'].includes(item.pageId))
 const page = {
   pageId: 'points.activity', label: '企业购活动积分配置', route: '/points/activity',
   pageType: 'T7', components: ['C1', 'C2', 'C3', 'C8', 'C9'],
@@ -48,7 +50,7 @@ function run(f, args = []) {
 }
 
 function register(f, pages) {
-  writeFileSync(join(f.app, 'design-page-extensions.json'), JSON.stringify({ schemaVersion: 1, pages: [...pages, detailsPage] }))
+  writeFileSync(join(f.app, 'design-page-extensions.json'), JSON.stringify({ schemaVersion: 1, pages: [...pages, detailsPage, ...otherProjectPages] }))
 }
 
 function treeHashes(root) {

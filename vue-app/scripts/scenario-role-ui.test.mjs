@@ -37,11 +37,14 @@ after(async () => {
 })
 const pmPermissions = ['scenario-package:create', 'scenario-package:compose:cross-menu']
 
-async function renderRole(permissions, query = {}, username = 'same-account') {
+async function renderRole(permissions, query = {}, username = 'same-account', path = '/agent/skills') {
   const pinia = createPinia(); setActivePinia(pinia)
   const account = useAppStore(); account.user = username; account.permissions = permissions
-  const router = createRouter({ history: createMemoryHistory(), routes: [{ path: '/agent/skills', component: { template: '<div />' } }] })
-  await router.push({ path: '/agent/skills', query: { tab: 'packages', ...query } })
+  const router = createRouter({ history: createMemoryHistory(), routes: [
+    { path: '/agent/skills', component: { template: '<div />' } },
+    { path: '/agent/scenario-package-create', component: { template: '<div />' } }
+  ] })
+  await router.push({ path, query: { tab: 'packages', ...query } })
   let state
   const app = createSSRApp({ ...View, setup(props, context) { state = View.setup(props, context); return state } })
   app.use(pinia); app.use(router); app.provide(matchedRouteKey, shallowRef(router.currentRoute.value.matched[0]))
@@ -49,35 +52,49 @@ async function renderRole(permissions, query = {}, username = 'same-account') {
 }
 
 for (const [name, permissions] of [['review-only administrator', ['scenario-package:review']], ['read-only account', []], ['incomplete author permissions', ['scenario-package:create']]]) {
-  test(`${name} has no package-create entry and cannot open the direct create route`, async () => {
+  test(`${name} has no package-create entry and cannot open either direct create route`, async () => {
     const list = await renderRole(permissions)
     assert.doesNotMatch(list.html, />创建场景技能包</)
     await list.state.openPackageCreate()
+    assert.equal(list.router.currentRoute.value.path, '/agent/skills')
     assert.equal(list.router.currentRoute.value.query.mode, undefined)
-    const direct = await renderRole(permissions, { mode: 'create' })
-    assert.equal(Boolean(direct.state.isPackageCreate.value), false)
-    assert.doesNotMatch(direct.html, /data-role-create-form/)
+    for (const path of ['/agent/skills', '/agent/scenario-package-create']) {
+      const direct = await renderRole(permissions, { mode: 'create' }, 'same-account', path)
+      assert.equal(Boolean(direct.state.isPackageCreate.value), false)
+      assert.doesNotMatch(direct.html, /data-role-create-form/)
+    }
   })
 }
 
 for (const [name, permissions] of [['PM author', pmPermissions], ['wildcard administrator', ['*']], ['administrator with author permissions', ['scenario-package:review', ...pmPermissions]]]) {
-  test(`${name} can open package creation from the list and direct route`, async () => {
+  test(`${name} opens the dedicated entry while both direct creation routes remain available`, async () => {
     const list = await renderRole(permissions, {}, 'admin')
     assert.match(list.html, />创建场景技能包</)
     await list.state.openPackageCreate()
-    assert.equal(list.router.currentRoute.value.query.mode, 'create')
-    const direct = await renderRole(permissions, { mode: 'create' })
-    assert.equal(Boolean(direct.state.isPackageCreate.value), true)
-    assert.match(direct.html, /data-role-create-form/)
+    assert.equal(list.router.currentRoute.value.path, '/agent/scenario-package-create')
+    assert.equal(list.router.currentRoute.value.query.mode, undefined)
+    for (const path of ['/agent/skills', '/agent/scenario-package-create']) {
+      const direct = await renderRole(permissions, path === '/agent/skills' ? { mode: 'create' } : {}, 'admin', path)
+      assert.equal(Boolean(direct.state.isPackageCreate.value), true)
+      assert.match(direct.html, /data-role-create-form/)
+    }
   })
 }
+
+test('a signed-out account cannot open either creation route even with stale author permissions', async () => {
+  for (const path of ['/agent/skills', '/agent/scenario-package-create']) {
+    const direct = await renderRole(pmPermissions, { mode: 'create' }, '', path)
+    assert.equal(Boolean(direct.state.isPackageCreate.value), false)
+    assert.doesNotMatch(direct.html, /data-role-create-form/)
+  }
+})
 
 test('the account menu hides only package creation when author access is absent', async () => {
   for (const allowed of [false, true]) {
     const context = {}
     await renderToString(createSSRApp(Footer, { userMenuVisible: true, canCreateScenarioPackage: allowed }), context)
     const menu = context.teleports.body
-    assert.equal(menu.includes('<b>创建场景技能包</b>'), allowed)
-    for (const name of ['创建 Skill', 'Skill Hub', '权限管理']) assert.ok(menu.includes(`<b>${name}</b>`))
+    assert.equal(/<b\b[^>]*>创建场景技能包<\/b>/.test(menu), allowed)
+    for (const name of ['创建 Skill', 'Skill Hub', '权限管理']) assert.match(menu, new RegExp(`<b\\b[^>]*>${name}</b>`))
   }
 })

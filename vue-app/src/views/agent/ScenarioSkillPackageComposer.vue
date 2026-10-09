@@ -5,8 +5,8 @@ import { createPinnedScenarioStep, resolveScenarioChain } from '../../domain/sce
 import { getScenarioNodeContract } from '../../domain/scenarioNodeContracts.js'
 import type { ScenarioPinnedStep, ScenarioSelectableSkill, ScenarioStepKind } from '../../stores/scenarioSkillPackages'
 
-const props = defineProps<{ skills: ScenarioSelectableSkill[]; modelValue: ScenarioPinnedStep[]; trialErrors?: Record<string, string[]>; trialSuggestions?: Record<string, string[]>; trialStale?: boolean }>()
-const emit = defineEmits<{ 'update:modelValue': [steps: ScenarioPinnedStep[]] }>()
+const props = defineProps<{ focused?: boolean; skills: ScenarioSelectableSkill[]; modelValue: ScenarioPinnedStep[]; trialErrors?: Record<string, string[]>; trialSuggestions?: Record<string, string[]>; trialStale?: boolean }>()
+const emit = defineEmits<{ 'update:modelValue': [steps: ScenarioPinnedStep[]]; 'toggle-focus': [] }>()
 type Point = { x: number; y: number }
 type CanvasStep = ScenarioPinnedStep & { predecessorId?: string | null; position?: Point }
 type StepConfiguration = Pick<ScenarioPinnedStep, 'condition' | 'requiresConfirmation' | 'task' | 'fixedRequirements' | 'expectedOutput'>
@@ -35,6 +35,7 @@ const configurationBody = ref<HTMLDivElement | null>(null)
 const nodeButtons = new Map<string, HTMLButtonElement>()
 const markerId = `scenario-canvas-arrow-${getCurrentInstance()?.uid ?? 'local'}`
 let ignorePortClickUntil = 0
+const hoveredWireTarget = ref<string | null>(null)
 
 const catalog = computed(() => new Map(props.skills.map(skill => [skill.id, skill])))
 const selectedSkillIds = computed(() => new Set(props.modelValue.map(step => step.skillId)))
@@ -290,10 +291,11 @@ function disconnectNode(targetId: string) {
   tell('已删除连线。节点与属性保持不变，可重新连接。')
 }
 function armConnection(event: MouseEvent, id: string) {
+  hoveredWireTarget.value = null
   if (event.detail > 0 && Date.now() < ignorePortClickUntil) return
   pendingSourceId.value = pendingSourceId.value === id ? null : id
   wirePoint.value = null
-  tell(pendingSourceId.value ? '已选择输出端口，请点击目标节点的输入端口；按 Esc 取消。' : '已取消连接。')
+  tell(pendingSourceId.value ? '已选择输出端口，可点击目标输入圆点完成连接；拖线时在目标卡片上松开即可连接。' : '已取消连接。')
 }
 function finishInput(id: string) {
   if (!pendingSourceId.value) return tell('请先选择上一步节点的输出端口。')
@@ -316,6 +318,7 @@ function startNodeMove(event: PointerEvent, id: string) {
 }
 function startWireMove(event: PointerEvent, sourceId: string) {
   if (event.button !== 0) return
+  hoveredWireTarget.value = null
   event.stopPropagation()
   wireGesture.value = { sourceId, pointerId: event.pointerId, start: { x: event.clientX, y: event.clientY }, moved: false }
   ;(event.currentTarget as HTMLElement).setPointerCapture(event.pointerId)
@@ -328,6 +331,15 @@ function autoScroll(event: PointerEvent) {
   else if (event.clientX > rect.right - 24) view.scrollLeft += 12
   if (event.clientY < rect.top + 24) view.scrollTop -= 12
   else if (event.clientY > rect.bottom - 24) view.scrollTop += 12
+}
+function cardTargetAt(event: PointerEvent) {
+  const card = document.elementFromPoint(event.clientX, event.clientY)?.closest<HTMLElement>('[data-step-id]')
+  return card && viewport.value?.contains(card) ? card.dataset.stepId : undefined
+}
+function previewHoveredCard(event: PointerEvent) {
+  const source = pendingSourceId.value
+  const target = source && !nodeGesture.value ? cardTargetAt(event) : undefined
+  hoveredWireTarget.value = source && target && !connectionProblem(source, target) ? target : null
 }
 function movePointer(event: PointerEvent) {
   const node = nodeGesture.value
@@ -344,6 +356,7 @@ function movePointer(event: PointerEvent) {
     autoScroll(event)
     wirePoint.value = pointAt(event.clientX, event.clientY)
   } else if (pendingSourceId.value) wirePoint.value = pointAt(event.clientX, event.clientY)
+  previewHoveredCard(event)
 }
 function endPointer(event: PointerEvent) {
   const node = nodeGesture.value
@@ -355,14 +368,15 @@ function endPointer(event: PointerEvent) {
   if (wire?.pointerId === event.pointerId) {
     if (wire.moved) {
       ignorePortClickUntil = Date.now() + 200
-      const target = document.elementFromPoint(event.clientX, event.clientY)?.closest<HTMLElement>('[data-input-port]')?.dataset.inputPort
+      const target = cardTargetAt(event)
       if (target) connectNodes(wire.sourceId, target)
-      else tell('未连接到输入端口，请点击目标输入端口完成连接，或按 Esc 取消。')
+      else tell('拖到目标卡片后松开即可连接，或按 Esc 取消。')
     }
     wireGesture.value = null
+    hoveredWireTarget.value = null
   }
 }
-function cancelGestures() { nodeGesture.value = null; wireGesture.value = null; pendingSourceId.value = null; wirePoint.value = null }
+function cancelGestures() { hoveredWireTarget.value = null; nodeGesture.value = null; wireGesture.value = null; pendingSourceId.value = null; wirePoint.value = null }
 function nudgeNode(event: KeyboardEvent, id: string) {
   const offsets: Record<string, Point> = { ArrowLeft: { x: -20, y: 0 }, ArrowRight: { x: 20, y: 0 }, ArrowUp: { x: 0, y: -20 }, ArrowDown: { x: 0, y: 20 } }
   const delta = offsets[event.key]
@@ -395,12 +409,21 @@ function dropOnCanvas(event: DragEvent) {
   addSkill(draggedSkillId.value, { x: point.x - NODE_WIDTH / 2, y: point.y - 40 })
   finishSkillDrag()
 }
-function changeZoom(value: number) {
+function handleCanvasWheel(event: WheelEvent) {
+  // Chromium reports trackpad pinch as Ctrl+wheel; ordinary scrolling remains native.
+  if (!event.ctrlKey || !viewport.value) return
+  event.preventDefault()
+  const delta = event.deltaY * (event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? viewport.value.clientHeight : 1)
+  changeZoom(zoom.value * Math.exp(-delta * 0.01), { x: event.clientX, y: event.clientY })
+}
+function changeZoom(value: number, pointer?: Point) {
   const view = viewport.value
   const oldZoom = zoom.value
-  const center = view ? { x: (view.scrollLeft + view.clientWidth / 2) / oldZoom, y: (view.scrollTop + view.clientHeight / 2) / oldZoom } : null
+  const bounds = view?.getBoundingClientRect()
+  const anchor = view && bounds && pointer ? { x: pointer.x - bounds.left - view.clientLeft, y: pointer.y - bounds.top - view.clientTop } : { x: (view?.clientWidth || 0) / 2, y: (view?.clientHeight || 0) / 2 }
+  const center = view ? { x: (view.scrollLeft + anchor.x) / oldZoom, y: (view.scrollTop + anchor.y) / oldZoom } : null
   zoom.value = Math.min(1.5, Math.max(0.4, Math.round(value * 100) / 100))
-  if (view && center) void nextTick(() => { view.scrollLeft = center.x * zoom.value - view.clientWidth / 2; view.scrollTop = center.y * zoom.value - view.clientHeight / 2 })
+  if (view && center) void nextTick(() => { view.scrollLeft = center.x * zoom.value - anchor.x; view.scrollTop = center.y * zoom.value - anchor.y })
 }
 function fitCanvas() {
   const view = viewport.value
@@ -451,14 +474,19 @@ function hasVersionChange(step: CanvasStep) { return Boolean(catalog.value.get(s
       </section>
 
       <section class="composer-panel composer-workspace" aria-label="Skill 自由编排画布">
-        <header class="composer-canvas-toolbar">
+        <header class="composer-canvas-toolbar" :class="{ 'is-focused': focused }">
           <div class="composer-canvas-title"><h3>编排画布</h3><span>{{ connections.length }} 条连线</span><span class="composer-toolbar-state" :class="{ 'has-connection': pendingSourceId }">
-            <span v-if="pendingSourceId">请选择目标节点的输入端口，Esc 取消</span>
+            <span v-if="pendingSourceId">拖到目标卡片后松开即可连接，Esc 取消</span>
             <span v-else-if="modelValue.length && chainResolution.ok">已连接为 {{ modelValue.length }} 步执行链路</span>
             <span v-else-if="modelValue.length">将所有节点连接为一条完整链路</span>
             <span v-else>从左侧拖入 Skill，开始连接业务链路</span>
           </span></div>
           <div class="composer-canvas-tools" role="toolbar" aria-label="画布工具">
+            <div v-if="focused" class="composer-focus-exit-group">
+              <span id="composer-focus-exit-help" class="composer-focus-exit-help">退出全屏后可保存草稿、切换步骤</span>
+              <button type="button" class="composer-tool-button composer-focus-exit" aria-describedby="composer-focus-exit-help" aria-label="退出专注编排" @click="emit('toggle-focus')">退出全屏</button>
+            </div>
+            <button v-if="!focused" type="button" class="composer-tool-button" aria-label="全屏编排" @click="emit('toggle-focus')">全屏</button>
             <button type="button" class="composer-tool-button" aria-label="缩小画布" :disabled="zoom <= 0.4" @click="changeZoom(zoom - 0.1)">−</button>
             <button type="button" class="composer-tool-button composer-zoom" aria-label="还原画布缩放至百分之百" @click="changeZoom(1)">{{ Math.round(zoom * 100) }}%</button>
             <button type="button" class="composer-tool-button" aria-label="放大画布" :disabled="zoom >= 1.5" @click="changeZoom(zoom + 0.1)">＋</button>
@@ -468,7 +496,7 @@ function hasVersionChange(step: CanvasStep) { return Boolean(catalog.value.get(s
         </header>
         <div
           ref="viewport" class="composer-canvas-viewport" :class="{ 'is-drop-over': isDropOver, 'is-connecting': pendingSourceId }" tabindex="0" aria-label="可滚动的编排画布" data-canvas-drop
-          @dragover="dragOverCanvas" @dragleave.self="isDropOver = false" @drop="dropOnCanvas" @pointermove="movePointer" @pointerup="endPointer" @pointercancel="cancelGestures" @pointerleave="cancelGestures"
+          @wheel="handleCanvasWheel" @dragover="dragOverCanvas" @dragleave.self="isDropOver = false" @drop="dropOnCanvas" @pointermove="movePointer" @pointerup="endPointer" @pointercancel="cancelGestures" @pointerleave="cancelGestures"
         >
           <div class="composer-canvas-frame" :style="{ width: `${canvasSize.width * zoom}px`, height: `${canvasSize.height * zoom}px` }">
             <div ref="stage" class="composer-canvas-stage" :style="{ width: `${canvasSize.width}px`, height: `${canvasSize.height}px`, transform: `scale(${zoom})` }" @pointerdown.self="selectedStepId = null; selectedConnectionId = null">
@@ -484,7 +512,7 @@ function hasVersionChange(step: CanvasStep) { return Boolean(catalog.value.get(s
                 <path v-if="temporaryPath" class="composer-edge composer-edge-pending" :d="temporaryPath" :marker-end="`url(#${markerId})`" />
               </svg>
               <article
-                v-for="step in displaySteps" :key="step.id" class="composer-node" :class="{ 'is-selected': selectedStepId === step.id, 'is-unavailable': isUnavailable(step), 'is-moving': nodeGesture?.id === step.id, 'has-trial-error': trialErrors?.[step.id]?.length }" :data-step-id="step.id"
+                v-for="step in displaySteps" :key="step.id" class="composer-node" :class="{ 'is-wire-target': hoveredWireTarget === step.id, 'is-selected': selectedStepId === step.id, 'is-unavailable': isUnavailable(step), 'is-moving': nodeGesture?.id === step.id, 'has-trial-error': trialErrors?.[step.id]?.length }" :data-step-id="step.id"
                 :style="{ left: `${positionOf(step).x}px`, top: `${positionOf(step).y}px`, width: `${NODE_WIDTH}px`, height: `${heightOf(step)}px` }"
               >
                 <button type="button" class="composer-port composer-port-input" :class="{ 'is-connected': step.predecessorId, 'is-target': pendingSourceId && pendingSourceId !== step.id }" :data-input-port="step.id" :aria-label="`${step.name} 输入端口`" title="输入端口：连接上一步" @pointerdown.stop @click.stop="finishInput(step.id)"><span></span></button>
@@ -505,8 +533,10 @@ function hasVersionChange(step: CanvasStep) { return Boolean(catalog.value.get(s
             <span class="composer-empty-symbol" aria-hidden="true">＋</span><strong>将 Skill 拖到这里</strong><p>自由摆放节点，连接端口建立执行顺序。</p>
           </div>
         </div>
-        <footer class="composer-canvas-footer"><span>拖动节点调整位置 · 拖拽输出端口 → 输入端口连线</span><span>方向键移动选中节点</span></footer>
-        <p v-if="notice" class="composer-notice" :class="{ 'is-error': noticeIsError }" role="status" aria-live="polite">{{ notice }}</p>
+        <footer class="composer-canvas-footer">
+          <span role="status" aria-live="polite" :class="{ 'is-error': noticeIsError }">{{ notice || '拖动节点 · 端口连线 · 双指捏合缩放' }}</span>
+          <button type="button" class="composer-help-button" data-tooltip="从左侧拖入 Skill；拖动节点调整位置；从输出端口发起连线，拖到目标卡片后松开即可连接；方向键移动选中节点；触控板双指捏合缩放，双指滑动平移。" aria-label="画布操作说明">操作说明</button>
+        </footer>
       </section>
 
       <section class="composer-panel composer-configuration" aria-label="节点配置">
@@ -518,7 +548,7 @@ function hasVersionChange(step: CanvasStep) { return Boolean(catalog.value.get(s
           <button type="button" class="composer-delete-connection" @click="disconnectNode(selectedConnection.target.id)">删除连线</button>
         </div>
         <div v-else-if="selectedStep" ref="configurationBody" class="composer-configuration-body" tabindex="0" role="group" aria-label="可滚动的节点属性">
-          <div class="composer-selected-summary"><strong>{{ selectedStep.name }}</strong><p>{{ selectedStep.menu }}</p></div>
+          <div class="composer-selected-summary"><strong>{{ selectedStep.name }}</strong><p>{{ selectedStep.menu }}</p><span class="composer-version-tag" tabindex="0" data-tooltip="加入时固定版本，Skill 发布新版后不会自动切换。">固定版本 {{ selectedStep.pinnedVersion }}</span></div>
           <aside v-if="selectedTrialErrors.length" class="composer-trial-errors" aria-label="节点试运行提示">
             <strong>{{ trialStale ? '上次试运行提示' : '试运行错误' }}</strong>
             <p class="composer-trial-label">报错原因</p>
@@ -534,21 +564,17 @@ function hasVersionChange(step: CanvasStep) { return Boolean(catalog.value.get(s
               <textarea :value="selectedNodeContract?.task || ''" rows="3" :required="!selectedPublishedSkill?.description?.trim()" :placeholder="selectedPublishedSkill?.description || `例如：${selectedNodeExamples.task}`" @input="updateSelectedStep({ task: ($event.target as HTMLTextAreaElement).value })"></textarea>
               <small v-if="selectedPublishedSkill?.description?.trim()">未填写时按当前固定版本 Skill 的任务说明执行，也可填写本场景的具体任务。</small>
               <small v-else>填写本节点要处理的对象和具体动作；当前固定版本未提供任务说明，需补充后试运行。</small>
-              <small>填写示例：{{ selectedNodeExamples.task }}</small>
-            </label></div>
+            </label><details :key="selectedStep.id + 'task'" class="composer-field-example"><summary>查看填写示例</summary><p>{{ selectedNodeExamples.task }}</p></details></div>
             <div class="composer-config-field-group"><label class="composer-field">
               <span>固定要求 <small class="composer-optional-tag">选填</small></span>
               <textarea :value="selectedNodeContract?.fixedRequirements || ''" rows="3" :placeholder="`例如：${selectedNodeExamples.requirements}`" @input="updateSelectedStep({ fixedRequirements: ($event.target as HTMLTextAreaElement).value })"></textarea>
-              <small>填写示例：{{ selectedNodeExamples.requirements }}</small>
-            </label></div>
+            </label><details :key="selectedStep.id + 'requirements'" class="composer-field-example"><summary>查看填写示例</summary><p>{{ selectedNodeExamples.requirements }}</p></details></div>
             <div class="composer-config-field-group"><label class="composer-field">
               <span>预期输出</span>
               <textarea :value="selectedNodeContract?.expectedOutput || ''" rows="3" :placeholder="selectedPublishedSkill?.outputDescription || `例如：${selectedNodeExamples.output}`" @input="updateSelectedStep({ expectedOutput: ($event.target as HTMLTextAreaElement).value })"></textarea>
               <small>可参考 Skill 的输出说明填写预期结果；提示文字不会作为已填内容保存。</small>
-              <small>填写示例：{{ selectedNodeExamples.output }}</small>
-            </label></div>
+            </label><details :key="selectedStep.id + 'output'" class="composer-field-example"><summary>查看填写示例</summary><p>{{ selectedNodeExamples.output }}</p></details></div>
           </div>
-          <dl class="composer-field composer-static-field"><dt>固定版本</dt><dd class="composer-static-value">{{ selectedStep.pinnedVersion }}</dd><dd><small>加入时固定版本，Skill 发布新版后不会自动切换。</small></dd></dl>
           <section class="composer-execution-settings" aria-label="执行设置"><h4>执行设置</h4>
 
             <label class="composer-field"><span>所属链路</span><select :value="selectedStep.kind" @change="setSelectedKind(($event.target as HTMLSelectElement).value as ScenarioStepKind)"><option value="required">核心链路（必需执行）</option><option value="conditional">条件链路（满足条件执行）</option></select><small>选择示例：每次都要执行选“核心链路”；仅在特定需求下执行选“条件链路”。</small></label>
@@ -608,8 +634,8 @@ function hasVersionChange(step: CanvasStep) { return Boolean(catalog.value.get(s
 .composer-library-list { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
 .composer-library-skill { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; min-width: 0; padding: 12px 8px; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); cursor: grab; }
 .composer-library-skill:hover { border-color: var(--color-primary-border); }
-.composer-library-skill.is-added { background: var(--color-primary-subtle); border-color: var(--color-primary-border); }
-.composer-library-skill.is-added .composer-text-button { color: var(--color-primary); font-weight: 600; }
+.composer-library-skill.is-added { background: var(--color-warning-subtle); border-color: var(--color-warning); }
+.composer-library-skill.is-added .composer-text-button { color: var(--color-warning); font-weight: 600; }
 .composer-grip { flex: 0 0 auto; color: var(--color-text-tertiary); font-size: 18px; line-height: 1; cursor: grab; }
 .composer-skill-summary { flex: 1 1 72px; display: grid; gap: 4px; min-width: 0; }
 .composer-skill-summary strong, .composer-selected-summary strong { color: var(--color-text); font-size: 13px; font-weight: 500; overflow-wrap: anywhere; }
@@ -722,13 +748,25 @@ function hasVersionChange(step: CanvasStep) { return Boolean(catalog.value.get(s
 .composer-canvas-footer { align-items: center; padding: 8px 12px; flex-wrap: nowrap; }
 .composer-canvas-footer > span { flex: 1; }
 .composer-canvas-footer .is-error { color: var(--color-danger); }
+.composer-help-button { flex: 0 0 auto; padding: 4px 8px; border: 0; border-radius: var(--radius-md); background: transparent; color: var(--color-text-secondary); font: inherit; font-size: 12px; cursor: help; }
+.composer-focus-exit-help { font-size: 12px; line-height: 1.5; color: var(--color-text-secondary); }
+.composer-focus-exit-group .composer-tool-button.composer-focus-exit { color: var(--color-surface); background: var(--color-primary); border-color: var(--color-primary); font-weight: 600; box-shadow: var(--shadow-sm); }
+.composer-focus-exit-group .composer-tool-button.composer-focus-exit:hover { background: var(--color-primary-hover, var(--color-primary)); }
+.composer-node.is-wire-target { border-color: var(--color-primary); box-shadow: 0 0 0 3px var(--color-primary-border); }
 .composer-workspace { container: composer-workspace / inline-size; }
+.composer-canvas-toolbar.is-focused > .composer-canvas-tools { margin-left: auto; align-items: center; justify-content: flex-end; }
+.composer-focus-exit-group { display: flex; align-items: center; gap: 8px; min-width: 0; margin-right: 4px; }
+.composer-focus-exit-group > .composer-focus-exit { flex-shrink: 0; }
 .composer-configuration .composer-selected-summary { padding: 12px; border: 1px solid var(--color-border-subtle); border-radius: var(--radius-md); background: var(--color-surface-subtle); }
 .composer-selected-summary > strong { display: block; color: var(--color-text); font-size: 14px; line-height: 1.5; font-weight: 600; }
+.composer-version-tag { display: inline-flex; margin-top: 8px; padding: 4px 8px; border-radius: 4px; background: var(--color-surface); color: var(--color-text-secondary); font-size: 12px; }
 .composer-config-field-group { display: grid; gap: 8px; min-width: 0; }
 .composer-config-field-group .composer-field > span { font-size: 13px; font-weight: 600; color: var(--color-text); }
 .composer-config-field-group .composer-field > small { font-size: 12px; line-height: 1.6; color: var(--color-text-tertiary); }
 .composer-optional-tag { margin-left: 4px; font-weight: 400; color: var(--color-text-tertiary); }
+.composer-field-example { min-width: 0; font-size: 12px; line-height: 1.6; color: var(--color-text-secondary); }
+.composer-field-example > summary { cursor: pointer; width: fit-content; color: var(--color-text-secondary); }
+.composer-field-example > p { margin: 8px 0 0; padding: 8px 12px; background: var(--color-surface-subtle); border-radius: var(--radius-md); }
 .composer-execution-settings { display: grid; gap: 12px; min-width: 0; margin-top: 8px; padding-top: 16px; border-top: 1px solid var(--color-border-subtle); }
 .composer-execution-settings > h4 { margin: 0; font-size: 14px; line-height: 1.5; font-weight: 600; color: var(--color-text); }
 .composer-execution-settings > .composer-help { margin: 0; font-size: 12px; color: var(--color-text-tertiary); }

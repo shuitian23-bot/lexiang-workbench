@@ -128,10 +128,9 @@ test('account workspace opens scenario package creation directly and preserves i
 
   const navigation = functionSource(sidebar, 'openScenarioPackageCreatePage')
   assert.match(navigation, /closeUserMenu\(\)/)
-  assert.match(navigation, /ensureStaticTab\('agent\.skills'\)/)
-  assert.match(navigation, /setActiveStaticTab\('agent\.skills'\)/)
-  assert.match(navigation, /path:\s*'\/agent\/skills'/)
-  assert.match(navigation, /query:\s*\{\s*tab:\s*'packages',\s*mode:\s*'create'\s*\}/s)
+  assert.match(navigation, /ensureStaticTab\('agent\.scenarioPackageCreate'\)/)
+  assert.match(navigation, /setActiveStaticTab\('agent\.scenarioPackageCreate'\)/)
+  assert.match(navigation, /router\.push\('\/agent\/scenario-package-create'\)/)
 })
 
 test('account workspace separates creation and management rows responsively', async () => {
@@ -154,7 +153,7 @@ test('account workspace separates creation and management rows responsively', as
   assert.equal((footer.match(/account-hub-card-create/g) ?? []).length, 2)
   assert.equal((footer.match(/account-hub-card-manage/g) ?? []).length, 3)
   assert.match(footer, /account-hub-card-log/)
-  assert.match(footer, /<button type="button" class="account-hub-card account-hub-card-create primary"[^>]*>\s*<span[^>]*>＋<\/span>[\s\S]*?<b>创建 Skill<\/b>/)
+  assert.match(footer, /<button type="button" class="account-hub-card account-hub-card-create primary"[^>]*>\s*<span[^>]*aria-hidden="true"[^>]*><svg[\s\S]*?<\/svg><\/span>\s*<b>创建 Skill<\/b>/)
   assert.match(footer, /<button type="button" class="account-hub-card account-hub-card-manage account-hub-card-log"[^>]*>[\s\S]*?<b>调整日志<\/b>/)
   assert.match(css, /\.account-hub-panel\s*\{[^}]*grid-template-columns:\s*repeat\(6,\s*minmax\(0,1fr\)\)/s)
   assert.match(css, /\.account-hub-card-create\s*\{[^}]*grid-column:\s*span 3/s)
@@ -278,7 +277,7 @@ test('Skill Hub package view has independent filters, compact rows, details, and
   assert.match(view, /aria-modal="true"/)
   assert.match(view, /event\.key === 'Escape'/)
   assert.match(view, /packageDetailTrigger\?\.isConnected\) packageDetailTrigger\.focus\(\)/)
-  assert.match(view, /query:\s*\{\s*tab:\s*'packages',\s*mode:\s*'create'\s*\}/s)
+  assert.match(functionSource(view, 'openPackageCreate'), /router\.push\('\/agent\/scenario-package-create'\)/)
   assert.match(view, /query:\s*\{\s*tab:\s*'packages'\s*\}/s)
   assert.doesNotMatch(view, /scenarioStore\.resetToInitialMock\(\)/, 'page reload must preserve saved scenario packages')
 })
@@ -402,7 +401,7 @@ test('package create and tab panels hand focus off while keeping both controlled
   const submit = functionSource(view, 'handlePackageSubmitted')
 
   assert.match(view, /ref="activeCreateButton"[^>]*@click="openActiveCreate"/)
-  assert.match(openCreate, /await router\.replace/)
+  assert.match(openCreate, /await router\.push\('\/agent\/scenario-package-create'\)/)
   assert.match(openCreate, /await focusPackageCreator\(\)/)
   assert.match(closeCreate, /await router\.replace/)
   assert.match(closeCreate, /await nextTick\(\)/)

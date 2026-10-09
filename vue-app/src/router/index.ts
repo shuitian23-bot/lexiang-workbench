@@ -118,6 +118,7 @@ const routes: RouteRecordRaw[] = [
 
       // Agent 入口（从用户菜单进入，不在侧栏显示）
       { path: 'agent/skills',         component: AgentSkills, meta: { pageId: 'agent.skills' } },
+      { path: 'agent/scenario-package-create', component: AgentSkills, meta: { pageId: 'agent.scenarioPackageCreate' } },
       { path: 'agent/skill-create',   component: AgentSkillCreate, meta: { pageId: 'agent.skillCreate' } },
       { path: 'agent/permissions',    component: AgentPermissions, meta: { pageId: 'agent.permissions' } },
       { path: 'agent/permissions/admin-cleanup-email', component: AdminCleanupEmailMock, meta: { pageId: 'agent.permissions' } },

@@ -7,7 +7,7 @@ import type { ScenarioPackageActor, ScenarioSelectableSkill, ScenarioSkillPackag
 import ScenarioTestReportSummary from './ScenarioTestReportSummary.vue'
 
 const props = defineProps<{
-  headerTarget?: string
+  headerTarget?: string | HTMLElement | null
   draft: ScenarioSkillPackageDraft
   skills: ScenarioSelectableSkill[]
   actor: ScenarioPackageActor

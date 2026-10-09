@@ -36,7 +36,7 @@ function navigate(event: KeyboardEvent, index: number) {
       @click="emit('update:modelValue', item.key)"
       @keydown="navigate($event, index)"
     >
-      {{ item.label }}<span v-if="item.count != null">{{ item.count }}</span>
+      {{ item.label }}<span v-if="item.count != null">（{{ item.count }}）</span>
     </button>
   </div>
 </template>
@@ -48,8 +48,10 @@ function navigate(event: KeyboardEvent, index: number) {
   overflow-x: auto;
 }
 .cs-content-tabs button {
+  display: inline-flex;
+  align-items: baseline;
   flex: none;
-  padding: var(--space-3, 12px) 0 var(--space-2, 8px);
+  padding: var(--space-3, 12px) 0;
   border: 0;
   border-bottom: 2px solid transparent;
   border-radius: 0;
@@ -57,6 +59,8 @@ function navigate(event: KeyboardEvent, index: number) {
   color: var(--color-text-secondary);
   font: inherit;
   font-size: var(--text-sm, 13px);
+  font-weight: 500;
+  line-height: 1.5;
   white-space: nowrap;
   cursor: pointer;
 }
@@ -66,8 +70,11 @@ function navigate(event: KeyboardEvent, index: number) {
   font-weight: 600;
 }
 .cs-content-tabs button span {
-  margin-left: var(--space-2, 8px);
-  font-size: var(--text-xs, 12px);
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+}
+.cs-content-tabs button:not(:disabled):hover {
+  color: var(--color-primary);
 }
 .cs-content-tabs button:focus-visible {
   outline: 2px solid var(--color-primary);

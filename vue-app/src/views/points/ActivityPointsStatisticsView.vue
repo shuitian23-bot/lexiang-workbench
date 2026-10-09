@@ -440,30 +440,37 @@ watch(
           <ListSurface>
             <template #tabs><ContentTabs v-model="tab" :items="tabs" label="积分统计层级"/></template>
             <template #toolbar>
-              <div class="points-toolbar">
-                <span class="points-muted">当前筛选：{{ summary.enterpriseCount }} 家企业 ·
-                  {{ summary.accountCount }} 个账号 · {{ summary.orderCount }} 个订单 · 有效
-                  {{ n(summary.quantity) }} 台 · 有效实收 {{ money(summary.amount) }}</span>
-                <button
-                  v-if="drillEnterprise || drillAccount"
-                  class="points-link"
-                  @click="clearDrill"
-                >
-                  {{ drillAccount ? '返回账号列表' : '返回企业列表' }}
-                </button>
+              <div class="points-summary">
+                <div class="points-toolbar">
+                  <div class="points-summary-metrics" aria-label="当前筛选统计">
+                    <span class="points-summary-title">当前统计</span>
+                    <span><strong>{{ summary.enterpriseCount }}</strong> 家企业</span>
+                    <span><strong>{{ summary.accountCount }}</strong> 个账号</span>
+                    <span><strong>{{ summary.orderCount }}</strong> 个订单</span>
+                    <span>有效台数 <strong>{{ n(summary.quantity) }}</strong> 台</span>
+                    <span>有效实收 <strong>{{ money(summary.amount) }}</strong></span>
+                  </div>
+                  <button
+                    v-if="drillEnterprise || drillAccount"
+                    class="points-link"
+                    @click="clearDrill"
+                  >{{ drillAccount ? '返回账号列表' : '返回企业列表' }}</button>
+                </div>
+                <p v-if="drillEnterprise" class="points-summary-note">
+                  下钻范围：{{ allRows.find((row) => row.enterpriseId === drillEnterprise)?.enterprise }}{{ drillAccount ? ` / ${drillAccount}` : '' }}
+                </p>
+                <div>
+                  <p class="points-summary-metrics">
+                    <span>可计算应发 <strong>{{ n(summary.target) }}</strong> 分</span>
+                    <span>实际已发（其他已知）<strong>{{ n(summary.actualPaid) }}</strong> 分</span>
+                  </p>
+                  <p class="points-summary-note">汇总包含筛选后的全部记录；企业档位按活动完整范围计算。</p>
+                </div>
+                <div v-if="summary.missingPaidCount" class="points-summary-alert" role="status">
+                  <strong>{{ summary.missingPaidCount }} 条订单积分记录待核对</strong>
+                  <span>实际已发记录缺失，已发合计仅含已知部分；异常订单暂停自动发放。</span>
+                </div>
               </div>
-              <p v-if="drillEnterprise" class="points-muted">
-                下钻范围：{{
-                  allRows.find((row) => row.enterpriseId === drillEnterprise)?.enterprise
-                }}{{ drillAccount ? ` / ${drillAccount}` : '' }}
-              </p>
-              <p class="points-muted">
-                可计算应发 {{ n(summary.target) }} 分 · 实际已发（其他已知）{{ n(summary.actualPaid) }} 分。汇总包含筛选后的全部记录，企业档位按活动完整范围计算。
-              </p>
-              <p v-if="summary.missingPaidCount" class="points-code-error">
-                {{ summary.missingPaidCount }}
-                条实际已发记录缺失，已发合计仅含已知部分；异常订单暂停自动发放。
-              </p>
             </template>
             <div role="tabpanel" :aria-label="tab">
               <DataTable

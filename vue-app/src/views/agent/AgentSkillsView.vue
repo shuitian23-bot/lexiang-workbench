@@ -1,7 +1,7 @@
 <template>
   <ScenarioSkillPackageCreateView
     v-if="isPackageCreate"
-    :key="editingPackage ? `${editingPackage.id}-${editingPackageActorId}` : `new-package-${newPackageSessionOwner}`"
+    :key="editingPackage ? `${editingPackage.id}-${editingPackageActorId}` : `new-package-${newPackageSessionOwner}-${packageCreateSession}`"
     :draft="editingPackage"
     @cancel="closePackageCreate"
     @saved="handlePackageSaved"
@@ -183,19 +183,19 @@
       :aria-hidden="activeHubTab !== 'packages' ? 'true' : 'false'"
       :inert="activeHubTab !== 'packages' ? true : undefined"
     >
-      <div class="scenario-package-summary" aria-label="场景技能包重点指标">
+      <div class="scenario-package-summary skill-hub-summary" aria-label="场景技能包重点指标">
         <button
           v-for="item in packageSummaryItems"
           :key="item.key"
           type="button"
-          class="scenario-package-stat"
+          class="scenario-package-stat skill-hub-stat is-filterable"
           :class="[{ 'is-active': packageSummaryFilter === item.filter }, item.tone]"
           :aria-pressed="packageSummaryFilter === item.filter"
           @click="setPackageSummaryFilter(item.filter)"
         >
-          <span>{{ item.label }}</span>
+          <div class="skill-hub-stat-head"><span>{{ item.label }}</span><i>{{ item.code }}</i></div>
           <strong>{{ item.value }}</strong>
-          <small>{{ item.desc }}</small>
+          <em>{{ item.desc }}</em>
         </button>
       </div>
 
@@ -209,7 +209,7 @@
             <li>修改后需重新试运行并提审；创建者、提交人及本轮编辑者均不能自审。</li>
           </ul>
         </details>
-        <div class="scenario-package-toolbar">
+        <div class="scenario-package-toolbar skill-hub-toolbar">
           <input v-model="packageKeyword" type="search" aria-label="搜索场景技能包" placeholder="搜索名称、场景描述或主责任人">
           <select v-model="packageStatusFilter" aria-label="场景技能包状态" @change="packageSummaryFilter = 'all'">
             <option value="all">全部状态</option>
@@ -664,8 +664,10 @@ const activeHubTab = computed<HubTabId>(() => route.query.tab === 'packages' || 
 const packageRole = computed(() => scenarioPackageRole({ id: user.value || '', permissions: permissions.value }))
 const canCreatePackage = computed(() => Boolean(user.value)
   && canAuthorScenarioPackage({ id: user.value || '', permissions: permissions.value }))
-const packageCreateRoute = computed(() => route.path === '/agent/skills' && activeHubTab.value === 'packages' && route.query.mode === 'create')
-const packageEditId = computed(() => packageCreateRoute.value && typeof route.query.edit === 'string' ? route.query.edit : '')
+const dedicatedPackageCreate = route.path === '/agent/scenario-package-create'
+const packageCreateSession = ref(0)
+const packageCreateRoute = computed(() => dedicatedPackageCreate || route.path === '/agent/skills' && activeHubTab.value === 'packages' && route.query.mode === 'create')
+const packageEditId = computed(() => dedicatedPackageCreate ? '' : packageCreateRoute.value && typeof route.query.edit === 'string' ? route.query.edit : '')
 const editingPackage = ref<ScenarioSkillPackageDraft>()
 const editingPackageActorId = ref('')
 const newPackageSessionOwner = ref('')
@@ -917,12 +919,12 @@ const packageSummaryItems = computed(() => {
     listedScenarioPackages.value.filter(packageItem => matchesPackageStatus(packageItem, filter)).length
   )
   return [
-    { key: 'all', label: '全部技能包', value: listedScenarioPackages.value.length, desc: '跨菜单固定版本链路', tone: 'is-primary', filter: 'all' as const },
-    { key: 'review', label: '待审核', value: count('review'), desc: '等待管理员审核', tone: 'is-warning', filter: 'review' as const },
-    { key: 'published', label: '已发布', value: count('published'), desc: '已有已审核发布版本', tone: 'is-success', filter: 'published' as const },
-    { key: 'upgrade', label: '待升级', value: count('upgrade_required'), desc: '有新版，仍使用固定版本', tone: 'is-warning', filter: 'upgrade_required' as const },
-    { key: 'degraded', label: '降级运行', value: count('degraded'), desc: '条件分支部分关闭', tone: 'is-warning', filter: 'degraded' as const },
-    { key: 'paused', label: '已暂停', value: count('paused'), desc: '必需步骤当前不可用', tone: 'is-danger', filter: 'paused' as const }
+    { key: 'all', label: '全部技能包', code: 'ALL', value: listedScenarioPackages.value.length, desc: '跨菜单固定版本链路', tone: 'stat--primary', filter: 'all' as const },
+    { key: 'review', label: '待审核', code: 'TODO', value: count('review'), desc: '等待管理员审核', tone: 'stat--warning', filter: 'review' as const },
+    { key: 'published', label: '已发布', code: 'LIVE', value: count('published'), desc: '已有已审核发布版本', tone: 'stat--success', filter: 'published' as const },
+    { key: 'upgrade', label: '待升级', code: 'NEW', value: count('upgrade_required'), desc: '有新版，仍使用固定版本', tone: 'stat--primary', filter: 'upgrade_required' as const },
+    { key: 'degraded', label: '降级运行', code: 'PART', value: count('degraded'), desc: '条件分支部分关闭', tone: 'stat--warning', filter: 'degraded' as const },
+    { key: 'paused', label: '已暂停', code: 'STOP', value: count('paused'), desc: '必需步骤当前不可用', tone: 'stat--muted', filter: 'paused' as const }
   ]
 })
 
@@ -1439,7 +1441,7 @@ async function focusPackageCreator() {
 
 async function openPackageCreate() {
   if (!canCreatePackage.value) return
-  await router.replace({ path: '/agent/skills', query: { tab: 'packages', mode: 'create' } })
+  await router.push('/agent/scenario-package-create')
   await focusPackageCreator()
 }
 
@@ -1448,8 +1450,18 @@ function openActiveCreate() {
   else if (activeHubTab.value === 'skills') openSkillCreate()
 }
 
+async function resetPackageCreateSession() {
+  if (!dedicatedPackageCreate) return
+  // Rebuild while the Teleport header target is still in the document, before KeepAlive deactivates this view.
+  packageCreateSession.value += 1
+  await nextTick()
+}
+
 async function closePackageCreate() {
-  await router.replace({ path: '/agent/skills', query: { tab: 'packages' } })
+  await resetPackageCreateSession()
+  await router.replace({ path: '/agent/skills', query: {
+    tab: 'packages', ...(dedicatedPackageCreate ? { packageCreateCancelled: '1' } : {})
+  } })
   await nextTick()
   activeCreateButton.value?.focus()
 }
@@ -1458,7 +1470,10 @@ async function handlePackageSubmitted(packageItem: ScenarioSkillPackage) {
   resetPackageFilters()
   packageStatusFilter.value = 'review'
   highlightedPackageId.value = packageItem.id
-  await router.replace({ path: '/agent/skills', query: { tab: 'packages' } })
+  await resetPackageCreateSession()
+  await router.replace({ path: '/agent/skills', query: {
+    tab: 'packages', ...(dedicatedPackageCreate ? { submittedPackage: packageItem.id } : {})
+  } })
   await nextTick()
   packageRowElements.get(packageItem.id)?.scrollIntoView({ block: 'nearest' })
   packageRowElements.get(packageItem.id)?.focus()
@@ -1469,7 +1484,10 @@ async function handlePackageSaved(packageItem: ScenarioSkillPackage) {
   resetPackageFilters()
   packageStatusFilter.value = 'draft'
   highlightedPackageId.value = packageItem.id
-  await router.replace({ path: '/agent/skills', query: { tab: 'packages' } })
+  await resetPackageCreateSession()
+  await router.replace({ path: '/agent/skills', query: {
+    tab: 'packages', ...(dedicatedPackageCreate ? { savedPackage: packageItem.id } : {})
+  } })
   await nextTick()
   packageRowElements.get(packageItem.id)?.scrollIntoView({ block: 'nearest' })
   packageRowElements.get(packageItem.id)?.focus()
@@ -1483,6 +1501,30 @@ function goPortalHome() {
 function toast(message: string) {
   appStore.notify(message)
 }
+
+// The dedicated creator and list are separate KeepAlive instances.
+watch(() => [route.path, route.query.savedPackage, route.query.submittedPackage, route.query.packageCreateCancelled] as const, async ([path, saved, submitted, cancelled]) => {
+  if (dedicatedPackageCreate || path !== '/agent/skills') return
+  const id = typeof submitted === 'string' ? submitted : typeof saved === 'string' ? saved : ''
+  if (id ? !scenarioStore.findPackage(id) : cancelled !== '1') return
+  if (id) {
+    resetPackageFilters()
+    packageStatusFilter.value = typeof submitted === 'string' ? 'review' : 'draft'
+    highlightedPackageId.value = id
+  }
+  const query = { ...route.query }
+  delete query.savedPackage
+  delete query.submittedPackage
+  delete query.packageCreateCancelled
+  await router.replace({ path, query })
+  await nextTick()
+  if (id) {
+    packageRowElements.get(id)?.scrollIntoView({ block: 'nearest' })
+    packageRowElements.get(id)?.focus()
+  } else {
+    activeCreateButton.value?.focus()
+  }
+}, { immediate: true })
 
 watch(() => [route.path, route.query.submittedSkill] as const, ([path, name]) => {
   if (path !== '/agent/skills' || typeof name !== 'string' || !skillHubStore.findSkill(name)) return
@@ -1516,8 +1558,9 @@ onMounted(() => {
   if (navigation && navigation.type === 'reload') {
     sessionStorage.removeItem('leai.skillCreateDraft')
   }
-  appStore.ensureStaticTab('agent.skills')
-  appStore.setActiveStaticTab('agent.skills')
+  const pageId = dedicatedPackageCreate ? 'agent.scenarioPackageCreate' : 'agent.skills'
+  appStore.ensureStaticTab(pageId)
+  appStore.setActiveStaticTab(pageId)
   document.title = '联想门户工作台'
 })
 
@@ -1560,29 +1603,37 @@ onBeforeUnmount(() => {
 
 .skill-hub-view-tabs {
   display: flex;
-  min-height: 40px;
+  min-height: 48px;
   max-width: 100%;
+  gap: var(--space-6, 24px);
+  padding-inline: var(--space-4, 16px);
+  background: var(--color-surface);
+  overflow-x: auto;
+  border-radius: var(--radius-lg);
   border-bottom: 1px solid var(--color-border-subtle);
 }
 
 .skill-hub-view-tabs button {
   position: relative;
-  min-width: 96px;
-  min-height: 40px;
-  padding: 0 16px;
+  flex: none;
+  min-height: 48px;
+  padding: 0 var(--space-2, 8px);
   border: 0;
   background: transparent;
   color: var(--color-text-secondary);
   font: inherit;
-  font-size: 13px;
+  font-size: var(--text-base, 14px);
+  font-weight: 500;
+  line-height: 1.5;
+  white-space: nowrap;
   cursor: pointer;
 }
 
 .skill-hub-view-tabs button::after {
   position: absolute;
-  right: 12px;
-  bottom: -1px;
-  left: 12px;
+  right: var(--space-2, 8px);
+  bottom: 0;
+  left: var(--space-2, 8px);
   height: 2px;
   background: transparent;
   content: '';
@@ -1636,42 +1687,6 @@ onBeforeUnmount(() => {
   gap: var(--scenario-package-summary-gap);
 }
 
-.scenario-package-stat {
-  display: grid;
-  min-width: 0;
-  gap: 4px;
-  padding: 12px 16px;
-  border: 1px solid var(--color-border-subtle);
-  border-radius: var(--radius-md);
-  background: var(--color-surface);
-  color: var(--color-text);
-  text-align: left;
-  cursor: pointer;
-}
-
-.scenario-package-stat:hover,
-.scenario-package-stat.is-active {
-  border-color: var(--color-primary);
-}
-
-.scenario-package-stat.is-active {
-  background: var(--color-primary-subtle);
-}
-
-.scenario-package-stat span,
-.scenario-package-stat small {
-  overflow: hidden;
-  color: var(--color-text-secondary);
-  font-size: 12px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.scenario-package-stat strong {
-  font-size: 20px;
-  line-height: 1.35;
-}
-
 .skill-hub-list-workspace,
 .scenario-package-list-workspace {
   display: grid;
@@ -1683,25 +1698,8 @@ onBeforeUnmount(() => {
   margin-block: 0;
 }
 
-.scenario-package-toolbar {
-  display: grid;
-  grid-template-columns: minmax(260px, 1fr) minmax(160px, 220px) auto;
-  gap: 12px;
-}
-
-.scenario-package-toolbar input,
-.scenario-package-toolbar select {
-  box-sizing: border-box;
-  width: 100%;
-  min-width: 0;
-  min-height: var(--control-height-md);
-  padding: 0 12px;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  background: var(--color-surface);
-  color: var(--color-text);
-  font: inherit;
-  font-size: 13px;
+.skill-hub-page .scenario-package-toolbar {
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) auto;
 }
 
 .scenario-package-table-surface,
@@ -1757,7 +1755,8 @@ onBeforeUnmount(() => {
 
 .scenario-package-edit-hint {
   margin: 4px 0 0;
-  color: var(--color-text-secondary);
+  padding-inline: calc(var(--space-2, 8px) + 1px);
+  color: var(--color-text-tertiary);
   font-size: var(--text-xs);
   line-height: 1.6;
   white-space: normal;
@@ -2024,7 +2023,7 @@ onBeforeUnmount(() => {
 }
 
 @container (max-width: 1199px) {
-  .skill-hub-page .skill-hub-toolbar {
+  .skill-hub-page .skill-hub-toolbar:not(.scenario-package-toolbar) {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 
@@ -2034,7 +2033,7 @@ onBeforeUnmount(() => {
 }
 
 @container (max-width: 1039px) {
-  .skill-hub-page .skill-hub-toolbar,
+  .skill-hub-page .skill-hub-toolbar:not(.scenario-package-toolbar),
   .scenario-package-summary {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -2047,7 +2046,7 @@ onBeforeUnmount(() => {
 
   .skill-hub-page .skill-hub-toolbar,
   .scenario-package-summary,
-  .scenario-package-toolbar,
+  .skill-hub-page .scenario-package-toolbar,
   .scenario-package-detail-summary {
     grid-template-columns: minmax(0, 1fr);
   }

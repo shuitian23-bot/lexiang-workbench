@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 import SectionHeader from '@/components/content/SectionHeader.vue'
 import type { ScenarioSimulationReport } from '@/domain/scenarioPackageTesting.js'
 import { resolveScenarioChain } from '@/domain/scenarioSkillPackages.js'
 import type { ScenarioPinnedStep } from '@/stores/scenarioSkillPackages'
 
 const props = defineProps<{
-  headerTarget?: string
+  headerTarget?: string | HTMLElement | null
   report: ScenarioSimulationReport | null
   stale?: boolean
   steps?: ScenarioPinnedStep[]
@@ -21,6 +21,7 @@ type TrialNode = ScenarioSimulationReport['nodes'][number] & { suggestions?: str
 type NodeEntry = { id: string; name: string; step: ScenarioPinnedStep | undefined; node: TrialNode | null }
 
 const internalNodeId = ref('')
+const detailElement = ref<HTMLElement | null>(null)
 const entries = computed<NodeEntry[]>(() => {
   const reportNodes = props.report?.nodes || []
   if (props.steps !== undefined) {
@@ -63,6 +64,20 @@ watch([() => props.report?.id, () => entries.value.map(entry => entry.id).join('
 function selectNode(id: string) {
   internalNodeId.value = id
   emit('select-node', id)
+  if (props.resultsOnly) void nextTick(() => {
+    const detail = detailElement.value
+    if (!detail) return
+    // Scroll only the containing workspace, never the document or each column.
+    let container = detail.parentElement
+    while (container) {
+      if (/(auto|scroll)/.test(getComputedStyle(container).overflowY) && container.scrollHeight > container.clientHeight) {
+        const top = detail.getBoundingClientRect().top - container.getBoundingClientRect().top + container.scrollTop - 8
+        container.scrollTo({ top: Math.max(0, top), behavior: 'instant' })
+        break
+      }
+      container = container.parentElement
+    }
+  })
 }
 
 function statusLabel(status: string) {
@@ -146,7 +161,7 @@ function skippedConditionNames(report: ScenarioSimulationReport) {
         </ol>
       </nav>
 
-      <article v-if="selectedEntry" :key="selectedEntry.id" class="test-report-detail" :data-selected-node="selectedEntry.id" aria-label="选中节点详情" tabindex="0">
+      <article v-if="selectedEntry" ref="detailElement" :key="selectedEntry.id" class="test-report-detail" :data-selected-node="selectedEntry.id" aria-label="选中节点详情" tabindex="0">
         <div class="test-report-detail-heading">
           <h3>{{ selectedEntry.name || '未命名节点' }}</h3>
           <span class="test-report-status" :class="`is-${nodeStatus(selectedEntry)}`">{{ statusLabel(nodeStatus(selectedEntry)) }}</span>

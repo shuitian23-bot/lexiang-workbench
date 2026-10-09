@@ -23,7 +23,7 @@
         <div class="account-hub-panel" @click.stop>
           <button type="button" class="account-hub-close" @click="$emit('close-user-menu')" aria-label="关闭">×</button>
           <button type="button" class="account-hub-card account-hub-card-create primary" @click="$emit('open-skill-create')">
-            <span class="account-hub-icon">＋</span>
+            <span class="account-hub-icon account-hub-create-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14" /></svg></span>
             <b>创建 Skill</b>
             <small>从业务场景定义新能力、参数、输入输出和审批规则。</small>
           </button>
@@ -33,7 +33,7 @@
             class="account-hub-card account-hub-card-create primary"
             @click="$emit('open-scenario-package-create')"
           >
-            <span class="account-hub-icon">◎＋</span>
+            <span class="account-hub-icon account-hub-create-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="6" height="6" rx="1.5"/><rect x="3" y="15" width="6" height="6" rx="1.5"/><path d="M6 9v6M9 6h6v6M12 16h8M16 12v8"/></svg></span>
             <b>创建场景技能包</b>
             <small>按业务场景组合、串联已发布 Skill，并完成权限与版本评估。</small>
           </button>
@@ -93,3 +93,8 @@ defineEmits([
   'open-poc-log'
 ])
 </script>
+
+<style scoped>
+.account-hub-create-icon { width: 28px; height: 28px; padding: 0; display: inline-flex; align-items: center; justify-content: center; }
+.account-hub-create-icon svg { width: 18px; height: 18px; }
+</style>

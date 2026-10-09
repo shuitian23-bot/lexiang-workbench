@@ -1,5 +1,5 @@
 <template>
-  <div class="scenario-package-create" :class="{ 'is-definition': activeStep === 1, 'is-composition': activeStep === 2, 'is-trial': activeStep === 3, 'is-review': activeStep === 4, 'has-workspace-surface': activeStep <= 2 }" data-page-flow="scenario-package-create">
+  <div class="scenario-package-create" :class="{ 'is-focused': focused, 'is-definition': activeStep === 1, 'is-composition': activeStep === 2, 'is-trial': activeStep === 3, 'is-review': activeStep === 4, 'has-workspace-surface': activeStep <= 2 }" data-page-flow="scenario-package-create">
     <ContentPageHeader
       :title="draft ? '编辑场景技能包' : '创建场景技能包'"
       description="围绕业务场景编排已发布 Skill，逐个检查节点执行、结果传递与反馈，再提交管理员审核。"
@@ -28,7 +28,7 @@
       </button>
     </nav>
 
-    <div v-show="activeStep === 3" id="scenario-trial-fixed-heading" class="scenario-trial-fixed-heading"></div>
+    <div v-show="activeStep === 3" ref="trialHeaderTarget" id="scenario-trial-fixed-heading" class="scenario-trial-fixed-heading"></div>
     <div v-show="activeStep === 4" class="scenario-trial-fixed-heading scenario-review-fixed-heading">
       <SectionHeader
         class="scenario-review-section-heading"
@@ -105,7 +105,7 @@
         <p v-if="hasDependencyUpgrade" class="scenario-package-version-note" role="status">
           如需使用新版本，请移除对应旧节点，从左侧重新加入该 Skill，重新连接并核对节点配置，再试运行、提交其他管理员审核。旧审核版本在此期间保持原状态。
         </p>
-        <ScenarioSkillPackageComposer v-model="chain" :skills="publishedSkills" ref="composer" :trial-errors="trialErrors" :trial-suggestions="trialSuggestions" :trial-stale="!!testReport && !isTestCurrent" />
+        <ScenarioSkillPackageComposer v-model="chain" :skills="publishedSkills" :focused="focused" @toggle-focus="toggleFocus" ref="composer" :trial-errors="trialErrors" :trial-suggestions="trialSuggestions" :trial-stale="!!testReport && !isTestCurrent" />
       </section>
 
       <section
@@ -119,7 +119,7 @@
         tabindex="-1"
       >
         <ScenarioPackageTrialPanel
-          header-target="#scenario-trial-fixed-heading"
+          :header-target="trialHeaderTarget"
           v-model="testRequest"
           v-model:report="testReport"
           :draft="currentDraft()"
@@ -260,7 +260,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onDeactivated, ref, watch } from 'vue'
 import ContentPageHeader from '@/components/content/ContentPageHeader.vue'
 import SectionHeader from '@/components/content/SectionHeader.vue'
 import ScenarioSkillPackageComposer from './ScenarioSkillPackageComposer.vue'
@@ -269,6 +269,7 @@ import ScenarioPackageTrialPanel from './ScenarioPackageTrialPanel.vue'
 import ScenarioTestReportSummary from './ScenarioTestReportSummary.vue'
 import { createScenarioSimulationRequest, isScenarioSimulationCurrent, evaluateScenarioTrialForSubmit, type ScenarioSimulationReport, type ScenarioSimulationRequest } from '@/domain/scenarioPackageTesting.js'
 import { useAppStore } from '@/stores/app'
+import { useAIStore } from '@/stores/ai'
 import {
   useScenarioSkillPackagesStore,
   type ScenarioDependencyState,
@@ -304,6 +305,34 @@ const emit = defineEmits<{
 const props = defineProps<{ draft?: ScenarioSkillPackageDraft }>()
 
 const appStore = useAppStore()
+const aiStore = useAIStore()
+const focused = ref(false)
+const trialHeaderTarget = ref<HTMLElement | null>(null)
+let previousLayout: { sidebar: boolean; agent: boolean; width: number } | null = null
+function exitFocus() {
+  if (!previousLayout) return
+  focused.value = false
+  appStore.sidebarCollapseLocked = false
+  appStore.setSidebarCollapsed(previousLayout.sidebar, { persist: false })
+  aiStore.open = previousLayout.agent
+  aiStore.panelWidth = previousLayout.width
+  previousLayout = null
+  window.removeEventListener('keydown', handleFocusEscape)
+}
+function handleFocusEscape(event: KeyboardEvent) {
+  if (event.key === 'Escape') { event.preventDefault(); exitFocus() }
+}
+function toggleFocus() {
+  if (focused.value) return exitFocus()
+  previousLayout = { sidebar: appStore.sidebarCollapsed, agent: aiStore.open, width: aiStore.panelWidth }
+  appStore.sidebarCollapseLocked = true
+  appStore.setSidebarCollapsed(true, { persist: false })
+  aiStore.open = false
+  focused.value = true
+  window.addEventListener('keydown', handleFocusEscape)
+}
+onBeforeUnmount(exitFocus)
+onDeactivated(exitFocus)
 const scenarioStore = useScenarioSkillPackagesStore()
 
 const steps: Array<{ id: StepId; label: string }> = [
@@ -314,6 +343,7 @@ const steps: Array<{ id: StepId; label: string }> = [
 ]
 
 const activeStep = ref<StepId>(1)
+watch(activeStep, step => { if (step !== 2) exitFocus() })
 const maxVisitedStep = ref<StepId>(1)
 const form = ref({
   name: props.draft?.name ?? '职场人群认证经营管理',
@@ -1244,6 +1274,8 @@ watch([form, chain, actor, testReport, testRequest], () => {
   .scenario-definition-aside .scenario-package-static-field { border-left: 0; border-top: 1px solid var(--color-border-subtle); padding: 16px 0 0; }
 }
 @container (max-width: 719px) { .scenario-package-form-grid { grid-template-columns: minmax(0, 1fr); } }
+.is-focused > .content-page-header, .is-focused > .scenario-package-tabs, .is-focused > .scenario-package-actions { display: none; }
+.is-focused.is-composition .scenario-package-body { margin: 0; border: 1px solid var(--color-border-subtle); border-radius: var(--radius-lg); }
 .is-trial .scenario-package-body { padding-bottom: 0; }
 .is-trial #scenario-package-panel-3 { border-bottom: 0; border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
 :is(.is-trial, .is-review) .scenario-package-actions {

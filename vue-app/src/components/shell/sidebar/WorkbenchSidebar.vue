@@ -151,6 +151,15 @@ const pocReleaseLedger = ref({ records: {} })
 
 const basePocLogRecords = [
   {
+    time: '2026-10-09',
+    releaseKey: 'workbench-ui1009-compatible-20261009',
+    title: '列表样式与场景编排体验优化',
+    changePoint: '统一列表页签、指标卡和积分统计层次；场景包可在独立页签中创建，支持全屏编排、拖线和缩放，调整日志在窄屏下更易阅读。',
+    detail: '基于最新主线兼容合入 1009 UI 调整。切换创建页签保留当前填写内容，取消、保存或提审后重置下一次创建；全屏退出恢复侧栏和助手布局，画布支持在目标卡片松开连线与按指针位置缩放。账号启用、首次访问、权限移除后的申请、审批历史和重复申请修复保持；场景包的权限、固定版本、试运行与独立审核规则保持。发布环境、人员、时间和版本分别以实际记录为准。',
+    deployTargets: [],
+    status: '发布状态以环境记录为准'
+  },
+  {
     time: '2026-10-08',
     releaseKey: 'workbench-scenario-package-edit-20261008',
     title: '场景技能包编辑与审核撤回',
@@ -942,9 +951,9 @@ function openSkillCreatePage() {
 function openScenarioPackageCreatePage() {
   if (!canCreateScenarioPackage.value) return
   closeUserMenu()
-  appStore.ensureStaticTab('agent.skills')
-  appStore.setActiveStaticTab('agent.skills')
-  router.push({ path: '/agent/skills', query: { tab: 'packages', mode: 'create' } })
+  appStore.ensureStaticTab('agent.scenarioPackageCreate')
+  appStore.setActiveStaticTab('agent.scenarioPackageCreate')
+  router.push('/agent/scenario-package-create')
 }
 function openSkillManagerPage() {
   closeUserMenu()
@@ -1009,6 +1018,7 @@ function isSidebarManuallyCollapsed() {
 }
 
 function applyResponsiveSidebar(width, growing = false, shrink = false) {
+  if (appStore.sidebarCollapseLocked) return
   if ((shrink || !growing) && !sidebarCollapsed.value && width <= AUTO_COLLAPSE_WIDTH) {
     appStore.setSidebarCollapsed(true, { persist: false })
   } else if ((growing || !shrink) && sidebarCollapsed.value && width >= AUTO_EXPAND_WIDTH) {
@@ -1058,3 +1068,59 @@ onBeforeUnmount(() => {
   clearTimeout(_peekTimer)
 })
 </script>
+
+<style scoped>
+.poc-log-item {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-areas: 'meta status' 'content content';
+  gap: var(--space-3, 12px) var(--space-4, 16px);
+  padding: var(--space-4, 16px);
+}
+.poc-log-meta {
+  grid-area: meta;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2, 8px);
+}
+.poc-log-content {
+  grid-area: content;
+}
+.poc-log-item > div {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.poc-log-status {
+  grid-area: status;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2, 8px);
+}
+.poc-log-status > em {
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.5;
+  font-weight: 500;
+  border-radius: var(--radius-md);
+}
+@media (max-width: 719px) {
+  .poc-log-item {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: 'meta' 'status' 'content';
+  }
+  .poc-log-status {
+    justify-content: flex-start;
+  }
+  .poc-log-release-row {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+  .poc-log-item .poc-log-release-row > p {
+    grid-column: 1 / -1;
+  }
+}
+</style>

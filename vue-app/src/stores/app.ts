@@ -181,6 +181,7 @@ export function pageIdToPath(pageId: PageId) {
     'portal.home':       '/portal/home',
     'agent.skills':      '/agent/skills',
     'agent.skillCreate': '/agent/skill-create',
+    'agent.scenarioPackageCreate': '/agent/scenario-package-create',
     'agent.permissions': '/agent/permissions',
     'dashboard.query': '/hidden/dashboard/query',
     'dashboard.behavior': '/hidden/dashboard/behavior',
@@ -211,6 +212,7 @@ export function getPageLabel(pageId: PageId) {
   const map = {
     'agent.skills': 'Skill Hub',
     'agent.skillCreate': 'Skill 创建',
+    'agent.scenarioPackageCreate': '场景技能包创建',
     'agent.permissions': '权限管理',
     'portal.home': '联想门户工作台',
     'dashboard.query': 'Query 明细',
@@ -273,6 +275,7 @@ export const useAppStore = defineStore('app', () => {
   const activeTempTabId = ref<string | null>(null)
 
   // ---- 侧栏折叠状态（从 localStorage 读取，对应原 restoreSidebarState）----
+  const sidebarCollapseLocked = ref(false)
   const sidebarCollapsed = ref(readBooleanStorage(
     STORAGE_KEYS.sidebarCollapsed,
     STORAGE_KEYS.legacySidebarCollapsed
@@ -543,7 +546,7 @@ export const useAppStore = defineStore('app', () => {
     // state
     user, role, permissions, visibleMenus,
     staticTabs, activeStaticTabId, tempTabs, activeTempTabId,
-    sidebarCollapsed, darkMode,
+    sidebarCollapsed, sidebarCollapseLocked, darkMode,
     // computed
     userInitial, filteredMenuTree,
     // actions

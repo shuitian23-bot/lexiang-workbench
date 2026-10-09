@@ -23,10 +23,12 @@ withDefaults(defineProps<{ state?: 'loading' | 'data' | 'empty' | 'error' | 'no-
   border-radius: var(--radius-lg);
   background: var(--color-surface);
 }
-.cs-list-surface__tabs,
 .cs-list-surface__toolbar,
 .cs-list-surface__pagination {
   padding: var(--space-3, 12px) var(--space-4, 16px);
+}
+.cs-list-surface__tabs {
+  padding-inline: var(--space-4, 16px);
 }
 .cs-list-surface__toolbar,
 .cs-list-surface__data,

@@ -319,6 +319,8 @@ onBeforeUnmount(close)
 .points-select > label {
   color: var(--color-text-secondary);
   font-size: var(--text-sm, 13px);
+  font-weight: 500;
+  line-height: 1.5;
 }
 .points-select-trigger {
   position: relative;
@@ -335,6 +337,8 @@ onBeforeUnmount(close)
   color: var(--color-text);
   font: inherit;
   font-size: var(--text-sm, 13px);
+  font-weight: 400;
+  line-height: 1.5;
   cursor: pointer;
   text-overflow: ellipsis;
   transition: border-color 0.15s, box-shadow 0.15s;

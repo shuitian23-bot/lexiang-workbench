@@ -4,6 +4,10 @@
   padding: 0;
   container-type: inline-size;
   color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: var(--text-base, 14px);
+  font-weight: 400;
+  line-height: 1.5;
 }
 .points-flow,
 .points-form-flow {
@@ -51,6 +55,7 @@
   min-width: 0;
   color: var(--color-text-secondary);
   font-size: var(--text-sm, 13px);
+  font-weight: 500;
   line-height: 1.5;
 }
 .points-field .form-input {
@@ -63,6 +68,8 @@
   color: var(--color-text);
   font-family: inherit;
   font-size: var(--text-sm, 13px);
+  font-weight: 400;
+  line-height: 1.5;
   border-radius: var(--radius-md);
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
@@ -162,6 +169,61 @@
 }
 .points-actions .btn {
   white-space: nowrap;
+}
+.points-page :deep(.cs-data-table [data-column='actions']),
+.points-page :deep(.cs-data-table [data-column='actions'] button) {
+  white-space: nowrap;
+}
+.points-page :deep(.cs-data-table [data-column='actions'] .points-actions) {
+  flex-wrap: nowrap;
+}
+.points-page :deep(.cs-data-table th) {
+  font-weight: 500;
+  color: var(--color-text-secondary);
+}
+.points-page :deep(.cs-data-table td) {
+  font-weight: 400;
+  line-height: 1.5;
+}
+.points-summary {
+  display: grid;
+  gap: var(--space-3, 12px);
+  font-size: var(--text-sm, 13px);
+  line-height: 1.5;
+}
+.points-summary p {
+  margin: 0;
+}
+.points-summary-metrics {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-2, 8px) var(--space-4, 16px);
+  color: var(--color-text-secondary);
+}
+.points-summary-title,
+.points-summary-metrics strong {
+  color: var(--color-text);
+  font-weight: 600;
+}
+.points-summary-note {
+  color: var(--color-text-secondary);
+  font-size: var(--text-xs, 12px);
+  line-height: 1.5;
+}
+.points-summary-alert {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-1, 4px) var(--space-2, 8px);
+  padding: var(--space-2, 8px) var(--space-3, 12px);
+  border-radius: var(--radius-md);
+  background: var(--color-danger-subtle);
+  color: var(--color-danger);
+  font-size: var(--text-xs, 12px);
+}
+.points-summary-alert strong {
+  font-weight: 600;
 }
 .points-filter-actions {
   grid-column: 1/-1;
