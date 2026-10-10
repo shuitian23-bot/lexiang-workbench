@@ -73,6 +73,8 @@ worktree 共享 `.git`，一份 230M；db/hnsw/uploads/node_modules 全软链回
 
 不要再用 `cp -r` 复制整个项目当工作区（已有 `codex-lexiang`、`~wangyt50/lexiang` 等），那样改动 merge 不回来，只能手工重敲成 `[同步prod xxx]` commit，还吃磁盘。
 
+**合并后必须收尾**：每个 agent 在确认本任务改动已合入远端目标分支、必要验证完成后，须在最终汇报前主动清理本人本任务的临时 worktree，无需用户再次提醒。先检查未提交/ignored 内容、锁定状态、运行服务和外部引用，保存独有数据与证据，再从目录外使用不带 `--force` 的 `git worktree remove`；保留个人分支、常驻工作区、正式/new 目录及其他人的工作。不符合条件则保留并说明原因。完整步骤以 `AGENTS.md` 的「合并后的临时 worktree 收尾」节为准。
+
 下面 6 条是**仍然必须遵守的兜底**（尤其还没建 worktree、直接动生产目录时）：
 
 1. **git 是唯一事实源**：改完立即 commit + push，禁止裸奔工作区。开工发现他人未提交改动 → 先 `git add` + `checkpoint:` 快照提交保护，再开工。
