@@ -33,6 +33,8 @@ const AgreementOrder = () => import('@/views/order/AgreementOrderView.vue')
 const ProductVideoConfig = () => import('@/views/advertising/ProductVideoConfigView.vue')
 const ActivityPoints = () => import('@/views/points/ActivityPointsView.vue')
 const ActivityPointsStatistics = () => import('@/views/points/ActivityPointsStatisticsView.vue')
+const ReviewSummaryEvaluation = () => import('@/views/reviews/ReviewSummaryEvaluationView.vue')
+const ReviewAssist = () => import('@/views/reviews/ReviewAssistView.vue')
 const AgentSkills = () => import('@/views/agent/AgentSkillsView.vue')
 const AgentSkillCreate = () => import('@/views/agent/AgentSkillCreateView.vue')
 const AgentPermissions = () => import('@/views/agent/AgentPermissionsView.vue')
@@ -115,6 +117,10 @@ const routes: RouteRecordRaw[] = [
       // 促销中心 / 积分管理：保留现有积分页面直链与权限标识。
       { path: 'points/activity', component: ActivityPoints, meta: { pageId: 'points.activity', group: 'promotion' } },
       { path: 'points/activity-details', component: ActivityPointsStatistics, meta: { pageId: 'points.activityDetails', group: 'promotion' } },
+
+      // 评价管理 POC：沿用统一登录守卫，页面数据独立于现有业务模块。
+      { path: 'reviews/summary', component: ReviewSummaryEvaluation, meta: { pageId: 'reviews.summary', group: 'reviews' } },
+      { path: 'reviews/assist', component: ReviewAssist, meta: { pageId: 'reviews.assist', group: 'reviews' } },
 
       // Agent 入口（从用户菜单进入，不在侧栏显示）
       { path: 'agent/skills',         component: AgentSkills, meta: { pageId: 'agent.skills' } },

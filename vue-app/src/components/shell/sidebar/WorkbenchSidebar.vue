@@ -152,6 +152,15 @@ const pocReleaseLedger = ref({ records: {} })
 const basePocLogRecords = [
   {
     time: '2026-10-10',
+    releaseKey: 'workbench-review-management-20261010',
+    title: '评价管理 POC 接入',
+    changePoint: '新增评价管理一级菜单，包含评价总结、辅助生成两个二级菜单。',
+    detail: '接入附件中的查询、分析、标注、处置及辅助生成演示，补齐列表日期筛选、分页和导出。演示数据仅在当前页面内存中使用，刷新后恢复初始状态；未接入真实评价、生成或处置服务。现有菜单、账号权限、积分管理及技能包功能保持。发布环境、人员、时间和版本分别以实际记录为准。',
+    deployTargets: [],
+    status: '发布状态以环境记录为准'
+  },
+  {
+    time: '2026-10-10',
     releaseKey: 'workbench-skill-package-personal-feedback-20261010',
     title: '技能包个人赞踩反馈',
     changePoint: '技能包管理每张卡片增加赞、踩按钮，可切换选择或再次点击取消。',

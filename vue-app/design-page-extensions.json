@@ -39,6 +39,32 @@
         "本次统计查询和响应式交互验收待完成",
         "真实订单及积分数据未接入"
       ]
+    },
+    {
+      "pageId": "reviews.summary",
+      "label": "评价总结",
+      "route": "/reviews/summary",
+      "pageType": "T7",
+      "components": ["C1", "C2", "C3", "C8", "C9"],
+      "implementation": "O1",
+      "visualStatus": "VA-0",
+      "remainingStates": [
+        "本轮交互、响应式及键盘验证见独立浏览器证据",
+        "使用附件演示数据，真实后端及处置流转未接入"
+      ]
+    },
+    {
+      "pageId": "reviews.assist",
+      "label": "辅助生成",
+      "route": "/reviews/assist",
+      "pageType": "T7",
+      "components": ["C1", "C2", "C3", "C8", "C9"],
+      "implementation": "O1",
+      "visualStatus": "VA-0",
+      "remainingStates": [
+        "本轮交互、响应式及键盘验证见独立浏览器证据",
+        "使用附件演示数据，真实生成及评价发布服务未接入"
+      ]
     }
   ]
 }

@@ -22,7 +22,7 @@ import { allowPreviewAuth } from '@/config/runtimeMode'
 import { AI_INSPECT_MENU, withAiInspectMenu } from '@/services/aiInspectAccess'
 import { ACTIVITY_POINTS_MENU, withActivityPointsMenu } from '@/services/activityPointsAccess'
 
-type MenuGroupKey = 'dashboard' | 'geo' | 'employee' | 'lead' | 'order' | 'advertising' | 'aiinspect' | 'promotion'
+type MenuGroupKey = 'dashboard' | 'geo' | 'employee' | 'lead' | 'order' | 'advertising' | 'aiinspect' | 'promotion' | 'reviews'
 export type PageId = string
 
 interface MenuItem {
@@ -172,7 +172,15 @@ export const MENU_TREE: Record<MenuGroupKey, MenuGroup> = {
     }
   },
   aiinspect: AI_INSPECT_MENU,
-  promotion: ACTIVITY_POINTS_MENU
+  promotion: ACTIVITY_POINTS_MENU,
+  reviews: {
+    icon: menuIcon('<rect x="3.2" y="3.5" width="13.6" height="13" rx="2.2"/><path d="M6 7h8M6 10h5M6 13h3"/><path d="m12 12 1.3 1.3 2.2-2.6"/>'),
+    label: '评价管理',
+    children: {
+      'reviews.summary': { label: '评价总结', path: '/reviews/summary' },
+      'reviews.assist': { label: '辅助生成', path: '/reviews/assist' }
+    }
+  }
 }
 
 // pageId → path 快速查表
@@ -291,11 +299,14 @@ export const useAppStore = defineStore('app', () => {
   const userInitial = computed(() => (user.value || 'A')[0].toUpperCase())
 
   // ---- 过滤后的菜单树（对应原 STATE.visibleMenus 过滤 MENU_TREE）----
-  const filteredMenuTree = computed(() =>
-    withActivityPointsMenu(withAiInspectMenu(Object.fromEntries(
-      Object.entries(MENU_TREE).filter(([key]) => visibleMenus.value.includes(key as MenuGroupKey))
+  const filteredMenuTree = computed(() => {
+    const existingMenus = withActivityPointsMenu(withAiInspectMenu(Object.fromEntries(
+      Object.entries(MENU_TREE).filter(([key]) => key !== 'reviews' && visibleMenus.value.includes(key as MenuGroupKey))
     ), user.value, role.value, permissions.value), user.value, role.value, permissions.value)
-  )
+    return visibleMenus.value.includes('reviews')
+      ? { ...existingMenus, reviews: MENU_TREE.reviews }
+      : existingMenus
+  })
 
   // ===== 对应原 loadUserContext() =====
   async function loadUserContext() {
@@ -331,7 +342,7 @@ export const useAppStore = defineStore('app', () => {
         // 兼容：dashboard 权限自动补 geo
         if (menus.includes('dashboard') && !menus.includes('geo')) menus.push('geo')
         // 员工管理等默认可见
-        ;['employee', 'lead', 'order', 'advertising'].forEach(k => {
+        ;['employee', 'lead', 'order', 'advertising', 'reviews'].forEach(k => {
           if (!menus.includes(k)) menus.push(k)
         })
         // 只保留 MENU_TREE 中存在的 key
