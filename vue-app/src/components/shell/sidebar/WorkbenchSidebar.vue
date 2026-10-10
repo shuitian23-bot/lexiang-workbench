@@ -151,6 +151,15 @@ const pocReleaseLedger = ref({ records: {} })
 
 const basePocLogRecords = [
   {
+    time: '2026-10-10',
+    releaseKey: 'workbench-permission-review-pr27-20261010',
+    title: '登录与账号申请流程优化',
+    changePoint: '内部账号首次访问与停用后的申请入口更清晰；外部停用账号提示联系联想业务对接人，首次权限申请结果与账号启用进度展示统一。',
+    detail: '账号启用进度支持查看审批状态、申请详情和处理记录；保留既有启用历史及重复申请修复，停用不清除原有权限。组织和用户表单按评审收敛字段，昨天的列表样式、场景技能包编排和页签内容保留。真实登录与后台审批接口沿用现有实现；发布环境、人员、时间和版本分别以实际记录为准。',
+    deployTargets: [],
+    status: '发布状态以环境记录为准'
+  },
+  {
     time: '2026-10-09',
     releaseKey: 'workbench-ui1009-compatible-20261009',
     title: '列表样式与场景编排体验优化',
