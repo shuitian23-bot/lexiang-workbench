@@ -152,6 +152,15 @@ const pocReleaseLedger = ref({ records: {} })
 const basePocLogRecords = [
   {
     time: '2026-10-10',
+    releaseKey: 'workbench-skillhub-evaluate-label-20261010',
+    title: 'Skill Hub 评估按钮命名统一',
+    changePoint: 'Skill Hub 中原“测试”按钮统一显示为“评估”。',
+    detail: '各状态下可用的评估入口统一命名，点击后继续打开原有 Skill 评估面板；操作权限、评分、应用入口和其他流程保持。发布环境、人员、时间和版本分别以实际记录为准。',
+    deployTargets: [],
+    status: '发布状态以环境记录为准'
+  },
+  {
+    time: '2026-10-10',
     releaseKey: 'workbench-permission-review-pr27-20261010',
     title: '登录与账号申请流程优化',
     changePoint: '内部账号首次访问与停用后的申请入口更清晰；外部停用账号提示联系联想业务对接人，首次权限申请结果与账号启用进度展示统一。',

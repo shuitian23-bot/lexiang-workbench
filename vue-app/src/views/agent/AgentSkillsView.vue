@@ -1016,7 +1016,7 @@ function actionLabel(action: SkillHubActionCode) {
     retry_update: '重试更新',
     edit: '编辑',
     view: '详情',
-    evaluate: '测试',
+    evaluate: '评估',
     test: '应用',
     submit_review: '提交审核',
     withdraw_review: '撤回',

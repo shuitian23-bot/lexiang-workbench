@@ -860,10 +860,10 @@ test('ignored capability updates restore the standalone action matrix in every l
   assert.equal(skillHubMutationDecision({ ...disabled, capabilityUpdate: ignoredUpdate }, admin, 'edit').allowed, true)
 })
 
-test('Skill Hub keeps the original Test and Apply labels with their original behaviors', async () => {
+test('Skill Hub labels evaluation as Evaluate and preserves evaluation and Apply behaviors', async () => {
   const view = await source('../src/views/agent/AgentSkillsView.vue')
   assert.match(view, /view:\s*'详情'/)
-  assert.match(view, /evaluate:\s*'测试'/)
+  assert.match(view, /evaluate:\s*'评估'/)
   assert.match(view, /test:\s*'应用'/)
   assert.match(view, /if \(action === 'evaluate'\) \{\s*evalItem\.value = item/)
   assert.match(view, /if \(action === 'test'\) return testSkill\(item\)/)
