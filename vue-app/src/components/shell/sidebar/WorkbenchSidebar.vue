@@ -152,6 +152,15 @@ const pocReleaseLedger = ref({ records: {} })
 const basePocLogRecords = [
   {
     time: '2026-10-10',
+    releaseKey: 'workbench-skill-package-personal-feedback-20261010',
+    title: '技能包个人赞踩反馈',
+    changePoint: '技能包管理每张卡片增加赞、踩按钮，可切换选择或再次点击取消。',
+    detail: '个人选择按当前账号保存在本机浏览器中，刷新及重新打开弹窗后恢复；不展示累计数量，不跨设备或站点同步。原有使用次数、启停、搜索与筛选保持；保存失败时提示重试并保留原选择。发布环境、人员、时间和版本分别以实际记录为准。',
+    deployTargets: [],
+    status: '发布状态以环境记录为准'
+  },
+  {
+    time: '2026-10-10',
     releaseKey: 'workbench-skillhub-evaluate-label-20261010',
     title: 'Skill Hub 评估按钮命名统一',
     changePoint: 'Skill Hub 中原“测试”按钮统一显示为“评估”。',

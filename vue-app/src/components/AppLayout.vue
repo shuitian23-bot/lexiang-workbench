@@ -28,6 +28,7 @@
   </div>
 
   <AppAIPanel />
+  <SkillPackageFeedback />
 </template>
 
 <script setup>
@@ -38,6 +39,7 @@ import { useAppStore } from '@/stores/app'
 import AppSidebar   from './shell/sidebar/WorkbenchSidebar.vue'
 import AppTopbar    from './shell/topbar/WorkbenchTopbar.vue'
 import AppAIPanel   from './shell/agent/WorkbenchAgentPanel.vue'
+import SkillPackageFeedback from './agent/SkillPackageFeedback.vue'
 import TempTabView  from './TempTabView.vue'
 
 const appStore = useAppStore()
