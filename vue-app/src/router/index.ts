@@ -34,6 +34,9 @@ const ProductVideoConfig = () => import('@/views/advertising/ProductVideoConfigV
 const ActivityPoints = () => import('@/views/points/ActivityPointsView.vue')
 const ActivityPointsStatistics = () => import('@/views/points/ActivityPointsStatisticsView.vue')
 const PointsLedger = () => import('@/views/points/PointsLedgerView.vue')
+const PointsCatalog = () => import('@/views/points/PointsCatalogView.vue')
+const PointsLegacyRules = () => import('@/views/points/PointsLegacyRulesView.vue')
+const PointsAccounts = () => import('@/views/points/PointsAccountsView.vue')
 const ReviewSummaryEvaluation = () => import('@/views/reviews/ReviewSummaryEvaluationView.vue')
 const ReviewAssist = () => import('@/views/reviews/ReviewAssistView.vue')
 const AgentSkills = () => import('@/views/agent/AgentSkillsView.vue')
@@ -123,6 +126,11 @@ const routes: RouteRecordRaw[] = [
       // 促销中心 / 积分管理：保留现有积分页面直链与权限标识。
       { path: 'points/detail-export', component: PointsLedger, props: { mode: 'export' }, meta: { pageId: 'points.detailExport', group: 'promotion' } },
       { path: 'points/account-details', component: PointsLedger, props: { mode: 'account' }, meta: { pageId: 'points.accountDetails', group: 'promotion' } },
+      { path: 'points/deduction-rules', component: PointsLegacyRules, props: { mode: 'deduction' }, meta: { pageId: 'points.deductionRules', group: 'promotion' } },
+      { path: 'points/channels', component: PointsCatalog, props: { mode: 'channel' }, meta: { pageId: 'points.channels', group: 'promotion' } },
+      { path: 'points/accounts', component: PointsAccounts, meta: { pageId: 'points.accounts', group: 'promotion' } },
+      { path: 'points/currencies', component: PointsCatalog, props: { mode: 'currency' }, meta: { pageId: 'points.currencies', group: 'promotion' } },
+      { path: 'points/rules', component: PointsLegacyRules, props: { mode: 'earning' }, meta: { pageId: 'points.rules', group: 'promotion' } },
       { path: 'points/activity', component: ActivityPoints, meta: { pageId: 'points.activity', group: 'promotion' } },
       { path: 'points/activity-details', component: ActivityPointsStatistics, meta: { pageId: 'points.activityDetails', group: 'promotion' } },
 

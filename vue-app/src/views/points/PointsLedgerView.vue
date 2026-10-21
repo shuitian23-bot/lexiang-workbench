@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, reactive, ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import { useAppStore } from '@/stores/app'
 import ContentPageHeader from '@/components/content/ContentPageHeader.vue'
 import DataTable from '@/components/content/DataTable.vue'
@@ -14,6 +15,7 @@ import { buildActivityPointsLedger, filterPointsLedger } from '@/services/activi
 
 const props = defineProps<{ mode: 'export' | 'account' }>()
 const app = useAppStore()
+const route = useRoute()
 const { state, storageNotice } = useActivityPointsDemo()
 const title = computed(() => (props.mode === 'export' ? '明细导出' : '账户明细'))
 const canView = computed(() => canUseActivityPoints(app.user, app.role, app.permissions))
@@ -31,7 +33,14 @@ const selectedKey = ref('')
 const ledger = computed(() =>
   canView.value ? buildActivityPointsLedger(state.activities, state.records, state.date) : []
 )
-const rows = computed(() => (error.value ? [] : filterPointsLedger(ledger.value, applied.value)))
+const rows = computed(() => {
+  if (error.value) return []
+  if (props.mode === 'account') {
+    const account = applied.value.account.trim().toLowerCase()
+    return account ? ledger.value.filter((row) => row.account.trim().toLowerCase() === account) : []
+  }
+  return filterPointsLedger(ledger.value, applied.value)
+})
 const paged = computed(() =>
   rows.value
     .slice((page.value - 1) * 10, page.value * 10)
@@ -59,9 +68,11 @@ function query() {
   selectedKey.value = ''
   notice.value = ''
   error.value =
-    draft.start && draft.end && draft.start > draft.end
-      ? '操作开始日期不能晚于结束日期，请调整后查询。'
-      : ''
+    props.mode === 'account' && !draft.account.trim()
+      ? '请输入 Lenovo ID 后查询。'
+      : props.mode === 'export' && draft.start && draft.end && draft.start > draft.end
+        ? '操作开始日期不能晚于结束日期，请调整后查询。'
+        : ''
   if (!error.value) applied.value = { ...draft, account: draft.account.trim() }
   page.value = 1
 }
@@ -72,6 +83,7 @@ function reset() {
   error.value = ''
   notice.value = ''
   selectedKey.value = ''
+  advanced.value = false
 }
 function download() {
   if (!canView.value || !canExport.value || error.value || !rows.value.length) return
@@ -118,7 +130,17 @@ function download() {
   )
   notice.value = `已导出当前筛选的全部 ${rows.value.length} 条实际入账流水。`
 }
-watch(() => props.mode, reset)
+watch(
+  [() => props.mode, () => route.query.account],
+  ([mode, account]) => {
+    reset()
+    if (mode === 'account' && typeof account === 'string' && account.trim()) {
+      draft.account = account.trim()
+      query()
+    }
+  },
+  { immediate: true }
+)
 watch(
   () => rows.value.length,
   () => {
@@ -131,7 +153,11 @@ watch(
   <section class="points-page points-flow">
     <ContentPageHeader
       :title="title"
-      description="查询活动积分入账流水，按账号、渠道和操作时间筛选。"
+      :description="
+        mode === 'account'
+          ? '输入完整 Lenovo ID 查询该账户的活动积分入账流水。'
+          : '查询活动积分入账流水，按账号、渠道和操作时间筛选。'
+      "
     >
       <template v-if="mode === 'export' && canView" #actions>
         <button
@@ -166,50 +192,65 @@ watch(
       <div class="points-list-workspace" data-flow-role="list-workspace">
         <form class="points-filter" @submit.prevent="query">
           <div class="points-filter-grid">
-            <label class="points-field">虚拟币<input class="form-input" value="企业积分" readonly/></label>
-            <label class="points-field">积分渠道<select v-model="draft.channel" class="form-input">
-              <option value="">全部渠道</option>
-              <option value="企业购渠道">企业购渠道</option>
+            <label v-if="mode === 'account'" class="points-field">
+              <span><span class="points-code-error" aria-hidden="true">*</span> Lenovo ID（必填）</span>
+              <input
+                v-model="draft.account"
+                class="form-input"
+                placeholder="请输入完整 Lenovo ID"
+                aria-required="true"
+                :aria-invalid="!!error"
+                :aria-describedby="error ? 'ledger-query-error' : undefined"
+              />
+            </label>
+            <label class="points-field">虚拟币<select class="form-input" aria-label="虚拟币">
+              <option value="企业积分">企业积分</option>
             </select></label>
-            <label class="points-field">规则类型<select v-model="draft.ruleType" class="form-input">
-              <option value="">全部类型</option>
-              <option value="活动积分">活动积分</option>
-            </select></label>
-            <label class="points-field">Lenovo ID<input
-              v-model="draft.account"
-              class="form-input"
-              placeholder="例如 LID-DEMO-B01"
-            /></label>
-            <template v-if="advanced">
-              <label class="points-field">关联活动<select v-model="draft.activityId" class="form-input">
-                <option value="">全部活动</option>
-                <option
-                  v-for="item in state.activities.filter((item) => !item.draft)"
-                  :key="item.id"
-                  :value="item.id"
-                >
-                  {{ item.name }}
-                </option>
+            <template v-if="mode === 'export'">
+              <label class="points-field">积分渠道<select v-model="draft.channel" class="form-input">
+                <option value="">全部渠道</option>
+                <option value="企业购渠道">企业购渠道</option>
               </select></label>
-              <label class="points-field">操作开始日期<input
-                v-model="draft.start"
+              <label class="points-field">规则类型<select v-model="draft.ruleType" class="form-input">
+                <option value="">全部类型</option>
+                <option value="活动积分">活动积分</option>
+              </select></label>
+              <label class="points-field">Lenovo ID<input
+                v-model="draft.account"
                 class="form-input"
-                type="date"
-                :aria-invalid="!!error"
-                :aria-describedby="error ? 'ledger-date-error' : undefined"
+                placeholder="例如 LID-DEMO-B01"
               /></label>
-              <label class="points-field">操作结束日期<input
-                v-model="draft.end"
-                class="form-input"
-                type="date"
-                :aria-invalid="!!error"
-                :aria-describedby="error ? 'ledger-date-error' : undefined"
-              /></label>
+              <template v-if="advanced">
+                <label class="points-field">关联活动<select v-model="draft.activityId" class="form-input">
+                  <option value="">全部活动</option>
+                  <option
+                    v-for="item in state.activities.filter((item) => !item.draft)"
+                    :key="item.id"
+                    :value="item.id"
+                  >
+                    {{ item.name }}
+                  </option>
+                </select></label>
+                <label class="points-field">操作开始日期<input
+                  v-model="draft.start"
+                  class="form-input"
+                  type="date"
+                  :aria-invalid="!!error"
+                  :aria-describedby="error ? 'ledger-date-error' : undefined"
+                /></label>
+                <label class="points-field">操作结束日期<input
+                  v-model="draft.end"
+                  class="form-input"
+                  type="date"
+                  :aria-invalid="!!error"
+                  :aria-describedby="error ? 'ledger-date-error' : undefined"
+                /></label>
+              </template>
             </template>
           </div>
           <p
             v-if="error"
-            id="ledger-date-error"
+            :id="mode === 'account' ? 'ledger-query-error' : 'ledger-date-error'"
             class="points-code-feedback points-code-error"
             role="alert"
           >
@@ -217,6 +258,7 @@ watch(
           </p>
           <div class="points-toolbar">
             <button
+              v-if="mode === 'export'"
               class="points-link"
               type="button"
               :aria-expanded="advanced"
@@ -256,8 +298,18 @@ watch(
           <FeedbackState
             v-else
             :state="error ? 'error' : 'filtered-empty'"
-            :title="error ? '请调整查询日期' : '暂无符合条件的已到账积分'"
-            description="可调整筛选条件；待发或失败记录请在活动积分明细中查看。"
+            :title="
+              mode === 'account' && (!applied.account || !!error)
+                ? '请输入 Lenovo ID 后查询'
+                : error
+                  ? '请调整查询日期'
+                  : '暂无符合条件的已到账积分'
+            "
+            :description="
+              mode === 'account'
+                ? '请填写完整 Lenovo ID；待发和失败记录不计入账户入账流水。'
+                : '可调整筛选条件；待发或失败记录请在活动积分明细中查看。'
+            "
           ><template #action><button class="btn btn-secondary" @click="reset">重置筛选</button></template></FeedbackState>
           <template #pagination><Pagination v-model:page="page" :page-size="10" :total="rows.length"/></template>
         </ListSurface>
