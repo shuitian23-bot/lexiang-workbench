@@ -581,11 +581,9 @@ watch(
             <dt>支付 / 签收</dt>
             <dd>{{ order.date }} / {{ order.signed ? '已签收' : '未签收' }}</dd>
             <dt>有效数量</dt>
-            <dd>{{ order.quantity }} − {{ order.returned }} = {{ order.netQuantity }} 台</dd>
+            <dd>{{ order.netQuantity }} 台</dd>
             <dt>实际净收款</dt>
-            <dd>
-              ¥ {{ n(order.receipt) }} − ¥ {{ n(order.refund) }} = ¥ {{ n(order.netReceipt) }}
-            </dd>
+            <dd>¥ {{ n(order.netReceipt) }}</dd>
             <dt>企业累计</dt>
             <dd>{{ n(order.enterpriseQuantity) }} 台 / ¥ {{ n(order.enterpriseAmount) }}</dd>
             <dt>企业最终倍数</dt>
