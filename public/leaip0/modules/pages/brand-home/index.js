@@ -659,9 +659,54 @@ window.__p0Modules.sources["ua2918bf0b0c03289"]=function(){
     }
   }
 
-  // 不 preventDefault：外链跳转逻辑不变，只是顺带把 query 发到左侧。
+  // 新闻和案例卡片分离原文入口与乐享解读入口，避免整张卡片同时触发两种行为。
+  w.document.querySelectorAll('#lxbrand-news .lxbrand-grid, #lxbrand-cases .lxbrand-grid').forEach(grid => {
+    Array.from(grid.querySelectorAll(':scope > a.lxbrand-card')).forEach(linkCard => {
+      const detailUrl = linkCard.href;
+      const title = linkCard.querySelector('h3')?.textContent?.trim() || linkCard.getAttribute('title') || '联想品牌内容';
+      if (!detailUrl || !title) return;
+      const isCase = Boolean(linkCard.closest('#lxbrand-cases'));
+      const query = linkCard.dataset.lxBrandQuery || `请帮我解读这条联想品牌${isCase ? '案例' : '资讯'}：${title}`;
+      const card = w.document.createElement('article');
+      Array.from(linkCard.attributes).forEach(attr => {
+        if (!['href', 'target', 'rel', 'data-lx-brand-query'].includes(attr.name)) card.setAttribute(attr.name, attr.value);
+      });
+      card.classList.add('lxbrand-card--actions');
+      card.tabIndex = 0;
+      card.dataset.lxBrandQuery = query;
+      while (linkCard.firstChild) card.appendChild(linkCard.firstChild);
+
+      const overlay = w.document.createElement('div');
+      overlay.className = 'lxbrand-card-overlay';
+      overlay.setAttribute('role', 'group');
+      overlay.setAttribute('aria-label', '卡片操作');
+      const actions = w.document.createElement('div');
+      actions.className = 'lxbrand-card-actions';
+      const detail = w.document.createElement('a');
+      detail.className = 'lxbrand-card-action lxbrand-card-action--detail';
+      detail.href = detailUrl;
+      detail.target = linkCard.target || '_blank';
+      detail.rel = linkCard.rel || 'noopener noreferrer';
+      detail.textContent = '查看详情';
+      detail.setAttribute('aria-label', `查看详情：${title}`);
+      const interpret = w.document.createElement('button');
+      interpret.className = 'lxbrand-card-action lxbrand-card-action--interpret';
+      interpret.type = 'button';
+      interpret.textContent = '乐享解读';
+      interpret.setAttribute('aria-label', `乐享解读：${title}`);
+      interpret.setAttribute('data-lx-brand-interpret', '');
+      actions.append(detail, interpret);
+      overlay.appendChild(actions);
+      card.appendChild(overlay);
+      linkCard.replaceWith(card);
+    });
+  });
+
   document.addEventListener('click', event => {
-    const card = event.target.closest('.lxbrand-card[data-lx-brand-query]');
+    const interpret = event.target.closest('.lxbrand-card-interpret[data-lx-brand-interpret]');
+    if (!interpret) return;
+    event.preventDefault();
+    const card = interpret.closest('.lxbrand-card--actions');
     if (!card || !w.__lxBridge || w.__lxState?.sending) return;
     w.__lxBridge.sendChat(card.dataset.lxBrandQuery);
   });
