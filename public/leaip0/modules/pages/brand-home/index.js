@@ -692,7 +692,12 @@ window.__p0Modules.sources["ua2918bf0b0c03289"]=function(){
       const interpret = w.document.createElement('button');
       interpret.className = 'lxbrand-card-action lxbrand-card-action--interpret';
       interpret.type = 'button';
-      interpret.textContent = '乐享解读';
+      const interpretIcon = w.document.createElement('img');
+      interpretIcon.className = 'lxbrand-card-interpret-icon';
+      interpretIcon.src = '/assets/icons/global-sparkle-white.svg';
+      interpretIcon.alt = '';
+      interpretIcon.setAttribute('aria-hidden', 'true');
+      interpret.append(interpretIcon, w.document.createTextNode('乐享解读'));
       interpret.setAttribute('aria-label', `乐享解读：${title}`);
       interpret.setAttribute('data-lx-brand-interpret', '');
       actions.append(detail, interpret);
