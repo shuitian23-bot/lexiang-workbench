@@ -83,7 +83,7 @@ public/leaip0/assets/frontend/js/pages/brand/brand-summary-v1.js|__lxBrandSummar
 public/js/app-mobile.js|window.__lxSheet|移动端底部浮层脚本
 public/index.html|app-mobile.js?v=|移动端脚本引用
 public/leaip0/modules/shared/agent-content/index.js|openReferencesDialog(trigger)|P0最新新闻参考资料统一弹窗
-public/leaip0/brand/index.html|brand-card-hover-20261021-5|P0品牌频道卡片悬浮操作版本标记
+public/leaip0/brand/index.html|brand-card-hover-20261021-7|P0品牌频道卡片悬浮操作版本标记
 public/leaip0/modules/pages/brand-home/index.css|lxbrand-card-overlay|P0品牌频道卡片悬浮蒙层
 public/leaip0/modules/pages/brand-home/index.js|lxbrand-card-interpret|P0品牌频道卡片乐享解读按钮
 public/leaip0/assets/icons/global-sparkle-white.svg|<svg|P0品牌频道乐享解读四芒星图标
