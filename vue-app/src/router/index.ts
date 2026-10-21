@@ -2,7 +2,7 @@ import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
 import { useAppStore } from '@/stores/app'
 import { allowPreviewAuth } from '@/config/runtimeMode'
 import { aiInspectRoutes } from '@/views/aiinspect/routes'
-import { canUseActivityPoints } from '@/services/activityPointsAccess'
+import { ACTIVITY_POINTS_MENU, canUseActivityPoints } from '@/services/activityPointsAccess'
 import { showWorkbenchToast } from '@/services/toast'
 
 // 布局
@@ -33,6 +33,7 @@ const AgreementOrder = () => import('@/views/order/AgreementOrderView.vue')
 const ProductVideoConfig = () => import('@/views/advertising/ProductVideoConfigView.vue')
 const ActivityPoints = () => import('@/views/points/ActivityPointsView.vue')
 const ActivityPointsStatistics = () => import('@/views/points/ActivityPointsStatisticsView.vue')
+const PointsLedger = () => import('@/views/points/PointsLedgerView.vue')
 const ReviewSummaryEvaluation = () => import('@/views/reviews/ReviewSummaryEvaluationView.vue')
 const ReviewAssist = () => import('@/views/reviews/ReviewAssistView.vue')
 const AgentSkills = () => import('@/views/agent/AgentSkillsView.vue')
@@ -120,6 +121,8 @@ const routes: RouteRecordRaw[] = [
       ...aiInspectRoutes,
 
       // 促销中心 / 积分管理：保留现有积分页面直链与权限标识。
+      { path: 'points/detail-export', component: PointsLedger, props: { mode: 'export' }, meta: { pageId: 'points.detailExport', group: 'promotion' } },
+      { path: 'points/account-details', component: PointsLedger, props: { mode: 'account' }, meta: { pageId: 'points.accountDetails', group: 'promotion' } },
       { path: 'points/activity', component: ActivityPoints, meta: { pageId: 'points.activity', group: 'promotion' } },
       { path: 'points/activity-details', component: ActivityPointsStatistics, meta: { pageId: 'points.activityDetails', group: 'promotion' } },
 
@@ -191,8 +194,8 @@ router.beforeEach(async (to) => {
       return { path: '/login', query: { redirect: to.fullPath } }
     }
   }
-  if (['points.activity', 'points.activityDetails'].includes(String(to.meta.pageId)) && !canUseActivityPoints(appStore.user, appStore.role, appStore.permissions)) {
-    showWorkbenchToast('当前账号没有活动积分查看权限，请联系管理员开通。')
+  if (Object.prototype.hasOwnProperty.call(ACTIVITY_POINTS_MENU.children, String(to.meta.pageId)) && !canUseActivityPoints(appStore.user, appStore.role, appStore.permissions)) {
+    showWorkbenchToast('当前账号没有积分查看权限，请联系管理员开通。')
     return { path: '/portal/home' }
   }
   return true

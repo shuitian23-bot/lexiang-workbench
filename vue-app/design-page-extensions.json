@@ -2,6 +2,26 @@
   "schemaVersion": 1,
   "pages": [
     {
+      "pageId": "points.detailExport",
+      "label": "积分明细导出",
+      "route": "/points/detail-export",
+      "pageType": "T2",
+      "components": ["C1", "C2", "C3", "C8", "C9"],
+      "implementation": "O1",
+      "visualStatus": "VA-0",
+      "remainingStates": ["本轮筛选、分页及导出交互见独立验证", "仅使用合成活动积分数据，未接入真实账本"]
+    },
+    {
+      "pageId": "points.accountDetails",
+      "label": "积分账户明细",
+      "route": "/points/account-details",
+      "pageType": "T2",
+      "components": ["C1", "C2", "C3", "C8", "C9"],
+      "implementation": "O1",
+      "visualStatus": "VA-0",
+      "remainingStates": ["本轮账户查询与流水联动见独立验证", "仅使用合成活动积分数据，未接入真实账本"]
+    },
+    {
       "pageId": "agent.scenarioPackageCreate",
       "label": "场景技能包创建",
       "route": "/agent/scenario-package-create",

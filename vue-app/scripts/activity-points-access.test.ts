@@ -5,6 +5,7 @@ import { runInNewContext } from 'node:vm'
 import ts from 'typescript'
 import type { RouteRecordRaw } from 'vue-router'
 import {
+  ACTIVITY_POINTS_MENU,
   canUseActivityPoints,
   isActivityPointsDemoPreview,
   withActivityPointsMenu
@@ -119,7 +120,7 @@ function activityRouteHarness(user: string | null, permissions: string[]) {
     '@/stores/app': { useAppStore: () => store },
     '@/config/runtimeMode': { allowPreviewAuth: false },
     '@/views/aiinspect/routes': { aiInspectRoutes: [] },
-    '@/services/activityPointsAccess': { canUseActivityPoints },
+    '@/services/activityPointsAccess': { canUseActivityPoints, ACTIVITY_POINTS_MENU },
     '@/services/toast': { showWorkbenchToast: () => undefined }
   }
   const source = readFileSync(new URL('../src/router/index.ts', import.meta.url), 'utf8')
@@ -138,11 +139,13 @@ function activityRouteHarness(user: string | null, permissions: string[]) {
   return { guard, routes: routes.find((route) => route.path === '/')?.children || [] }
 }
 
-test('两个积分页面直达与菜单共用查看权限，导出权限不能代替查看权限', async () => {
+test('四个积分页面直达与菜单共用查看权限，导出权限不能代替查看权限', async () => {
   for (const permissions of [[], ['points.activity.export'], ['points.activity.view']]) {
     const { guard, routes } = activityRouteHarness('reader', permissions)
     const menu = withActivityPointsMenu({}, 'reader', '工作台用户', permissions, false)
     for (const [path, pageId] of [
+      ['points/detail-export', 'points.detailExport'],
+      ['points/account-details', 'points.accountDetails'],
       ['points/activity', 'points.activity'],
       ['points/activity-details', 'points.activityDetails']
     ]) {
@@ -157,10 +160,12 @@ test('两个积分页面直达与菜单共用查看权限，导出权限不能�
   }
 })
 
-test('两个积分页面未登录直达保留登录后的目标地址', async () => {
+test('四个积分页面未登录直达保留登录后的目标地址', async () => {
   const { guard } = activityRouteHarness(null, ['*'])
   assert.equal(withActivityPointsMenu({}, null, '平台管理员', ['*'], true).promotion, undefined)
   for (const [path, pageId] of [
+    ['/points/detail-export', 'points.detailExport'],
+    ['/points/account-details', 'points.accountDetails'],
     ['/points/activity', 'points.activity'],
     ['/points/activity-details', 'points.activityDetails']
   ]) {
