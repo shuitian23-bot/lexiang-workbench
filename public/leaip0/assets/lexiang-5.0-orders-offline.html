@@ -42,6 +42,60 @@
   <head>
 <!-- checkout-invoice-correction-20261022-v2 -->
 <script data-checkout-invoice-default-v1>
+/* checkout-invoice-align-customer-search-20261022-v3 */
+window.__lxBindCustomerCodeSearch = (root, inputSelector, menuSelector, optionSelector, onChange) => {
+  const input = root.querySelector(inputSelector), menu = root.querySelector(menuSelector);
+  if (!input || !menu) return;
+  const options = [...menu.querySelectorAll(optionSelector)];
+  const normalize = value => value.toLocaleLowerCase().replace(/[\s_-]+/g, '');
+  const empty = document.createElement('p');
+  empty.className = 'lx-customer-code-empty';
+  empty.textContent = '暂无匹配编码，可直接使用输入内容';
+  empty.setAttribute('role', 'status');
+  empty.hidden = true;
+  menu.appendChild(empty);
+  input.readOnly = false;
+  input.autocomplete = 'off';
+  input.placeholder = '可输入或搜索客户编码';
+  input.setAttribute('role', 'combobox');
+  input.setAttribute('aria-autocomplete', 'list');
+  input.setAttribute('aria-controls', menu.id ||= 'lxCustomerCodeSuggestions');
+  input.setAttribute('aria-expanded', 'false');
+  menu.setAttribute('role', 'listbox');
+  options.forEach(option => option.setAttribute('role', 'option'));
+  const close = () => { menu.hidden = true; input.setAttribute('aria-expanded', 'false'); };
+  const filter = () => {
+    const query = normalize(input.value.trim());
+    options.forEach(option => { option.hidden = !normalize(option.textContent).includes(query); option.style.display = option.hidden ? 'none' : ''; });
+    empty.hidden = options.some(option => !option.hidden);
+    menu.hidden = false;
+    input.setAttribute('aria-expanded', 'true');
+  };
+  input.addEventListener('focus', filter);
+  input.addEventListener('click', event => { event.stopPropagation(); filter(); });
+  input.addEventListener('input', () => { onChange(input.value.trim()); filter(); });
+  input.addEventListener('keydown', event => {
+    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+      event.preventDefault(); filter();
+      const visible = options.filter(option => !option.hidden);
+      (event.key === 'ArrowDown' ? visible[0] : visible.at(-1))?.focus();
+    } else if (event.key === 'Enter' || event.key === 'Escape' || event.key === 'Tab') {
+      if (event.key !== 'Tab') event.preventDefault();
+      close();
+    }
+  });
+  input.addEventListener('blur', () => setTimeout(() => { if (!menu.contains(document.activeElement)) close(); }, 0));
+  menu.addEventListener('focusout', () => setTimeout(() => { if (document.activeElement !== input && !menu.contains(document.activeElement)) close(); }, 0));
+  menu.addEventListener('keydown', event => {
+    if (event.key === 'Escape') { event.preventDefault(); input.focus(); close(); }
+    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+      event.preventDefault(); const visible = options.filter(option => !option.hidden);
+      const index = visible.indexOf(document.activeElement), step = event.key === 'ArrowDown' ? 1 : -1;
+      visible[(index + step + visible.length) % visible.length]?.focus();
+    }
+  });
+};
+
 /* checkout-invoice-correction-20261022-v2 */
 (() => {
   if (window.__lxInvoicePreference) return;
@@ -4255,6 +4309,7 @@ if (!window.__lxCreateTypewriter) {
           const codes = ["CUS-BJ-20260803","CUS-SH-20260718","CUS-GZ-20260626"];
           const body = `<div class="lx-checkout5 lx-checkout5-original-modify lx-checkout5-original-order">${lxCheckout5Header("修改订单", "", true)}<div class="lx-checkout5-original-modify-body"><div class="lx-checkout5-original-address"><span>⌖</span><strong>1　${esc(address.region || "")}${esc(address.detail || "")}</strong><button type="button" data-checkout5-address-tip>修改地址</button></div><section><h3>选择支付方式</h3>${lxCheckout5OriginalPaymentMarkup()}</section><section><h3>订单补充信息</h3><div class="lx-checkout5-original-form"><label>订单备注</label><input data-checkout5-input="note" value="${esc(checkout.note)}"><label>客户编码</label><div class="lx-checkout5-original-combobox"><input data-checkout5-input="customerCode" data-checkout5-customer-input value="${esc(checkout.customerCode)}" placeholder="可输入或选择客户编码" autocomplete="off"><div data-checkout5-customer-options hidden>${codes.map((code) => `<button type="button" data-checkout5-customer-code="${code}">${code}</button>`).join("")}</div></div><button class="lx-checkout5-original-invoice-entry" type="button" data-checkout5-order-invoice><strong>发票信息</strong><span class="lx-order-invoice-summary">${window.__lxInvoicePreference.summary(invoice)}</span><i></i></button></div></section></div><footer class="lx-checkout5-original-modify-footer"><button class="lx-checkout5-btn is-primary" type="button" data-checkout5-save-order>确认</button></footer></div>`;
           openModal("", body, { skin: "checkout5", checkoutView: "order" });
+          window.__lxBindCustomerCodeSearch(document.querySelector('.lx-checkout5-original-order'), '[data-checkout5-customer-input]', '[data-checkout5-customer-options]', '[data-checkout5-customer-code]', value => { checkout.customerCode = value; });
         }
 
         function lxCheckout5CaptureOrderInputs(root) {
@@ -19400,9 +19455,9 @@ async function openEduZone() {
 [data-buy-modal-direct] .lx-order-reference .lx-order-supplement-grid>label{grid-column:1!important;display:grid!important;grid-template-columns:70px minmax(0,1fr)!important;align-items:center;gap:10px!important;min-width:0}
 [data-buy-modal-direct] .lx-order-reference .lx-order-supplement-grid>label:nth-child(2){grid-row:2}
 [data-buy-modal-direct] .lx-order-reference .lx-order-supplement-grid input,[data-buy-modal-direct] .lx-order-reference .lx-order-combobox{width:100%!important;min-width:0;box-sizing:border-box}
-[data-buy-modal-direct] .lx-order-reference .lx-order-supplement-grid>.lx-order-invoice-entry{grid-column:1;grid-row:3;display:flex;align-items:center;gap:14px;min-width:0;height:40px;padding:0;border:0;border-radius:0;background:transparent;box-shadow:none;color:#2b272d;text-align:left;font:inherit;cursor:pointer}
-.lx-order-invoice-entry>strong{flex:none;font-size:13px;font-weight:600}
-.lx-order-invoice-summary{display:flex;justify-content:flex-end;align-items:center;gap:5px;min-width:0;margin-left:auto}
+[data-buy-modal-direct] .lx-order-reference .lx-order-supplement-grid>.lx-order-invoice-entry{grid-column:1;grid-row:3;display:flex;align-items:center;gap:10px;min-width:0;height:40px;padding:0;border:0;border-radius:0;background:transparent;box-shadow:none;color:#2b272d;text-align:left;font:inherit;cursor:pointer}
+.lx-order-invoice-entry>strong{flex:0 0 70px;font-size:13px;font-weight:600}
+.lx-order-invoice-summary{display:flex;flex:1;justify-content:flex-start;align-items:center;gap:5px;min-width:0;margin-left:0}
 .lx-order-invoice-entry>.lx-order-chevron{flex:none;transform:rotate(-45deg)}
 [data-buy-modal-direct] .lx-invoice-dialog .lx-invoice-tip{padding:0!important;border:0!important;background:transparent!important;color:#8b858e;font-size:12px;line-height:20px}
 [data-buy-modal-direct] .lx-invoice-dialog .lx-invoice-qualification{display:grid;gap:6px;margin:10px 0 18px;padding:0}
@@ -19427,7 +19482,9 @@ input.lx-invoice-default-switch:focus-visible{outline:2px solid #a262d7;outline-
 @media(max-width:600px){[data-buy-modal-direct] .lx-order-reference .lx-order-supplement-grid{grid-template-columns:1fr!important}[data-buy-modal-direct] .lx-order-reference .lx-order-supplement-grid>.lx-order-invoice-entry{grid-column:1;grid-row:3}.lx-invoice-qualification>div{grid-template-columns:92px minmax(0,1fr)}}
 
 .lx-offline-address-tabs{display:flex;gap:28px;margin-bottom:18px}.lx-offline-address-tabs button{padding:0 0 8px;border:0;border-bottom:2px solid transparent;background:none;color:#77717d;font:inherit;cursor:pointer}.lx-offline-address-tabs button.is-active{border-color:#681057;color:#681057}.lx-offline-address-card{display:grid;grid-template-columns:1fr auto;gap:14px;margin:12px 0;padding:16px;border:1px solid #e2ddeb;border-radius:8px}.lx-offline-address-card button{display:grid;gap:8px;padding:0;border:0;background:none;text-align:left;font:inherit;cursor:pointer}.lx-offline-address-card span{color:#77717d}
-.lx-checkout5-original-order .lx-checkout5-original-form{grid-template-columns:70px minmax(0,1fr)!important;column-gap:14px;row-gap:18px}.lx-checkout5-original-order .lx-checkout5-original-form>input,.lx-checkout5-original-order .lx-checkout5-original-combobox{grid-column:2;min-width:0;width:100%;box-sizing:border-box}.lx-checkout5-original-order .lx-checkout5-original-form>label{grid-column:1}.lx-checkout5-original-order .lx-checkout5-original-invoice-entry{grid-column:1/-1;grid-row:3;min-width:0;display:flex;gap:10px;align-items:center;margin:0;padding:0;border:0;border-radius:0;background:transparent}.lx-checkout5-original-invoice-entry>strong{white-space:nowrap}.lx-checkout5-original-invoice-entry .lx-order-invoice-summary span{text-align:left}.lx-checkout5-original-invoice .lx-checkout5-original-invoice-hint{padding:0;background:none;line-height:20px}.lx-checkout5-original-invoice .lx-checkout5-original-invoice-tabs{gap:28px;margin-bottom:18px}.lx-checkout5-original-invoice-tabs button{position:relative;border:0!important;border-radius:0!important;padding:0 0 8px!important;background:transparent!important}.lx-checkout5-original-invoice-tabs button.is-active:after{content:'';position:absolute;bottom:0;left:calc(50% - 21px);width:42px;height:2px;background:linear-gradient(90deg,#681057,#b8252e)}.lx-invoice-offline-recipient{margin-top:18px}.lx-invoice-offline-recipient textarea{min-height:70px;padding:10px 12px;border:1px solid #d9cfdd;border-radius:6px;box-sizing:border-box;font:inherit}.lx-checkout5-original-invoice .lx-invoice-qualification{display:grid;gap:6px;margin:12px 0 18px}.lx-checkout5-original-invoice .lx-invoice-qualification>div{grid-template-columns:100px minmax(0,1fr)}.lx-offline-benefit-info{display:inline-grid!important;place-items:center;width:20px;height:20px;padding:0!important;border:0!important;background:transparent;color:#9b849e!important;cursor:pointer}
+.lx-checkout5-original-order .lx-checkout5-original-form{grid-template-columns:70px minmax(0,1fr)!important;column-gap:14px;row-gap:18px}.lx-checkout5-original-order .lx-checkout5-original-form>input,.lx-checkout5-original-order .lx-checkout5-original-combobox{grid-column:2;min-width:0;width:100%;box-sizing:border-box}.lx-checkout5-original-order .lx-checkout5-original-form>label{grid-column:1}.lx-checkout5-original-order .lx-checkout5-original-invoice-entry{grid-column:1/-1;grid-row:3;min-width:0;display:flex;gap:14px;align-items:center;margin:0;padding:0;border:0;border-radius:0;background:transparent}.lx-checkout5-original-invoice-entry>strong{flex:0 0 70px;white-space:nowrap}.lx-checkout5-original-invoice-entry .lx-order-invoice-summary span{text-align:left}.lx-checkout5-original-invoice .lx-checkout5-original-invoice-hint{padding:0;background:none;line-height:20px}.lx-checkout5-original-invoice .lx-checkout5-original-invoice-tabs{gap:28px;margin-bottom:18px}.lx-checkout5-original-invoice-tabs button{position:relative;border:0!important;border-radius:0!important;padding:0 0 8px!important;background:transparent!important}.lx-checkout5-original-invoice-tabs button.is-active:after{content:'';position:absolute;bottom:0;left:calc(50% - 21px);width:42px;height:2px;background:linear-gradient(90deg,#681057,#b8252e)}.lx-invoice-offline-recipient{margin-top:18px}.lx-invoice-offline-recipient textarea{min-height:70px;padding:10px 12px;border:1px solid #d9cfdd;border-radius:6px;box-sizing:border-box;font:inherit}.lx-checkout5-original-invoice .lx-invoice-qualification{display:grid;gap:6px;margin:12px 0 18px}.lx-checkout5-original-invoice .lx-invoice-qualification>div{grid-template-columns:100px minmax(0,1fr)}.lx-offline-benefit-info{display:inline-grid!important;place-items:center;width:20px;height:20px;padding:0!important;border:0!important;background:transparent;color:#9b849e!important;cursor:pointer}
+.lx-customer-code-empty{margin:0;padding:10px 12px;color:#77717d;font-size:12px;line-height:18px}
 </style>
 </body>
 </html>
+

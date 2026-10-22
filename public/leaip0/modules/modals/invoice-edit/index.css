@@ -134,9 +134,9 @@
 [data-buy-modal-direct] .lx-order-reference .lx-order-supplement-grid>label{grid-column:1!important;display:grid!important;grid-template-columns:70px minmax(0,1fr)!important;align-items:center;gap:10px!important;min-width:0}
 [data-buy-modal-direct] .lx-order-reference .lx-order-supplement-grid>label:nth-child(2){grid-row:2}
 [data-buy-modal-direct] .lx-order-reference .lx-order-supplement-grid input,[data-buy-modal-direct] .lx-order-reference .lx-order-combobox{width:100%!important;min-width:0;box-sizing:border-box}
-[data-buy-modal-direct] .lx-order-reference .lx-order-supplement-grid>.lx-order-invoice-entry{grid-column:1;grid-row:3;display:flex;align-items:center;gap:14px;min-width:0;height:40px;padding:0;border:0;border-radius:0;background:transparent;box-shadow:none;color:#2b272d;text-align:left;font:inherit;cursor:pointer}
-.lx-order-invoice-entry>strong{flex:none;font-size:13px;font-weight:600}
-.lx-order-invoice-summary{display:flex;justify-content:flex-end;align-items:center;gap:5px;min-width:0;margin-left:auto}
+[data-buy-modal-direct] .lx-order-reference .lx-order-supplement-grid>.lx-order-invoice-entry{grid-column:1;grid-row:3;display:flex;align-items:center;gap:10px;min-width:0;height:40px;padding:0;border:0;border-radius:0;background:transparent;box-shadow:none;color:#2b272d;text-align:left;font:inherit;cursor:pointer}
+.lx-order-invoice-entry>strong{flex:0 0 70px;font-size:13px;font-weight:600}
+.lx-order-invoice-summary{display:flex;flex:1;justify-content:flex-start;align-items:center;gap:5px;min-width:0;margin-left:0}
 .lx-order-invoice-entry>.lx-order-chevron{flex:none;transform:rotate(-45deg)}
 [data-buy-modal-direct] .lx-invoice-dialog .lx-invoice-tip{padding:0!important;border:0!important;background:transparent!important;color:#8b858e;font-size:12px;line-height:20px}
 [data-buy-modal-direct] .lx-invoice-dialog .lx-invoice-qualification{display:grid;gap:6px;margin:10px 0 18px;padding:0}
@@ -160,3 +160,6 @@ input.lx-invoice-default-switch:focus-visible{outline:2px solid #a262d7;outline-
 [data-buy-modal-direct] .lx-invoice-dialog .lx-invoice-consent{font-size:12px;line-height:20px;margin-top:8px}
 @media(max-width:600px){[data-buy-modal-direct] .lx-order-reference .lx-order-supplement-grid{grid-template-columns:1fr!important}[data-buy-modal-direct] .lx-order-reference .lx-order-supplement-grid>.lx-order-invoice-entry{grid-column:1;grid-row:3}.lx-invoice-qualification>div{grid-template-columns:92px minmax(0,1fr)}}
 
+
+/* checkout-invoice-align-customer-search-20261022-v3 */
+.lx-customer-code-empty{margin:0;padding:10px 12px;color:#77717d;font-size:12px;line-height:18px}
