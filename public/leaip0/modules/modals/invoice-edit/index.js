@@ -1,10 +1,78 @@
+/* checkout-invoice-default-20261022-v1 */
+(() => {
+  if (window.__lxInvoicePreference) return;
+  const key = 'lexiang.checkout.default-invoice.v1';
+  const types = ['普通发票-个人', '普通发票-单位', '增值税专票'];
+  const fields = ['invoiceTitle', 'invoiceTaxNo', 'invoicePhone', 'invoiceEmail', 'invoiceRemark', 'invoiceDelayDate'];
+  const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  function read() {
+    try {
+      const value = JSON.parse(localStorage.getItem(key) || 'null');
+      return value && types.includes(value.invoice) && typeof value.invoiceTitle === 'string' && value.invoiceTitle.trim() ? value : null;
+    } catch (_) { return null; }
+  }
+  function snapshot(state, type = state.invoiceDraft || state.invoice) {
+    return Object.fromEntries([['invoice', type], ...fields.map(field => [field, String(state[field] || '')])]);
+  }
+  const identity = state => JSON.stringify([state.invoiceDraft || state.invoice, state.invoiceTitle, state.invoiceTaxNo || '']);
+  const matches = state => { const saved = read(); return Boolean(saved && identity(saved) === identity(state)); };
+  function apply(state) {
+    const saved = read();
+    if (saved) Object.assign(state, saved, { invoiceDraft: saved.invoice, invoiceIsDefault: true });
+    else { state.invoiceDraft = state.invoice; if (state.invoice === '普通发票-个人') state.invoiceTaxNo = ''; }
+  }
+  function selectType(state, type) {
+    state.invoiceProfiles ||= {};
+    state.invoiceProfiles[state.invoiceDraft] = snapshot(state);
+    const profile = state.invoiceProfiles[type];
+    state.invoiceDraft = type;
+    if (profile) for (const field of fields) state[field] = profile[field];
+    else {
+      state.invoiceTitle = type === '普通发票-个人' ? '个人' : '联想（北京）有限公司';
+      state.invoiceTaxNo = type === '普通发票-个人' ? '' : type === '增值税专票' ? '91110108700000458B' : '123123123123123';
+    }
+    state.invoiceIsDefault = matches(state);
+  }
+  function collect(root, state) {
+    root.querySelectorAll('[data-invoice-field]').forEach(input => { if (!input.disabled) state[input.dataset.invoiceField] = input.value.trim(); });
+    const toggle = root.querySelector('[data-default-invoice]');
+    if (toggle) state.invoiceIsDefault = toggle.checked;
+    const consent = root.querySelector('[data-invoice-consent]');
+    if (consent) state.invoiceConsent = consent.checked;
+  }
+  function save(state) {
+    const data = snapshot(state);
+    try {
+      if (state.invoiceIsDefault) localStorage.setItem(key, JSON.stringify(data));
+      else if (matches(data)) localStorage.removeItem(key);
+    } catch (_) {}
+  }
+  function validate(state) {
+    if (!state.invoiceTitle?.trim()) return '请填写发票抬头';
+    if (state.invoiceDraft !== '普通发票-个人' && !state.invoiceTaxNo?.trim()) return '请填写纳税人识别号';
+    if (!/^1[3-9]\d{9}$/.test(state.invoicePhone || '')) return '请填写有效的收票人手机号';
+    if (state.invoiceEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(state.invoiceEmail)) return '请填写有效的收票人邮箱';
+    if (state.invoiceDraft === '增值税专票' && !state.invoiceConsent) return '请阅读并同意增值税专用发票抬头确认书';
+    return '';
+  }
+  function summary(state) {
+    const type = state.invoice || state.invoiceDraft;
+    const committed = { ...state, invoiceDraft: type };
+    return `${matches(committed) ? '<small class="lx-invoice-default-badge">默认</small>' : ''}<span class="lx-invoice-summary-prefix">${type === '增值税专票' ? '增专' : '电子'}</span><span class="lx-invoice-summary-name">（${esc(type === '普通发票-个人' ? state.invoiceTitle || '个人' : state.invoiceTitle || '联想（北京）有限公司')}）</span>`;
+  }
+  function setting(state) {
+    return `<label class="lx-invoice-default-setting"><span><strong>设为默认发票抬头</strong><small>设置后，下次结算将自动使用该抬头</small></span><input class="lx-invoice-default-switch" type="checkbox" role="switch" aria-label="设为默认发票抬头" data-default-invoice${state.invoiceIsDefault ? ' checked' : ''}></label>`;
+  }
+  window.__lxInvoicePreference = Object.freeze({read, apply, matches, selectType, collect, save, validate, summary, setting, snapshot});
+})();
+
 /* 修改发票 — P0 business implementations. */
 if (!window.__p0Modules.installed["modals/invoice-edit"]) {
 window.__p0Modules.installed["modals/invoice-edit"]=true;
 
 /* Business: syncInvoiceDraft */
 window.__p0Modules.factories["modals/invoice-edit#syncInvoiceDraft:7f5cd6fcf0614644cddfef81"]=function(__p0Scope){return (() => {
-      __p0Scope.dialog.querySelectorAll('[data-invoice-field]').forEach((input) => { if (!input.disabled) __p0Scope.orderState[input.dataset.invoiceField] = input.value.trim(); });
+      window.__lxInvoicePreference.collect(__p0Scope.dialog, __p0Scope.orderState);
       const consent = __p0Scope.dialog.querySelector('[data-invoice-consent]');
       if (consent) __p0Scope.orderState.invoiceConsent = consent.checked;
     }); };
@@ -29,18 +97,24 @@ window.__p0Modules.factories["modals/invoice-edit#showInvoiceNotice:2880dd7e6c42
       __p0Scope.dialog.querySelector('[data-invoice-notice-close]')?.focus();
     }); };
 
-/* Business: showInvoiceEdit */
-window.__p0Modules.factories["modals/invoice-edit#showInvoiceEdit:b60254d8536d8fcebb300598"]=function(__p0Scope){return (() => {
-      const options = [{ label: '普通发票-个人', value: '普通发票-个人' },{ label: '普通发票-单位', value: '普通发票-单位' },{ label: '增值税专票', value: '增值税专票' }];
-      const isVat = __p0Scope.orderState.invoiceDraft === '增值税专票';
-      const isPersonal = __p0Scope.orderState.invoiceDraft === '普通发票-个人';
-      const fields = isVat
-        ? `<div class="lx-invoice-form"><label for="lxInvoiceCompany">单位名称</label><input id="lxInvoiceCompany" value="联想（北京）有限公司" readonly><label for="lxInvoiceTaxId">纳税人识别号</label><input id="lxInvoiceTaxId" data-invoice-field="invoiceTaxNo" value="9111010870000458B" readonly><label for="lxInvoiceAddress">注册地址</label><input id="lxInvoiceAddress" data-invoice-field="invoiceAddress" value="${(0,__p0Scope.escapeHtml)(__p0Scope.orderState.invoiceAddress)}"><label for="lxInvoicePhone">注册电话</label><input id="lxInvoicePhone" data-invoice-field="invoiceRegisteredPhone" value="${(0,__p0Scope.escapeHtml)(__p0Scope.orderState.invoiceRegisteredPhone)}"><label for="lxInvoiceBank">开户银行</label><input id="lxInvoiceBank" data-invoice-field="invoiceBank" value="${(0,__p0Scope.escapeHtml)(__p0Scope.orderState.invoiceBank)}"><label for="lxInvoiceAccount">银行账号</label><input id="lxInvoiceAccount" data-invoice-field="invoiceBankAccount" value="${(0,__p0Scope.escapeHtml)(__p0Scope.orderState.invoiceBankAccount)}"><label for="lxInvoiceRemark">备注</label><textarea id="lxInvoiceRemark" data-invoice-field="invoiceRemark" placeholder="请填写备注">${(0,__p0Scope.escapeHtml)(__p0Scope.orderState.invoiceRemark)}</textarea></div><div class="lx-invoice-delay-field"><label>延时开票</label><button class="lx-invoice-delay-trigger" type="button" data-invoice-delay-open><span class="lx-invoice-delay-value${__p0Scope.orderState.invoiceDelayDate ? ' has-value' : ''}">${(0,__p0Scope.escapeHtml)((0,__p0Scope.formatInvoiceDelayDate)(__p0Scope.orderState.invoiceDelayDate))}</span><i class="lx-invoice-delay-chevron" aria-hidden="true"></i></button><p class="lx-invoice-delay-help">选择后将在该日期起进入开票处理；请在此日期前确保增票资质已审核通过。未选择则按原开票时效处理。</p></div>`
-        : `<div class="lx-invoice-form"><label for="lxInvoiceTitle">发票抬头</label><input id="lxInvoiceTitle" data-invoice-field="invoiceTitle" value="${isPersonal ? '个人' : '联想（北京）有限公司'}">${isPersonal ? '' : '<label for="lxInvoiceTaxId">纳税人识别号</label><input id="lxInvoiceTaxId" data-invoice-field="invoiceTaxNo" value="123123123123123">'}<label for="lxInvoiceRecipientPhone">收票人手机</label><input id="lxInvoiceRecipientPhone" data-invoice-field="invoicePhone" value="${(0,__p0Scope.escapeHtml)(__p0Scope.orderState.invoicePhone)}"><label for="lxInvoiceEmail">收票人邮箱</label><input id="lxInvoiceEmail" data-invoice-field="invoiceEmail" value="${(0,__p0Scope.escapeHtml)(__p0Scope.orderState.invoiceEmail)}">${isPersonal ? '' : `<label for="lxInvoiceRemark">备注</label><textarea id="lxInvoiceRemark" data-invoice-field="invoiceRemark" placeholder="请填写备注">${(0,__p0Scope.escapeHtml)(__p0Scope.orderState.invoiceRemark)}</textarea>`}</div>`;
-      __p0Scope.dialog.className = 'lx-buy-direct-dialog lx-order-edit-dialog lx-invoice-dialog';
-      __p0Scope.dialog.innerHTML = `<header class="lx-order-edit-head"><button class="lx-order-edit-back" type="button" data-invoice-back aria-label="返回"><img src="/assets/icons/order-modal-back.svg" alt="" aria-hidden="true"></button><h2>发票信息</h2><button class="lx-buy-direct-close" type="button" aria-label="关闭">×</button></header><div class="lx-order-edit-body"><section class="lx-order-edit-section"><div class="lx-invoice-type-row"><div class="lx-order-channel-grid lx-invoice-type-grid">${options.map((option) => `<button class="lx-order-channel${__p0Scope.orderState.invoiceDraft === option.value ? ' is-active' : ''}" type="button" data-invoice-option="${option.value}"><strong>${option.label}</strong></button>`).join('')}</div><button class="lx-invoice-notice-entry" type="button" data-invoice-notice-open>发票须知</button></div></section><p class="lx-invoice-tip">*自营商品的增值税专用发票（数电票）会在确认收货后预计 5 个工作日内开具。</p>${fields}</div><footer class="lx-order-edit-footer"><button type="button" data-invoice-save>保存</button></footer>`;
-      if (!isVat) __p0Scope.dialog.querySelector('.lx-invoice-tip').remove();
-      __p0Scope.dialog.querySelector('[data-invoice-back]').addEventListener('click', (event) => { event.stopPropagation(); (0,__p0Scope.showOrderEdit)(); });
-    }); };
+/* Business: showInvoiceEdit — checkout-invoice-default-20261022-v1 */
+window.__p0Modules.factories["modals/invoice-edit#showInvoiceEdit:b60254d8536d8fcebb300598"] = function(scope) { return () => {
+  const state = scope.orderState;
+  const esc = scope.escapeHtml;
+  const preference = window.__lxInvoicePreference;
+  const vat = state.invoiceDraft === '增值税专票';
+  const personal = state.invoiceDraft === '普通发票-个人';
+  const options = ['普通发票-个人', '普通发票-单位', '增值税专票'];
+  const field = (label, key, type = 'text') => `<label for="${key}">${label}</label><input id="${key}" type="${type}" data-invoice-field="${key}" value="${esc(state[key] || '')}">`;
+  const normalHeader = `<div class="lx-invoice-form">${field('发票抬头', 'invoiceTitle')}${personal ? '<input type="hidden" data-invoice-field="invoiceTaxNo" value="">' : field('纳税人识别号', 'invoiceTaxNo')}</div>`;
+  const qualification = `<section class="lx-invoice-qualification" aria-label="已审核增票资质"><div><span>单位名称</span><strong>${esc(state.invoiceTitle)}<input type="hidden" data-invoice-field="invoiceTitle" value="${esc(state.invoiceTitle)}"></strong></div><div><span>纳税人识别号</span><strong>${esc(state.invoiceTaxNo)}<input type="hidden" data-invoice-field="invoiceTaxNo" value="${esc(state.invoiceTaxNo)}"></strong></div></section>`;
+  const recipients = `<div class="lx-invoice-form lx-invoice-recipient-form">${field('收票人手机', 'invoicePhone', 'tel')}${field('收票人邮箱（选填）', 'invoiceEmail', 'email')}${personal ? '' : `<label for="invoiceRemark">发票备注（选填）</label><textarea id="invoiceRemark" data-invoice-field="invoiceRemark" placeholder="备注将在发票票面或申请中展示，请谨慎填写">${esc(state.invoiceRemark || '')}</textarea>`}</div>`;
+  const delay = vat ? `<div class="lx-invoice-delay-field"><label>延时开票（选填）</label><button class="lx-invoice-delay-trigger" type="button" data-invoice-delay-open><span class="lx-invoice-delay-value${state.invoiceDelayDate ? ' has-value' : ''}">${esc(scope.formatInvoiceDelayDate(state.invoiceDelayDate))}</span><i class="lx-invoice-delay-chevron" aria-hidden="true"></i></button><p class="lx-invoice-delay-help">选择后将在该日期起进入开票处理；请在此日期前确保增票资质已审核通过。未选择则按原开票时效处理。</p></div>` : '';
+  const hint = vat ? '自营商品的增值税专用发票（数电票）会在确认收货后预计 5 个工作日内开具，须使用已审核通过的增票资质。' : '联想自营提供数电（普通发票），法律效力等同电子普通发票；非自营订单由商家开具。';
+  scope.dialog.className = 'lx-buy-direct-dialog lx-order-edit-dialog lx-invoice-dialog';
+  scope.dialog.dataset.checkoutInvoiceVersion = '20261022-v1';
+  scope.dialog.innerHTML = `<header class="lx-order-edit-head"><button class="lx-order-edit-back" type="button" data-invoice-back aria-label="返回"><img src="/assets/icons/order-modal-back.svg" alt="" aria-hidden="true"></button><h2>发票信息</h2><button class="lx-buy-direct-close" type="button" aria-label="关闭">×</button></header><div class="lx-order-edit-body"><section class="lx-order-edit-section"><div class="lx-invoice-type-row"><div class="lx-order-channel-grid lx-invoice-type-grid" role="tablist" aria-label="发票类型">${options.map(type => `<button class="lx-order-channel${type === state.invoiceDraft ? ' is-active' : ''}" type="button" role="tab" aria-selected="${type === state.invoiceDraft}" data-invoice-option="${type}"><strong>${type}</strong></button>`).join('')}</div><button class="lx-invoice-notice-entry" type="button" data-invoice-notice-open>发票须知</button></div></section><p class="lx-invoice-tip">${hint}</p>${vat ? qualification : normalHeader}${recipients}${delay}${preference.setting(state)}${vat ? `<label class="lx-invoice-consent"><input type="checkbox" data-invoice-consent${state.invoiceConsent ? ' checked' : ''}>我已阅读并同意《增值税专用发票抬头确认书》</label>` : ''}<p class="lx-invoice-error" role="alert" data-invoice-error></p></div><footer class="lx-order-edit-footer"><button type="button" data-invoice-save>保存</button></footer>`;
+  scope.dialog.querySelector('[data-invoice-back]').addEventListener('click', event => { event.stopPropagation(); scope.showOrderEdit(); });
+}; };
 }
 window.__p0Modules.dispatch(document.currentScript);
