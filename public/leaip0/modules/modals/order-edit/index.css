@@ -311,3 +311,9 @@ input.lx-invoice-default-switch:focus-visible{outline:2px solid #a262d7;outline-
 
 /* checkout-invoice-align-customer-search-20261022-v3 */
 .lx-customer-code-empty{margin:0;padding:10px 12px;color:#77717d;font-size:12px;line-height:18px}
+
+/* checkout-preview-fields-20261022-v4 */
+[data-buy-modal-direct] .lx-order-preview-supplement .lx-buy-direct-row{grid-template-columns:80px minmax(0,1fr)}
+[data-buy-modal-direct] .lx-order-preview-supplement .lx-buy-direct-row>span{min-width:0;white-space:normal;overflow-wrap:anywhere}
+[data-buy-modal-direct] .lx-buy-direct-dialog:not(.lx-buy-sub-dialog):not(.lx-order-edit-dialog) .lx-buy-direct-card:has(.lx-order-preview-supplement)>.lx-buy-direct-actions{top:0!important;margin-top:0!important}
+[data-buy-modal-direct] .lx-buy-direct-dialog:not(.lx-buy-sub-dialog):not(.lx-order-edit-dialog) .lx-buy-direct-card:has(.lx-order-preview-supplement)>.lx-buy-direct-footnote{top:0!important;margin-top:4px!important;padding-top:0!important}
