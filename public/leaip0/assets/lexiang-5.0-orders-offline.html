@@ -1,3 +1,4 @@
+<!-- checkout-preview-fields-20261022-v4 -->
 <!--
   Lenovo Lexiang shop chat page template snapshot
   Source: https://leaibot.cn/shop-chat/
@@ -4240,13 +4241,14 @@ if (!window.__lxCreateTypewriter) {
                     <dl><dt>配置：</dt><dd>${esc(checkout.config)} · ${esc(checkout.color)}</dd></dl>
                   </div>
                   <div class="lx-checkout5-direct-group">
-                    <dl><dt>收货信息：</dt><dd>${esc(address.name)}　${esc(address.phone)}　${esc(address.region || "")}${esc(address.detail || "")}</dd></dl>
-                    <dl><dt>订单备注：</dt><dd>${esc(checkout.note || "无")}</dd></dl>
-                    <dl><dt>客户编码：</dt><dd>${esc(checkout.customerCode || "未填写")}</dd></dl>
+                    <dl><dt>收货信息：</dt><dd>${esc(address.name)}　${esc(address.phone)}</dd></dl>
+                    <dl><dt>收货地址：</dt><dd>${esc(address.region || "")}${esc(address.detail || "")}</dd></dl>
+                    <dl><dt>订单备注：</dt><dd data-order-preview-note>${esc(checkout.note || "无")}</dd></dl>
+                    <dl><dt>客户编码：</dt><dd data-order-preview-customer>${esc(checkout.customerCode || "未填写")}</dd></dl>
                   </div>
                   <div class="lx-checkout5-direct-group">
                     <dl><dt>支付方式：</dt><dd>${esc(checkout.payment)}</dd></dl>
-                    <dl><dt>发票信息：</dt><dd>${window.__lxInvoicePreference.summary(lxCheckout5InvoiceData())}</dd></dl>
+                    <dl><dt>发票信息：</dt><dd data-order-preview-invoice>${window.__lxInvoicePreference.summary(lxCheckout5InvoiceData())}</dd></dl>
                   </div>
                 </div>
                 <footer class="lx-checkout5-direct-footer">
@@ -19487,4 +19489,3 @@ input.lx-invoice-default-switch:focus-visible{outline:2px solid #a262d7;outline-
 </style>
 </body>
 </html>
-
