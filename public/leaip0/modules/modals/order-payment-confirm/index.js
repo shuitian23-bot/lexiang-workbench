@@ -858,6 +858,7 @@ window.__p0Modules.sources["u40fb7a01ecc3a735"]=function(){
     const modal = document.createElement('div');
     modal.dataset.buyModalDirect = 'true';
     const orderState = { payment: '支付宝', expanded: '', note: '请工作日送达，送货前电话联系', customerCode: 'CUS-BJ-20260803', addressId: 'address-1', recipientName: '联小想', recipientPhone: '13028280000', recipientRegion: '北京市海淀区中关村软件园2期', recipientDetail: '北京联想总部东区E1', invoice: '普通发票-个人', invoiceDraft: '增值税专票', invoiceTitle: '个人', invoiceTaxNo: '123123123123123', invoicePhone: '13504289879', invoiceEmail: 'ziyu@lenovo.com', invoiceAddress: '北京市海淀区上地西路6号', invoiceRegisteredPhone: '01058868888', invoiceBank: '招商银行北京双榆树支行', invoiceBankAccount: '861580122210002', invoiceRemark: '', invoiceDelayDate: '', invoiceConsent: true };
+    window.__lxInvoicePreference.apply(orderState);
     const addressBook = [
       { id: 'address-1', name: '联小想', phone: '13028280000', region: '北京市海淀区中关村软件园2期', detail: '北京联想总部东区E1', isDefault: true },
       { id: 'address-2', name: '李晓宁', phone: '13810001234', region: '北京市海淀区西北旺镇', detail: '中关村软件园一期8号楼' },
@@ -1129,7 +1130,7 @@ window.__p0Modules.sources["u40fb7a01ecc3a735"]=function(){
     const showAddressManager = (tab = 'select', editId = '') => {
       const isCreate = tab === 'create';
       dialog.className = 'lx-buy-direct-dialog lx-order-edit-dialog lx-address-dialog';
-      const tabs = `<div class="lx-address-tabs" role="tablist" aria-label="地址管理"><button class="${isCreate ? '' : 'is-active'}" type="button" role="tab" aria-selected="${!isCreate}" data-address-tab="select">选择地址</button><button class="${isCreate ? 'is-active' : ''}" type="button" role="tab" aria-selected="${isCreate}" data-address-tab="create">新建地址</button></div>`;
+      const tabs = `<div class="lx-address-tabs" role="tablist" aria-label="地址管理"><button class="${isCreate ? '' : 'is-active'}" type="button" role="tab" aria-selected="${!isCreate}" data-address-tab="select">选择地址</button><button class="${isCreate ? 'is-active' : ''}" type="button" role="tab" aria-selected="${isCreate}" data-address-tab="create">${editId ? '编辑地址' : '新建地址'}</button></div>`;
       if (isCreate) {
         const editing = addressBook.find((address) => address.id === editId);
         dialog.innerHTML = `<header class="lx-order-edit-head lx-address-head"><button class="lx-order-edit-back" type="button" data-address-back aria-label="返回修改订单"><img src="/assets/icons/order-modal-back.svg" alt="" aria-hidden="true"></button>${tabs}<button class="lx-buy-direct-close" type="button" aria-label="关闭">×</button></header><div class="lx-order-edit-body lx-address-create-body"><form class="lx-address-form" data-address-form data-address-editing="${escapeHtml(editing?.id || '')}"><label for="lxAddressName">姓名：</label><input id="lxAddressName" name="name" value="${escapeHtml(editing?.name || '')}" placeholder="请输入姓名" autocomplete="name"><label for="lxAddressPhone">手机：</label><input id="lxAddressPhone" name="phone" value="${escapeHtml(editing?.phone || '')}" placeholder="请输入手机号" inputmode="tel" autocomplete="tel"><label for="lxAddressRegion">省市：</label><select id="lxAddressRegion" name="region"><option value="">请选择省/市/区/街道</option><option value="北京市海淀区中关村街道"${editing?.region === '北京市海淀区中关村街道' ? ' selected' : ''}>北京市 / 海淀区 / 中关村街道</option><option value="北京市海淀区中关村软件园2期"${editing?.region === '北京市海淀区中关村软件园2期' ? ' selected' : ''}>北京市 / 海淀区 / 中关村软件园2期</option><option value="上海市浦东新区张江镇"${editing?.region === '上海市浦东新区张江镇' ? ' selected' : ''}>上海市 / 浦东新区 / 张江镇</option><option value="广东省深圳市南山区粤海街道"${editing?.region === '广东省深圳市南山区粤海街道' ? ' selected' : ''}>广东省 / 深圳市 / 南山区 / 粤海街道</option></select><label for="lxAddressDetail">地址：</label><textarea id="lxAddressDetail" name="detail" placeholder="请输入详细地址">${escapeHtml(editing?.detail || '')}</textarea><label class="lx-address-default"><input type="checkbox" name="isDefault" ${editing?.isDefault ? 'checked' : ''}><span>设为默认地址</span></label></form></div><footer class="lx-order-edit-footer lx-address-footer"><button type="button" data-address-save>保存</button></footer>`;
@@ -1213,11 +1214,17 @@ window.__p0Modules.sources["u40fb7a01ecc3a735"]=function(){
       if (target.closest('[data-config-save]')) return showOrder();
       if (target.closest('[data-edit-order]')) { orderState.expanded = ''; return showOrderEdit(); }
       if (target.closest('[data-order-back]')) return showOrder();
-      if (target.closest('[data-order-invoice]')) return showInvoiceEdit();
+      if (target.closest('[data-order-invoice]')) {
+        orderState.note = dialog.querySelector('[data-order-note]')?.value.trim() ?? orderState.note;
+        orderState.customerCode = dialog.querySelector('[data-order-customer]')?.value.trim() ?? orderState.customerCode;
+        orderState.invoiceDraft = orderState.invoice;
+        orderState.invoiceIsDefault = window.__lxInvoicePreference.matches(orderState);
+        return showInvoiceEdit();
+      }
       if (target.closest('[data-invoice-notice-open]')) return showInvoiceNotice();
       if (target.closest('[data-invoice-back]')) return showOrderEdit();
       const invoiceOption = target.closest('[data-invoice-option]');
-      if (invoiceOption) { syncInvoiceDraft(); orderState.invoiceDraft = invoiceOption.dataset.invoiceOption; return showInvoiceEdit(); }
+      if (invoiceOption) { syncInvoiceDraft(); window.__lxInvoicePreference.selectType(orderState, invoiceOption.dataset.invoiceOption); return showInvoiceEdit(); }
       if (target.closest('[data-invoice-delay-open]')) return showInvoiceDelayPicker();
       const delayLayer = target.closest('[data-invoice-delay-layer]');
       if (delayLayer && target === delayLayer) { closeInvoiceDelayPicker(); return; }
@@ -1233,7 +1240,12 @@ window.__p0Modules.sources["u40fb7a01ecc3a735"]=function(){
         return;
       }
       if (target.closest('[data-invoice-save]')) {
-        syncInvoiceDraft(); orderState.invoice = orderState.invoiceDraft;
+        syncInvoiceDraft();
+        window.__lxInvoicePreference.collect(dialog, orderState);
+        const invoiceError = window.__lxInvoicePreference.validate(orderState);
+        if (invoiceError) { dialog.querySelector('[data-invoice-error]').textContent = invoiceError; return; }
+        window.__lxInvoicePreference.save(orderState);
+        orderState.invoice = orderState.invoiceDraft;
         return showOrderEdit();
       }
       const couponChoice = target.closest('[data-coupon-choice]');
