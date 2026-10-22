@@ -1,3 +1,57 @@
+/* checkout-invoice-align-customer-search-20261022-v3 */
+window.__lxBindCustomerCodeSearch = (root, inputSelector, menuSelector, optionSelector, onChange) => {
+  const input = root.querySelector(inputSelector), menu = root.querySelector(menuSelector);
+  if (!input || !menu) return;
+  const options = [...menu.querySelectorAll(optionSelector)];
+  const normalize = value => value.toLocaleLowerCase().replace(/[\s_-]+/g, '');
+  const empty = document.createElement('p');
+  empty.className = 'lx-customer-code-empty';
+  empty.textContent = '暂无匹配编码，可直接使用输入内容';
+  empty.setAttribute('role', 'status');
+  empty.hidden = true;
+  menu.appendChild(empty);
+  input.readOnly = false;
+  input.autocomplete = 'off';
+  input.placeholder = '可输入或搜索客户编码';
+  input.setAttribute('role', 'combobox');
+  input.setAttribute('aria-autocomplete', 'list');
+  input.setAttribute('aria-controls', menu.id ||= 'lxCustomerCodeSuggestions');
+  input.setAttribute('aria-expanded', 'false');
+  menu.setAttribute('role', 'listbox');
+  options.forEach(option => option.setAttribute('role', 'option'));
+  const close = () => { menu.hidden = true; input.setAttribute('aria-expanded', 'false'); };
+  const filter = () => {
+    const query = normalize(input.value.trim());
+    options.forEach(option => { option.hidden = !normalize(option.textContent).includes(query); option.style.display = option.hidden ? 'none' : ''; });
+    empty.hidden = options.some(option => !option.hidden);
+    menu.hidden = false;
+    input.setAttribute('aria-expanded', 'true');
+  };
+  input.addEventListener('focus', filter);
+  input.addEventListener('click', event => { event.stopPropagation(); filter(); });
+  input.addEventListener('input', () => { onChange(input.value.trim()); filter(); });
+  input.addEventListener('keydown', event => {
+    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+      event.preventDefault(); filter();
+      const visible = options.filter(option => !option.hidden);
+      (event.key === 'ArrowDown' ? visible[0] : visible.at(-1))?.focus();
+    } else if (event.key === 'Enter' || event.key === 'Escape' || event.key === 'Tab') {
+      if (event.key !== 'Tab') event.preventDefault();
+      close();
+    }
+  });
+  input.addEventListener('blur', () => setTimeout(() => { if (!menu.contains(document.activeElement)) close(); }, 0));
+  menu.addEventListener('focusout', () => setTimeout(() => { if (document.activeElement !== input && !menu.contains(document.activeElement)) close(); }, 0));
+  menu.addEventListener('keydown', event => {
+    if (event.key === 'Escape') { event.preventDefault(); input.focus(); close(); }
+    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+      event.preventDefault(); const visible = options.filter(option => !option.hidden);
+      const index = visible.indexOf(document.activeElement), step = event.key === 'ArrowDown' ? 1 : -1;
+      visible[(index + step + visible.length) % visible.length]?.focus();
+    }
+  });
+};
+
 /* 修改订单 — P0 business implementations. */
 if (!window.__p0Modules.installed["modals/order-edit"]) {
 window.__p0Modules.installed["modals/order-edit"]=true;
@@ -63,7 +117,8 @@ window.__p0Modules.factories["modals/order-edit#showOrderEdit:4d904b97979dfc3cf8
       invoiceEntry.dataset.orderInvoice = '';
       invoiceEntry.innerHTML = '<strong>发票信息</strong><span class="lx-order-invoice-summary">'+window.__lxInvoicePreference.summary(__p0Scope.orderState)+'</span><i class="lx-order-chevron" aria-hidden="true"></i>';
       __p0Scope.dialog.querySelector('[data-order-invoice]').closest('label').replaceWith(invoiceEntry);
-      __p0Scope.dialog.dataset.checkoutInvoiceVersion = '20261022-v2';
+      __p0Scope.dialog.dataset.checkoutInvoiceVersion = '20261022-v3';
+      window.__lxBindCustomerCodeSearch(__p0Scope.dialog, '[data-order-customer]', '[data-order-code-menu]', '[data-order-code]', value => { __p0Scope.orderState.customerCode = value; });
       __p0Scope.dialog.querySelector('.lx-order-edit-section h3').textContent = '支付方式';
       __p0Scope.dialog.querySelector('.lx-order-supplement-section h3').textContent = '订单信息';
       __p0Scope.dialog.querySelectorAll('.lx-order-edit-body > .lx-order-edit-section > h3').forEach((heading) => {
