@@ -1,4 +1,4 @@
-/* checkout-invoice-default-20261022-v1 */
+/* checkout-invoice-correction-20261022-v2 */
 (() => {
   if (window.__lxInvoicePreference) return;
   const key = 'lexiang.checkout.default-invoice.v1';
@@ -21,6 +21,13 @@
     if (saved) Object.assign(state, saved, { invoiceDraft: saved.invoice, invoiceIsDefault: true });
     else { state.invoiceDraft = state.invoice; if (state.invoice === '普通发票-个人') state.invoiceTaxNo = ''; }
   }
+  function beginEdit(state) {
+    state.invoiceCommitted ||= snapshot(state, state.invoice);
+    Object.assign(state, state.invoiceCommitted);
+    state.invoiceDraft = state.invoice;
+    state.invoiceProfiles = {};
+    state.invoiceIsDefault = matches(state);
+  }
   function selectType(state, type) {
     state.invoiceProfiles ||= {};
     state.invoiceProfiles[state.invoiceDraft] = snapshot(state);
@@ -42,6 +49,7 @@
   }
   function save(state) {
     const data = snapshot(state);
+    state.invoiceCommitted = { ...data };
     try {
       if (state.invoiceIsDefault) localStorage.setItem(key, JSON.stringify(data));
       else if (matches(data)) localStorage.removeItem(key);
@@ -63,7 +71,7 @@
   function setting(state) {
     return `<label class="lx-invoice-default-setting"><span><strong>设为默认发票抬头</strong><small>设置后，下次结算将自动使用该抬头</small></span><input class="lx-invoice-default-switch" type="checkbox" role="switch" aria-label="设为默认发票抬头" data-default-invoice${state.invoiceIsDefault ? ' checked' : ''}></label>`;
   }
-  window.__lxInvoicePreference = Object.freeze({read, apply, matches, selectType, collect, save, validate, summary, setting, snapshot});
+  window.__lxInvoicePreference = Object.freeze({read, apply, matches, beginEdit, selectType, collect, save, validate, summary, setting, snapshot});
 })();
 
 /* 修改发票 — P0 business implementations. */
@@ -97,7 +105,7 @@ window.__p0Modules.factories["modals/invoice-edit#showInvoiceNotice:2880dd7e6c42
       __p0Scope.dialog.querySelector('[data-invoice-notice-close]')?.focus();
     }); };
 
-/* Business: showInvoiceEdit — checkout-invoice-default-20261022-v1 */
+/* Business: showInvoiceEdit — checkout-invoice-correction-20261022-v2 */
 window.__p0Modules.factories["modals/invoice-edit#showInvoiceEdit:b60254d8536d8fcebb300598"] = function(scope) { return () => {
   const state = scope.orderState;
   const esc = scope.escapeHtml;
@@ -108,13 +116,13 @@ window.__p0Modules.factories["modals/invoice-edit#showInvoiceEdit:b60254d8536d8f
   const field = (label, key, type = 'text') => `<label for="${key}">${label}</label><input id="${key}" type="${type}" data-invoice-field="${key}" value="${esc(state[key] || '')}">`;
   const normalHeader = `<div class="lx-invoice-form">${field('发票抬头', 'invoiceTitle')}${personal ? '<input type="hidden" data-invoice-field="invoiceTaxNo" value="">' : field('纳税人识别号', 'invoiceTaxNo')}</div>`;
   const qualification = `<section class="lx-invoice-qualification" aria-label="已审核增票资质"><div><span>单位名称</span><strong>${esc(state.invoiceTitle)}<input type="hidden" data-invoice-field="invoiceTitle" value="${esc(state.invoiceTitle)}"></strong></div><div><span>纳税人识别号</span><strong>${esc(state.invoiceTaxNo)}<input type="hidden" data-invoice-field="invoiceTaxNo" value="${esc(state.invoiceTaxNo)}"></strong></div></section>`;
-  const recipients = `<div class="lx-invoice-form lx-invoice-recipient-form">${field('收票人手机', 'invoicePhone', 'tel')}${field('收票人邮箱（选填）', 'invoiceEmail', 'email')}${personal ? '' : `<label for="invoiceRemark">发票备注（选填）</label><textarea id="invoiceRemark" data-invoice-field="invoiceRemark" placeholder="备注将在发票票面或申请中展示，请谨慎填写">${esc(state.invoiceRemark || '')}</textarea>`}</div>`;
-  const delay = vat ? `<div class="lx-invoice-delay-field"><label>延时开票（选填）</label><button class="lx-invoice-delay-trigger" type="button" data-invoice-delay-open><span class="lx-invoice-delay-value${state.invoiceDelayDate ? ' has-value' : ''}">${esc(scope.formatInvoiceDelayDate(state.invoiceDelayDate))}</span><i class="lx-invoice-delay-chevron" aria-hidden="true"></i></button><p class="lx-invoice-delay-help">选择后将在该日期起进入开票处理；请在此日期前确保增票资质已审核通过。未选择则按原开票时效处理。</p></div>` : '';
+  const recipients = `<div class="lx-invoice-form lx-invoice-recipient-form">${field('收票人手机', 'invoicePhone', 'tel')}${field('收票人邮箱', 'invoiceEmail', 'email')}${personal ? '' : `<label for="invoiceRemark">发票备注</label><textarea id="invoiceRemark" data-invoice-field="invoiceRemark" placeholder="备注将在发票票面或申请中展示，请谨慎填写">${esc(state.invoiceRemark || '')}</textarea>`}</div>`;
+  const delay = vat ? `<div class="lx-invoice-delay-field"><label>延时开票</label><button class="lx-invoice-delay-trigger" type="button" data-invoice-delay-open><span class="lx-invoice-delay-value${state.invoiceDelayDate ? ' has-value' : ''}">${esc(scope.formatInvoiceDelayDate(state.invoiceDelayDate))}</span><i class="lx-invoice-delay-chevron" aria-hidden="true"></i></button><p class="lx-invoice-delay-help">选择后将在该日期起进入开票处理；请在此日期前确保增票资质已审核通过。未选择则按原开票时效处理。</p></div>` : '';
   const hint = vat ? '自营商品的增值税专用发票（数电票）会在确认收货后预计 5 个工作日内开具，须使用已审核通过的增票资质。' : '联想自营提供数电（普通发票），法律效力等同电子普通发票；非自营订单由商家开具。';
   scope.dialog.className = 'lx-buy-direct-dialog lx-order-edit-dialog lx-invoice-dialog';
-  scope.dialog.dataset.checkoutInvoiceVersion = '20261022-v1';
+  scope.dialog.dataset.checkoutInvoiceVersion = '20261022-v2';
   scope.dialog.innerHTML = `<header class="lx-order-edit-head"><button class="lx-order-edit-back" type="button" data-invoice-back aria-label="返回"><img src="/assets/icons/order-modal-back.svg" alt="" aria-hidden="true"></button><h2>发票信息</h2><button class="lx-buy-direct-close" type="button" aria-label="关闭">×</button></header><div class="lx-order-edit-body"><section class="lx-order-edit-section"><div class="lx-invoice-type-row"><div class="lx-order-channel-grid lx-invoice-type-grid" role="tablist" aria-label="发票类型">${options.map(type => `<button class="lx-order-channel${type === state.invoiceDraft ? ' is-active' : ''}" type="button" role="tab" aria-selected="${type === state.invoiceDraft}" data-invoice-option="${type}"><strong>${type}</strong></button>`).join('')}</div><button class="lx-invoice-notice-entry" type="button" data-invoice-notice-open>发票须知</button></div></section><p class="lx-invoice-tip">${hint}</p>${vat ? qualification : normalHeader}${recipients}${delay}${preference.setting(state)}${vat ? `<label class="lx-invoice-consent"><input type="checkbox" data-invoice-consent${state.invoiceConsent ? ' checked' : ''}>我已阅读并同意《增值税专用发票抬头确认书》</label>` : ''}<p class="lx-invoice-error" role="alert" data-invoice-error></p></div><footer class="lx-order-edit-footer"><button type="button" data-invoice-save>保存</button></footer>`;
-  scope.dialog.querySelector('[data-invoice-back]').addEventListener('click', event => { event.stopPropagation(); scope.showOrderEdit(); });
+  scope.dialog.querySelector('[data-invoice-back]').addEventListener('click', event => { event.stopPropagation(); preference.beginEdit(state); scope.showOrderEdit(); });
 }; };
 }
 window.__p0Modules.dispatch(document.currentScript);
