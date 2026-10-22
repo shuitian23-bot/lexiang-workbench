@@ -1,3 +1,4 @@
+/* checkout-invoice-correction-20261022-v2: explicit benefit notice only */
 /* 最普通的 toast — P0 business implementations. */
 if (!window.__p0Modules.installed["modals/toast"]) {
 window.__p0Modules.installed["modals/toast"]=true;
@@ -136,7 +137,7 @@ window.__p0Modules.sources["u20c3cef677d1a7ca"]=function(){
   }
 
   function show(message, options = {}) {
-    if (!enabled) return;
+    if (!enabled && options.force !== true) return;
     const text = String(message || '').trim();
     // Referenced products are already visible in the composer; keep every caller silent.
     if (!text || text === '已引用商品，直接提问即可') return;
@@ -166,6 +167,7 @@ window.__p0Modules.sources["u20c3cef677d1a7ca"]=function(){
       retry.addEventListener('click', (event) => { event.preventDefault(); event.stopPropagation(); options.retry(); });
       toast.appendChild(retry);
     }
+    toast.classList.toggle('is-required', options.force === true);
     toast.classList.toggle('is-centered', !!options.centered);
     toast.inert = false;
     toast.removeAttribute('aria-hidden');

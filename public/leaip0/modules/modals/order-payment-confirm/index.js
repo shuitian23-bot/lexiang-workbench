@@ -1,3 +1,4 @@
+/* checkout-invoice-correction-20261022-v2 */
 /* 支付订单确认 — P0 business implementations. */
 if (!window.__p0Modules.installed["modals/order-payment-confirm"]) {
 window.__p0Modules.installed["modals/order-payment-confirm"]=true;
@@ -829,14 +830,15 @@ window.__p0Modules.sources["u40fb7a01ecc3a735"]=function(){
     });
   };
 
-  const showToast = (message, duration = 2400) => {
-    if (window.__lxToast) return window.__lxToast.show(message, { duration });
+  const showToast = (message, duration = 2400, options = {}) => {
+    if (window.__lxToast) return window.__lxToast.show(message, { duration, ...options });
     let toast = document.querySelector('.lx-p0-toast');
     if (!toast) {
       toast = document.createElement('div');
       toast.className = 'lx-p0-toast';
       document.body.appendChild(toast);
     }
+    toast.classList.toggle('is-required', options.force === true);
     toast.setAttribute('role', 'status');
     toast.textContent = message;
     toast.classList.add('show');
@@ -1175,6 +1177,7 @@ window.__p0Modules.sources["u40fb7a01ecc3a735"]=function(){
       } else if (target.closest('[data-invoice-back]')) {
         event.preventDefault();
         event.stopImmediatePropagation();
+        window.__lxInvoicePreference.beginEdit(orderState);
         showOrderEdit();
       } else if (target.closest('[data-coupon-back]')) {
         event.preventDefault();
@@ -1198,7 +1201,7 @@ window.__p0Modules.sources["u40fb7a01ecc3a735"]=function(){
       if (target.closest('[data-confirm-payment]')) return showPaymentSuccess();
       if (target.closest('[data-view-paid-order]')) return openPaidOrderDetail();
       if (target.closest('[data-price-detail]')) return showPriceDetail();
-      if (target.closest('[data-benefit-info]')) return showToast('预订单支付前，优惠仍可用于其他商品;支付发票成功将锁定至本单，取消订单后自动释放', 6000);
+      if (target.closest('[data-benefit-info]')) return showToast('预订单支付前，优惠仍可用于其他商品;支付发票成功将锁定至本单，取消订单后自动释放', 6000, {force: true, title: '优惠使用说明'});
       if (target.closest('[data-open-coupon-code]')) return showCouponCode();
       const benefitButton = target.closest('[data-open-benefit]');
       if (benefitButton) return benefitButton.dataset.openBenefit === 'coupon' ? showCouponSelect() : showWalletBenefit(benefitButton.dataset.openBenefit);
@@ -1217,12 +1220,11 @@ window.__p0Modules.sources["u40fb7a01ecc3a735"]=function(){
       if (target.closest('[data-order-invoice]')) {
         orderState.note = dialog.querySelector('[data-order-note]')?.value.trim() ?? orderState.note;
         orderState.customerCode = dialog.querySelector('[data-order-customer]')?.value.trim() ?? orderState.customerCode;
-        orderState.invoiceDraft = orderState.invoice;
-        orderState.invoiceIsDefault = window.__lxInvoicePreference.matches(orderState);
+        window.__lxInvoicePreference.beginEdit(orderState);
         return showInvoiceEdit();
       }
       if (target.closest('[data-invoice-notice-open]')) return showInvoiceNotice();
-      if (target.closest('[data-invoice-back]')) return showOrderEdit();
+      if (target.closest('[data-invoice-back]')) { window.__lxInvoicePreference.beginEdit(orderState); return showOrderEdit(); }
       const invoiceOption = target.closest('[data-invoice-option]');
       if (invoiceOption) { syncInvoiceDraft(); window.__lxInvoicePreference.selectType(orderState, invoiceOption.dataset.invoiceOption); return showInvoiceEdit(); }
       if (target.closest('[data-invoice-delay-open]')) return showInvoiceDelayPicker();
