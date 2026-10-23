@@ -8732,19 +8732,19 @@ body.assistant-fullscreen .lxfd:has(.lxfd-stage.lxfd-gallery-home:not(.is-chatti
 }
 
 
-/* Release marker: split-toggle-rightpane-20261023-5 */
+/* Release marker: split-toggle-rightpane-20261023-6 */
 /* Keep the fullscreen conversation control aligned with the right-side workspace in split mode. */
 @media (min-width: 1101px) {
   body.lx-home-split:not(.assistant-fullscreen):not(.lx-auto-fs) .assistant-panel > .assistant-toggle {
     position: fixed !important;
     top: calc(clamp(61px, 5.76vh, 86px) + clamp(11px, 1.08vw, 16px) - 22px) !important;
-    right: calc(clamp(18px, 1.6vw, 30px) + 18px) !important;
+    right: calc(clamp(18px, 1.6vw, 30px) + 13px) !important;
     left: auto !important;
     z-index: 90 !important;
   }
 
   body.lx-home-split.assistant-right:not(.assistant-fullscreen):not(.lx-auto-fs) .assistant-panel > .assistant-toggle {
-    right: calc(var(--assistant-panel-width) + clamp(24px, 2.5vw, 48px) + clamp(18px, 1.6vw, 30px) + 18px) !important;
+    right: calc(var(--assistant-panel-width) + clamp(24px, 2.5vw, 48px) + clamp(18px, 1.6vw, 30px) + 13px) !important;
     left: auto !important;
   }
 
@@ -8752,13 +8752,13 @@ body.assistant-fullscreen .lxfd:has(.lxfd-stage.lxfd-gallery-home:not(.is-chatti
 
 @media (min-width: 1281px) and (max-width: 1500px) {
   body.lx-home-split.assistant-right:not(.assistant-fullscreen):not(.lx-auto-fs) .assistant-panel > .assistant-toggle {
-    right: calc(var(--assistant-panel-width) + 24px + clamp(18px, 1.6vw, 30px) + 18px) !important;
+    right: calc(var(--assistant-panel-width) + 24px + clamp(18px, 1.6vw, 30px) + 13px) !important;
   }
 }
 
 @media (min-width: 1101px) and (max-width: 1280px) {
   body.lx-home-split.assistant-right:not(.assistant-fullscreen):not(.lx-auto-fs) .assistant-panel > .assistant-toggle {
-    right: calc(var(--assistant-panel-width) + 18px + clamp(18px, 1.6vw, 30px) + 18px) !important;
+    right: calc(var(--assistant-panel-width) + 18px + clamp(18px, 1.6vw, 30px) + 13px) !important;
   }
 }
 
