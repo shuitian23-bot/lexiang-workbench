@@ -1937,9 +1937,9 @@ html body:is([data-page="home"],[data-page="personal"],[data-page="business"],[d
   }
 }
 
-/* Release marker: reco-subtitle-under-title-20261023-2 */
+/* Release marker: reco-subtitle-under-title-20261023-3 */
 /* Keep product-result guidance below its heading on every split-view entry, including root. */
-html body.lx-home-split:not(.assistant-fullscreen) main.shell > section.content:is(.lx-shop-content, .content)[data-view="reco"] .reco-page:has(> .reco-row) > .reco-head {
+html body.lx-home-split:not(.assistant-fullscreen) main.shell > section.content[data-view="reco"] .reco-page > .reco-head {
   display: flex !important;
   flex-direction: column !important;
   align-items: flex-start !important;
@@ -1947,7 +1947,7 @@ html body.lx-home-split:not(.assistant-fullscreen) main.shell > section.content:
   gap: 4px !important;
 }
 
-html body.lx-home-split:not(.assistant-fullscreen) main.shell > section.content:is(.lx-shop-content, .content)[data-view="reco"] .reco-page:has(> .reco-row) > .reco-head > span {
+html body.lx-home-split:not(.assistant-fullscreen) main.shell > section.content[data-view="reco"] .reco-page > .reco-head > span {
   align-self: flex-start !important;
   max-width: 100% !important;
   padding-top: 0 !important;
@@ -8750,7 +8750,7 @@ body.assistant-fullscreen .lxfd:has(.lxfd-stage.lxfd-gallery-home:not(.is-chatti
 }
 
 
-/* Release marker: split-toggle-rightpane-20261023-8 */
+/* Release marker: split-toggle-rightpane-20261023-9 */
 /* Keep the fullscreen conversation control aligned with the right-side workspace in split mode. */
 @media (min-width: 1101px) {
   body.lx-home-split:not(.assistant-fullscreen):not(.lx-auto-fs) .assistant-panel > .assistant-toggle {
