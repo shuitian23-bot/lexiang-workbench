@@ -16,7 +16,7 @@
 
         <div class="adfs-row">
           <label for="adfs-login-itcode">ITCode</label>
-          <PocLoginAccountPicker v-if="allowPreviewAuth" id="adfs-login-itcode" v-model="itcode" placeholder="输入或选择演示账号" @select="selectPocAccount" @submit="submitAdfsLogin" />
+          <PocLoginAccountPicker v-if="allowPocLogin" id="adfs-login-itcode" v-model="itcode" placeholder="输入或选择演示账号" @select="selectPocAccount" @submit="submitAdfsLogin" />
           <input v-else id="adfs-login-itcode" v-model.trim="itcode" autofocus autocomplete="username" />
         </div>
         <label class="adfs-row">
@@ -46,10 +46,11 @@
 import { ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAppStore } from '@/stores/app'
-import { allowPreviewAuth } from '@/config/runtimeMode'
+import { allowPocLogin, allowPocSimulation, isPocSandbox } from '@/config/runtimeMode'
+import { pocLocalStorage, pocSessionStorage } from '@/services/pocStorage'
 import PocLoginAccountPicker from '@/components/auth/PocLoginAccountPicker.vue'
 import { POC_ACCOUNT_REQUESTS_KEY, POC_EXTERNAL_PASSWORD, findPocLoginAccount, resolvePocLogin } from '@/services/pocExternalLogin'
-import { type PocLoginChoice } from '@/services/pocLoginChoices'
+import { navigatePocChoice, type PocLoginChoice } from '@/services/pocLoginChoices'
 
 const route = useRoute()
 const router = useRouter()
@@ -61,14 +62,15 @@ const otpCode = ref('')
 const rememberMe = ref(false)
 const errorMsg = ref('')
 const disabledAccount = ref('')
-const initialPocAccount = findPocLoginAccount(route.query.pocAccount, allowPreviewAuth)
+const initialPocAccount = findPocLoginAccount(route.query.pocAccount, allowPocLogin)
+if (initialPocAccount) navigatePocChoice(initialPocAccount)
 if (initialPocAccount?.loginType === 'internal') {
   itcode.value = initialPocAccount.username
   password.value = POC_EXTERNAL_PASSWORD
 }
 
 function selectPocAccount(account: PocLoginChoice) {
-  if (!allowPreviewAuth) return
+  if (!allowPocLogin || navigatePocChoice(account)) return
   errorMsg.value = ''
   disabledAccount.value = ''
   if (account.loginType === 'external') {
@@ -99,28 +101,26 @@ async function submitAdfsLogin() {
   }
 
   try {
-    const result = resolvePocLogin(account, password.value, 'internal', allowPreviewAuth, () => localStorage.getItem(POC_ACCOUNT_REQUESTS_KEY))
+    const result = resolvePocLogin(account, password.value, 'internal', allowPocSimulation, () => pocLocalStorage.getItem(POC_ACCOUNT_REQUESTS_KEY))
     if (result) {
       if (result === 'invalid-password' || result === 'wrong-login-type') {
         errorMsg.value = result === 'invalid-password' ? '用户名或密码错误' : '该演示账号属于外部用户，请切换外部用户登录。'
         return
       }
-      localStorage.removeItem('preview_user')
-      sessionStorage.removeItem('leaibot-disabled-login-account')
-      sessionStorage.removeItem('leaibot-disabled-login-type')
+      pocLocalStorage.removeItem('preview_user')
+      pocSessionStorage.removeItem('leaibot-disabled-login-account')
+      pocSessionStorage.removeItem('leaibot-disabled-login-type')
       appStore.user = null
       appStore.role = null
       appStore.permissions = []
       appStore.visibleMenus = []
       if (result === 'disabled') {
         disabledAccount.value = account.toLowerCase()
-        sessionStorage.setItem('leaibot-disabled-login-account', disabledAccount.value)
-        sessionStorage.setItem('leaibot-disabled-login-type', 'internal')
+        pocSessionStorage.setItem('leaibot-disabled-login-account', disabledAccount.value)
+        pocSessionStorage.setItem('leaibot-disabled-login-type', 'internal')
         await openEnableRequest()
       } else if (result === 'active') {
-        localStorage.setItem('preview_user', account.toLowerCase())
-        appStore.usePreviewSession(account.toLowerCase())
-        await router.replace(String(route.query.redirect || '/'))
+        await router.replace('/agent/permissions')
       } else {
         await router.replace({ path: '/access-denied', query: { itcode: account.toLowerCase(), userType: 'internal' } })
       }
@@ -131,6 +131,10 @@ async function submitAdfsLogin() {
     return
   }
 
+  if (isPocSandbox) {
+    errorMsg.value = '该入口仅支持指定演示账号。真实账号请返回正常登录。'
+    return
+  }
   try {
     disabledAccount.value = ''
     const res = await fetch('/api/admin/login', {
@@ -142,8 +146,8 @@ async function submitAdfsLogin() {
     if (!res.ok) {
       if (isDisabledLoginResponse(res.status, data)) {
         disabledAccount.value = account
-        sessionStorage.setItem('leaibot-disabled-login-account', account)
-        sessionStorage.setItem('leaibot-disabled-login-type', 'internal')
+        pocSessionStorage.setItem('leaibot-disabled-login-account', account)
+        pocSessionStorage.setItem('leaibot-disabled-login-type', 'internal')
         await openEnableRequest()
         return
       }

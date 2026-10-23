@@ -2278,7 +2278,8 @@ import PermissionRolePickerModal from '@/components/permissions/PermissionRolePi
 import { createPermissionDemoRouteItems } from '@/utils/permissionDemoRoute.js'
 import { customRulesSignature, normalizeCustomDataRules, validateCustomTableRules } from '@/components/permissions/customTableAuthorization.js'
 import { detectCustomDataRoleConflicts } from '@/components/permissions/customDataRoleConflict.js'
-import { allowPreviewAuth } from '@/config/runtimeMode'
+import { allowPocMailReview as allowPreviewAuth, appBase } from '@/config/runtimeMode'
+import { pocLocalStorage, pocStorageEventKey } from '@/services/pocStorage'
 import { APPROVAL_MAIL_ROWS_KEY, checkMailReviewAccess, ensureMailReviewGrant, readApprovalMailRows, saveApprovalMailRow } from '@/services/approvalMailReview'
 
 const props = defineProps({ standaloneApproval: { type: Boolean, default: false } })
@@ -6549,7 +6550,7 @@ function syncPublicEnableRequest(row, time) {
   if (row?.typeKey !== 'enable' || typeof window === 'undefined') return
   try {
     const key = 'leaibot-account-request-status-rows'
-    const rows = JSON.parse(window.localStorage.getItem(key) || '[]')
+    const rows = JSON.parse(pocLocalStorage.getItem(key) || '[]')
     const index = rows.findIndex((item) => item.id === row.id)
     if (index < 0) return
     rows[index] = {
@@ -6566,7 +6567,7 @@ function syncPublicEnableRequest(row, time) {
       logs: [...(rows[index].logs || []), { node: '系统管理员审批', detail: row.statusKey === 'done' ? '系统管理员已批准账号启用申请。' : '账号启用申请已提交处理。', time }]
     }
     // Preserve completed approvals and older tickets, including the row just updated.
-    window.localStorage.setItem(key, JSON.stringify(rows))
+    pocLocalStorage.setItem(key, JSON.stringify(rows))
   } catch {}
 }
 
@@ -6873,7 +6874,7 @@ function refreshGuestApproval() {
   if (!props.standaloneApproval) return
   try {
     const query = guestApprovalQuery()
-    const stored = allowPreviewAuth ? readApprovalMailRows(window.localStorage).find(row => row.id === query.ticket) : undefined
+    const stored = allowPreviewAuth ? readApprovalMailRows(pocLocalStorage).find(row => row.id === query.ticket) : undefined
     const state = checkMailReviewAccess(stored, query, allowPreviewAuth)
     guestApproval.state = state
     if (state === 'invalid' || state === 'expired') {
@@ -6912,7 +6913,7 @@ async function submitApprovalDecision() {
   try {
     await withApprovalStorageLock(() => {
       const row = activeApproval.value
-      const stored = readApprovalMailRows(window.localStorage).find(item => item.id === row.id)
+      const stored = readApprovalMailRows(pocLocalStorage).find(item => item.id === row.id)
       if (!stored && approvalWorkspace.openedRevision > 0) throw new Error('演示记录已移除，请重新进入审批页面。')
       if (stored && (stored.approvalRevision || 0) !== approvalWorkspace.openedRevision) {
         Object.assign(row, createApprovalRow(stored))
@@ -6931,7 +6932,7 @@ async function submitApprovalDecision() {
         return
       }
       // Fail before mutating the workflow if browser storage is unavailable/full.
-      window.localStorage.setItem(APPROVAL_MAIL_ROWS_KEY, JSON.stringify(readApprovalMailRows(window.localStorage)))
+      pocLocalStorage.setItem(APPROVAL_MAIL_ROWS_KEY, JSON.stringify(readApprovalMailRows(pocLocalStorage)))
       const before = JSON.parse(JSON.stringify(row))
       const beforeUsers = JSON.parse(JSON.stringify(users))
       const beforeRecords = [...records.value]
@@ -7142,7 +7143,7 @@ function approvalPersonMail(itcode, fallback = 'user') {
 }
 
 function approvalAppBaseUrl(path = '/agent/permissions') {
-  const base = (import.meta.env.BASE_URL || '/').replace(/\/$/, '')
+  const base = appBase.replace(/\/$/, '')
   const fullPath = `${base}${path}`
   if (typeof window === 'undefined') return fullPath
   return `${window.location.origin}${fullPath}`
@@ -7412,7 +7413,7 @@ function approvalMailMockInboxHtml(row) {
 }
 function persistApprovalMockRow(row) {
   if (typeof window === 'undefined') return
-  saveApprovalMailRow(window.localStorage, row)
+  saveApprovalMailRow(pocLocalStorage, row)
 }
 
 function approvalGuestReviewLink(row, role) {
@@ -7430,7 +7431,7 @@ async function openApprovalMailMockTabs(row) {
     opened = window.open('', 'approval-mail-inbox-' + row.id)
     if (!opened) throw new Error('浏览器已拦截模拟邮件，请允许弹出窗口后重试。')
     await withApprovalStorageLock(() => {
-      const stored = readApprovalMailRows(window.localStorage).find(item => item.id === row.id)
+      const stored = readApprovalMailRows(pocLocalStorage).find(item => item.id === row.id)
       if (stored && (stored.approvalRevision || 0) > (row.approvalRevision || 0)) {
         Object.assign(row, createApprovalRow(stored))
         if (approvalWorkspace.visible && approvalWorkspace.rowId === row.id) openApprovalWorkspace(row, 'view')
@@ -7588,7 +7589,7 @@ function applyMailApprovalActionToRow(row, actionRecord) {
 function syncStoredApprovalRows() {
   if (typeof window === 'undefined') return
   try {
-    const stored = readApprovalMailRows(window.localStorage)
+    const stored = readApprovalMailRows(pocLocalStorage)
     stored.forEach((item) => {
       const existing = approvals.value.find(row => row.id === item.id)
       if (existing && (item.approvalRevision || 0) > (existing.approvalRevision || 0)) {
@@ -7617,7 +7618,7 @@ function syncStoredApprovalRows() {
 function syncFirstAccessApprovalRows() {
   if (typeof window === 'undefined') return
   try {
-    const stored = JSON.parse(window.localStorage.getItem('leaibot-first-access-applications') || '[]')
+    const stored = JSON.parse(pocLocalStorage.getItem('leaibot-first-access-applications') || '[]')
     stored.forEach((item) => {
       if (!approvals.value.some((row) => row.id === item.id)) {
         approvals.value.unshift(createApprovalRow(item))
@@ -7629,7 +7630,7 @@ function syncFirstAccessApprovalRows() {
 function syncRegisterApprovalRows() {
   if (typeof window === 'undefined') return
   try {
-    const rows = JSON.parse(window.localStorage.getItem('leaibot-account-request-status-rows') || '[]')
+    const rows = JSON.parse(pocLocalStorage.getItem('leaibot-account-request-status-rows') || '[]')
     rows.forEach((item) => {
       const existing = approvals.value.find((row) => row.id === item.id)
       if (existing) {
@@ -7685,7 +7686,7 @@ function syncMailApprovalActions() {
   syncFirstAccessApprovalRows()
   syncRegisterApprovalRows()
   try {
-    const actions = JSON.parse(window.localStorage.getItem('leaibot-mail-approval-actions') || '[]')
+    const actions = JSON.parse(pocLocalStorage.getItem('leaibot-mail-approval-actions') || '[]')
     let changed = false
     actions.filter((item) => item.source === 'permissions').forEach((actionRecord) => {
       const row = approvals.value.find((item) => item.id === actionRecord.ticket)
@@ -7706,7 +7707,8 @@ function syncMailApprovalActions() {
 }
 
 function handleMailApprovalStorage(event) {
-  if (event.key === null || event.key === APPROVAL_MAIL_ROWS_KEY || event.key === 'leaibot-mail-approval-actions' || event.key === 'leaibot-account-request-status-rows') syncMailApprovalActions()
+  const key = pocStorageEventKey(event.key)
+  if (key === null || key === APPROVAL_MAIL_ROWS_KEY || key === 'leaibot-mail-approval-actions' || key === 'leaibot-account-request-status-rows') syncMailApprovalActions()
 }
 function approvalResultLabel(value) {
   const option = approvalResultOptions.value.find((item) => item.value === value)

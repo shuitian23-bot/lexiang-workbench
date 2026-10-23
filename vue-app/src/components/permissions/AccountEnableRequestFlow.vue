@@ -73,6 +73,7 @@
 </template>
 
 <script setup lang="ts">
+import { pocLocalStorage } from '@/services/pocStorage'
 import { computed, ref } from 'vue'
 import { resolveApplicationInfoSchema, schemaHasField } from './applicationInfoSchema.js'
 import { submitEnableRequest, validateEnableRequest, type AccountEnableRequest, type EnableErrors, type EnableRequestDraft, type EnableSubmission } from '@/services/accountEnableRequest'
@@ -135,7 +136,7 @@ async function submit() {
   try {
     // Let the disabled/submitting state render before the synchronous POC persistence.
     await Promise.resolve()
-    const result = submitEnableRequest(props.modelValue, window.localStorage)
+    const result = submitEnableRequest(props.modelValue, pocLocalStorage)
     if (result.duplicate) duplicateRequest.value = result.request
     else emit('submitted', result)
   } catch {

@@ -212,6 +212,7 @@
 import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAppStore } from '@/stores/app'
+import { pocLocalStorage } from '@/services/pocStorage'
 import ApplicationProgressSummary, { type ApplicationProgressStep } from '@/components/auth/ApplicationProgressSummary.vue'
 import BusinessApproverField from '@/components/permissions/BusinessApproverField.vue'
 import { businessApproverError, businessApproverLabel } from '@/components/permissions/businessApprovers.js'
@@ -541,7 +542,7 @@ function submitApplication() {
   }
   try {
     const storageKey = 'leaibot-first-access-applications'
-    const stored = JSON.parse(window.localStorage.getItem(storageKey) || '[]') as FirstAccessApplication[]
+    const stored = JSON.parse(pocLocalStorage.getItem(storageKey) || '[]') as FirstAccessApplication[]
     const existing = stored.find((item) => item.applicantItcode.toLowerCase() === itcode.value.toLowerCase() && item.statusKey === 'pending')
     if (existing) {
       submittedApplication.value = existing
@@ -590,7 +591,7 @@ function submitApplication() {
       approvalLogs: [{ node: '申请提交', action: 'submit', operator: itcode.value, opinion: isExternal.value ? '外部用户在无权限页提交工作台权限申请。' : '内部用户在无权限页提交首次访问申请。', time: now }]
     }
     stored.unshift(application)
-    window.localStorage.setItem(storageKey, JSON.stringify(stored.slice(0, 20)))
+    pocLocalStorage.setItem(storageKey, JSON.stringify(stored.slice(0, 20)))
     submittedApplication.value = application
   } catch {
     submitError.value = '申请暂时无法保存，请稍后重试。'
@@ -599,7 +600,7 @@ function submitApplication() {
 
 function restorePendingApplication() {
   try {
-    const stored = JSON.parse(window.localStorage.getItem('leaibot-first-access-applications') || '[]') as FirstAccessApplication[]
+    const stored = JSON.parse(pocLocalStorage.getItem('leaibot-first-access-applications') || '[]') as FirstAccessApplication[]
     submittedApplication.value = stored.find((item) => item.applicantItcode.toLowerCase() === itcode.value.toLowerCase() && item.statusKey === 'pending') || null
   } catch {
     submittedApplication.value = null

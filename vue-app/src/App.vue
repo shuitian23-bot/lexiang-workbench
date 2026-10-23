@@ -8,11 +8,12 @@
 import { onMounted } from 'vue'
 import { useAppStore } from '@/stores/app'
 import GlobalTooltip from '@/components/GlobalTooltip.vue'
+import { isPocSandbox } from '@/config/runtimeMode'
 
 const appStore = useAppStore()
 
 onMounted(() => {
   // 恢复深色模式偏好
-  appStore.applyDarkMode(appStore.darkMode)
+  if (!isPocSandbox) appStore.applyDarkMode(appStore.darkMode)
 })
 </script>

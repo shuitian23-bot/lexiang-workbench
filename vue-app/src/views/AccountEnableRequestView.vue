@@ -28,6 +28,7 @@
 import { computed, onMounted, onBeforeUnmount, ref, watch } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import AccountEnableRequestFlow from '@/components/permissions/AccountEnableRequestFlow.vue'
+import { pocSessionStorage } from '@/services/pocStorage'
 import { disabledIdentityError, DISABLED_ACCOUNT_KEY, DISABLED_ACCOUNT_TYPE_KEY, EXTERNAL_DISABLED_MESSAGE, type EnableRequestDraft, type EnableSubmission } from '@/services/accountEnableRequest'
 
 const route = useRoute()
@@ -56,7 +57,7 @@ function createDraft(): EnableRequestDraft {
 watch([account, loginType], () => { draft.value = createDraft(); step.value = 1 })
 function authorize() {
   if (externalRequest.value) return EXTERNAL_DISABLED_MESSAGE
-  const identityError = disabledIdentityError(account.value, loginType.value, window.sessionStorage)
+  const identityError = disabledIdentityError(account.value, loginType.value, pocSessionStorage)
   if (identityError) return identityError
   if (draft.value.itcode !== account.value || draft.value.applicant !== account.value
     || draft.value.targetItcode !== account.value || draft.value.targetUser !== account.value
@@ -67,8 +68,8 @@ function authorize() {
 }
 function openStatusPage({ request }: EnableSubmission) {
   // Remove the POC login proof only after the request has been saved successfully.
-  window.sessionStorage.removeItem(DISABLED_ACCOUNT_KEY)
-  window.sessionStorage.removeItem(DISABLED_ACCOUNT_TYPE_KEY)
+  pocSessionStorage.removeItem(DISABLED_ACCOUNT_KEY)
+  pocSessionStorage.removeItem(DISABLED_ACCOUNT_TYPE_KEY)
   router.replace({ path: '/account-request/status', query: { ticket: request.id, token: request.token } })
 }
 </script>

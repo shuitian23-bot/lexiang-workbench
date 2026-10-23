@@ -84,7 +84,7 @@
         <span class="status-eyebrow">未找到申请</span>
         <h1>无法查询该申请进度</h1>
         <p>请确认邮件中的申请单号和查询链接是否完整。该 POC 页面只展示当前浏览器本地生成的 mock 申请。</p>
-        <a href="/admin-vue/login">返回登录页</a>
+        <RouterLink to="/login">返回登录页</RouterLink>
       </div>
     </section>
   </main>
@@ -93,6 +93,7 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
+import { pocLocalStorage, pocStorageEventKey } from '@/services/pocStorage'
 import ApplicationProgressSummary, { type ApplicationProgressStep } from '@/components/auth/ApplicationProgressSummary.vue'
 
 const STORAGE_KEY = 'leaibot-account-request-status-rows'
@@ -101,7 +102,7 @@ const route = useRoute()
 function readRequests() {
   if (typeof window === 'undefined') return [] as any[]
   try {
-    const rows = JSON.parse(window.localStorage.getItem(STORAGE_KEY) || '[]')
+    const rows = JSON.parse(pocLocalStorage.getItem(STORAGE_KEY) || '[]')
     return Array.isArray(rows) ? rows : []
   } catch {
     return [] as any[]
@@ -113,7 +114,8 @@ function refreshRequests() {
   requests.value = readRequests()
 }
 function handleStorage(event: StorageEvent) {
-  if (event.key === STORAGE_KEY || event.key === null) refreshRequests()
+  const key = pocStorageEventKey(event.key)
+  if (key === STORAGE_KEY || key === null) refreshRequests()
 }
 onMounted(() => {
   document.documentElement.classList.add('account-status-route')

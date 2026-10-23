@@ -18,7 +18,7 @@ import { ref, computed } from 'vue'
 import { STORAGE_KEYS, clearBooleanStorage, readBooleanStorage, writeBooleanStorage } from '@/constants/storageKeys'
 import { syncThemeMode } from '@/composables/useThemeMode'
 import { showWorkbenchToast } from '@/services/toast'
-import { allowPreviewAuth } from '@/config/runtimeMode'
+import { isPocSandbox } from '@/config/runtimeMode'
 import { AI_INSPECT_MENU, withAiInspectMenu } from '@/services/aiInspectAccess'
 import { ACTIVITY_POINTS_MENU, withActivityPointsMenu } from '@/services/activityPointsAccess'
 
@@ -310,6 +310,8 @@ export const useAppStore = defineStore('app', () => {
 
   // ===== 对应原 loadUserContext() =====
   async function loadUserContext() {
+    // The isolated demo never reads a real session or its menu permissions.
+    if (isPocSandbox) return
     // 先确认登录状态
     try {
       const meRes = await fetch('/api/admin/me')
@@ -322,10 +324,6 @@ export const useAppStore = defineStore('app', () => {
         return
       }
     } catch {
-      if (allowPreviewAuth && localStorage.getItem('preview_user')) {
-        usePreviewSession(localStorage.getItem('preview_user') || 'demo')
-        return
-      }
       user.value = null
       return
     }
@@ -374,8 +372,10 @@ export const useAppStore = defineStore('app', () => {
 
   // ===== 登出（对应原 doLogout）=====
   async function logout() {
-    try { await fetch('/api/admin/logout', { method: 'POST' }) } catch {}
-    localStorage.removeItem('preview_user')
+    if (!isPocSandbox) {
+      try { await fetch('/api/admin/logout', { method: 'POST' }) } catch {}
+      localStorage.removeItem('preview_user')
+    }
     user.value        = null
     role.value        = null
     permissions.value = []

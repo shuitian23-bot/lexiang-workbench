@@ -25,7 +25,7 @@
       </div>
 
       <div v-if="loginTab === 'internal'" class="login-adfs-panel" role="tabpanel">
-        <div v-if="allowPreviewAuth" class="form-group">
+        <div v-if="allowPocLogin" class="form-group">
           <label class="form-label" for="internal-demo-account">演示账号</label>
           <PocLoginAccountPicker id="internal-demo-account" v-model="username" placeholder="选择 POC 演示场景" @select="selectPocAccount" />
         </div>
@@ -36,7 +36,7 @@
       <div v-else role="tabpanel">
         <div class="form-group">
           <label class="form-label" for="external-login-username">用户名</label>
-          <PocLoginAccountPicker v-if="allowPreviewAuth" id="external-login-username" v-model="username" placeholder="请输入用户名或选择演示账号" @select="selectPocAccount" @submit="doLogin" />
+          <PocLoginAccountPicker v-if="allowPocLogin" id="external-login-username" v-model="username" placeholder="请输入用户名或选择演示账号" @select="selectPocAccount" @submit="doLogin" />
           <input
             v-else
             id="external-login-username"
@@ -175,9 +175,10 @@
 import { computed, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAppStore } from '@/stores/app'
-import { allowPreviewAuth } from '@/config/runtimeMode'
+import { allowPocLogin, allowPocSimulation, appBase, isPocSandbox } from '@/config/runtimeMode'
+import { pocLocalStorage, pocSessionStorage } from '@/services/pocStorage'
 import { POC_ACCOUNT_REQUESTS_KEY, resolvePocExternalLogin } from '@/services/pocExternalLogin'
-import { findPocLoginChoice, getPocLoginPassword, type PocLoginChoice } from '@/services/pocLoginChoices'
+import { findPocLoginChoice, getPocLoginPassword, navigatePocChoice, type PocLoginChoice } from '@/services/pocLoginChoices'
 import PocLoginAccountPicker from '@/components/auth/PocLoginAccountPicker.vue'
 import { EXTERNAL_DISABLED_MESSAGE } from '@/services/accountEnableRequest'
 
@@ -190,6 +191,7 @@ const password = ref('')
 const errorMsg = ref('')
 const loginTab = ref<'internal' | 'external'>(route.query.loginType === 'external' ? 'external' : 'internal')
 const initialPocAccount = findPocLoginChoice(route.query.pocAccount)
+if (initialPocAccount) navigatePocChoice(initialPocAccount)
 if (initialPocAccount?.loginType === 'external') {
   loginTab.value = 'external'
   username.value = initialPocAccount.username
@@ -197,7 +199,7 @@ if (initialPocAccount?.loginType === 'external') {
 }
 
 function selectPocAccount(account: PocLoginChoice) {
-  if (!allowPreviewAuth) return
+  if (!allowPocLogin || navigatePocChoice(account)) return
   errorMsg.value = ''
   if (account.loginType === 'internal') {
     router.push({ path: '/adfs-login', query: { pocAccount: account.username, redirect: String(route.query.redirect || '/') } })
@@ -285,7 +287,7 @@ async function doLogin() {
 
   // Resolve POC fixtures before the network fallback; storage failures must not create an admin preview session.
   try {
-    const pocResult = resolvePocExternalLogin(u, p, allowPreviewAuth, () => localStorage.getItem(POC_ACCOUNT_REQUESTS_KEY))
+    const pocResult = resolvePocExternalLogin(u, p, allowPocSimulation, () => pocLocalStorage.getItem(POC_ACCOUNT_REQUESTS_KEY))
     if (pocResult) {
       if (pocResult === 'invalid-password') {
         showLoginError('用户名或密码错误')
@@ -295,9 +297,9 @@ async function doLogin() {
         showLoginError('该演示账号属于内部用户，请切换内部用户登录。')
         return
       }
-      localStorage.removeItem('preview_user')
-      sessionStorage.removeItem('leaibot-disabled-login-account')
-      sessionStorage.removeItem('leaibot-disabled-login-type')
+      pocLocalStorage.removeItem('preview_user')
+      pocSessionStorage.removeItem('leaibot-disabled-login-account')
+      pocSessionStorage.removeItem('leaibot-disabled-login-type')
       appStore.user = null
       appStore.role = null
       appStore.permissions = []
@@ -306,9 +308,7 @@ async function doLogin() {
       if (pocResult === 'disabled') {
         showLoginError(EXTERNAL_DISABLED_MESSAGE)
       } else if (pocResult === 'active') {
-        localStorage.setItem('preview_user', account)
-        appStore.usePreviewSession(account)
-        await router.replace(String(route.query.redirect || '/'))
+        await router.replace('/agent/permissions')
       } else {
         await router.replace({ path: '/access-denied', query: { itcode: account, userType: 'external' } })
       }
@@ -319,6 +319,10 @@ async function doLogin() {
     return
   }
 
+  if (isPocSandbox) {
+    showLoginError('该入口仅支持指定演示账号。真实账号请返回正常登录。')
+    return
+  }
   try {
     const res = await fetch('/api/admin/login', {
       method: 'POST',
@@ -328,8 +332,8 @@ async function doLogin() {
     const data = await res.json().catch(() => ({}))
     if (!res.ok) {
       if (isDisabledLoginResponse(res.status, data)) {
-        window.sessionStorage.removeItem('leaibot-disabled-login-account')
-        window.sessionStorage.removeItem('leaibot-disabled-login-type')
+        pocSessionStorage.removeItem('leaibot-disabled-login-account')
+        pocSessionStorage.removeItem('leaibot-disabled-login-type')
         showLoginError(EXTERNAL_DISABLED_MESSAGE)
         return
       }
@@ -346,13 +350,7 @@ async function doLogin() {
     }
     router.replace(String(route.query.redirect || '/'))
   } catch {
-    if (!allowPreviewAuth || u.toLowerCase() === 'admin') {
-      showLoginError('登录服务暂不可用，请稍后重试')
-      return
-    }
-    localStorage.setItem('preview_user', u)
-    appStore.usePreviewSession(u)
-    router.replace(String(route.query.redirect || '/'))
+    showLoginError('登录服务暂不可用，请稍后重试')
   }
 }
 
@@ -411,7 +409,7 @@ function registerMailAddress(value: string, fallback = 'user') {
 }
 
 function registerAppBaseUrl(path: string) {
-  const base = (import.meta.env.BASE_URL || '/').replace(/\/$/, '')
+  const base = appBase.replace(/\/$/, '')
   if (typeof window === 'undefined') return `${base}${path}`
   return `${window.location.origin}${base}${path}`
 }
@@ -496,10 +494,10 @@ function persistRegisterRequest(request: any) {
   if (typeof window === 'undefined') return
   try {
     const key = 'leaibot-account-request-status-rows'
-    const existing = JSON.parse(window.localStorage.getItem(key) || '[]').filter((item: any) => item.id !== request.id)
+    const existing = JSON.parse(pocLocalStorage.getItem(key) || '[]').filter((item: any) => item.id !== request.id)
     existing.unshift(request)
     // Shared approval history also determines POC account state; do not truncate it.
-    window.localStorage.setItem(key, JSON.stringify(existing))
+    pocLocalStorage.setItem(key, JSON.stringify(existing))
   } catch {}
 }
 
