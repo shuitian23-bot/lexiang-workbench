@@ -8732,7 +8732,7 @@ body.assistant-fullscreen .lxfd:has(.lxfd-stage.lxfd-gallery-home:not(.is-chatti
 }
 
 
-/* Release marker: split-toggle-rightpane-20261023-6 */
+/* Release marker: split-toggle-rightpane-20261023-7 */
 /* Keep the fullscreen conversation control aligned with the right-side workspace in split mode. */
 @media (min-width: 1101px) {
   body.lx-home-split:not(.assistant-fullscreen):not(.lx-auto-fs) .assistant-panel > .assistant-toggle {
@@ -8766,4 +8766,19 @@ body.assistant-fullscreen .lxfd:has(.lxfd-stage.lxfd-gallery-home:not(.is-chatti
   body.lx-home-split:not(.assistant-fullscreen):not(.lx-auto-fs) .assistant-panel > .assistant-toggle {
     top: calc(clamp(76px, 7.2vh, 108px) + clamp(14px, 1.35vw, 20px) - 22px) !important;
   }
+}
+
+/* Release marker: reco-subtitle-under-title-20261023-1 */
+/* Stack the result count/help text under the product-list heading in split view. */
+body:is([data-page="home"], [data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]).lx-home-split:not(.assistant-fullscreen) .content[data-view="reco"] .reco-page:has(> .reco-row) > .reco-head {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  justify-content: flex-start !important;
+  gap: 4px !important;
+}
+
+body:is([data-page="home"], [data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]).lx-home-split:not(.assistant-fullscreen) .content[data-view="reco"] .reco-page:has(> .reco-row) > .reco-head > span {
+  padding-top: 0 !important;
+  white-space: normal !important;
 }
