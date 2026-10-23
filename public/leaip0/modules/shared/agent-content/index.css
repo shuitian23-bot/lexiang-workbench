@@ -8730,3 +8730,48 @@ body.assistant-fullscreen .lxfd:has(.lxfd-stage.lxfd-gallery-home:not(.is-chatti
   max-height:none!important;
   overflow:visible!important;
 }
+
+
+/* Release marker: split-toggle-rightpane-20261023-1 */
+/* Keep the fullscreen conversation control aligned with the right-side workspace in split mode. */
+@media (min-width: 1101px) {
+  body.lx-home-split:not(.assistant-fullscreen):not(.lx-auto-fs) .assistant-panel > .assistant-toggle {
+    position: fixed !important;
+    top: calc(clamp(61px, 5.76vh, 86px) + clamp(11px, 1.08vw, 16px) + 18px) !important;
+    right: calc(clamp(18px, 1.6vw, 30px) + 18px) !important;
+    left: auto !important;
+    z-index: 90 !important;
+  }
+
+  body.lx-home-split.assistant-right:not(.assistant-fullscreen):not(.lx-auto-fs) .assistant-panel > .assistant-toggle {
+    right: calc(var(--assistant-panel-width) + clamp(24px, 2.5vw, 48px) + clamp(18px, 1.6vw, 30px) + 18px) !important;
+    left: auto !important;
+  }
+
+
+  /* The four channel landing pages keep their clean hero; the control remains on content pages. */
+  body:is([data-page="personal"], [data-page="business"], [data-page="enterprise"], [data-page="brand"]):has(> .shell > .content[data-view="home"]) .assistant-panel > .assistant-toggle,
+  body[data-page="personal"]:has(> .shell > .content.lx-shop-content[data-view="list"] > .hero) .assistant-panel > .assistant-toggle,
+  body:is([data-page="business"], [data-page="enterprise"]):has(> .shell > .content[data-view="list"] > .device-scene-hall) .assistant-panel > .assistant-toggle,
+  body[data-page="brand"]:has(> .shell > .content:is([data-view="brand"], [data-view="list"]) > :is(.lx-brand-home, .brand-page)) .assistant-panel > .assistant-toggle {
+    display: none !important;
+  }
+}
+
+@media (min-width: 1281px) and (max-width: 1500px) {
+  body.lx-home-split.assistant-right:not(.assistant-fullscreen):not(.lx-auto-fs) .assistant-panel > .assistant-toggle {
+    right: calc(var(--assistant-panel-width) + 24px + clamp(18px, 1.6vw, 30px) + 18px) !important;
+  }
+}
+
+@media (min-width: 1101px) and (max-width: 1280px) {
+  body.lx-home-split.assistant-right:not(.assistant-fullscreen):not(.lx-auto-fs) .assistant-panel > .assistant-toggle {
+    right: calc(var(--assistant-panel-width) + 18px + clamp(18px, 1.6vw, 30px) + 18px) !important;
+  }
+}
+
+@media (min-width: 1501px) {
+  body.lx-home-split:not(.assistant-fullscreen):not(.lx-auto-fs) .assistant-panel > .assistant-toggle {
+    top: calc(clamp(76px, 7.2vh, 108px) + clamp(14px, 1.35vw, 20px) + 18px) !important;
+  }
+}
