@@ -8750,38 +8750,36 @@ body.assistant-fullscreen .lxfd:has(.lxfd-stage.lxfd-gallery-home:not(.is-chatti
 }
 
 
-/* Release marker: split-toggle-rightpane-20261023-9 */
-/* Keep the fullscreen conversation control aligned with the right-side workspace in split mode. */
-@media (min-width: 1101px) {
-  body.lx-home-split:not(.assistant-fullscreen):not(.lx-auto-fs) .assistant-panel > .assistant-toggle {
-    position: fixed !important;
-    top: calc(clamp(61px, 5.76vh, 86px) + clamp(11px, 1.08vw, 16px) - 22px) !important;
-    right: calc(clamp(18px, 1.6vw, 30px) + 13px) !important;
-    left: auto !important;
-    z-index: 90 !important;
-  }
-
-  body.lx-home-split.assistant-right:not(.assistant-fullscreen):not(.lx-auto-fs) .assistant-panel > .assistant-toggle {
-    right: calc(var(--assistant-panel-width) + clamp(24px, 2.5vw, 48px) + clamp(18px, 1.6vw, 30px) + 13px) !important;
-    left: auto !important;
-  }
-
+/* Release marker: split-toggle-topnav-20261023-1 */
+/* Keep the conversation toggle aligned with the global utility navigation. */
+.topbar .topbar-assistant-toggle {
+  display: inline-flex !important;
+  flex: 0 0 32px !important;
+  width: 32px !important;
+  height: 32px !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 !important;
+  border: 1px solid #e2ddeb !important;
+  border-radius: 8px !important;
+  background: #ffffff !important;
+  color: #321d39 !important;
+  box-shadow: 0 2px 8px rgba(50, 29, 57, 0.06) !important;
 }
-
-@media (min-width: 1281px) and (max-width: 1500px) {
-  body.lx-home-split.assistant-right:not(.assistant-fullscreen):not(.lx-auto-fs) .assistant-panel > .assistant-toggle {
-    right: calc(var(--assistant-panel-width) + 24px + clamp(18px, 1.6vw, 30px) + 13px) !important;
-  }
+.topbar .topbar-assistant-toggle .icon {
+  width: 17px !important;
+  height: 17px !important;
 }
-
-@media (min-width: 1101px) and (max-width: 1280px) {
-  body.lx-home-split.assistant-right:not(.assistant-fullscreen):not(.lx-auto-fs) .assistant-panel > .assistant-toggle {
-    right: calc(var(--assistant-panel-width) + 18px + clamp(18px, 1.6vw, 30px) + 13px) !important;
-  }
+.topbar .topbar-assistant-toggle:hover,
+.topbar .topbar-assistant-toggle:focus-visible {
+  border-color: #cbbbd7 !important;
+  background: #f6f0f8 !important;
+  box-shadow: 0 4px 12px rgba(50, 29, 57, 0.1) !important;
 }
-
-@media (min-width: 1501px) {
-  body.lx-home-split:not(.assistant-fullscreen):not(.lx-auto-fs) .assistant-panel > .assistant-toggle {
-    top: calc(clamp(76px, 7.2vh, 108px) + clamp(14px, 1.35vw, 20px) - 22px) !important;
+@media (max-width: 1500px) {
+  .topbar .topbar-assistant-toggle {
+    flex-basis: 26px !important;
+    width: 26px !important;
+    height: 26px !important;
   }
 }
