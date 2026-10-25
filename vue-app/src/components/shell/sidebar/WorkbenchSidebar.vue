@@ -151,6 +151,15 @@ const pocReleaseLedger = ref({ records: {} })
 
 const basePocLogRecords = [
   {
+    time: '2026-10-21',
+    releaseKey: 'workbench-mail-approval-pr28-20261021',
+    title: '领导邮件审批与详情简化',
+    changePoint: '补充无账号领导独立审批演示，统一两个入口的审批内容和状态同步。',
+    detail: '模拟邮件提供有账号审批和无账号审批两个入口；独立页保留申请信息、完整审批链路、组织确认及处理记录，隐藏完整权限范围及权限修改入口。两个入口移除重复进度面板，保留同意、驳回和最终执行；补充链接校验、跨页同步及重复提交保护。无账号入口仅限同站点同一浏览器的本地 POC，server 模式不开放，不代表真实邮件或后端匿名审批。发布环境、人员、时间和版本分别以实际记录为准。',
+    deployTargets: [],
+    status: '发布状态以环境记录为准'
+  },
+  {
     time: '2026-10-15',
     releaseKey: 'workbench-scenario-retry-20261015',
     title: '场景技能包试运行重试修复',
