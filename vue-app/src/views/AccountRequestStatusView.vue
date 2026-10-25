@@ -4,7 +4,6 @@
       <div class="status-brand">
         <div class="status-logo">L</div>
         <span>联想乐享</span>
-        <RouterLink class="status-login-link" :to="returnTarget">{{ returnLabel }}</RouterLink>
       </div>
 
       <div v-if="request && progress" class="status-content applicant-status-content">
@@ -12,64 +11,8 @@
           申请单号：<b>{{ request.id }}</b>。{{ progress.description }}
         </ApplicationProgressSummary>
 
-        <details :key="request.id" class="status-details">
-          <summary>查看申请详情与处理记录</summary>
-          <dl class="status-summary">
-            <div>
-              <dt>申请类型</dt>
-              <dd>{{ request.type }}</dd>
-            </div>
-            <div>
-              <dt>申请人</dt>
-              <dd>{{ request.applicant }}（{{ request.applicantItcode }}）</dd>
-            </div>
-            <div>
-              <dt>{{ request.typeKey === 'enable' ? '申请启用账号' : '申请对象' }}</dt>
-              <dd>{{ request.target }}</dd>
-            </div>
-            <div>
-              <dt>当前节点</dt>
-              <dd>{{ request.node }}</dd>
-            </div>
-            <div>
-              <dt>提交时间</dt>
-              <dd>{{ request.time }}</dd>
-            </div>
-            <div>
-              <dt>结果说明</dt>
-              <dd>{{ request.result || '申请已受理，请等待审批和系统执行结果。' }}</dd>
-            </div>
-          </dl>
-
-          <section class="status-section">
-            <div class="status-section-head">
-              <b>申请内容</b>
-              <span v-if="request.typeKey === 'enable'">仅申请启用账号，原有权限保持不变。</span>
-              <span v-else>{{ request.roleNames || '未选择角色' }} · {{ request.dataScopeNames || '默认无额外数据权限' }}</span>
-            </div>
-            <p>{{ request.reason || '暂无补充说明。' }}</p>
-          </section>
-
-          <section class="status-section">
-            <div class="status-section-head">
-              <b>处理记录</b>
-              <span>{{ timeline.length }} 条</span>
-            </div>
-            <ol class="status-timeline">
-              <li v-for="log in timeline" :key="log.time + log.node">
-                <i></i>
-                <div>
-                  <b>{{ log.node }}</b>
-                  <p>{{ log.detail }}</p>
-                  <small>{{ log.time }}</small>
-                </div>
-              </li>
-            </ol>
-          </section>
-        </details>
         <div class="status-actions">
           <button type="button" class="btn btn-secondary" :disabled="loading" @click="refreshRequests">{{ loading ? '刷新中…' : '刷新状态' }}</button>
-          <RouterLink class="btn btn-secondary" :to="returnTarget">{{ returnLabel }}</RouterLink>
         </div>
       </div>
 
@@ -150,11 +93,6 @@ onUnmounted(() => {
 })
 watch(() => route.fullPath, () => { request.value = null; refreshRequests() })
 const progress = computed(() => request.value ? applicationProgress(request.value, routeNodes.value) : null)
-const timeline = computed(() => request.value?.approvalLogs?.map((log: any) => ({ ...log, detail: log.opinion || log.detail || '' })) || request.value?.logs || [])
-const loginTarget = computed(() => ({ path: '/login', query: { loginType: request.value?.personType === 'external' ? 'external' : 'internal' } }))
-const fromWorkbench = computed(() => route.query.from === 'workbench')
-const returnLabel = computed(() => fromWorkbench.value ? '返回权限管理' : '返回登录页')
-const returnTarget = computed(() => fromWorkbench.value ? { path: '/agent/permissions', query: { module: 'approval', viewer: 'applicant' } } : loginTarget.value)
 </script>
 
 <style scoped>
@@ -223,103 +161,13 @@ const returnTarget = computed(() => fromWorkbench.value ? { path: '/agent/permis
   line-height: 1.3;
 }
 
-.status-empty p,
-.status-section p {
+.status-empty p {
   margin: 10px 0 0;
   color: #5f6b7a;
   font-size: 14px;
   line-height: 1.7;
 }
 
-.status-summary {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
-  margin: 28px 0;
-}
-
-.status-summary div,
-.status-section {
-  border: 1px solid #e6edf5;
-  border-radius: 8px;
-  background: #f8fafc;
-}
-
-.status-summary div {
-  padding: 14px;
-}
-
-.status-summary dt {
-  margin-bottom: 6px;
-  color: #8a96a8;
-  font-size: 12px;
-  font-weight: 800;
-}
-
-.status-summary dd {
-  margin: 0;
-  color: #172033;
-  font-size: 14px;
-  font-weight: 700;
-  overflow-wrap: anywhere;
-}
-
-.status-section {
-  margin-top: 14px;
-  padding: 18px;
-}
-
-.status-section-head {
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  align-items: center;
-}
-
-.status-section-head b {
-  font-size: 15px;
-}
-
-.status-section-head span {
-  color: #667085;
-  font-size: 13px;
-  text-align: right;
-}
-
-.status-timeline {
-  display: grid;
-  gap: 14px;
-  margin: 16px 0 0;
-  padding: 0;
-  list-style: none;
-}
-
-.status-timeline li {
-  display: grid;
-  grid-template-columns: 14px minmax(0, 1fr);
-  gap: 12px;
-}
-
-.status-timeline i {
-  width: 10px;
-  height: 10px;
-  margin-top: 5px;
-  border-radius: 50%;
-  background: #316dff;
-}
-
-.status-timeline b {
-  font-size: 14px;
-}
-
-.status-timeline p {
-  margin: 4px 0;
-}
-
-.status-timeline small {
-  color: #8a96a8;
-  font-size: 12px;
-}
 
 .status-empty a {
   display: inline-flex;
@@ -338,14 +186,8 @@ const returnTarget = computed(() => fromWorkbench.value ? { path: '/agent/permis
 .applicant-status-page { box-sizing: border-box; padding: var(--space-8, 32px) var(--space-5, 20px); }
 .applicant-status-page .account-status-card { width: min(980px, 100%); }
 .applicant-status-page .status-brand { padding: var(--space-4, 16px) var(--space-7, 28px); font-size: var(--text-base, 14px); }
-.status-login-link { margin-left: auto; color: var(--color-primary); font-size: var(--text-sm, 13px); font-weight: var(--font-weight-normal, 400); text-decoration: none; }
 .applicant-status-content { box-sizing: border-box; width: min(860px, 100%); margin: 0 auto; padding: var(--space-14, 56px) var(--space-9, 36px); }
-.applicant-status-content .status-details { margin-top: var(--space-6, 24px); text-align: left; overflow-wrap: anywhere; }
-.status-details summary { color: var(--color-text-secondary); font-size: var(--text-sm, 13px); cursor: pointer; }
-.status-details summary:hover { color: var(--color-primary); }
-.status-details summary:focus-visible, .status-login-link:focus-visible, .status-actions a:focus-visible { outline: 2px solid var(--color-primary); outline-offset: var(--space-1, 4px); }
 .status-actions { display: flex; flex-wrap: wrap; gap: var(--space-3, 12px); justify-content: flex-end; margin-top: var(--space-6, 24px); border-top: 1px solid var(--color-border-subtle); padding-top: var(--space-5, 20px); }
-.status-actions a { text-decoration: none; }
 
 @media (max-width: 760px) {
   .applicant-status-page { padding: 0; }
@@ -363,16 +205,5 @@ const returnTarget = computed(() => fromWorkbench.value ? { path: '/agent/permis
     padding: 22px 18px 26px;
   }
 
-  .status-summary {
-    grid-template-columns: 1fr;
-  }
-
-  .status-section-head {
-    display: grid;
-  }
-
-  .status-section-head span {
-    text-align: left;
-  }
 }
 </style>

@@ -41,6 +41,11 @@ const measurements = []
 async function seed(value) { await page.evaluate(({ key, value }) => localStorage.setItem(key, JSON.stringify([value])), { key, value }) }
 async function measure() {
   await page.locator('.application-progress-summary').waitFor()
+  assert.equal(await page.locator('.status-details, .status-summary, .status-section, .status-timeline').count(), 0, 'Applicant progress must not render request details or handling records')
+  assert.equal(await page.locator('.status-brand a, .status-actions a').count(), 0, 'Progress entry source must not introduce return links')
+  if (await page.locator('.applicant-status-page').count()) {
+    await page.getByRole('button', { name: '刷新状态', exact: true }).waitFor()
+  }
   return page.evaluate(() => {
     const panel = document.querySelector('.application-progress-summary')
     const main = document.querySelector('main')
@@ -65,9 +70,6 @@ try {
         await page.goto(url)
         await page.getByRole('heading', { name: { pending: '账号启用申请已进入审批', done: '账号已启用', rejected: '账号启用申请已驳回' }[state], exact: true }).waitFor()
         assert.equal(await page.locator('.approval-flow li').count(), 2)
-        assert.equal(await page.locator('.status-details').getAttribute('open'), null)
-        assert.equal(await page.locator('.status-actions a').getAttribute('href'), '/admin-vue/login?loginType=' + personType)
-        assert.equal(await page.locator('.status-login-link').count(), 1)
         assert.deepEqual(await page.evaluate(key => JSON.parse(localStorage.getItem(key)), key), [current], 'Progress page is read-only')
         const geometry = await measure()
         assert.equal(geometry.overflow, 0)
@@ -98,19 +100,18 @@ try {
   assert.equal(reference.icon, enableGeometry.icon)
   assert.equal(await page.locator('.approval-flow li').count(), 3)
   await page.screenshot({ path: path.join(output, 'reference-permission.png'), fullPage: true })
-  // Long details stay readable and the bottom exit remains reachable.
+  // Stored long reasons/logs remain intact but are not rendered; refresh remains reachable.
   await seed({ ...row, reason: '很长的申请原因。'.repeat(80), logs: Array.from({ length: 21 }, (_, i) => ({ node: '处理记录 ' + i, detail: '状态说明。'.repeat(30), time: String(i) })) })
   await page.setViewportSize({ width: 390, height: 844 })
   await page.goto(url)
-  await page.locator('summary').focus()
-  await page.keyboard.press('Enter')
-  assert.notEqual(await page.locator('details').getAttribute('open'), null)
-  assert.equal(await page.locator('.status-timeline li').count(), 21)
   assert.equal((await measure()).overflow, 0)
-  await page.locator('.status-actions a').scrollIntoViewIfNeeded()
-  await page.screenshot({ path: path.join(output, 'mobile-long-details-bottom.png') })
-  await page.locator('.status-actions a').click()
-  await page.waitForURL('**/login?loginType=internal')
+  assert.equal(await page.getByText('很长的申请原因。', { exact: false }).count(), 0)
+  assert.equal(await page.evaluate(key => JSON.parse(localStorage.getItem(key))[0].logs.length, key), 21, 'Removing the details UI must preserve stored history')
+  await page.getByRole('button', { name: '刷新状态', exact: true }).scrollIntoViewIfNeeded()
+  await page.screenshot({ path: path.join(output, 'mobile-progress-only.png') })
+  await page.getByRole('button', { name: '刷新状态', exact: true }).click()
+  await page.getByRole('heading', { name: '账号启用申请已进入审批', exact: true }).waitFor()
+  await page.goto(base + '/login?loginType=internal')
   assert.equal(await page.evaluate(() => document.documentElement.classList.contains('account-status-route')), false)
   // Actual storage event updates an already-open progress page; focus refresh does too.
   await seed(row)
@@ -166,7 +167,7 @@ try {
   await page.getByRole('heading', { name: '权限申请已进入审批', exact: true }).waitFor()
   assert.equal(await page.locator('.approval-workspace-modal').count(), 0)
   assert.equal(await page.locator('.permission-module-rail').count(), 0)
-  assert.equal(await page.locator('.status-actions a').innerText(), '返回权限管理')
+  assert.equal(await page.locator('.status-brand a, .status-actions a').count(), 0)
   const applicantUrl = page.url()
   await page.evaluate(({ key, value }) => localStorage.setItem(key, JSON.stringify([{ ...value, nodeType: 'business', approvalRevision: 2 }])), { key: approvalKey, value: approvalRow })
   await page.getByRole('button', { name: '刷新状态', exact: true }).click()
@@ -188,6 +189,8 @@ try {
   const mailProgress = await context.newPage()
   await mailProgress.goto(applicantLink)
   await mailProgress.getByRole('heading', { name: '权限申请已进入审批', exact: true }).waitFor()
+  assert.equal(await mailProgress.locator('.status-brand a, .status-actions a').count(), 0)
+  assert.equal(await mailProgress.locator('.status-details, .status-summary, .status-section, .status-timeline').count(), 0)
   assert.equal(await mailProgress.getByRole('button', { name: '提交审批', exact: true }).count(), 0)
   await mailProgress.close()
   await mail.close()
