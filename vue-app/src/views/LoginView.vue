@@ -47,7 +47,7 @@
             @keydown.enter="doLogin"
           />
         </div>
-        <div class="form-group">
+        <div v-if="!passwordlessLogin" class="form-group">
           <div class="login-field-head">
             <label class="form-label" for="external-login-password">密码</label>
           </div>
@@ -60,6 +60,7 @@
             @keydown.enter="doLogin"
           />
         </div>
+        <p v-else class="form-label" role="status">本地演示账号，无需密码，点击登录工作台继续。</p>
         <!-- 原 #login-error：有错误时才显示，保留原来的 display:block 效果 -->
         <div
           class="login-error"
@@ -181,6 +182,8 @@ import { POC_ACCOUNT_REQUESTS_KEY, resolvePocExternalLogin } from '@/services/po
 import { findPocLoginChoice, getPocLoginPassword, navigatePocChoice, type PocLoginChoice } from '@/services/pocLoginChoices'
 import PocLoginAccountPicker from '@/components/auth/PocLoginAccountPicker.vue'
 import { EXTERNAL_DISABLED_MESSAGE } from '@/services/accountEnableRequest'
+import { permissionLabEnabled } from '@/config/runtimeMode'
+import { isPasswordlessLabAccount, labHeaders } from '@/services/permissionLab'
 
 const router   = useRouter()
 const route    = useRoute()
@@ -188,6 +191,7 @@ const appStore = useAppStore()
 
 const username = ref('')
 const password = ref('')
+const passwordlessLogin = computed(() => isPasswordlessLabAccount(username.value, 'external'))
 const errorMsg = ref('')
 const loginTab = ref<'internal' | 'external'>(route.query.loginType === 'external' ? 'external' : 'internal')
 const initialPocAccount = findPocLoginChoice(route.query.pocAccount)
@@ -281,9 +285,9 @@ function goAdfsLogin() {
 // 对应原 doLogin()
 async function doLogin() {
   const u = username.value.trim()
-  const p = password.value
+  const p = passwordlessLogin.value ? '' : password.value
   errorMsg.value = ''
-  if (!u || !p) { showLoginError('请输入用户名和密码'); return }
+  if (!u || (!passwordlessLogin.value && !p)) { showLoginError('请输入用户名和密码'); return }
 
   // Resolve POC fixtures before the network fallback; storage failures must not create an admin preview session.
   try {
@@ -326,7 +330,7 @@ async function doLogin() {
   try {
     const res = await fetch('/api/admin/login', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...labHeaders() },
       body: JSON.stringify({ username: u, password: p })
     })
     const data = await res.json().catch(() => ({}))
@@ -348,7 +352,7 @@ async function doLogin() {
       await router.replace({ path: '/access-denied', query: { itcode: data.username || u, userType: 'external' } })
       return
     }
-    router.replace(String(route.query.redirect || '/'))
+    router.replace(String(route.query.redirect || (permissionLabEnabled ? '/agent/permissions?module=approval' : '/')))
   } catch {
     showLoginError('登录服务暂不可用，请稍后重试')
   }

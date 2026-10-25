@@ -12,23 +12,23 @@
     <section class="adfs-panel" aria-label="Lenovo ADFS 登录">
       <form class="adfs-form" @submit.prevent="submitAdfsLogin">
         <h1>Lenovo Corporation</h1>
-        <p>Please login with your ITCode / Password and OTP code (if required).</p>
+        <p>{{ passwordlessLogin ? '本地演示账号，无需密码，点击 Submit 继续。' : 'Please login with your ITCode / Password and OTP code (if required).' }}</p>
 
         <div class="adfs-row">
           <label for="adfs-login-itcode">ITCode</label>
           <PocLoginAccountPicker v-if="allowPocLogin" id="adfs-login-itcode" v-model="itcode" placeholder="输入或选择演示账号" @select="selectPocAccount" @submit="submitAdfsLogin" />
           <input v-else id="adfs-login-itcode" v-model.trim="itcode" autofocus autocomplete="username" />
         </div>
-        <label class="adfs-row">
+        <label v-if="!passwordlessLogin" class="adfs-row">
           <span>Password</span>
           <input v-model="password" type="password" autocomplete="current-password" />
         </label>
-        <label class="adfs-row">
+        <label v-if="!passwordlessLogin" class="adfs-row">
           <span>OTP Code</span>
           <input v-model.trim="otpCode" inputmode="numeric" autocomplete="one-time-code" />
         </label>
 
-        <p class="adfs-register">If this is the first time you are using Lenovo OTP, please <button type="button">register</button>.</p>
+        <p v-if="!passwordlessLogin" class="adfs-register">If this is the first time you are using Lenovo OTP, please <button type="button">register</button>.</p>
 
         <label class="adfs-remember">
           <input v-model="rememberMe" type="checkbox" />
@@ -43,10 +43,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAppStore } from '@/stores/app'
-import { allowPocLogin, allowPocSimulation, isPocSandbox } from '@/config/runtimeMode'
+import { allowPocLogin, allowPocSimulation, isPocSandbox, permissionLabEnabled } from '@/config/runtimeMode'
+import { isPasswordlessLabAccount, labHeaders } from '@/services/permissionLab'
 import { pocLocalStorage, pocSessionStorage } from '@/services/pocStorage'
 import PocLoginAccountPicker from '@/components/auth/PocLoginAccountPicker.vue'
 import { POC_ACCOUNT_REQUESTS_KEY, POC_EXTERNAL_PASSWORD, findPocLoginAccount, resolvePocLogin } from '@/services/pocExternalLogin'
@@ -58,6 +59,7 @@ const appStore = useAppStore()
 
 const itcode = ref('')
 const password = ref('')
+const passwordlessLogin = computed(() => isPasswordlessLabAccount(itcode.value, 'internal'))
 const otpCode = ref('')
 const rememberMe = ref(false)
 const errorMsg = ref('')
@@ -95,7 +97,7 @@ async function submitAdfsLogin() {
   const account = itcode.value.trim()
   errorMsg.value = ''
   disabledAccount.value = ''
-  if (!account || !password.value) {
+  if (!account || (!passwordlessLogin.value && !password.value)) {
     errorMsg.value = '请输入 ITCode 和 Password。'
     return
   }
@@ -139,8 +141,8 @@ async function submitAdfsLogin() {
     disabledAccount.value = ''
     const res = await fetch('/api/admin/login', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username: account, password: password.value, otpCode: otpCode.value, rememberMe: rememberMe.value, loginType: 'adfs' })
+      headers: { 'Content-Type': 'application/json', ...labHeaders() },
+      body: JSON.stringify({ username: account, password: passwordlessLogin.value ? '' : password.value, otpCode: otpCode.value, rememberMe: rememberMe.value, loginType: 'adfs' })
     })
     const data = await res.json().catch(() => ({}))
     if (!res.ok) {
@@ -154,13 +156,18 @@ async function submitAdfsLogin() {
       errorMsg.value = data.error || '登录失败'
       return
     }
+    if (permissionLabEnabled && data.next === 'first-access') {
+      appStore.user = null
+      await router.replace({ path: '/access-denied', query: { itcode: data.username, userType: 'internal' } })
+      return
+    }
     appStore.user = data.username || account
     await appStore.loadUserContext()
     if (!appStore.permissions.length) {
       await router.replace({ path: '/access-denied', query: { itcode: data.username || account, userType: 'internal' } })
       return
     }
-    await router.replace(String(route.query.redirect || '/'))
+    await router.replace(String(route.query.redirect || (permissionLabEnabled ? '/agent/permissions?module=approval' : '/')))
   } catch {
     errorMsg.value = '登录服务暂不可用，请稍后重试'
   }

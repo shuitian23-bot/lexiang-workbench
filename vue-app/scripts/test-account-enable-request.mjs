@@ -12,7 +12,7 @@ function storage(initial = '[]') {
 const draft = { applicant: 'admin', itcode: 'admin', applicantPersonType: 'internal', personType: 'internal', targetItcode: 'disabled-user', targetUser: '', relatedAccount: '', reason: '恢复业务使用', systemApprover: 'sunzh4' }
 assert.deepEqual(validateEnableRequest(draft), {})
 assert.ok(validateEnableRequest({ ...draft, reason: ' ' }).reason)
-assert.ok(validateEnableRequest({ ...draft, targetItcode: '' }).targetItcode)
+assert.equal(validateEnableRequest({ ...draft, targetItcode: '' }).targetItcode, '请填写被申请人账号。')
 assert.ok(validateEnableRequest({ ...draft, personType: 'external', targetUser: 'external-disabled' }).relatedAccount)
 assert.ok(validateEnableRequest({ ...draft, personType: 'external', relatedAccount: 'wangxt8' }).targetUser)
 const original = { id: 'unrelated', typeKey: 'change', statusKey: 'pending' }

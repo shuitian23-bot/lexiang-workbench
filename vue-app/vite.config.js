@@ -15,7 +15,8 @@ export default defineConfig({
     proxy: {
       // 把所有 /api 请求代理到后端，开发时与原项目保持一致
       '/api': {
-        target: 'http://localhost:3000',
+        // Explicit local lab process; never redirect the existing dev server.
+        target: process.env.VITE_PERMISSION_LAB === 'true' ? 'http://127.0.0.1:3317' : 'http://localhost:3000',
         changeOrigin: true
       }
     }

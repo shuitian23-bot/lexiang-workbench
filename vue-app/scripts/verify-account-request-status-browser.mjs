@@ -3,6 +3,8 @@ import { createRequire } from 'node:module'
 import { mkdirSync } from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
+import { createServer } from 'vite'
+import { fileURLToPath } from 'node:url'
 
 const require = createRequire(import.meta.url)
 let playwright
@@ -10,7 +12,12 @@ for (const candidate of [process.env.PLAYWRIGHT_MODULE_PATH, 'playwright', path.
   try { playwright = require(candidate); break } catch {}
 }
 if (!playwright) throw new Error('Playwright is required')
-const base = process.env.PERMISSION_QA_BASE_URL || 'http://127.0.0.1:5176/admin-vue'
+// Use a separate server/context by default; never reset the user's demo data.
+process.env.VITE_PERMISSION_LAB = 'false'
+process.env.VITE_AUTH_MODE = 'preview'
+const server = process.env.PERMISSION_QA_BASE_URL ? null : await createServer({ root: fileURLToPath(new URL('../', import.meta.url)), server: { host: '127.0.0.1', port: 0 } })
+if (server) await server.listen()
+const base = process.env.PERMISSION_QA_BASE_URL || `http://127.0.0.1:${server.httpServer.address().port}/admin-vue`
 const output = path.join(os.tmpdir(), 'account-request-status-qa')
 mkdirSync(output, { recursive: true })
 const key = 'leaibot-account-request-status-rows'
@@ -78,7 +85,7 @@ try {
   const enableGeometry = await measure()
   // Same component and content width in the reference permission-application page.
   await page.evaluate(() => localStorage.setItem('leaibot-first-access-applications', JSON.stringify([{
-    id: 'PA-QA-reference', applicantItcode: 'noaccess', statusKey: 'pending',
+    id: 'PA-QA-reference', applicantItcode: 'noaccess', targetItcode: 'noaccess', statusKey: 'pending', nodeType: 'applicant-manager',
     applicantManager: 'sunll1', businessOwners: ['zhangjq4']
   }])))
   await page.goto(base + '/access-denied?itcode=noaccess&userType=internal')
@@ -119,15 +126,75 @@ try {
   await page.goto(url.replace(row.token, 'wrong-token'))
   await page.getByRole('heading', { name: '无法查询该申请进度', exact: true }).waitFor()
   assert.equal(await page.locator('.application-progress-summary').count(), 0)
-  // Legacy create requests retain details rather than adopting enable-only semantics.
-  await seed({ ...row, typeKey: 'create', type: '创建账号' })
+  // The same presentation now covers all applicant request types, not only enable.
+  for (const width of [1440, 1280, 390]) {
+    await page.setViewportSize({ width, height: 900 })
+    for (const kind of ['change', 'create', 'disable']) {
+      for (const state of ['pending', 'done', 'rejected']) {
+        const names = { change: '权限', create: '账号创建', disable: '账号禁用' }
+        const completed = { change: '权限申请已完成', create: '账号已创建', disable: '账号已禁用' }
+        const value = { ...row, typeKey: kind, type: names[kind], applicantItcode: 'requester', targetItcode: 'target',
+          applicantPersonType: 'internal', personType: kind === 'create' ? 'external' : 'internal', relatedAccount: 'requester',
+          applicantManager: 'manager', targetManager: 'target-manager', businessApprover: 'business',
+          statusKey: state, status: { pending: '待我审批', done: '已完成', rejected: '已驳回' }[state],
+          nodeType: state === 'done' ? 'done' : kind === 'disable' ? 'system-admin' : 'applicant-manager' }
+        await seed(value)
+        await page.goto(url)
+        await page.getByRole('heading', { name: state === 'done' ? completed[kind] : names[kind] + '申请已' + (state === 'pending' ? '进入审批' : '驳回'), exact: true }).waitFor()
+        assert.equal(await page.locator('.approval-flow li').count(), { change: 4, create: 3, disable: 2 }[kind])
+        assert.equal(await page.getByRole('button', { name: '提交审批', exact: true }).count(), 0)
+        assert.equal(await page.locator('input,textarea,select').count(), 0)
+        assert.equal((await measure()).overflow, 0)
+        assert.deepEqual(await page.evaluate(key => JSON.parse(localStorage.getItem(key)), key), [value])
+        if (state === 'pending') await page.screenshot({ path: path.join(output, `${width}-${kind}.png`), fullPage: true })
+      }
+    }
+  }
+  // A legacy applicant email deep link must open the unified view, not an approver workspace.
+  const approvalRow = { ...row, id: 'AP-applicant-mail', token: undefined, typeKey: 'change', type: '权限变更',
+    applicantItcode: 'admin', targetItcode: 'target', applicantPersonType: 'internal', applicantManager: 'manager',
+    targetManager: 'target-manager', businessApprover: 'business', nodeType: 'applicant-manager', approverItcode: 'manager', approvalRevision: 1 }
+  const approvalKey = 'leaibot-approval-mail-mock-rows'
+  await context.unroute('**/api/admin/me')
+  await context.route('**/api/admin/me', route => route.fulfill({ json: { admin: { username: 'admin' } } }))
+  await context.route('**/api/harness/menu', route => route.fulfill({ json: { menus: ['dashboard'], permissions: ['*'] } }))
+  await page.setViewportSize({ width: 1440, height: 900 })
+  await page.goto(base + '/login')
+  await page.evaluate(({ key, value }) => localStorage.setItem(key, JSON.stringify([value])), { key: approvalKey, value: approvalRow })
+  await page.goto(base + '/agent/permissions?module=approval&viewer=applicant&identity=applicant&ticket=' + approvalRow.id)
+  await page.waitForURL('**/account-request/status?**')
+  await page.getByRole('heading', { name: '权限申请已进入审批', exact: true }).waitFor()
+  assert.equal(await page.locator('.approval-workspace-modal').count(), 0)
+  assert.equal(await page.locator('.permission-module-rail').count(), 0)
+  assert.equal(await page.locator('.status-actions a').innerText(), '返回权限管理')
+  const applicantUrl = page.url()
+  await page.evaluate(({ key, value }) => localStorage.setItem(key, JSON.stringify([{ ...value, nodeType: 'business', approvalRevision: 2 }])), { key: approvalKey, value: approvalRow })
+  await page.getByRole('button', { name: '刷新状态', exact: true }).click()
+  await page.locator('.approval-flow li.current').filter({ hasText: '业务负责人' }).waitFor()
+  await page.goto(applicantUrl.replace(/token=[^&]+/, 'token=invalid'))
+  await page.getByRole('heading', { name: '无法查询该申请进度', exact: true }).waitFor()
+  // Returning to the existing approver view still exposes the original approval detail.
+  await page.goto(base + '/agent/permissions?module=approval')
+  const target = page.locator('tbody tr').filter({ hasText: approvalRow.id })
+  await target.getByRole('button', { name: '审批', exact: true }).click()
+  await page.getByText('完整审批链路', { exact: true }).waitFor()
+  await page.getByRole('button', { name: '提交审批', exact: true }).waitFor()
+  const mailPopup = context.waitForEvent('page')
+  await page.getByRole('button', { name: '审批邮件演示', exact: true }).click()
+  const mail = await mailPopup
+  await mail.locator('a.ticket').first().waitFor()
+  const applicantLink = await mail.locator('a.ticket').first().getAttribute('href')
+  assert(applicantLink.includes('/account-request/status?'), 'Applicant mail points to the unified status page')
+  const mailProgress = await context.newPage()
+  await mailProgress.goto(applicantLink)
+  await mailProgress.getByRole('heading', { name: '权限申请已进入审批', exact: true }).waitFor()
+  assert.equal(await mailProgress.getByRole('button', { name: '提交审批', exact: true }).count(), 0)
+  await mailProgress.close()
+  await mail.close()
   await page.goto(url)
-  await page.getByRole('heading', { name: row.id, exact: true }).waitFor()
-  assert.equal(await page.locator('details').count(), 0)
-  await page.getByText('创建账号申请进度', { exact: true }).waitFor()
   await page.evaluate(key => localStorage.setItem(key, 'invalid-json'), key)
   await page.reload()
   await page.getByRole('heading', { name: '无法查询该申请进度', exact: true }).waitFor()
   assert.deepEqual(errors, [])
   console.log(JSON.stringify({ result: 'passed', measurements, reference, screenshots: output, errors }, null, 2))
-} finally { await browser.close() }
+} finally { await browser.close(); if (server) await server.close() }

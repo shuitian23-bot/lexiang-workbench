@@ -18,7 +18,8 @@ import { ref, computed } from 'vue'
 import { STORAGE_KEYS, clearBooleanStorage, readBooleanStorage, writeBooleanStorage } from '@/constants/storageKeys'
 import { syncThemeMode } from '@/composables/useThemeMode'
 import { showWorkbenchToast } from '@/services/toast'
-import { isPocSandbox } from '@/config/runtimeMode'
+import { isPocSandbox, permissionLabEnabled } from '@/config/runtimeMode'
+import { labHeaders } from '@/services/permissionLab'
 import { AI_INSPECT_MENU, withAiInspectMenu } from '@/services/aiInspectAccess'
 import { ACTIVITY_POINTS_MENU, withActivityPointsMenu } from '@/services/activityPointsAccess'
 
@@ -317,7 +318,7 @@ export const useAppStore = defineStore('app', () => {
       const meRes = await fetch('/api/admin/me')
       if (meRes.ok) {
         const meData = await meRes.json()
-        user.value = meData.admin?.username || user.value || null
+        user.value = meData.admin?.username || (permissionLabEnabled ? meData.username : null) || user.value || null
       } else {
         // 未登录 → 清空用户，让 router guard 跳转 /login
         user.value = null
@@ -340,7 +341,7 @@ export const useAppStore = defineStore('app', () => {
         // 兼容：dashboard 权限自动补 geo
         if (menus.includes('dashboard') && !menus.includes('geo')) menus.push('geo')
         // 员工管理等默认可见
-        ;['employee', 'lead', 'order', 'advertising', 'reviews'].forEach(k => {
+        ;(permissionLabEnabled ? [] : ['employee', 'lead', 'order', 'advertising', 'reviews']).forEach(k => {
           if (!menus.includes(k)) menus.push(k)
         })
         // 只保留 MENU_TREE 中存在的 key
@@ -360,6 +361,13 @@ export const useAppStore = defineStore('app', () => {
   }
 
   function _fallbackMenus() {
+    if (permissionLabEnabled) {
+      user.value = null
+      visibleMenus.value = []
+      permissions.value = []
+      role.value = null
+      return
+    }
     visibleMenus.value = Object.keys(MENU_TREE) as MenuGroupKey[]
     permissions.value  = ['*']
     role.value         = '平台管理员'
@@ -373,7 +381,7 @@ export const useAppStore = defineStore('app', () => {
   // ===== 登出（对应原 doLogout）=====
   async function logout() {
     if (!isPocSandbox) {
-      try { await fetch('/api/admin/logout', { method: 'POST' }) } catch {}
+      try { await fetch('/api/admin/logout', { method: 'POST', headers: { 'Content-Type': 'application/json', ...labHeaders() }, body: '{}' }) } catch {}
       localStorage.removeItem('preview_user')
     }
     user.value        = null

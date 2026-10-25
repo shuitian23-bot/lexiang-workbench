@@ -9,13 +9,17 @@
         <button type="button" class="text-btn" @click="backToLogin">返回登录页</button>
       </header>
 
-      <section v-if="isExternal" class="access-intro">
+      <section v-if="permissionLabEnabled && !labIdentity" class="access-intro" role="status">
+        <p>{{ identityError || '正在验证申请身份…' }}</p>
+        <button type="button" class="secondary-btn" @click="restorePendingApplication">重试</button>
+      </section>
+      <section v-else-if="isExternal" class="access-intro">
         <h1>当前账号暂无工作台权限</h1>
         <p>请联系对应的联想业务接口人处理。</p>
       </section>
       <div v-else-if="submittedApplication" class="success-panel">
-        <ApplicationProgressSummary title="权限申请已进入审批" status="申请已提交" :steps="submittedSteps">
-          申请单号：<b>{{ submittedApplication.id }}</b>。审批全部通过后，系统会一次性开通所申请的权限。
+        <ApplicationProgressSummary v-bind="submittedProgress">
+          申请单号：<b>{{ submittedApplication.id }}</b>。{{ submittedProgress.description }}
         </ApplicationProgressSummary>
         <div class="success-actions">
           <button type="button" class="secondary-btn" @click="backToLogin">返回登录页</button>
@@ -155,7 +159,7 @@
           <p v-if="submitError" class="submit-error">{{ submitError }}</p>
           <footer class="form-actions">
             <button v-if="currentStep > 0" type="button" class="secondary-btn" @click="currentStep -= 1">上一步</button>
-            <button type="submit" class="primary-btn">{{ currentStep === steps.length - 1 ? '提交申请' : '下一步' }}</button>
+            <button type="submit" class="primary-btn" :disabled="submitting">{{ submitting ? '正在提交…' : currentStep === steps.length - 1 ? '提交申请' : '下一步' }}</button>
           </footer>
         </form>
 
@@ -213,7 +217,10 @@ import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAppStore } from '@/stores/app'
 import { pocLocalStorage } from '@/services/pocStorage'
-import ApplicationProgressSummary, { type ApplicationProgressStep } from '@/components/auth/ApplicationProgressSummary.vue'
+import { permissionLabEnabled } from '@/config/runtimeMode'
+import { labApi, type LabIdentity } from '@/services/permissionLab'
+import ApplicationProgressSummary from '@/components/auth/ApplicationProgressSummary.vue'
+import { applicationProgress } from '@/services/applicationProgress'
 import BusinessApproverField from '@/components/permissions/BusinessApproverField.vue'
 import { businessApproverError, businessApproverLabel } from '@/components/permissions/businessApprovers.js'
 import PermissionCopyRoleModal from '@/components/permissions/PermissionCopyRoleModal.vue'
@@ -263,16 +270,14 @@ const steps = ['基本信息', '权限范围', '提交申请']
 const currentStep = ref(0)
 const maxStep = ref(0)
 const submitError = ref('')
+const submitting = ref(false)
+const labIdentity = ref<LabIdentity | null>(null)
+const identityError = ref('')
 const submittedApplication = ref<FirstAccessApplication | null>(null)
-const submittedSteps = computed<ApplicationProgressStep[]>(() => {
-  const application = submittedApplication.value
-  if (!application) return []
-  return [
-    { title: isExternal.value ? '关联人' : '申请人直线经理', detail: (isExternal.value ? application.relatedAccount : application.applicantManager) || '', state: 'current' },
-    ...application.businessOwners.map(owner => ({ title: '业务负责人', detail: businessApproverLabel(owner) })),
-    { title: '系统自动生效', detail: '全部审批通过后执行' }
-  ]
-})
+const submittedProgress = computed(() => applicationProgress({
+  ...(submittedApplication.value || { id: '' }),
+  businessOwners: submittedApplication.value?.businessOwners.map(businessApproverLabel)
+}))
 const selectedRoleIds = ref<string[]>([])
 const copiedRoleIds = ref<string[]>([])
 const copiedDataSourceMap = reactive<Record<string, string>>({})
@@ -281,11 +286,13 @@ const selectedRoleDataIds = ref<string[]>([])
 const manualDataIds = ref<string[]>([])
 const copiedFromItcode = ref('')
 const { tenantOptions, roles, functionPermissions, dataPermissions, copyableUsers } = createPermissionScopeCatalog()
+// This local integration does not offer administrative self-service grants.
+if (permissionLabEnabled) roles.splice(0, roles.length, ...roles.filter(role => role.id !== 'admin'))
 const roleModal = reactive({ visible: false, keyword: '', selectedIds: [] as string[], selectedFunctionIds: [] as string[], selectedDataIds: [] as string[], detailRoleId: '', detailKeyword: '', activePermissionTab: 'function' })
 const copyModal = reactive({ visible: false, itcode: '', error: '' })
 const dataModal = reactive({ visible: false, selectedIds: [] as string[] })
 
-const itcode = computed(() => String(route.query.itcode || appStore.user || 'noaccess'))
+const itcode = computed(() => labIdentity.value?.username || String(route.query.itcode || appStore.user || 'noaccess'))
 const isExternal = computed(() => route.query.userType === 'external')
 const form = reactive({
   manager: 'sunll1',
@@ -530,7 +537,8 @@ function applicationNumber() {
   return `PA-${date}-${String(now.getTime()).slice(-6)}`
 }
 
-function submitApplication() {
+async function submitApplication() {
+  if (submitting.value) return
   if (isExternal.value) return
   if (!validateBasic()) {
     currentStep.value = 0
@@ -540,9 +548,10 @@ function submitApplication() {
     currentStep.value = 1
     return
   }
+  submitting.value = true
   try {
     const storageKey = 'leaibot-first-access-applications'
-    const stored = JSON.parse(pocLocalStorage.getItem(storageKey) || '[]') as FirstAccessApplication[]
+    const stored = (permissionLabEnabled ? [] : JSON.parse(pocLocalStorage.getItem(storageKey) || '[]')) as FirstAccessApplication[]
     const existing = stored.find((item) => item.applicantItcode.toLowerCase() === itcode.value.toLowerCase() && item.statusKey === 'pending')
     if (existing) {
       submittedApplication.value = existing
@@ -590,15 +599,35 @@ function submitApplication() {
       },
       approvalLogs: [{ node: '申请提交', action: 'submit', operator: itcode.value, opinion: isExternal.value ? '外部用户在无权限页提交工作台权限申请。' : '内部用户在无权限页提交首次访问申请。', time: now }]
     }
+    if (permissionLabEnabled) {
+      const result = await labApi<{ request: FirstAccessApplication }>('/requests', { kind: 'first-access', reason: form.reason, mobile: form.mobile, email: form.email, permissionSnapshot: application.permissionSnapshot })
+      submittedApplication.value = result.request
+      return
+    }
     stored.unshift(application)
     pocLocalStorage.setItem(storageKey, JSON.stringify(stored.slice(0, 20)))
     submittedApplication.value = application
-  } catch {
-    submitError.value = '申请暂时无法保存，请稍后重试。'
-  }
+  } catch (error) {
+    submitError.value = permissionLabEnabled && error instanceof Error ? error.message : '申请暂时无法保存，请稍后重试。'
+  } finally { submitting.value = false }
 }
 
-function restorePendingApplication() {
+async function restorePendingApplication() {
+  if (permissionLabEnabled) {
+    identityError.value = ''
+    try {
+      const identity = await labApi<LabIdentity>('/identity')
+      if (!identity.enabled || identity.personType !== 'internal' || identity.workbenchAccess) throw new Error('当前账号不能提交首次访问申请，请返回登录页重新登录。')
+      form.manager = identity.manager
+      const rows = await labApi<FirstAccessApplication[]>('/requests')
+      submittedApplication.value = rows.find(row => row.source === 'first-access' && row.statusKey === 'pending') || null
+      labIdentity.value = identity
+    } catch (error) {
+      labIdentity.value = null
+      identityError.value = error instanceof Error ? error.message : '身份验证失败'
+    }
+    return
+  }
   try {
     const stored = JSON.parse(pocLocalStorage.getItem('leaibot-first-access-applications') || '[]') as FirstAccessApplication[]
     submittedApplication.value = stored.find((item) => item.applicantItcode.toLowerCase() === itcode.value.toLowerCase() && item.statusKey === 'pending') || null
