@@ -8,6 +8,18 @@ const reconsider = ref<HTMLButtonElement | null>(null)
 const acknowledge = ref<HTMLButtonElement | null>(null)
 let returnFocus: HTMLElement | null = null
 
+function keepFocusInNotice(event: KeyboardEvent) {
+  if (event.key !== 'Tab' || !dialog.value) return
+  const controls = Array.from(dialog.value.querySelectorAll<HTMLElement>('button:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])'))
+    .filter(element => element.getClientRects().length > 0)
+  const first = controls[0], last = controls[controls.length - 1]
+  if (!first || !last) return
+  if ((event.shiftKey && document.activeElement === first) || (!event.shiftKey && document.activeElement === last)) {
+    event.preventDefault()
+    ;(event.shiftKey ? last : first).focus({ preventScroll: true })
+  }
+}
+
 watch(() => [ai.usageNoticeOpen, ai.usageNoticeMode] as const, async ([visible]) => {
   if (visible) {
     returnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null
@@ -35,6 +47,7 @@ onBeforeUnmount(() => dialog.value?.close())
       aria-labelledby="ai-usage-notice-title"
       aria-describedby="ai-usage-notice-content"
       aria-modal="true"
+      @keydown="keepFocusInNotice"
       @cancel.prevent="ai.dismissUsageNotice()"
     >
       <div class="ai-usage-notice__layout">
