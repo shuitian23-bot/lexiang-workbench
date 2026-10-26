@@ -68,9 +68,9 @@ try {
       { href: 'https://myhub.lenovo.com/sites/compliance/corporate_policies/Pages/policy27', target: '_blank', rel: 'noopener noreferrer' },
       { href: 'https://myhub.lenovo.com/sites/legal/Pages/cn/Privacy.aspx', target: '_blank', rel: 'noopener noreferrer' }
     ])
-    for (let i = 0; i < 12; i++) {
-      await page.keyboard.press(i % 2 ? 'Shift+Tab' : 'Tab')
-      assert.equal(await dialog.evaluate(el => el.contains(document.activeElement)), true, 'Keyboard focus remains inside modal')
+    for (const key of ['Tab', 'Shift+Tab']) for (let i = 0; i < 12; i++) {
+      await page.keyboard.press(key)
+      assert.equal(await dialog.evaluate(el => el.contains(document.activeElement)), true, 'Keyboard focus remains inside modal through a complete cycle')
     }
     await dialog.getByRole('button', { name: '同意', exact: true }).click()
     await page.waitForFunction(() => document.querySelector('#ai-panel')?.classList.contains('open'))
