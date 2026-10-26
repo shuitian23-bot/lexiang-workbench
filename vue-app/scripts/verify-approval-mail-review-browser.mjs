@@ -30,6 +30,7 @@ context.setDefaultTimeout(15000)
 const errors = []
 const writeRequests = []
 const sessionRequests = []
+const realAuthChecks = []
 const staticRequests = []
 const staticResponses = []
 const sessionPages = new Set()
@@ -70,6 +71,13 @@ sessionPages.add(page)
 const key = 'leaibot-approval-mail-mock-rows'
 async function saved(tab, ticket) { return tab.evaluate(({ key, ticket }) => JSON.parse(localStorage.getItem(key)).find(row => row.id === ticket), { key, ticket }) }
 async function assertNoPreviewSession(tab) { assert.equal(await tab.evaluate(() => localStorage.getItem('preview_user')), null, 'Server demo must not create a preview session') }
+async function assertOnlyAnonymousCookies(target, targetBase) {
+  const cookies = await target.cookies()
+  assert.ok(cookies.length <= 1, 'Only the verified anonymous cookie may exist')
+  for (const { name, domain, path, httpOnly } of cookies) {
+    assert.deepEqual({ name, domain, path, httpOnly }, { name: 'lexiang-uid', domain: new URL(targetBase).hostname, path: '/', httpOnly: false }, 'Only the verified anonymous cookie is allowed; login cookies are forbidden')
+  }
+}
 async function assertPrivateRouteRequiresSession(targetBase) {
   const anonymous = await browser.newContext({ serviceWorkers: 'block' })
   try {
@@ -79,7 +87,14 @@ async function assertPrivateRouteRequiresSession(targetBase) {
     await privatePage.waitForURL(url => url.pathname.endsWith('/login'))
     assert.equal(new URL(privatePage.url()).searchParams.get('redirect'), '/agent/permissions?module=approval')
     await assertNoPreviewSession(privatePage)
-    assert.deepEqual(await anonymous.cookies(), [], 'Anonymous QA context has no login cookies')
+    await assertOnlyAnonymousCookies(anonymous, targetBase)
+    if (new URL(targetBase).hostname === 'new.leaibot.cn') {
+      const response = await anonymous.request.get(new URL('/api/admin/me', targetBase).href, { maxRedirects: 0 })
+      realAuthChecks.push({ origin: new URL(targetBase).origin, path: '/api/admin/me', status: response.status() })
+      assert.equal(response.status(), 401, 'The real NEW session API rejects the anonymous context without page-route mocks')
+      await response.dispose()
+      await assertOnlyAnonymousCookies(anonymous, targetBase)
+    }
   } finally { await anonymous.close() }
 }
 async function assertSimplifiedApproval(tab) {
@@ -125,7 +140,7 @@ try {
   assert.equal(await guest.getByText('完整权限范围', { exact: true }).count(), 0)
   assert.equal(await guest.getByRole('button', { name: '添加角色', exact: true }).count(), 0)
   assert.equal(await guest.evaluate(() => localStorage.getItem('preview_user')), null)
-  assert.deepEqual(await context.cookies(), [], 'Mail approval demo creates no login cookie')
+  await assertOnlyAnonymousCookies(context, base)
   for (const [width, height] of [[1440, 900], [1280, 720], [390, 844]]) {
     await guest.setViewportSize({ width, height })
     const layout = await guest.evaluate(() => {
@@ -269,7 +284,7 @@ try {
   assert.deepEqual(writeRequests, [], 'Approval demo must not attempt real account, permission, approval or mail writes')
   if (staticOrigin) assert.ok(staticRequests.length, 'NEW browser context uses the local candidate static resources')
   assert.deepEqual(errors, [])
-  await fs.writeFile(path.join(out, 'summary.json'), JSON.stringify({ passed: true, authMode, staticResponses, blockedWrites: writeRequests, guestURL: new URL(guestUrl).pathname, accountURL: new URL(accountUrl).pathname }, null, 2) + '\n')
+  await fs.writeFile(path.join(out, 'summary.json'), JSON.stringify({ passed: true, authMode, staticResponses, blockedWrites: writeRequests, realAuthChecks, guestURL: new URL(guestUrl).pathname, accountURL: new URL(accountUrl).pathname }, null, 2) + '\n')
   console.log('PASS: shared approval, both demo entries, guest isolation, unchanged permissions, cross-tab sync, duplicate guard, validation, expiry, 3 viewports, ' + authMode + ' auth and zero network writes')
 } catch (error) {
   await page.screenshot({ path: path.join(out, 'failure.png'), fullPage: true })
