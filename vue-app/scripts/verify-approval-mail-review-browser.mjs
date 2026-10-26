@@ -11,17 +11,73 @@ for (const candidate of [process.env.PLAYWRIGHT_MODULE_PATH, 'playwright', path.
 }
 if (!playwright) throw new Error('Playwright required')
 const base = process.env.PERMISSION_QA_BASE_URL || 'http://127.0.0.1:5176/admin-vue'
-const out = path.join(os.tmpdir(), 'approval-mail-review-qa')
+const authMode = process.env.APPROVAL_QA_AUTH_MODE || (new URL(base).hostname === 'new.leaibot.cn' ? 'server' : 'preview')
+assert.ok(['preview', 'server'].includes(authMode), 'APPROVAL_QA_AUTH_MODE must be preview or server')
+const serverOffBase = process.env.APPROVAL_SERVER_QA_BASE_URL
+if (authMode === 'server') assert.ok(serverOffBase, 'Server QA requires APPROVAL_SERVER_QA_BASE_URL for the local demo-disabled check')
+if (serverOffBase) assert.ok(['127.0.0.1', 'localhost', '[::1]'].includes(new URL(serverOffBase).hostname), 'The demo-disabled server check must stay local')
+const staticOrigin = process.env.APPROVAL_QA_STATIC_ORIGIN
+if (staticOrigin) {
+  assert.equal(new URL(base).hostname, 'new.leaibot.cn', 'Static substitution requires the exact NEW browser hostname')
+  assert.ok(['127.0.0.1', 'localhost', '[::1]'].includes(new URL(staticOrigin).hostname), 'Candidate static resources must stay local')
+}
+const out = process.env.APPROVAL_QA_OUTPUT_DIR || path.join(os.tmpdir(), 'approval-mail-review-qa')
 await fs.mkdir(out, { recursive: true })
 const browser = await playwright.chromium.launch({ headless: true })
-const context = await browser.newContext({ viewport: { width: 1440, height: 900 } })
+const context = await browser.newContext({ viewport: { width: 1440, height: 900 }, serviceWorkers: 'block' })
 context.setDefaultTimeout(15000)
-await context.route('**/api/admin/me', route => route.fulfill({ status: 401, contentType: 'application/json', body: '{}' }))
 const errors = []
+const writeRequests = []
+const sessionRequests = []
+const staticRequests = []
+const sessionPages = new Set()
+// Only existing read-only session GETs are fulfilled; no browser profile or real account is used.
+const sessionFixtures = new Map([
+  ['/api/admin/me', { admin: { username: 'approval-qa' } }],
+  ['/api/harness/menu', { menus: [], permissions: ['*'] }]
+])
+async function isolateNetwork(target, targetBase, authenticatedPages = new Set()) {
+  await target.route('**/*', async route => {
+    const request = route.request()
+    const method = request.method()
+    if (!['GET', 'HEAD', 'OPTIONS'].includes(method)) {
+      writeRequests.push({ method, url: request.url() })
+      return route.abort('blockedbyclient')
+    }
+    const url = new URL(request.url())
+    if (method === 'GET' && url.origin === new URL(targetBase).origin && sessionFixtures.has(url.pathname)) {
+      const authenticated = authMode === 'server' && authenticatedPages.has(request.frame().page())
+      sessionRequests.push({ url: request.url(), authenticated })
+      return route.fulfill({ status: authenticated ? 200 : 401, contentType: 'application/json', body: JSON.stringify(authenticated ? sessionFixtures.get(url.pathname) : {}) })
+    }
+    if (staticOrigin && method === 'GET' && url.origin === new URL(base).origin && (url.pathname === '/admin-vue' || url.pathname.startsWith('/admin-vue/'))) {
+      staticRequests.push(request.url())
+      const response = await route.fetch({ url: new URL(url.pathname + url.search, staticOrigin).href, maxRedirects: 0 })
+      assert.ok(response.ok(), 'Candidate static GET succeeded: ' + url.pathname)
+      return route.fulfill({ response })
+    }
+    return route.continue()
+  })
+}
+await isolateNetwork(context, base, sessionPages)
 context.on('page', page => page.on('pageerror', error => errors.push(error.message)))
 const page = await context.newPage()
+sessionPages.add(page)
 const key = 'leaibot-approval-mail-mock-rows'
 async function saved(tab, ticket) { return tab.evaluate(({ key, ticket }) => JSON.parse(localStorage.getItem(key)).find(row => row.id === ticket), { key, ticket }) }
+async function assertNoPreviewSession(tab) { assert.equal(await tab.evaluate(() => localStorage.getItem('preview_user')), null, 'Server demo must not create a preview session') }
+async function assertPrivateRouteRequiresSession(targetBase) {
+  const anonymous = await browser.newContext({ serviceWorkers: 'block' })
+  try {
+    await isolateNetwork(anonymous, targetBase)
+    const privatePage = await anonymous.newPage()
+    await privatePage.goto(targetBase + '/agent/permissions?module=approval')
+    await privatePage.waitForURL(url => url.pathname.endsWith('/login'))
+    assert.equal(new URL(privatePage.url()).searchParams.get('redirect'), '/agent/permissions?module=approval')
+    await assertNoPreviewSession(privatePage)
+    assert.deepEqual(await anonymous.cookies(), [], 'Anonymous QA context has no login cookies')
+  } finally { await anonymous.close() }
+}
 async function assertSimplifiedApproval(tab) {
   const body = tab.locator('.approval-workspace-body')
   assert.equal(await body.getByText('业务负责人审批进度', { exact: true }).count(), 0)
@@ -32,7 +88,13 @@ async function assertSimplifiedApproval(tab) {
   assert.ok(await body.locator('.approval-full-route-list').getByText('业务负责人审批', { exact: true }).count())
 }
 try {
+  if (authMode === 'server') await assertPrivateRouteRequiresSession(base)
   await page.goto(base + '/agent/permissions?module=approval')
+  assert.equal(new URL(page.url()).hostname, new URL(base).hostname, 'Browser stays on the requested demo hostname')
+  if (authMode === 'server') {
+    await assertNoPreviewSession(page)
+    assert.ok(sessionRequests.some(request => request.authenticated), 'Account demo uses only a mocked read-only server session')
+  }
   await page.locator('tbody tr').filter({ hasText: '申请人直线经理审批' }).getByRole('button', { name: '审批', exact: true }).first().click()
   await page.getByText('完整权限范围', { exact: true }).waitFor()
   await assertSimplifiedApproval(page)
@@ -59,6 +121,7 @@ try {
   assert.equal(await guest.getByText('完整权限范围', { exact: true }).count(), 0)
   assert.equal(await guest.getByRole('button', { name: '添加角色', exact: true }).count(), 0)
   assert.equal(await guest.evaluate(() => localStorage.getItem('preview_user')), null)
+  assert.deepEqual(await context.cookies(), [], 'Mail approval demo creates no login cookie')
   for (const [width, height] of [[1440, 900], [1280, 720], [390, 844]]) {
     await guest.setViewportSize({ width, height })
     const layout = await guest.evaluate(() => {
@@ -169,10 +232,12 @@ try {
   await guest.goto(bad.href)
   await guest.getByRole('heading', { name: '暂时无法查看申请' }).waitFor()
   assert.equal(await guest.locator('.approval-workspace-modal').count(), 0)
-  if (process.env.APPROVAL_SERVER_QA_BASE_URL) {
-    const server = await browser.newContext()
+  if (serverOffBase) {
+    await assertPrivateRouteRequiresSession(serverOffBase)
+    const server = await browser.newContext({ serviceWorkers: 'block' })
+    await isolateNetwork(server, serverOffBase)
     const serverPage = await server.newPage()
-    const serverUrl = process.env.APPROVAL_SERVER_QA_BASE_URL + '/mail-approval/review' + new URL(targetGuestUrl).search
+    const serverUrl = serverOffBase + '/mail-approval/review' + new URL(targetGuestUrl).search
     await serverPage.goto(serverUrl)
     const validRow = await saved(page, ticket)
     validRow.nodeType = 'target-manager'
@@ -193,10 +258,17 @@ try {
   await guest.goto(guestUrl)
   await guest.getByText('审批链接已过期，请联系申请人重新获取。').waitFor()
   assert.equal(await guest.locator('.approval-workspace-modal').count(), 0)
+  if (authMode === 'server') {
+    await assertNoPreviewSession(page)
+    await assertNoPreviewSession(guest)
+  }
+  assert.deepEqual(writeRequests, [], 'Approval demo must not attempt real account, permission, approval or mail writes')
+  if (staticOrigin) assert.ok(staticRequests.length, 'NEW browser context uses the local candidate static resources')
   assert.deepEqual(errors, [])
-  console.log('PASS: shared approval, both demo entries, guest isolation, unchanged permissions, cross-tab sync, duplicate guard, validation, expiry and 3 viewports')
+  console.log('PASS: shared approval, both demo entries, guest isolation, unchanged permissions, cross-tab sync, duplicate guard, validation, expiry, 3 viewports, ' + authMode + ' auth and zero network writes')
 } catch (error) {
   await page.screenshot({ path: path.join(out, 'failure.png'), fullPage: true })
   console.error('Browser errors:', errors)
+  console.error('Blocked write requests:', writeRequests)
   throw error
 } finally { await browser.close() }

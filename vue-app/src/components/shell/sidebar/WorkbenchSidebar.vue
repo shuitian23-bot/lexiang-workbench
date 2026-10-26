@@ -151,6 +151,15 @@ const pocReleaseLedger = ref({ records: {} })
 
 const basePocLogRecords = [
   {
+    time: '2026-10-26',
+    releaseKey: 'workbench-mail-approval-demo-20261026',
+    title: 'NEW 审批邮件演示恢复',
+    changePoint: 'NEW 可使用审批邮件演示和无账号领导审批，保留正常登录。',
+    detail: '将审批演示与预览登录分开控制，NEW 开放浏览器本地审批演示；保留有账号入口、无账号入口、组织必填、链接校验、跨页同步和重复提交保护。演示不发送真实邮件、不修改后端账号权限；正常登录和正式环境的审批演示关闭状态保持。既有积分页面及其他功能保留，发布情况分别以各环境记录为准。',
+    deployTargets: [],
+    status: '发布状态以环境记录为准'
+  },
+  {
     time: '2026-10-21',
     releaseKey: 'workbench-mail-approval-pr28-20261021',
     title: '领导邮件审批与详情简化',
