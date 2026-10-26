@@ -129,8 +129,9 @@
         </button>
       </div>
     </div>
-    <div class="ai-composer-hint" :class="{ 'has-queue': !!queueNotice }">
-      {{ queueNotice || '支持数据、报告、配置、知识库，写入前确认。' }}
+    <div class="ai-composer-hint ai-composer-footer" :class="{ 'has-queue': !!queueNotice }">
+      <span class="ai-composer-footer__text"><template v-if="queueNotice">{{ queueNotice }}</template><template v-else>支持数据、报告、配置、知识库，<span class="ai-composer-footer__confirmation">写入前确认</span></template></span>
+      <button type="button" class="ai-usage-notice-link" @click="$emit('show-usage-notice')">使用提示</button>
     </div>
   </div>
 
@@ -175,7 +176,7 @@ const props = defineProps({
   shortcutQuery: { type: Function, required: true }
 })
 
-const emit = defineEmits(['update-input', 'send', 'send-shortcut', 'attach-file', 'clear-file'])
+const emit = defineEmits(['update-input', 'send', 'send-shortcut', 'attach-file', 'clear-file', 'show-usage-notice'])
 
 const inputEl = ref(null)
 const fileInputEl = ref(null)
@@ -271,6 +272,41 @@ function readFileAsDataUrl(file) {
 </script>
 
 <style scoped>
+.ai-composer-hint.ai-composer-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: center;
+  gap: 2px 8px;
+  margin-top: 8px;
+  padding: 0 4px;
+  color: var(--color-text-tertiary);
+  font-size: var(--text-xs, 12px);
+  line-height: 1.5;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  text-align: center;
+}
+.ai-composer-footer__text { min-width: 0; overflow-wrap: anywhere; }
+.ai-composer-footer__confirmation { display: inline-block; }
+.ai-usage-notice-link {
+  flex: none;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: var(--color-primary);
+  font-weight: 500;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.ai-usage-notice-link:hover { color: var(--color-primary-hover); }
+.ai-usage-notice-link:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 3px; border-radius: 2px; }
+
 /* Keep the composer as one shared group while making its editable row read as active. */
 :global(html[data-product="leaibot"] body:not(.dark-mode) .ai-composer-box) {
   background: var(--color-surface) !important;

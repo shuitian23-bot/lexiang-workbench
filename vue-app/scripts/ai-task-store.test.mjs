@@ -15,7 +15,12 @@ globalThis.fetch = () => { throw new Error('Authorization preview must not execu
 const host = createHttpServer()
 const server = await createServer({ root: new URL('..', import.meta.url).pathname, logLevel: 'error', appType: 'custom', server: { middlewareMode: true, hmr: { server: host } } })
 const { useAIStore: useAiStore } = await server.ssrLoadModule('/src/stores/ai.ts')
-beforeEach(() => { entries.clear(); setActivePinia(createPinia()) })
+const { useAppStore } = await server.ssrLoadModule('/src/stores/app.ts')
+beforeEach(() => {
+  entries.clear(); setActivePinia(createPinia())
+  useAppStore().user = 'authorization-test-account'
+  const ai = useAiStore(); ai.toggleOpen(true); ai.acceptUsageNotice(); ai.toggleOpen(false)
+})
 after(async () => {
   await server.close(); host.close()
   for (const [key, value] of Object.entries(saved)) {

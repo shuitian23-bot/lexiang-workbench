@@ -32,7 +32,9 @@ after(async () => {
 function scope() {
   const pinia = createPinia()
   setActivePinia(pinia)
-  return { pinia, account: useAppStore(), ai: useAIStore() }
+  const account = useAppStore(); account.user = 'scenario-focus-test-account'
+  const ai = useAIStore(); ai.toggleOpen(true); ai.acceptUsageNotice(); ai.toggleOpen(false)
+  return { pinia, account, ai }
 }
 function mount(component, current, props = {}) {
   let state
