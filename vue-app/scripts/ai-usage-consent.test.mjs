@@ -66,6 +66,7 @@ test('shortcut waits without sending or clearing draft and agreement resumes exa
   const { ai } = fixture()
   ai.toggleOpen(true)
   ai.quickSend('QA original request', 'portal.home')
+  ai.quickSend('QA duplicate must not replace original', 'portal.home')
   assert.equal(ai.inputText, 'QA original request')
   assert.equal(ai.messages.length, 0)
   assert.equal(ai.queuedMessages.length, 0)
@@ -92,6 +93,25 @@ test('direct send and task actions cannot bypass usage agreement', async () => {
   assert.equal(ai.messages.length, 0)
   ai.dismissUsageNotice()
   assert.equal(requests.length, 0)
+})
+
+test('accepting a captured request keeps a newer draft and a task action resumes once', async () => {
+  const { ai } = fixture()
+  await ai.runTaskAction({ type: 'report', label: 'QA report' }, 'portal.home')
+  const resumed = ai.acceptUsageNotice()
+  await ai.acceptUsageNotice(); await resumed
+  assert.equal(ai.messages.length, 1)
+  assert.equal(requests.length, 0)
+  setActivePinia(createPinia())
+  const fresh = fixture().ai
+  fresh.inputText = 'QA original captured request'
+  await fresh.send('portal.home')
+  fresh.inputText = '更新后的草稿应保留'
+  await fresh.acceptUsageNotice()
+  assert.equal(fresh.inputText, '更新后的草稿应保留')
+  assert.equal(requests.length, 1)
+  assert.ok(requests[0].body.includes('QA original captured request'))
+  assert.ok(!requests[0].body.includes('更新后的草稿应保留'))
 })
 
 test('a pending action is discarded on account changes and a fresh store asks again', async () => {
