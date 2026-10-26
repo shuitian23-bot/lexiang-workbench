@@ -77,11 +77,11 @@ onBeforeUnmount(() => dialog.value?.close())
   border-radius: var(--radius-lg);
   background: var(--color-surface);
   color: var(--color-text);
-  box-shadow: var(--shadow-lg, 0 12px 28px rgba(0, 0, 0, .14));
+  box-shadow: var(--shadow-popover);
   z-index: var(--z-modal, 1100);
   overflow: hidden;
 }
-.ai-usage-notice::backdrop { background: rgba(0, 0, 0, .45); z-index: var(--z-overlay, 1050); }
+.ai-usage-notice::backdrop { background: color-mix(in srgb, var(--color-text) 45%, transparent); z-index: var(--z-overlay, 1050); }
 .ai-usage-notice__layout { display: flex; flex-direction: column; max-height: calc(100dvh - 50px); }
 .ai-usage-notice__header {
   display: flex;
