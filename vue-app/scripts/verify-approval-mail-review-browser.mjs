@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { createHash } from 'node:crypto'
 import { createRequire } from 'node:module'
 import fs from 'node:fs/promises'
 import os from 'node:os'
@@ -23,13 +24,14 @@ if (staticOrigin) {
 }
 const out = process.env.APPROVAL_QA_OUTPUT_DIR || path.join(os.tmpdir(), 'approval-mail-review-qa')
 await fs.mkdir(out, { recursive: true })
-const browser = await playwright.chromium.launch({ headless: true })
+const browser = await playwright.chromium.launch({ headless: true, executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH })
 const context = await browser.newContext({ viewport: { width: 1440, height: 900 }, serviceWorkers: 'block' })
 context.setDefaultTimeout(15000)
 const errors = []
 const writeRequests = []
 const sessionRequests = []
 const staticRequests = []
+const staticResponses = []
 const sessionPages = new Set()
 // Only existing read-only session GETs are fulfilled; no browser profile or real account is used.
 const sessionFixtures = new Map([
@@ -54,7 +56,9 @@ async function isolateNetwork(target, targetBase, authenticatedPages = new Set()
       staticRequests.push(request.url())
       const response = await route.fetch({ url: new URL(url.pathname + url.search, staticOrigin).href, maxRedirects: 0 })
       assert.ok(response.ok(), 'Candidate static GET succeeded: ' + url.pathname)
-      return route.fulfill({ response })
+      const body = await response.body()
+      staticResponses.push({ path: url.pathname, sha256: createHash('sha256').update(body).digest('hex'), bytes: body.length })
+      return route.fulfill({ response, body })
     }
     return route.continue()
   })
@@ -265,6 +269,7 @@ try {
   assert.deepEqual(writeRequests, [], 'Approval demo must not attempt real account, permission, approval or mail writes')
   if (staticOrigin) assert.ok(staticRequests.length, 'NEW browser context uses the local candidate static resources')
   assert.deepEqual(errors, [])
+  await fs.writeFile(path.join(out, 'summary.json'), JSON.stringify({ passed: true, authMode, staticResponses, blockedWrites: writeRequests, guestURL: new URL(guestUrl).pathname, accountURL: new URL(accountUrl).pathname }, null, 2) + '\n')
   console.log('PASS: shared approval, both demo entries, guest isolation, unchanged permissions, cross-tab sync, duplicate guard, validation, expiry, 3 viewports, ' + authMode + ' auth and zero network writes')
 } catch (error) {
   await page.screenshot({ path: path.join(out, 'failure.png'), fullPage: true })
