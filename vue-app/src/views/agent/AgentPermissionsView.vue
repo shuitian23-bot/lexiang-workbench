@@ -2,7 +2,7 @@
   <div class="permission-page-vue" :class="{ 'standalone-approval-page': standaloneApproval }">
     <header v-if="standaloneApproval" class="standalone-approval-header">
       <h1>邮件审批</h1>
-      <p>无需工作台账号，仅处理此链接对应的审批。POC 演示数据仅在当前浏览器保存，链接有效期 7 天。</p>
+      <p>{{ permissionLabEnabled && route.query.source !== 'permissions' ? '无需工作台账号，仅处理此链接对应的审批。记录保存在本地隔离数据库，链接有效期 7 天。' : '无需工作台账号，仅处理此链接对应的审批。POC 演示数据仅在当前浏览器保存，链接有效期 7 天。' }}</p>
     </header>
     <section v-if="standaloneApproval && guestApproval.error" class="standalone-approval-error" role="alert">
       <h2>暂时无法查看申请</h2>
@@ -15,7 +15,7 @@
       description="按原型链路整理权限申请、审批、角色、用户、组织、数据源、功能和删除备份能力，供 POC 演示真实串联。"
     >
       <template #actions>
-        <div class="demo-reset-menu" :class="{ open: demoIdentityMenuOpen }">
+        <div v-if="fullPocManagement" class="demo-reset-menu" :class="{ open: demoIdentityMenuOpen }">
           <button type="button" class="ghost-btn demo-reset-trigger" @click="demoIdentityMenuOpen = !demoIdentityMenuOpen">
             重置演示：{{ currentDemoIdentity.label }}
             <span>⌄</span>
@@ -30,16 +30,18 @@
             >{{ identity.label }}</button>
           </div>
         </div>
-        <button type="button" class="primary-btn" @click="openRecordModal">查看记录</button>
+        <button v-if="fullPocManagement" type="button" class="primary-btn" @click="openRecordModal">查看记录</button>
+        <button v-if="permissionLabEnabled" type="button" class="ghost-btn" @click="refreshLabApprovals">刷新后台记录</button>
       </template>
     </ContentPageHeader>
 
+    <p v-if="permissionLabEnabled && !standaloneApproval && labLoadError" role="alert">{{ labLoadError }}</p>
     <div v-if="!standaloneApproval" class="permission-layout">
       <aside class="permission-module-rail" aria-label="权限管理菜单">
         <div class="permission-module-rail-head">
           <div class="permission-module-summary">
             <b>权限模块</b>
-            <span>{{ modules.length }} 个入口</span>
+            <span>{{ fullPocManagement ? modules.length : 2 }} 个入口</span>
           </div>
           <label class="permission-module-search">
             <span class="sr-only">搜索权限入口</span>
@@ -78,7 +80,7 @@
             <b id="permission-demo-route-title">本次演示链路</b>
             <div class="permission-demo-route-actions">
               <button v-if="currentDemoApproval" type="button" @click="openCurrentDemoApprovalDetail">查看详情</button>
-              <button type="button" @click="resetDemo(demoIdentityKey)">重置</button>
+              <button v-if="fullPocManagement" type="button" @click="resetDemo(demoIdentityKey)">重置</button>
             </div>
           </div>
           <ol v-if="demoApprovalRouteItems.length" class="permission-demo-route-list">
@@ -109,7 +111,7 @@
         </section>
       </aside>
 
-      <main class="permission-workspace">
+      <main v-if="!permissionLabEnabled || labIdentity" class="permission-workspace">
         <section v-if="activeModule === 'apply'" class="permission-card flow-card">
           <SectionHeader title="权限申请" description="从申请类型开始，自动带出审批人和执行路径。">
             <template #meta><span class="status-pill">POC 链路</span></template>
@@ -143,7 +145,7 @@
             <p>不同类型会自动匹配审批人和执行路径。</p>
             <div class="permission-type-grid">
               <button
-                v-for="type in requestTypes"
+                v-for="type in (fullPocManagement ? requestTypes : requestTypes.filter(item => item.key === 'enable'))"
                 :key="type.key"
                 type="button"
                 :class="{ active: form.type === type.key }"
@@ -459,7 +461,7 @@
               </thead>
               <tbody>
                 <tr v-for="row in filteredApprovals" :key="row.id">
-                  <td>{{ row.id }}</td>
+                  <td>{{ row.id }}<small v-if="permissionLabEnabled"> · {{ isLabApproval(row) ? '隔离数据库' : '浏览器演示' }}</small></td>
                   <td>{{ row.type }}</td>
                   <td>{{ row.applicant }}</td>
                   <td>{{ row.applicantItcode }}</td>
@@ -2278,13 +2280,24 @@ import PermissionRolePickerModal from '@/components/permissions/PermissionRolePi
 import { createPermissionDemoRouteItems } from '@/utils/permissionDemoRoute.js'
 import { customRulesSignature, normalizeCustomDataRules, validateCustomTableRules } from '@/components/permissions/customTableAuthorization.js'
 import { detectCustomDataRoleConflicts } from '@/components/permissions/customDataRoleConflict.js'
-import { allowApprovalMailDemo } from '@/config/runtimeMode'
+import { allowApprovalMailDemo, appBase, permissionLabEnabled } from '@/config/runtimeMode'
+import { labApi } from '@/services/permissionLab'
+import { pocLocalStorage, pocStorageEventKey } from '@/services/pocStorage'
 import { APPROVAL_MAIL_ROWS_KEY, checkMailReviewAccess, ensureMailReviewGrant, readApprovalMailRows, saveApprovalMailRow } from '@/services/approvalMailReview'
+import { applicantProgressQuery } from '@/services/applicationProgress'
 
 const props = defineProps({ standaloneApproval: { type: Boolean, default: false } })
 const approvalSubmitting = ref(false)
 const approvalSubmitError = ref(false)
 const guestApproval = reactive({ error: '', state: 'invalid' })
+const labIdentity = ref(null)
+const labLoadError = ref('')
+const fullPocManagement = computed(() => !permissionLabEnabled || !!(labIdentity.value?.systemAdmin && labIdentity.value?.enabled && labIdentity.value?.workbenchAccess))
+// Only API responses receive this marker. Browser records cannot become backend requests.
+const isLabApproval = (row) => permissionLabEnabled && row?.persistence === 'lab'
+const createLabApprovalRow = (payload) => ({ ...createApprovalRow(payload), persistence: 'lab' })
+let labRefreshVersion = 0
+let labPocInitialized = false
 
 const router = useRouter()
 
@@ -2331,18 +2344,18 @@ const modules = [
   }
 ]
 
-const moduleGroups = [
+const moduleGroups = computed(() => [
   { key: 'workflow', label: '流程处理', moduleKeys: ['apply', 'approval'] },
   { key: 'configuration', label: '权限配置', moduleKeys: ['roles', 'users', 'orgs', 'datasource', 'functions'] }
 ].map((group) => ({
   ...group,
-  items: modules.filter((item) => group.moduleKeys.includes(item.key))
-}))
+  items: modules.filter((item) => group.moduleKeys.includes(item.key) && (fullPocManagement.value || ['apply', 'approval'].includes(item.key)))
+})).filter(group => group.items.length))
 const moduleSearchKeyword = ref('')
 const filteredModuleGroups = computed(() => {
   const keyword = moduleSearchKeyword.value.trim().toLowerCase()
-  if (!keyword) return moduleGroups
-  return moduleGroups
+  if (!keyword) return moduleGroups.value
+  return moduleGroups.value
     .map((group) => ({
       ...group,
       items: group.items.filter((item) => `${item.label} ${item.desc}`.toLowerCase().includes(keyword))
@@ -2351,7 +2364,7 @@ const filteredModuleGroups = computed(() => {
 })
 
 const route = useRoute()
-const activeModule = ref('apply')
+const activeModule = ref(permissionLabEnabled ? 'approval' : 'apply')
 const currentStep = ref(0)
 const maxReachableStep = ref(0)
 const applySubmitNotice = ref('')
@@ -2946,7 +2959,7 @@ const approvalNotificationModal = reactive({
   notice: ''
 })
 let permissionUserDirectoryReady = false
-const approvals = ref([
+const initialApprovalRows = [
   createApprovalRow({
     id: 'AP-20260713-001',
     typeKey: 'change',
@@ -3074,7 +3087,8 @@ const approvals = ref([
     node: '申请人修改',
     time: '2026-07-01 19:12'
   })
-])
+]
+const approvals = ref(permissionLabEnabled ? [] : initialApprovalRows)
 const pendingApprovalCount = computed(() => approvals.value.filter((row) => row.statusKey === 'pending').length)
 const roleTypeOptions = ['角色管理员', '普通角色']
 const roleGroupOptions = ['乐享运营', '商品中心', '搜索后台', '企业客户管理', '外部协作']
@@ -4339,7 +4353,7 @@ const activeApprovalBasicFields = computed(() => {
   if (normalizeTenantList(row.businessInfo?.tenant).length) fields.push({ label: '所属租户', value: tenantListText(row.businessInfo.tenant) })
   return fields
 })
-const canEditApprovalPermission = computed(() => !props.standaloneApproval && approvalWorkspace.mode === 'approve' && ['applicant-manager', 'target-manager'].includes(approvalWorkspace.nodeType))
+const canEditApprovalPermission = computed(() => !isLabApproval(activeApproval.value) && !props.standaloneApproval && approvalWorkspace.mode === 'approve' && ['applicant-manager', 'target-manager'].includes(approvalWorkspace.nodeType))
 const canEditBusinessOwnership = computed(() => approvalWorkspace.mode === 'approve' && approvalWorkspace.nodeType === 'business')
 const activeApprovalChangeSummary = computed(() => activeApproval.value?.permissionSnapshot?.changeSummary || [])
 const activeApprovalHasPermission = computed(() => activeApprovalChangeSummary.value.length > 0)
@@ -5775,13 +5789,14 @@ function setEnableRequestStep(step) {
   unlockApplyStep(step)
 }
 
-function onEnableRequestSubmitted({ request, duplicate }) {
+function onEnableRequestSubmitted({ request, duplicate, persistence }) {
   const existing = approvals.value.find(row => row.id === request.id)
   const row = existing || createApprovalRow({
     ...request,
     mobile: '', email: '', applicantManager: '', targetManager: '',
     approvalLogs: request.logs.map(log => ({ ...log, role: '申请人', result: '已提交', detail: log.detail }))
   })
+  if (persistence === 'lab') row.persistence = 'lab'
   if (!existing) approvals.value.unshift(row)
   if (!duplicate) {
     row.notificationLogs = createApprovalNotificationLogs(row)
@@ -6549,7 +6564,7 @@ function syncPublicEnableRequest(row, time) {
   if (row?.typeKey !== 'enable' || typeof window === 'undefined') return
   try {
     const key = 'leaibot-account-request-status-rows'
-    const rows = JSON.parse(window.localStorage.getItem(key) || '[]')
+    const rows = JSON.parse(pocLocalStorage.getItem(key) || '[]')
     const index = rows.findIndex((item) => item.id === row.id)
     if (index < 0) return
     rows[index] = {
@@ -6566,7 +6581,7 @@ function syncPublicEnableRequest(row, time) {
       logs: [...(rows[index].logs || []), { node: '系统管理员审批', detail: row.statusKey === 'done' ? '系统管理员已批准账号启用申请。' : '账号启用申请已提交处理。', time }]
     }
     // Preserve completed approvals and older tickets, including the row just updated.
-    window.localStorage.setItem(key, JSON.stringify(rows))
+    pocLocalStorage.setItem(key, JSON.stringify(rows))
   } catch {}
 }
 
@@ -6743,6 +6758,7 @@ function toggleDemoRouteFold(direction) {
 
 function openCurrentDemoApprovalDetail() {
   if (!currentDemoApproval.value) return
+  if (activeModule.value === 'apply') return openApplicantProgress(currentDemoApproval.value)
   activeModule.value = 'approval'
   openApprovalWorkspace(currentDemoApproval.value, 'view')
 }
@@ -6801,6 +6817,8 @@ function resetApprovalFilters() {
 }
 
 function openApprovalWorkspace(row, mode) {
+  if (!props.standaloneApproval && mode === 'view' && (approvalSearch.viewer === 'applicant'
+    || (permissionLabEnabled && row.applicantItcode === labIdentity.value?.username && !labIdentity.value?.systemAdmin))) return openApplicantProgress(row)
   approvalSubmitError.value = false
   applyPermissionSnapshotToEditor(row.permissionSnapshot)
   approvalWorkspace.visible = true
@@ -6869,11 +6887,29 @@ function guestApprovalQuery() {
   return Object.fromEntries(['ticket', 'identity', 'approver', 'token'].map(key => [key, typeof route.query[key] === 'string' ? route.query[key] : '']))
 }
 
-function refreshGuestApproval() {
+async function refreshGuestApproval() {
   if (!props.standaloneApproval) return
+  if (permissionLabEnabled && route.query.source !== 'permissions') {
+    try {
+      const query = guestApprovalQuery()
+      const result = await labApi('/guest', undefined, query.token)
+      if (result.request.id !== query.ticket) throw new Error('审批链接与申请单不匹配')
+      guestApproval.state = result.state
+      guestApproval.error = ''
+      const row = createLabApprovalRow(result.request)
+      approvals.value = [row]
+      approvalSearch.approverItcode = result.approver
+      openApprovalWorkspace(row, result.state === 'ready' ? 'approve' : 'view')
+      approvalWorkspace.notice = result.state === 'ready' ? '请核对申请信息并提交审批；此入口不能修改申请权限。' : '当前节点已经处理，以下信息仅供查看。'
+    } catch (error) {
+      approvalWorkspace.visible = false
+      guestApproval.error = error instanceof Error ? error.message : '审批读取失败，请刷新重试'
+    }
+    return
+  }
   try {
     const query = guestApprovalQuery()
-    const stored = allowApprovalMailDemo ? readApprovalMailRows(window.localStorage).find(row => row.id === query.ticket) : undefined
+    const stored = allowApprovalMailDemo ? readApprovalMailRows(pocLocalStorage).find(row => row.id === query.ticket) : undefined
     const state = checkMailReviewAccess(stored, query, allowApprovalMailDemo)
     guestApproval.state = state
     if (state === 'invalid' || state === 'expired') {
@@ -6907,12 +6943,30 @@ function withApprovalStorageLock(operation) {
 
 async function submitApprovalDecision() {
   if (approvalSubmitting.value || !activeApproval.value || approvalWorkspace.mode !== 'approve') return
+  if (isLabApproval(activeApproval.value)) {
+    if (!validateApprovalDecision()) return
+    approvalSubmitting.value = true
+    try {
+      const row = activeApproval.value
+      const body = { revision: approvalWorkspace.openedRevision, decision: approvalWorkspace.result, opinion: approvalWorkspace.opinion,
+        ...(approvalWorkspace.nodeType === 'business' && approvalWorkspace.result === 'agree' ? { organizations: [...approvalWorkspace.organizations] } : {}) }
+      await labApi(props.standaloneApproval ? `/guest/${encodeURIComponent(row.id)}/decision` : `/requests/${encodeURIComponent(row.id)}/decision`, body, props.standaloneApproval ? guestApprovalQuery().token : undefined)
+      if (props.standaloneApproval) {
+        await refreshGuestApproval()
+        approvalWorkspace.notice = '审批已提交，当前节点处理完成。您可以关闭此页面。'
+      } else { closeApprovalWorkspace(); await refreshLabApprovals() }
+    } catch (error) {
+      approvalSubmitError.value = true
+      approvalWorkspace.notice = error instanceof Error ? error.message : '提交失败，请刷新后重试'
+    } finally { approvalSubmitting.value = false }
+    return
+  }
   approvalSubmitting.value = true
   approvalSubmitError.value = false
   try {
     await withApprovalStorageLock(() => {
       const row = activeApproval.value
-      const stored = readApprovalMailRows(window.localStorage).find(item => item.id === row.id)
+      const stored = readApprovalMailRows(pocLocalStorage).find(item => item.id === row.id)
       if (!stored && approvalWorkspace.openedRevision > 0) throw new Error('演示记录已移除，请重新进入审批页面。')
       if (stored && (stored.approvalRevision || 0) !== approvalWorkspace.openedRevision) {
         Object.assign(row, createApprovalRow(stored))
@@ -6931,7 +6985,7 @@ async function submitApprovalDecision() {
         return
       }
       // Fail before mutating the workflow if browser storage is unavailable/full.
-      window.localStorage.setItem(APPROVAL_MAIL_ROWS_KEY, JSON.stringify(readApprovalMailRows(window.localStorage)))
+      pocLocalStorage.setItem(APPROVAL_MAIL_ROWS_KEY, JSON.stringify(readApprovalMailRows(pocLocalStorage)))
       const before = JSON.parse(JSON.stringify(row))
       const beforeUsers = JSON.parse(JSON.stringify(users))
       const beforeRecords = [...records.value]
@@ -7129,6 +7183,8 @@ function approvalDisplayStatusKey(row) {
 }
 
 function canApproveRow(row) {
+  if (isLabApproval(row)) return !approvalReadonlyViewer.value && row?.statusKey === 'pending' && labIdentity.value?.enabled && labIdentity.value?.workbenchAccess && row.approverItcode === labIdentity.value?.username
+  if (!fullPocManagement.value) return false
   const identity = currentDemoIdentity.value
   const approver = approvalSearch.approverItcode.trim()
   const nodeAllowed = identity.key === 'admin' || identity.nodeTypes.includes(row?.nodeType)
@@ -7142,13 +7198,14 @@ function approvalPersonMail(itcode, fallback = 'user') {
 }
 
 function approvalAppBaseUrl(path = '/agent/permissions') {
-  const base = (import.meta.env.BASE_URL || '/').replace(/\/$/, '')
+  const base = appBase.replace(/\/$/, '')
   const fullPath = `${base}${path}`
   if (typeof window === 'undefined') return fullPath
   return `${window.location.origin}${fullPath}`
 }
 
 function approvalListLink(row, action = '', viewer = 'approver', role = '') {
+  if (viewer === 'applicant') return applicantProgressLink(row)
   const query = [
     `module=approval`,
     `ticket=${encodeURIComponent(row.id)}`,
@@ -7158,6 +7215,25 @@ function approvalListLink(row, action = '', viewer = 'approver', role = '') {
   if (role) query.push(`identity=${encodeURIComponent(role)}`)
   if (action) query.push(`action=${encodeURIComponent(action)}`)
   return `${approvalAppBaseUrl('/agent/permissions')}?${query.join('&')}`
+}
+
+function applicantProgressLink(row, fromWorkbench = false) {
+  const nodes = approvalRouteNodeTypes(row)
+  const query = isLabApproval(row)
+    ? new URLSearchParams({ ticket: row.id })
+    : new URLSearchParams(applicantProgressQuery(pocLocalStorage, row, isSystemAdminOnlyRequest(row) ? ['submit', ...nodes] : nodes))
+  if (fromWorkbench) query.set('from', 'workbench')
+  return `${approvalAppBaseUrl('/account-request/status')}?${query}`
+}
+
+function openApplicantProgress(row) {
+  try {
+    const url = new URL(applicantProgressLink(row, true))
+    router.push({ path: '/account-request/status', query: Object.fromEntries(url.searchParams) })
+  } catch (error) {
+    approvalNotificationModal.notice = error instanceof Error ? error.message : '申请进度打开失败，请重试。'
+    approvalWorkspace.notice = approvalNotificationModal.notice
+  }
 }
 
 function approvalActionLink(row, action = 'approve', role = '') {
@@ -7229,7 +7305,7 @@ function createApprovalNotificationLogs(row) {
       toName: row.applicant,
       to: row.applicantEmail,
       subject: `${row.id} 账号申请表单已受理`,
-      content: `您提交的${row.type}账号申请表单已受理，可点击表单号码进入审批列表查看审核状态。`,
+      content: `您提交的${row.type}申请已受理，可点击表单号码进入申请进度页查看审核状态。`,
       link: applicantLink,
       linkLabel: '查看审核进度',
       actions: []
@@ -7346,10 +7422,10 @@ function approvalMailMockContent(mail, row) {
         <div>被申请人：${escapeMailHtml(row.target)}（${escapeMailHtml(row.targetItcode)}）</div>
       </div>
       <a class="progress-link" href="${escapeMailHtml(mail.link)}">${escapeMailHtml(mail.linkLabel || '打开链接')}</a>
-      ${guestLink ? `<div class="mail-actions"><a href="${escapeMailHtml(mail.link)}" target="_blank" rel="noopener">有账号审批</a><a href="${escapeMailHtml(guestLink)}" target="_blank" rel="noopener">无账号审批</a></div><p>演示请选择上述入口：有账号保留系统内审批；无账号进入独立页面，不修改申请权限。</p>` : ''}
+      ${guestLink && !isLabApproval(row) ? `<div class="mail-actions"><a href="${escapeMailHtml(mail.link)}" target="_blank" rel="noopener">有账号审批</a><a href="${escapeMailHtml(guestLink)}" target="_blank" rel="noopener">无账号审批</a></div><p>演示请选择上述入口：有账号保留系统内审批；无账号进入独立页面，不修改申请权限。</p>` : ''}
       ${actions}
     </section>
-    <section class="mail-foot">这是一封 POC mock 邮件，不会真实发送。${guestLink ? '请选择有账号或无账号入口查看申请并审批；同一节点只能处理一次。' : '同意/驳回按钮会进入邮件审批确认页，确认后同步审批列表。'}</section>
+    <section class="mail-foot">这是一封 POC mock 邮件，不会真实发送。${mail.role === 'applicant' ? '点击申请单号只读查看进度，不执行审批或修改账号。' : guestLink ? '请选择有账号或无账号入口查看申请并审批；同一节点只能处理一次。' : '同意/驳回按钮会进入邮件审批确认页，确认后同步审批列表。'}</section>
   </section>`
 }
 
@@ -7411,15 +7487,16 @@ function approvalMailMockInboxHtml(row) {
 </html>`
 }
 function persistApprovalMockRow(row) {
-  if (typeof window === 'undefined') return
-  saveApprovalMailRow(window.localStorage, row)
+  if (typeof window === 'undefined' || isLabApproval(row)) return
+  saveApprovalMailRow(pocLocalStorage, row)
 }
 
 function approvalGuestReviewLink(row, role) {
+  if (isLabApproval(row)) return row.backendGuestLinks?.[role] || ''
   if (!allowApprovalMailDemo || !navigator.locks?.request || !crypto.randomUUID) return ''
   const grant = ensureMailReviewGrant(row, role, approverItcodeForMailRole(row, role))
   if (!grant) return ''
-  const query = new URLSearchParams({ ticket: row.id, identity: role, approver: grant.approver, token: grant.token })
+  const query = new URLSearchParams({ ticket: row.id, identity: role, approver: grant.approver, token: grant.token, source: 'permissions' })
   return `${approvalAppBaseUrl('/mail-approval/review')}?${query}`
 }
 
@@ -7429,8 +7506,30 @@ async function openApprovalMailMockTabs(row) {
   try {
     opened = window.open('', 'approval-mail-inbox-' + row.id)
     if (!opened) throw new Error('浏览器已拦截模拟邮件，请允许弹出窗口后重试。')
+    if (isLabApproval(row)) {
+      const mails = await labApi(`/requests/${encodeURIComponent(row.id)}/mail`)
+      const fresh = createLabApprovalRow(await labApi(`/requests/${encodeURIComponent(row.id)}`))
+      fresh.backendGuestLinks = {}
+      fresh.notificationLogs = mails.map((mail, index) => {
+        const role = `${mail.node}:${index}`
+        const query = new URLSearchParams({ ticket: row.id, token: mail.token || '' })
+        const link = mail.token ? `${approvalAppBaseUrl('/mail-approval/review')}?${query}` : approvalListLink(fresh)
+        if (mail.token) fresh.backendGuestLinks[role] = link
+        return { role, roleLabel: mail.node === 'system-admin' ? '系统管理员' : mail.node === 'business' ? '业务负责人' : '申请人直线经理',
+          subject: `请审批申请 ${row.id}`, toName: mail.recipient, to: `${mail.recipient}@example.invalid`,
+          content: '此邮件由隔离测试后台生成，不会真实发送。点击申请单号查看并审批。', link, linkLabel: '打开审批', actions: [] }
+      })
+      fresh.notificationLogs.push({ role: 'applicant', roleLabel: '申请人',
+        subject: `${row.id} 申请进度查询`, toName: fresh.applicant, to: `${fresh.applicantItcode}@example.invalid`,
+        content: '此为申请人的模拟通知，不会真实发送。点击申请单号只读查看进度；隔离后台会校验当前登录身份。',
+        link: applicantProgressLink(fresh), linkLabel: '查看审核进度', actions: [] })
+      const url = URL.createObjectURL(new Blob([approvalMailMockInboxHtml(fresh)], { type: 'text/html;charset=utf-8' }))
+      opened.location.replace(url)
+      window.setTimeout(() => URL.revokeObjectURL(url), 60000)
+      return
+    }
     await withApprovalStorageLock(() => {
-      const stored = readApprovalMailRows(window.localStorage).find(item => item.id === row.id)
+      const stored = readApprovalMailRows(pocLocalStorage).find(item => item.id === row.id)
       if (stored && (stored.approvalRevision || 0) > (row.approvalRevision || 0)) {
         Object.assign(row, createApprovalRow(stored))
         if (approvalWorkspace.visible && approvalWorkspace.rowId === row.id) openApprovalWorkspace(row, 'view')
@@ -7456,10 +7555,8 @@ function closeApprovalNotificationModal() {
 
 function viewSubmittedApproval() {
   if (!submittedApproval.value) return
+  openApplicantProgress(submittedApproval.value)
   closeApprovalNotificationModal()
-  activeModule.value = 'approval'
-  resetApprovalFilters()
-  openApprovalWorkspace(submittedApproval.value, 'view')
 }
 
 function copySubmittedTicket() {
@@ -7474,6 +7571,11 @@ function copySubmittedTicket() {
 function openMailLink(mail) {
   const row = approvals.value.find((item) => item.id === mail.ticketNo)
   if (!row) return
+  if (mail.role === 'applicant') {
+    openApplicantProgress(row)
+    closeApprovalNotificationModal()
+    return
+  }
   closeApprovalNotificationModal()
   activeModule.value = 'approval'
   resetApprovalFilters()
@@ -7588,9 +7690,10 @@ function applyMailApprovalActionToRow(row, actionRecord) {
 function syncStoredApprovalRows() {
   if (typeof window === 'undefined') return
   try {
-    const stored = readApprovalMailRows(window.localStorage)
+    const stored = readApprovalMailRows(pocLocalStorage)
     stored.forEach((item) => {
       const existing = approvals.value.find(row => row.id === item.id)
+      if (isLabApproval(existing)) return
       if (existing && (item.approvalRevision || 0) > (existing.approvalRevision || 0)) {
         const locallyApplied = existing.userManagementApplied
         Object.assign(existing, createApprovalRow(item))
@@ -7617,7 +7720,7 @@ function syncStoredApprovalRows() {
 function syncFirstAccessApprovalRows() {
   if (typeof window === 'undefined') return
   try {
-    const stored = JSON.parse(window.localStorage.getItem('leaibot-first-access-applications') || '[]')
+    const stored = JSON.parse(pocLocalStorage.getItem('leaibot-first-access-applications') || '[]')
     stored.forEach((item) => {
       if (!approvals.value.some((row) => row.id === item.id)) {
         approvals.value.unshift(createApprovalRow(item))
@@ -7629,7 +7732,7 @@ function syncFirstAccessApprovalRows() {
 function syncRegisterApprovalRows() {
   if (typeof window === 'undefined') return
   try {
-    const rows = JSON.parse(window.localStorage.getItem('leaibot-account-request-status-rows') || '[]')
+    const rows = JSON.parse(pocLocalStorage.getItem('leaibot-account-request-status-rows') || '[]')
     rows.forEach((item) => {
       const existing = approvals.value.find((row) => row.id === item.id)
       if (existing) {
@@ -7678,18 +7781,66 @@ function syncRegisterApprovalRows() {
   } catch {}
 }
 
+async function refreshLabApprovals() {
+  const version = ++labRefreshVersion
+  try {
+    const identity = await labApi('/identity')
+    const rows = await labApi('/requests')
+    if (version !== labRefreshVersion) return
+    labIdentity.value = identity
+    form.applicant = labIdentity.value.username
+    form.itcode = labIdentity.value.username
+    form.systemApprover = labIdentity.value.systemApprover
+    if (fullPocManagement.value && !labPocInitialized) {
+      approvals.value = initialApprovalRows.map(createApprovalRow)
+      labPocInitialized = true
+      runAdminPermissionAutomation()
+    }
+    const backendIds = new Set(rows.map(row => row.id))
+    const localRows = fullPocManagement.value ? approvals.value.filter(row => !isLabApproval(row) && !backendIds.has(row.id)) : []
+    approvals.value = [...rows.map(createLabApprovalRow), ...localRows]
+    if (fullPocManagement.value) syncPocApprovalActions()
+    if (!fullPocManagement.value) {
+      if (!['apply', 'approval'].includes(activeModule.value)) activeModule.value = 'approval'
+      if (form.type !== 'enable') selectRequestType('enable')
+    }
+    labLoadError.value = ''
+    const applicantTicket = approvals.value.find(item => item.id === String(route.query.ticket || ''))
+    if (applicantTicket && (route.query.viewer === 'applicant' || route.query.identity === 'applicant')) return openApplicantProgress(applicantTicket)
+    if (approvalWorkspace.visible) {
+      const row = approvals.value.find(item => item.id === approvalWorkspace.rowId)
+      if (!row || row.approvalRevision !== approvalWorkspace.openedRevision) {
+        if (row) openApprovalWorkspace(row, 'view')
+        else closeApprovalWorkspace()
+      }
+    }
+  } catch (error) {
+    if (version !== labRefreshVersion) return
+    labIdentity.value = null
+    labPocInitialized = false
+    approvals.value = []
+    closeApprovalWorkspace()
+    labLoadError.value = error instanceof Error ? error.message : '申请读取失败，请重试'
+  }
+}
+
 function syncMailApprovalActions() {
   if (props.standaloneApproval) return refreshGuestApproval()
+  if (permissionLabEnabled) return refreshLabApprovals()
+  syncPocApprovalActions()
+}
+
+function syncPocApprovalActions() {
   if (typeof window === 'undefined') return
   syncStoredApprovalRows()
   syncFirstAccessApprovalRows()
   syncRegisterApprovalRows()
   try {
-    const actions = JSON.parse(window.localStorage.getItem('leaibot-mail-approval-actions') || '[]')
+    const actions = JSON.parse(pocLocalStorage.getItem('leaibot-mail-approval-actions') || '[]')
     let changed = false
     actions.filter((item) => item.source === 'permissions').forEach((actionRecord) => {
       const row = approvals.value.find((item) => item.id === actionRecord.ticket)
-      if (row && applyMailApprovalActionToRow(row, actionRecord)) {
+      if (row && !isLabApproval(row) && applyMailApprovalActionToRow(row, actionRecord)) {
         if (row.typeKey === 'enable') syncPublicEnableRequest(row, actionRecord.time)
         changed = true
       }
@@ -7706,7 +7857,8 @@ function syncMailApprovalActions() {
 }
 
 function handleMailApprovalStorage(event) {
-  if (event.key === null || event.key === APPROVAL_MAIL_ROWS_KEY || event.key === 'leaibot-mail-approval-actions' || event.key === 'leaibot-account-request-status-rows') syncMailApprovalActions()
+  const key = pocStorageEventKey(event.key)
+  if (key === null || key === APPROVAL_MAIL_ROWS_KEY || key === 'leaibot-mail-approval-actions' || key === 'leaibot-account-request-status-rows') syncMailApprovalActions()
 }
 function approvalResultLabel(value) {
   const option = approvalResultOptions.value.find((item) => item.value === value)
@@ -8853,6 +9005,8 @@ function restorePermissionDeepLink() {
   resetApprovalFilters()
   const ticket = String(route.query.ticket || '')
   const identity = String(route.query.identity || '')
+  const applicantTicket = approvals.value.find(item => item.id === ticket)
+  if (applicantTicket && (route.query.viewer === 'applicant' || identity === 'applicant')) return openApplicantProgress(applicantTicket)
   if (identity && applyApprovalMailContext(identity, ticket)) return
   approvalSearch.approverItcode = String(route.query.approver || '')
   const viewer = String(route.query.viewer || 'approver')
@@ -8867,7 +9021,7 @@ onMounted(() => {
     refreshGuestApproval()
   } else {
     loadPocReleaseLedger().then((ledger) => { permissionReleaseLedger.value = ledger })
-    runAdminPermissionAutomation()
+    if (!permissionLabEnabled) runAdminPermissionAutomation()
     syncMailApprovalActions()
     restorePermissionDeepLink()
   }
@@ -8878,6 +9032,7 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
+  labRefreshVersion++
   if (props.standaloneApproval) {
     document.documentElement.classList.remove('guest-approval-route')
     document.body.classList.remove('guest-approval-route')

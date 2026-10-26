@@ -44,6 +44,8 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useRoute } from 'vue-router'
+import { appBase } from '@/config/runtimeMode'
+import { pocLocalStorage } from '@/services/pocStorage'
 
 const ACTION_KEY = 'leaibot-mail-approval-actions'
 const REGISTER_KEY = 'leaibot-account-request-status-rows'
@@ -65,7 +67,7 @@ const sourceLabel = computed(() => source.value === 'account-register' ? '账号
 const resultClass = computed(() => action.value === 'reject' ? 'reject' : 'agree')
 const message = computed(() => `请确认是否通过邮件直接${actionLabel.value}该${sourceLabel.value}。确认后会写入 mock 审批记录，并同步审批列表/进度查询页。`)
 const fallbackLink = computed(() => {
-  const base = (import.meta.env.BASE_URL || '/').replace(/\/$/, '')
+  const base = appBase.replace(/\/$/, '')
   if (source.value === 'account-register') return `${base}/account-request/status?ticket=${encodeURIComponent(ticket.value)}&token=${encodeURIComponent(token.value)}`
   return `${base}/agent/permissions?module=approval&ticket=${encodeURIComponent(ticket.value)}&approver=${encodeURIComponent(approver.value)}&viewer=approver&identity=${encodeURIComponent(identity.value)}`
 })
@@ -73,7 +75,7 @@ const fallbackLink = computed(() => {
 function readList(key: string) {
   if (typeof window === 'undefined') return [] as any[]
   try {
-    return JSON.parse(window.localStorage.getItem(key) || '[]')
+    return JSON.parse(pocLocalStorage.getItem(key) || '[]')
   } catch {
     return [] as any[]
   }
@@ -81,7 +83,7 @@ function readList(key: string) {
 
 function writeList(key: string, value: any[]) {
   if (typeof window === 'undefined') return
-  window.localStorage.setItem(key, JSON.stringify(value))
+  pocLocalStorage.setItem(key, JSON.stringify(value))
 }
 
 function appendMailAction() {

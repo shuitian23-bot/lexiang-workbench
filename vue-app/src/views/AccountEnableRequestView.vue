@@ -9,8 +9,9 @@
         <h1>{{ externalRequest ? '账号已禁用' : '申请启用账号' }}</h1>
         <p>{{ externalRequest ? EXTERNAL_DISABLED_MESSAGE : '当前账号已禁用。提交申请后，需由系统管理员审批启用。' }}</p>
       </div>
+      <p v-if="permissionLabEnabled && !labIdentity" role="status">{{ identityError || '正在验证账号状态…' }}</p>
       <AccountEnableRequestFlow
-        v-if="!externalRequest"
+        v-if="!externalRequest && (!permissionLabEnabled || labIdentity)"
         :key="account + ':' + loginType"
         v-model="draft"
         v-model:step="step"
@@ -28,6 +29,9 @@
 import { computed, onMounted, onBeforeUnmount, ref, watch } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import AccountEnableRequestFlow from '@/components/permissions/AccountEnableRequestFlow.vue'
+import { pocSessionStorage } from '@/services/pocStorage'
+import { permissionLabEnabled } from '@/config/runtimeMode'
+import { labApi, type LabIdentity } from '@/services/permissionLab'
 import { disabledIdentityError, DISABLED_ACCOUNT_KEY, DISABLED_ACCOUNT_TYPE_KEY, EXTERNAL_DISABLED_MESSAGE, type EnableRequestDraft, type EnableSubmission } from '@/services/accountEnableRequest'
 
 const route = useRoute()
@@ -36,9 +40,19 @@ const account = computed(() => String(route.query.account || '').trim())
 const loginType = computed(() => route.query.loginType === 'external' ? 'external' : 'internal')
 const externalRequest = computed(() => loginType.value === 'external')
 const step = ref(1)
-onMounted(() => {
+const labIdentity = ref<LabIdentity | null>(null)
+const identityError = ref('')
+onMounted(async () => {
   document.documentElement.classList.add('account-enable-route')
   document.body.classList.add('account-enable-route')
+  if (permissionLabEnabled) {
+    try {
+      const identity = await labApi<LabIdentity>('/identity')
+      if (identity.username !== account.value || identity.personType !== 'internal' || identity.enabled) throw new Error('当前登录身份或账号状态不支持此申请，请返回登录页重试。')
+      labIdentity.value = identity
+      draft.value = { ...createDraft(), systemApprover: identity.systemApprover }
+    } catch (error) { identityError.value = error instanceof Error ? error.message : '验证失败，请重新登录' }
+  }
 })
 onBeforeUnmount(() => {
   document.documentElement.classList.remove('account-enable-route')
@@ -56,7 +70,8 @@ function createDraft(): EnableRequestDraft {
 watch([account, loginType], () => { draft.value = createDraft(); step.value = 1 })
 function authorize() {
   if (externalRequest.value) return EXTERNAL_DISABLED_MESSAGE
-  const identityError = disabledIdentityError(account.value, loginType.value, window.sessionStorage)
+  if (permissionLabEnabled) return labIdentity.value?.username === account.value ? '' : '请返回登录页重新验证账号状态。'
+  const identityError = disabledIdentityError(account.value, loginType.value, pocSessionStorage)
   if (identityError) return identityError
   if (draft.value.itcode !== account.value || draft.value.applicant !== account.value
     || draft.value.targetItcode !== account.value || draft.value.targetUser !== account.value
@@ -67,9 +82,9 @@ function authorize() {
 }
 function openStatusPage({ request }: EnableSubmission) {
   // Remove the POC login proof only after the request has been saved successfully.
-  window.sessionStorage.removeItem(DISABLED_ACCOUNT_KEY)
-  window.sessionStorage.removeItem(DISABLED_ACCOUNT_TYPE_KEY)
-  router.replace({ path: '/account-request/status', query: { ticket: request.id, token: request.token } })
+  pocSessionStorage.removeItem(DISABLED_ACCOUNT_KEY)
+  pocSessionStorage.removeItem(DISABLED_ACCOUNT_TYPE_KEY)
+  router.replace({ path: '/account-request/status', query: { ticket: request.id, ...(permissionLabEnabled ? {} : { token: request.token }) } })
 }
 </script>
 

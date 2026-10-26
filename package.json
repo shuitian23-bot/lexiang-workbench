@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
+    "dev:permission-lab": "node scripts/run-permission-lab.cjs",
+    "test:permission-lab": "node --test scripts/permission-lab.test.cjs",
+    "test:permission-lab:browser": "node scripts/permission-lab-browser.cjs",
     "test": "echo \"Error: no test specified\" && exit 1",
     "test:portal-release-ledger": "node --test scripts/portal-release-ledger.test.mjs"
   },

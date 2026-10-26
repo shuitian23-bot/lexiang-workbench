@@ -22,7 +22,7 @@ function componentFunction(file, name, localStorage) {
   const fn = ast.statements.find(node => ts.isFunctionDeclaration(node) && node.name?.text === name)
   assert.ok(fn, name + ' must exist in the actual component')
   const { outputText } = ts.transpileModule(fn.getText(ast), { compilerOptions: { module: ts.ModuleKind.ESNext } })
-  return new Function('window', outputText + '; return ' + name)({ localStorage })
+  return new Function('window', 'pocLocalStorage', outputText + '; return ' + name)({ localStorage }, localStorage)
 }
 const unrelated = Array.from({ length: 30 }, (_, i) => ({ id: 'other-' + i, typeKey: 'create', token: 'token-' + i, statusKey: 'pending' }))
 for (const type of ['internal', 'external']) {

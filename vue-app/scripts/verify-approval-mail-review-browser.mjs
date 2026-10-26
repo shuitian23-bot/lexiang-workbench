@@ -11,7 +11,7 @@ for (const candidate of [process.env.PLAYWRIGHT_MODULE_PATH, 'playwright', path.
   try { playwright = require(candidate); break } catch {}
 }
 if (!playwright) throw new Error('Playwright required')
-const base = process.env.PERMISSION_QA_BASE_URL || 'http://127.0.0.1:5176/admin-vue'
+const base = process.env.PERMISSION_QA_BASE_URL || 'http://127.0.0.1:5176/admin-vue/poc'
 const approvalDemoHosts = ['new.leaibot.cn', 'leaibot.cn']
 const authMode = process.env.APPROVAL_QA_AUTH_MODE || (approvalDemoHosts.includes(new URL(base).hostname) ? 'server' : 'preview')
 assert.ok(['preview', 'server'].includes(authMode), 'APPROVAL_QA_AUTH_MODE must be preview or server')
@@ -69,7 +69,7 @@ await isolateNetwork(context, base, sessionPages)
 context.on('page', page => page.on('pageerror', error => errors.push(error.message)))
 const page = await context.newPage()
 sessionPages.add(page)
-const key = 'leaibot-approval-mail-mock-rows'
+const key = (new URL(base).pathname.endsWith('/poc') ? 'leaibot-poc-demo:' : '') + 'leaibot-approval-mail-mock-rows'
 async function saved(tab, ticket) { return tab.evaluate(({ key, ticket }) => JSON.parse(localStorage.getItem(key)).find(row => row.id === ticket), { key, ticket }) }
 async function assertNoPreviewSession(tab) { assert.equal(await tab.evaluate(() => localStorage.getItem('preview_user')), null, 'Server demo must not create a preview session') }
 async function assertOnlyAnonymousCookies(target, targetBase) {
@@ -149,7 +149,7 @@ try {
       const body = document.querySelector('.approval-workspace-body')
       return { footerBottom: footer.bottom, footerTop: footer.top, viewport: innerHeight, scrollable: body.scrollHeight > body.clientHeight, overflow: getComputedStyle(body).overflowY }
     })
-    assert.ok(layout.footerTop >= 0 && layout.footerBottom <= height, 'Footer stays in viewport')
+    assert.ok(layout.footerTop >= 0 && layout.footerBottom <= height, 'Footer stays in viewport: ' + JSON.stringify({ width, height, layout }))
     assert.equal(layout.overflow, 'auto')
     assert.ok(layout.scrollable, 'Long content has its own scroll area')
     const overflow = await guest.evaluate(() => document.documentElement.scrollWidth - innerWidth)
@@ -263,7 +263,7 @@ try {
     validRow.nodeType = 'target-manager'
     validRow.statusKey = 'pending'
     validRow.approverItcode = validRow.targetManager
-    await serverPage.evaluate(({ key, row }) => localStorage.setItem(key, JSON.stringify([row])), { key, row: validRow })
+    await serverPage.evaluate(({ key, row }) => localStorage.setItem(key, JSON.stringify([row])), { key: 'leaibot-approval-mail-mock-rows', row: validRow })
     await serverPage.reload()
     await serverPage.getByRole('heading', { name: '暂时无法查看申请' }).waitFor()
     assert.equal(await serverPage.locator('.approval-workspace-modal').count(), 0, 'Server mode rejects even a valid locally forged preview record')

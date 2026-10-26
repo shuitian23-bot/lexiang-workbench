@@ -17,7 +17,7 @@
       <p>根据人员类型填写被申请人信息，申请单号将在提交后自动生成。</p>
       <div class="enable-type-card"><span>03</span><div><b>启用账号</b><small>申请恢复已停用账号，原有权限保持不变。</small></div></div>
       <div class="enable-fields application-info-form" :data-form-variant="schema.key">
-        <div class="full enable-field">
+        <div v-if="!selfService" class="full enable-field">
           <span class="field-label required">人员类型 <em>必填</em></span>
           <div class="enable-person-types" role="radiogroup" aria-label="人员类型">
             <button v-for="type in personTypes" :key="type.key" type="button" role="radio" :aria-checked="modelValue.personType === type.key" :class="{ active: modelValue.personType === type.key }" :disabled="selfService || submitting" @click="update('personType', type.key)">
@@ -26,12 +26,12 @@
           </div>
         </div>
         <label data-info-field="applicantIdentity">
-          <span class="field-label">申请人用户名/ITCode <em class="autofill">自动带出</em></span>
-          <input :value="modelValue.applicant + ' / ' + modelValue.itcode" readonly aria-label="申请人用户名/ITCode">
+          <span class="field-label">登录账号 <em class="autofill">自动带出</em></span>
+          <input :value="modelValue.itcode" readonly aria-label="登录账号">
         </label>
         <label v-if="schemaHasField(schema, 'targetItcode')" data-info-field="targetItcode">
-          <span class="field-label required">被申请人 ITCode <em>必填</em></span>
-          <input :value="modelValue.targetItcode" :readonly="selfService" aria-label="被申请人 ITCode" :aria-invalid="!!errors.targetItcode" :class="{ invalid: errors.targetItcode }" placeholder="请输入被申请人 ITCode" @input="update('targetItcode', valueOf($event))">
+          <span class="field-label required">被申请人账号 <em>必填</em></span>
+          <input :value="modelValue.targetItcode" :readonly="selfService" aria-label="被申请人账号" :aria-invalid="!!errors.targetItcode" :class="{ invalid: errors.targetItcode }" placeholder="请输入被申请人账号" @input="update('targetItcode', valueOf($event))">
           <small v-if="errors.targetItcode" class="field-error">{{ errors.targetItcode }}</small>
         </label>
         <label v-if="schemaHasField(schema, 'targetUser')" data-info-field="targetUser">
@@ -44,6 +44,10 @@
           <input :value="modelValue.relatedAccount" aria-label="关联人 ITCode" :aria-invalid="!!errors.relatedAccount" :class="{ invalid: errors.relatedAccount }" placeholder="请输入负责对接的内部员工 ITCode" @input="update('relatedAccount', valueOf($event))">
           <small v-if="errors.relatedAccount" class="field-error">{{ errors.relatedAccount }}</small>
           <small v-else class="field-help">用于确认外部协作人员的内部对接关系。</small>
+        </label>
+        <label v-if="selfService" data-info-field="personType">
+          <span class="field-label">人员类型 <em class="autofill">自动带出</em></span>
+          <input :value="personTypes.find(type => type.key === modelValue.personType)?.label || ''" readonly aria-label="人员类型">
         </label>
         <label class="full" data-info-field="reason">
           <span class="field-label required">申请原因 <em>必填</em></span>
@@ -65,7 +69,7 @@
     <footer class="enable-actions">
       <p v-if="submitError || errors.identity" class="field-error enable-feedback" role="alert">{{ submitError || errors.identity }}</p>
       <button type="button" class="ghost-btn" :disabled="submitting" @click="back">{{ step === 1 || duplicateRequest ? (includeTypeStep ? '上一步' : '取消') : '上一步' }}</button>
-      <button v-if="duplicateRequest" type="button" class="primary-btn" @click="$emit('submitted', { request: duplicateRequest, duplicate: true })">查看申请进度</button>
+      <button v-if="duplicateRequest" type="button" class="primary-btn" @click="$emit('submitted', { request: duplicateRequest, duplicate: true, persistence: usesLabBackend ? 'lab' : 'browser' })">查看申请进度</button>
       <button v-else-if="step === 1" type="submit" form="enable-account-info" class="primary-btn" :disabled="submitting">下一步</button>
       <button v-else type="button" class="primary-btn" :disabled="submitting" @click="submit">{{ submitting ? '正在提交…' : '提交申请' }}</button>
     </footer>
@@ -73,6 +77,9 @@
 </template>
 
 <script setup lang="ts">
+import { pocLocalStorage } from '@/services/pocStorage'
+import { permissionLabEnabled } from '@/config/runtimeMode'
+import { isLabAccount, labApi } from '@/services/permissionLab'
 import { computed, ref } from 'vue'
 import { resolveApplicationInfoSchema, schemaHasField } from './applicationInfoSchema.js'
 import { submitEnableRequest, validateEnableRequest, type AccountEnableRequest, type EnableErrors, type EnableRequestDraft, type EnableSubmission } from '@/services/accountEnableRequest'
@@ -96,6 +103,7 @@ const personTypes = [
 ]
 const schema = computed(() => resolveApplicationInfoSchema('enable', props.modelValue.personType)!)
 const targetAccount = computed(() => props.modelValue.personType === 'external' ? props.modelValue.targetUser : props.modelValue.targetItcode)
+const usesLabBackend = computed(() => permissionLabEnabled && (props.selfService || isLabAccount(targetAccount.value)))
 const errors = ref<EnableErrors>({})
 const submitError = ref('')
 const submitting = ref(false)
@@ -135,11 +143,13 @@ async function submit() {
   try {
     // Let the disabled/submitting state render before the synchronous POC persistence.
     await Promise.resolve()
-    const result = submitEnableRequest(props.modelValue, window.localStorage)
+    const result = usesLabBackend.value
+      ? await labApi<EnableSubmission>('/requests', { kind: 'enable', target: targetAccount.value.trim().toLowerCase(), reason: props.modelValue.reason })
+      : submitEnableRequest(props.modelValue, pocLocalStorage)
     if (result.duplicate) duplicateRequest.value = result.request
-    else emit('submitted', result)
-  } catch {
-    submitError.value = '申请暂时无法保存，请检查浏览器存储后重试。'
+    else emit('submitted', { ...result, persistence: usesLabBackend.value ? 'lab' : 'browser' })
+  } catch (error) {
+    submitError.value = permissionLabEnabled && error instanceof Error ? error.message : '申请暂时无法保存，请检查浏览器存储后重试。'
   } finally { submitting.value = false }
 }
 </script>

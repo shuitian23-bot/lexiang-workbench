@@ -6,7 +6,8 @@ const source = await readFile(new URL('../src/views/agent/AgentPermissionsView.v
 const routeSource = await readFile(new URL('../src/utils/permissionDemoRoute.js', import.meta.url), 'utf8')
 
 assert.ok(source.includes("{ key: 'workflow', label: '流程处理'") && source.includes("{ key: 'configuration', label: '权限配置'"), '权限模块导航必须按流程处理和权限配置分组')
-assert.ok(source.includes('{{ modules.length }} 个入口') && source.includes('permission-module-search'), '权限模块栏必须展示入口总数并支持搜索')
+assert.ok(source.includes('{{ fullPocManagement ? modules.length : 2 }} 个入口') && source.includes('permission-module-search'), '权限模块栏必须按管理能力展示入口总数并支持搜索')
+assert.ok(source.includes('labIdentity.value?.systemAdmin && labIdentity.value?.enabled && labIdentity.value?.workbenchAccess'), '隔离模式恢复完整模块必须依据实际管理员身份，不能依据演示角色')
 assert.ok(source.includes('permission-module-badge') && source.includes('pendingApprovalCount'), '审批列表必须展示真实进行中数量')
 assert.ok(source.includes('permission-demo-route') && source.includes('buildDemoApprovalRouteSteps'), '权限模块栏底部必须按真实申请单渲染本次演示链路')
 assert.ok(source.includes('暂无进行中的申请') && source.includes('@click="resetDemo(demoIdentityKey)"'), '演示链路必须覆盖空状态并复用顶部重置动作')
