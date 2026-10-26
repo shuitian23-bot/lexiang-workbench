@@ -1649,7 +1649,7 @@
 
         <div class="modal-actions sticky-actions">
           <span v-if="approvalWorkspace.notice" class="approval-feedback" :class="{ 'approval-feedback-error': approvalSubmitError }" :role="approvalSubmitError ? 'alert' : 'status'">{{ approvalWorkspace.notice }}</span>
-          <button v-if="!standaloneApproval && allowPreviewAuth" type="button" class="ghost-btn" @click="openApprovalMailMockTabs(activeApproval)">审批邮件演示</button>
+          <button v-if="!standaloneApproval && allowApprovalMailDemo" type="button" class="ghost-btn" @click="openApprovalMailMockTabs(activeApproval)">审批邮件演示</button>
           <button v-if="standaloneApproval" type="button" class="ghost-btn" @click="refreshGuestApproval">刷新状态</button>
           <button v-else type="button" class="ghost-btn" @click="closeApprovalWorkspace">{{ approvalWorkspace.mode === 'view' ? '关闭' : '取消' }}</button>
           <button v-if="approvalWorkspace.mode === 'approve'" type="button" class="primary-btn" :disabled="approvalSubmitting" @click="submitApprovalDecision">{{ approvalSubmitting ? '提交中…' : '提交审批' }}</button>
@@ -1671,7 +1671,7 @@
           <p v-if="approvalNotificationModal.notice" role="status">{{ approvalNotificationModal.notice }}</p>
         </div>
         <div class="modal-actions simple-notice-actions">
-          <button v-if="allowPreviewAuth" type="button" class="ghost-btn" @click="openApprovalMailMockTabs(submittedApproval)">审批邮件演示</button>
+          <button v-if="allowApprovalMailDemo" type="button" class="ghost-btn" @click="openApprovalMailMockTabs(submittedApproval)">审批邮件演示</button>
           <button type="button" class="ghost-btn" @click="closeApprovalNotificationModal">关闭</button>
         </div>
       </div>
@@ -2278,7 +2278,7 @@ import PermissionRolePickerModal from '@/components/permissions/PermissionRolePi
 import { createPermissionDemoRouteItems } from '@/utils/permissionDemoRoute.js'
 import { customRulesSignature, normalizeCustomDataRules, validateCustomTableRules } from '@/components/permissions/customTableAuthorization.js'
 import { detectCustomDataRoleConflicts } from '@/components/permissions/customDataRoleConflict.js'
-import { allowPreviewAuth } from '@/config/runtimeMode'
+import { allowApprovalMailDemo } from '@/config/runtimeMode'
 import { APPROVAL_MAIL_ROWS_KEY, checkMailReviewAccess, ensureMailReviewGrant, readApprovalMailRows, saveApprovalMailRow } from '@/services/approvalMailReview'
 
 const props = defineProps({ standaloneApproval: { type: Boolean, default: false } })
@@ -6873,8 +6873,8 @@ function refreshGuestApproval() {
   if (!props.standaloneApproval) return
   try {
     const query = guestApprovalQuery()
-    const stored = allowPreviewAuth ? readApprovalMailRows(window.localStorage).find(row => row.id === query.ticket) : undefined
-    const state = checkMailReviewAccess(stored, query, allowPreviewAuth)
+    const stored = allowApprovalMailDemo ? readApprovalMailRows(window.localStorage).find(row => row.id === query.ticket) : undefined
+    const state = checkMailReviewAccess(stored, query, allowApprovalMailDemo)
     guestApproval.state = state
     if (state === 'invalid' || state === 'expired') {
       approvalWorkspace.visible = false
@@ -6921,7 +6921,7 @@ async function submitApprovalDecision() {
         if (props.standaloneApproval) refreshGuestApproval()
         return
       }
-      if (props.standaloneApproval && checkMailReviewAccess(stored, guestApprovalQuery(), allowPreviewAuth) !== 'ready') {
+      if (props.standaloneApproval && checkMailReviewAccess(stored, guestApprovalQuery(), allowApprovalMailDemo) !== 'ready') {
         refreshGuestApproval()
         return
       }
@@ -7416,7 +7416,7 @@ function persistApprovalMockRow(row) {
 }
 
 function approvalGuestReviewLink(row, role) {
-  if (!allowPreviewAuth || !navigator.locks?.request || !crypto.randomUUID) return ''
+  if (!allowApprovalMailDemo || !navigator.locks?.request || !crypto.randomUUID) return ''
   const grant = ensureMailReviewGrant(row, role, approverItcodeForMailRole(row, role))
   if (!grant) return ''
   const query = new URLSearchParams({ ticket: row.id, identity: role, approver: grant.approver, token: grant.token })
