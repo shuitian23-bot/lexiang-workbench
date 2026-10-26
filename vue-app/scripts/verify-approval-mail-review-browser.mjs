@@ -12,14 +12,15 @@ for (const candidate of [process.env.PLAYWRIGHT_MODULE_PATH, 'playwright', path.
 }
 if (!playwright) throw new Error('Playwright required')
 const base = process.env.PERMISSION_QA_BASE_URL || 'http://127.0.0.1:5176/admin-vue'
-const authMode = process.env.APPROVAL_QA_AUTH_MODE || (new URL(base).hostname === 'new.leaibot.cn' ? 'server' : 'preview')
+const approvalDemoHosts = ['new.leaibot.cn', 'leaibot.cn']
+const authMode = process.env.APPROVAL_QA_AUTH_MODE || (approvalDemoHosts.includes(new URL(base).hostname) ? 'server' : 'preview')
 assert.ok(['preview', 'server'].includes(authMode), 'APPROVAL_QA_AUTH_MODE must be preview or server')
 const serverOffBase = process.env.APPROVAL_SERVER_QA_BASE_URL
 if (authMode === 'server') assert.ok(serverOffBase, 'Server QA requires APPROVAL_SERVER_QA_BASE_URL for the local demo-disabled check')
 if (serverOffBase) assert.ok(['127.0.0.1', 'localhost', '[::1]'].includes(new URL(serverOffBase).hostname), 'The demo-disabled server check must stay local')
 const staticOrigin = process.env.APPROVAL_QA_STATIC_ORIGIN
 if (staticOrigin) {
-  assert.equal(new URL(base).hostname, 'new.leaibot.cn', 'Static substitution requires the exact NEW browser hostname')
+  assert.ok(approvalDemoHosts.includes(new URL(base).hostname), 'Static substitution requires an exact authorized demo browser hostname')
   assert.ok(['127.0.0.1', 'localhost', '[::1]'].includes(new URL(staticOrigin).hostname), 'Candidate static resources must stay local')
 }
 const out = process.env.APPROVAL_QA_OUTPUT_DIR || path.join(os.tmpdir(), 'approval-mail-review-qa')
@@ -88,10 +89,10 @@ async function assertPrivateRouteRequiresSession(targetBase) {
     assert.equal(new URL(privatePage.url()).searchParams.get('redirect'), '/agent/permissions?module=approval')
     await assertNoPreviewSession(privatePage)
     await assertOnlyAnonymousCookies(anonymous, targetBase)
-    if (new URL(targetBase).hostname === 'new.leaibot.cn') {
+    if (approvalDemoHosts.includes(new URL(targetBase).hostname)) {
       const response = await anonymous.request.get(new URL('/api/admin/me', targetBase).href, { maxRedirects: 0 })
       realAuthChecks.push({ origin: new URL(targetBase).origin, path: '/api/admin/me', status: response.status() })
-      assert.equal(response.status(), 401, 'The real NEW session API rejects the anonymous context without page-route mocks')
+      assert.equal(response.status(), 401, 'The real session API rejects the anonymous context without page-route mocks')
       await response.dispose()
       await assertOnlyAnonymousCookies(anonymous, targetBase)
     }
@@ -282,7 +283,7 @@ try {
     await assertNoPreviewSession(guest)
   }
   assert.deepEqual(writeRequests, [], 'Approval demo must not attempt real account, permission, approval or mail writes')
-  if (staticOrigin) assert.ok(staticRequests.length, 'NEW browser context uses the local candidate static resources')
+  if (staticOrigin) assert.ok(staticRequests.length, 'The authorized demo browser context uses the local candidate static resources')
   assert.deepEqual(errors, [])
   await fs.writeFile(path.join(out, 'summary.json'), JSON.stringify({ passed: true, authMode, staticResponses, blockedWrites: writeRequests, realAuthChecks, guestURL: new URL(guestUrl).pathname, accountURL: new URL(accountUrl).pathname }, null, 2) + '\n')
   console.log('PASS: shared approval, both demo entries, guest isolation, unchanged permissions, cross-tab sync, duplicate guard, validation, expiry, 3 viewports, ' + authMode + ' auth and zero network writes')

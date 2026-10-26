@@ -4,5 +4,5 @@ export const allowPreviewAuth = AUTH_MODE === 'preview'
 
 // Approval mail uses browser-local POC data; enabling it never creates a login session.
 export const allowApprovalMailDemo = allowPreviewAuth || (
-  typeof window !== 'undefined' && window.location.hostname === 'new.leaibot.cn'
+  typeof window !== 'undefined' && ['new.leaibot.cn', 'leaibot.cn'].includes(window.location.hostname)
 )

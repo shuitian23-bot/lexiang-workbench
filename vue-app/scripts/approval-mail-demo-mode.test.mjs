@@ -36,7 +36,21 @@ test('production defaults retain server authentication while allowing NEW approv
   assert.equal(state.allowApprovalMailDemo, true)
 })
 
-for (const hostname of ['leaibot.cn', 'localhost', '127.0.0.1', 'new.leaibot.cn.example.com', 'not-new.leaibot.cn']) {
+test('formal enables approval mail demo without enabling preview authentication', () => {
+  const state = runtime({ mode: 'server', hostname: 'leaibot.cn' })
+  assert.equal(state.AUTH_MODE, 'server')
+  assert.equal(state.allowPreviewAuth, false)
+  assert.equal(state.allowApprovalMailDemo, true)
+})
+
+test('formal production defaults retain server authentication while allowing approval demo', () => {
+  const state = runtime({ hostname: 'leaibot.cn' })
+  assert.equal(state.AUTH_MODE, 'server')
+  assert.equal(state.allowPreviewAuth, false)
+  assert.equal(state.allowApprovalMailDemo, true)
+})
+
+for (const hostname of ['localhost', '127.0.0.1', 'new.leaibot.cn.example.com', 'not-new.leaibot.cn', 'leaibot.cn.example.com', 'not-leaibot.cn', 'www.leaibot.cn']) {
   test(`server approval demo stays disabled on ${hostname}`, () => {
     const state = runtime({ mode: 'server', hostname })
     assert.equal(state.allowPreviewAuth, false)
