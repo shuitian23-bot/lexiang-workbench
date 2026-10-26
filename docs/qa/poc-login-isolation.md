@@ -54,3 +54,12 @@ PERMISSION_QA_BASE_URL=http://127.0.0.1:5176/admin-vue/poc node scripts/verify-a
 - 未执行：线上部署、推送/提交、真实后端认证端到端测试。管理员认证通过浏览器拦截测试验证原接口契约，未使用真实密码对线上发起登录。
 
 原 `test:poc-login:browser` 入口现转到共享隔离回归套件，避免继续验证已取消的 `preview_user` 自动登录行为；不再由该脚本自动对真实管理员账号发起登录。
+
+
+## 2026-10-26 双环境演示发布配置
+
+NEW 与正式站的独立浏览器 POC 使用 `VITE_AUTH_MODE=server`、`VITE_POC_LOGIN_ENABLED=true`、`VITE_PERMISSION_LAB=false` 构建。必须显式保留这一发布配置：普通生产构建默认不开放独立演示入口。
+
+正常 `/admin-vue/` 保留服务器认证；演示选择器进入 `/admin-vue/poc/` 独立路由和存储，不生成真实登录会话。审批邮件的同浏览器演示继续在两个精确域名开放。真实 ADFS、真实邮件和后端匿名审批不在本次发布范围，DEV-only SQLite 实验服务不部署或映射到公网。
+
+本轮分别基于各环境实际已发布源码集成最新 main，NEW 既有积分管理扩展继续保留，不借发布将其覆盖或移入正式的其他代码线。发布版本、执行账号与时间以两个环境各自的实际发布记录为准。

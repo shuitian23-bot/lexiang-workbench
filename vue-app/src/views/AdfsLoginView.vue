@@ -52,6 +52,7 @@ import { pocLocalStorage, pocSessionStorage } from '@/services/pocStorage'
 import PocLoginAccountPicker from '@/components/auth/PocLoginAccountPicker.vue'
 import { POC_ACCOUNT_REQUESTS_KEY, POC_EXTERNAL_PASSWORD, findPocLoginAccount, resolvePocLogin } from '@/services/pocExternalLogin'
 import { navigatePocChoice, type PocLoginChoice } from '@/services/pocLoginChoices'
+import { APPROVAL_MAIL_ROWS_KEY } from '@/services/approvalMailReview'
 
 const route = useRoute()
 const router = useRouter()
@@ -103,7 +104,9 @@ async function submitAdfsLogin() {
   }
 
   try {
-    const result = resolvePocLogin(account, password.value, 'internal', allowPocSimulation, () => pocLocalStorage.getItem(POC_ACCOUNT_REQUESTS_KEY))
+    const result = resolvePocLogin(account, password.value, 'internal', allowPocSimulation,
+      () => pocLocalStorage.getItem(POC_ACCOUNT_REQUESTS_KEY),
+      () => pocLocalStorage.getItem(APPROVAL_MAIL_ROWS_KEY))
     if (result) {
       if (result === 'invalid-password' || result === 'wrong-login-type') {
         errorMsg.value = result === 'invalid-password' ? '用户名或密码错误' : '该演示账号属于外部用户，请切换外部用户登录。'

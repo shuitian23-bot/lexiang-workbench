@@ -152,6 +152,15 @@ const pocReleaseLedger = ref({ records: {} })
 const basePocLogRecords = [
   {
     time: '2026-10-26',
+    releaseKey: 'workbench-permission-demo-pr29-20261026',
+    title: '权限申请与独立演示更新',
+    changePoint: '独立演示入口、申请进度和审批流程同步更新，保留正常管理员能力。',
+    detail: 'PR #29 的演示身份与正常登录分开，浏览器演示记录独立保存；申请进度聚焦状态、单号、审批节点和刷新，审批人仍保留完整办理能力。启用表单自动带出人员类型，首次申请在完整审批和最终执行后可重新登录演示。保留无账号审批、组织必填、重复提交和跨页同步检查。演示只影响当前站点当前浏览器的模拟数据，不发送真实邮件、不修改后台账号权限；本机数据库实验不发布到线上。',
+    deployTargets: [],
+    status: '发布状态以环境记录为准'
+  },
+  {
+    time: '2026-10-26',
     releaseKey: 'workbench-mail-approval-demo-20261026',
     title: '审批邮件演示开放',
     changePoint: 'NEW 与正式链接均可使用审批邮件演示和无账号领导审批，保留正常登录。',

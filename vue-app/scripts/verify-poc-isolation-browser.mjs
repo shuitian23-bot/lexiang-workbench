@@ -115,6 +115,32 @@ try {
     await page.getByRole('button', { name: '提交申请', exact: true }).click()
     await page.getByRole('heading', { name: '权限申请已进入审批', exact: true }).waitFor()
     assert.equal(await page.evaluate(prefix => JSON.parse(localStorage.getItem(prefix + 'leaibot-first-access-applications')).length, prefix), 1)
+    const firstAccess = await page.evaluate(prefix => JSON.parse(localStorage.getItem(prefix + 'leaibot-first-access-applications'))[0], prefix)
+    const approvalKey = prefix + 'leaibot-approval-mail-mock-rows'
+    await page.goto(demo + '/agent/permissions?module=approval&ticket=' + firstAccess.id + '&approver=sunll1&viewer=approver&identity=applicant-manager')
+    await page.getByRole('button', { name: '审批', exact: true }).click()
+    await page.getByRole('button', { name: '同意', exact: true }).click()
+    await page.getByRole('button', { name: '提交审批', exact: true }).click()
+    await page.waitForFunction(({ key, id }) => JSON.parse(localStorage.getItem(key)).find(row => row.id === id)?.nodeType === 'business', { key: approvalKey, id: firstAccess.id })
+    // A completed manager approval is still insufficient to resolve first access.
+    await page.goto(demo + '/adfs-login?pocAccount=noaccess')
+    await page.getByRole('button', { name: 'Submit', exact: true }).click()
+    await page.waitForURL(demo + '/access-denied?**')
+    await page.getByRole('heading', { name: '权限申请已进入审批', exact: true }).waitFor()
+    await page.goto(demo + '/agent/permissions?module=approval&ticket=' + firstAccess.id + '&approver=zhangjq4&viewer=approver&identity=business-owner:zhangjq4')
+    await page.getByRole('button', { name: '审批', exact: true }).click()
+    await page.getByRole('button', { name: '同意', exact: true }).click()
+    await page.locator('.approval-business-form button').first().click()
+    await page.getByRole('button', { name: '提交审批', exact: true }).click()
+    await page.waitForFunction(({ key, id }) => {
+      const row = JSON.parse(localStorage.getItem(key)).find(item => item.id === id)
+      return row?.statusKey === 'done' && row.nodeType === 'done'
+        && row.approvalLogs.some(log => log.action === 'execute-success' && log.operator === 'system')
+    }, { key: approvalKey, id: firstAccess.id })
+    await page.goto(demo + '/adfs-login?pocAccount=noaccess')
+    await page.getByRole('button', { name: 'Submit', exact: true }).click()
+    await page.waitForURL(demo + '/agent/permissions')
+    assert.equal(api.length, beforeDemoApi, 'Executed first-access relogin stays inside the POC without backend authentication')
 
     await page.getByRole('link', { name: '选择演示场景', exact: true }).click()
     await page.getByRole('combobox').click()
@@ -147,7 +173,7 @@ try {
     assert.deepEqual(await context.cookies(), cookies, 'Demo must not clear/replace the real session')
     const after = await page.evaluate(prefix => ({ local: Object.fromEntries(Object.entries(localStorage).filter(([key]) => !key.startsWith(prefix))), session: Object.fromEntries(Object.entries(sessionStorage).filter(([key]) => !key.startsWith(prefix))) }), prefix)
     assert.deepEqual(after, original, 'Normal local/session records are unchanged')
-    console.log('First access submission, enable approval/relogin, external-disabled and session/data isolation passed')
+    console.log('First access final execution/relogin, enable approval/relogin, external-disabled and session/data isolation passed')
 
     await page.goto(demo + '/adfs-login?pocAccount=noaccess')
     await page.locator('input[type=password]').fill('wrong')

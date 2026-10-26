@@ -26,7 +26,7 @@ export function findPocLoginAccount(username: unknown, previewEnabled: boolean) 
 
 type PocLoginResult = 'invalid-password' | 'wrong-login-type' | 'disabled' | 'no-access' | 'active' | null
 
-/** Only preview mode may use these synthetic fixtures; never authenticate a server account. */
+/** Only the explicitly enabled browser POC may use synthetic fixtures; never authenticate a server account. */
 export function resolvePocExternalLogin(
   username: string,
   password: string,
@@ -41,13 +41,30 @@ export function resolvePocLogin(
   password: string,
   loginType: PocLoginType,
   previewEnabled: boolean,
-  readRequests: () => string | null
+  readRequests: () => string | null,
+  readFirstAccessApprovals: () => string | null = () => null
 ): PocLoginResult {
   const fixture = findPocLoginAccount(username, previewEnabled)
   if (!fixture) return null
   if (password !== POC_EXTERNAL_PASSWORD) return 'invalid-password'
   if (fixture.loginType !== loginType) return 'wrong-login-type'
-  if (!fixture.disabled) return fixture.accessReason === 'first-access' ? 'no-access' : 'active'
+  if (!fixture.disabled) {
+    if (fixture.accessReason !== 'first-access') return 'active'
+    const approvals: unknown = JSON.parse(readFirstAccessApprovals() || '[]')
+    if (!Array.isArray(approvals)) throw new Error('Invalid POC first-access approval storage')
+    // Only this fixture's executed first-access request changes its browser demo state.
+    const completedFirstAccess = approvals.some((row) => row && typeof row === 'object'
+      && row.source === 'first-access' && row.typeKey === 'change'
+      && row.personType === 'internal' && row.applicantPersonType === 'internal'
+      && typeof row.applicantItcode === 'string' && row.applicantItcode.trim().toLowerCase() === fixture.username
+      && typeof row.targetItcode === 'string' && row.targetItcode.trim().toLowerCase() === fixture.username
+      && row.statusKey === 'done' && row.nodeType === 'done'
+      && Array.isArray(row.businessApprovalTasks) && row.businessApprovalTasks.length > 0
+      && row.businessApprovalTasks.every((task: { status?: string } | null) => task?.status === 'approved')
+      && Array.isArray(row.approvalLogs)
+      && row.approvalLogs.some((log: { action?: string; operator?: string } | null) => log?.action === 'execute-success' && log.operator === 'system'))
+    return completedFirstAccess ? 'active' : 'no-access'
+  }
 
   const rows: unknown = JSON.parse(readRequests() || '[]')
   if (!Array.isArray(rows)) throw new Error('Invalid POC account request storage')
