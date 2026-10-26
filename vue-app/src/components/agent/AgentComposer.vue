@@ -277,7 +277,7 @@ function readFileAsDataUrl(file) {
   flex-wrap: wrap;
   align-items: baseline;
   justify-content: center;
-  gap: 2px 8px;
+  gap: 4px 8px;
   margin-top: 8px;
   padding: 0 4px;
   color: var(--color-text-tertiary);
@@ -305,7 +305,7 @@ function readFileAsDataUrl(file) {
   cursor: pointer;
 }
 .ai-usage-notice-link:hover { color: var(--color-primary-hover); }
-.ai-usage-notice-link:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 3px; border-radius: 2px; }
+.ai-usage-notice-link:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 3px; border-radius: 4px; }
 
 /* Keep the composer as one shared group while making its editable row read as active. */
 :global(html[data-product="leaibot"] body:not(.dark-mode) .ai-composer-box) {
