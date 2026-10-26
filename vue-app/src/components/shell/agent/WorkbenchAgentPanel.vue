@@ -51,6 +51,7 @@
       @send-shortcut="sendShortcut"
       @attach-file="aiStore.attachFile"
       @clear-file="aiStore.clearFile"
+      @show-usage-notice="aiStore.reviewUsageNotice()"
     />
   </div>
 

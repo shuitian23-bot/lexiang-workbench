@@ -73,6 +73,7 @@ async function fixture({ actor = reviewer.id, permissions = reviewer.permissions
   const store = useScenarioSkillPackagesStore()
   const hub = useSkillHubStore()
   const ai = useAIStore()
+  ai.toggleOpen(true); ai.acceptUsageNotice(); ai.toggleOpen(false)
   const owner = scenarioPmActor(store.findPackage(recordId).ownerId, store.selectableSkills)
   if (status === 'rejected') store.rejectPackage(recordId, reviewer, '补充本次场景边界。')
   if (status === 'draft') seedDraft(store, recordId)

@@ -29,6 +29,7 @@
 
   <AppAIPanel />
   <SkillPackageFeedback />
+  <AiUsageNotice />
 </template>
 
 <script setup>
@@ -40,6 +41,7 @@ import AppSidebar   from './shell/sidebar/WorkbenchSidebar.vue'
 import AppTopbar    from './shell/topbar/WorkbenchTopbar.vue'
 import AppAIPanel   from './shell/agent/WorkbenchAgentPanel.vue'
 import SkillPackageFeedback from './agent/SkillPackageFeedback.vue'
+import AiUsageNotice from './agent/AiUsageNotice.vue'
 import TempTabView  from './TempTabView.vue'
 
 const appStore = useAppStore()

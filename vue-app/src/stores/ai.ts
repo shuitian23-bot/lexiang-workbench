@@ -6,6 +6,7 @@ import { defineStore } from 'pinia'
 import { ref, computed, watch } from 'vue'
 import { getGroupLabel, getPageLabel, pageIdToPath, useAppStore, type SkillApplicationReportData } from '@/stores/app'
 import { useScenarioSkillPackagesStore } from '@/stores/scenarioSkillPackages'
+import { createAiUsageConsent } from '@/services/aiUsageConsent'
 import { STORAGE_KEYS, writeBooleanStorage } from '@/constants/storageKeys'
 import { createEmployeeCertificationReport } from '@/services/skillApplicationReport'
 import { applyTaskDecision, expireTask, updateTaskRequest, type AiTaskBlock, type TaskDecision, type TaskRequest } from '@/stores/aiTaskAuthorization'
@@ -122,6 +123,8 @@ const HARNESS_CHAT_ENDPOINT = '/api/harness/chat'
 interface QueuedPayload extends ComposerPayload {
   context: AiRuntimeContext
   queueId: string
+  usageAccount: string | null
+  usageEpoch: number
 }
 
 interface ConversationItem {
@@ -314,6 +317,49 @@ const QUERYABLE_SKILL_AUTH_SCENARIOS: QueryableSkillAuthScenario[] = [
 export const useAIStore = defineStore('ai', () => {
   // ---- 面板开关（对应 STATE.aiOpen）----
   const open        = ref(false)
+  const usageNoticeOpen = ref(false)
+  const usageNoticeMode = ref<'consent' | 'review'>('consent')
+  const usageAccount = useAppStore()
+  const usageConsent = createAiUsageConsent()
+  let noticeAccount: string | null = null
+  let pendingUsageOperation: (() => unknown) | null = null
+  let usageEpoch = 0
+  watch(() => usageAccount.user, () => {
+    usageEpoch++
+    dismissUsageNotice()
+    toggleOpen(false)
+  }, { flush: 'sync' })
+
+  function dismissUsageNotice() {
+    usageNoticeOpen.value = false
+    noticeAccount = null
+    pendingUsageOperation = null
+  }
+
+  function acceptUsageNotice() {
+    if (!usageNoticeOpen.value || usageNoticeMode.value !== 'consent' || noticeAccount !== usageAccount.user) return
+    if (!usageConsent.accept(usageAccount.user)) return
+    const resume = pendingUsageOperation
+    dismissUsageNotice()
+    toggleOpen(true)
+    return resume?.()
+  }
+
+  function reviewUsageNotice() {
+    dismissUsageNotice()
+    usageNoticeMode.value = 'review'
+    usageNoticeOpen.value = true
+  }
+
+  function _ensureUsageConsent(resume?: () => unknown) {
+    if (usageConsent.hasAccepted(usageAccount.user)) return true
+    if (!pendingUsageOperation && resume) pendingUsageOperation = resume
+    noticeAccount = usageAccount.user
+    usageNoticeMode.value = 'consent'
+    usageNoticeOpen.value = true
+    return false
+  }
+
   // ---- 当前会话（对应 STATE.aiConvId / aiLocalConvId / aiLocalMessages）----
   const convId      = ref<string | null>(null)       // 后端 conv_id
   const localConvId = ref(_newLocalId())
@@ -366,6 +412,7 @@ export const useAIStore = defineStore('ai', () => {
   // ===== toggleOpen（对应原 toggleAI）=====
   function toggleOpen(forceState?: boolean) {
     const next = typeof forceState === 'boolean' ? forceState : !open.value
+    if (next && !_ensureUsageConsent()) return
     open.value = next
 
     if (!next) {
@@ -426,11 +473,21 @@ export const useAIStore = defineStore('ai', () => {
   // ===== 发送消息（对应 aiSend：发送 / 排队 / 停止三态）=====
   async function send(pageId: string, context: AiRuntimeContext = {}) {
     const payload = _createComposerPayload(pageId)
+    const draftText = inputText.value, draftFiles = [...attachedFiles.value], draftShortcut = pendingShortcut.value
+    const clearDraft = () => {
+      if (inputText.value === draftText && pendingShortcut.value === draftShortcut
+        && attachedFiles.value.length === draftFiles.length && attachedFiles.value.every((file, index) => file === draftFiles[index])) _clearComposerDraft()
+    }
+    if (payload && !_ensureUsageConsent(() => _sendPayload(payload, context, clearDraft))) return
+    return _sendPayload(payload, context, clearDraft)
+  }
+
+  async function _sendPayload(payload: ComposerPayload | null, context: AiRuntimeContext, clearDraft: () => void) {
     if (payload && _expireScenarioApplications('已开始新的提问，请重新应用技能包以确认本次范围。')) _persistConversation()
 
     if (loading.value) {
       if (payload) {
-        _clearComposerDraft()
+        clearDraft()
         _queuePayload(payload, context)
       } else {
         stopCurrentResponse()
@@ -440,7 +497,7 @@ export const useAIStore = defineStore('ai', () => {
 
     if (!payload) return
 
-    _clearComposerDraft()
+    clearDraft()
     if (_tryLocalCommand(payload, context)) return
     await _runPayload(payload)
   }
@@ -483,6 +540,8 @@ export const useAIStore = defineStore('ai', () => {
     queuedMessages.value.push({
       ...payload,
       context,
+      usageAccount: usageAccount.user,
+      usageEpoch,
       queueId: `aiq_${Date.now()}_${++queueSeq}`
     })
     queueNotice.value = `已加入队列 · ${queuedMessages.value.length} 条待发送`
@@ -570,6 +629,7 @@ export const useAIStore = defineStore('ai', () => {
         ? `正在发送队列 · 剩余 ${queuedMessages.value.length} 条`
         : ''
       setTimeout(() => {
+        if (next.usageAccount !== usageAccount.user || next.usageEpoch !== usageEpoch) return
         if (!_tryLocalCommand(next, next.context || {})) _runPayload(next)
       }, 0)
     } else {
@@ -602,6 +662,11 @@ export const useAIStore = defineStore('ai', () => {
 
   async function runTaskAction(action: TaskAction, pageId = '', context: AiRuntimeContext = {}) {
     if (!action) return
+    if (!usageConsent.hasAccepted(usageAccount.user)) {
+      const pendingAction = JSON.parse(JSON.stringify(action)) as TaskAction
+      _ensureUsageConsent(() => runTaskAction(pendingAction, pageId, context))
+      return
+    }
     if (action.type === 'scenario_application_confirm' || action.type === 'scenario_application_cancel') {
       _resolveScenarioApplication(action)
       return
@@ -654,11 +719,13 @@ export const useAIStore = defineStore('ai', () => {
 
   // ===== 快捷发送（对应 aiQuick）=====
   function quickSend(text: string, pageId: string, context: AiRuntimeContext = {}) {
+    if (usageNoticeOpen.value && pendingUsageOperation) return
     inputText.value = text
     send(pageId, context)
   }
 
   function sendShortcut(label: ShortcutLabel, pageId: string, context: AiRuntimeContext = {}) {
+    if (usageNoticeOpen.value && pendingUsageOperation) return
     pendingShortcut.value = label
     quickSend(shortcutQueries[label] || `在「${label}」范围内分析当前页面，并告诉我下一步需要确认什么。`, pageId, context)
   }
@@ -764,6 +831,7 @@ export const useAIStore = defineStore('ai', () => {
   }
 
   function _expireCurrentAuthorizationTasks() {
+    if (usageNoticeOpen.value && usageNoticeMode.value === 'consent') dismissUsageNotice()
     _expireScenarioApplications('会话已切换，请重新应用技能包。')
     messages.value = messages.value.map(message => message.task
       ? { ...message, task: expireTask(message.task) }
@@ -834,6 +902,10 @@ export const useAIStore = defineStore('ai', () => {
     const actor = _scenarioApplicationActor()
     const eligibility = scenario.applicationEligibility(packageId, actor)
     if (!eligibility.ok) return { ok: false, reason: eligibility.reasons.join('；') }
+    if (!_ensureUsageConsent(() => {
+      const result = applyScenarioPackage(packageId)
+      if (!result.ok) queueNotice.value = result.reason || '当前技能包无法应用，请重新检查。'
+    })) return { ok: true }
     _expireScenarioApplications('已选择新的应用测试，之前的确认已失效。')
     toggleOpen(true)
     const preview = scenario.applicationPreview(packageId, actor, {})
@@ -2050,7 +2122,8 @@ ${reply || _reportIntentReply(payload)}
   }
 
   return {
-    open, convId, localConvId, messages, loading,
+    open, usageNoticeOpen, usageNoticeMode, reviewUsageNotice, dismissUsageNotice, acceptUsageNotice,
+    convId, localConvId, messages, loading,
     queuedMessages, queueNotice, taskLogs, activityItems, skillTuneConfirmation,
     panelWidth, autoCollapsedSidebar,
     inputText, attachedFile, attachedFiles, activeShortcut, shortcuts, inputPlaceholder,

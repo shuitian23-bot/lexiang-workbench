@@ -36,7 +36,8 @@ function fixture(confirmation = false) {
   storage.setItem('leai_scenario_skill_packages_v1', JSON.stringify({ schemaVersion: 2, packages: [item], seededOwners: [] }))
   setActivePinia(createPinia())
   const app = useAppStore(); app.user = 'application-tester'; app.permissions = ['*']
-  return { app, scenario: useScenarioSkillPackagesStore(), ai: useAIStore(), id: item.id }
+  const ai = useAIStore(); ai.toggleOpen(true); ai.acceptUsageNotice(); ai.toggleOpen(false)
+  return { app, scenario: useScenarioSkillPackagesStore(), ai, id: item.id }
 }
 const confirmationAction = ai => ai.messages.flatMap(message => message.actionItems || []).find(action => action.type === 'scenario_application_confirm')
 
@@ -253,7 +254,9 @@ test('reloading stored conversation strips confirmation buttons and cannot repla
   ai.applyScenarioPackage(id)
   const action = confirmationAction(ai), conversation = ai.localConvId
   setActivePinia(createPinia())
+  useAppStore().user = 'application-tester'
   const restored = useAIStore()
+  restored.toggleOpen(true); restored.acceptUsageNotice(); restored.toggleOpen(false)
   restored.restoreConversation(conversation)
   assert.equal(confirmationAction(restored), undefined)
   const count = restored.messages.length

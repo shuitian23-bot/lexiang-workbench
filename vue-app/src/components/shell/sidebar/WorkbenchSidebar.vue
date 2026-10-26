@@ -152,6 +152,15 @@ const pocReleaseLedger = ref({ records: {} })
 const basePocLogRecords = [
   {
     time: '2026-10-26',
+    releaseKey: 'workbench-score-ai-notice-20261026',
+    title: '打分模型与 AI 助手使用提示',
+    changePoint: '领取优惠券支持商品编号或 FA＋商品分类，AI 助手增加首次使用提示及查看入口。',
+    detail: '旧优惠券品类规则保留原记录并停用，按新条件重新配置后仍需手动启用；其他打分规则保持。首次打开或快捷调用 AI 助手时先展示使用提示，同意后继续原操作，取消不发送；同一页面内按账号记忆，刷新后重新提示。保留既有技能包应用、工作流确认、权限及审批流程，未调整其他模块。发布情况分别以各环境实际记录为准。',
+    deployTargets: [],
+    status: '发布状态以环境记录为准'
+  },
+  {
+    time: '2026-10-26',
     releaseKey: 'workbench-permission-demo-pr29-20261026',
     title: '权限申请与独立演示更新',
     changePoint: '独立演示入口、申请进度和审批流程同步更新，保留正常管理员能力。',
