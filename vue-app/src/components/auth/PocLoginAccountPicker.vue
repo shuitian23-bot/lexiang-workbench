@@ -18,9 +18,9 @@
       @click="showOptions"
       @keydown="onKeydown"
     />
-    <span :id="id + '-hint'" class="poc-account-hint">仅 POC：选择演示账号后自动填充密码，不自动登录。</span>
-    <div v-if="open" class="poc-account-popup">
-      <ul :id="id + '-options'" role="listbox" aria-label="POC 演示账号">
+    <span :id="id + '-hint'" class="poc-account-hint">演示账号使用模拟数据；管理员正常登录仍需身份验证。不自动登录。</span>
+    <div v-if="open" class="poc-account-popup" :class="{ 'opens-above': opensAbove }">
+      <ul :id="id + '-options'" :style="{ maxHeight: popupHeight + 'px' }" role="listbox" aria-label="POC 演示账号">
         <li
           v-for="(account, index) in accounts"
           :id="id + '-option-' + index"
@@ -54,6 +54,18 @@ const accounts = POC_LOGIN_CHOICES
 const root = ref<HTMLElement | null>(null)
 const open = ref(false)
 const activeIndex = ref(-1)
+const opensAbove = ref(false)
+const popupHeight = ref(320)
+
+function positionOptions() {
+  if (!open.value || !root.value) return
+  const rect = root.value.getBoundingClientRect()
+  const below = Math.max(0, window.innerHeight - rect.bottom - 12)
+  const above = Math.max(0, rect.top - 12)
+  const desired = Math.min(320, window.innerHeight * 0.4, root.value.querySelector('ul')?.scrollHeight ?? 320)
+  opensAbove.value = below < desired && above > below
+  popupHeight.value = Math.max(0, Math.min(desired, (opensAbove.value ? above : below) - 2))
+}
 
 function closeOptions() {
   open.value = false
@@ -61,6 +73,7 @@ function closeOptions() {
 }
 function showOptions() {
   open.value = accounts.length > 0
+  nextTick(positionOptions)
 }
 function onInput(event: Event) {
   emit('update:modelValue', (event.target as HTMLInputElement).value)
@@ -100,8 +113,16 @@ function onKeydown(event: KeyboardEvent) {
     }
   } else if (event.key === 'Tab') closeOptions()
 }
-onMounted(() => document.addEventListener('pointerdown', onPointerDown))
-onUnmounted(() => document.removeEventListener('pointerdown', onPointerDown))
+onMounted(() => {
+  document.addEventListener('pointerdown', onPointerDown)
+  window.addEventListener('resize', positionOptions)
+  document.addEventListener('scroll', positionOptions, true)
+})
+onUnmounted(() => {
+  document.removeEventListener('pointerdown', onPointerDown)
+  window.removeEventListener('resize', positionOptions)
+  document.removeEventListener('scroll', positionOptions, true)
+})
 </script>
 
 <style scoped>
@@ -127,12 +148,14 @@ onUnmounted(() => document.removeEventListener('pointerdown', onPointerDown))
   overflow: hidden;
 }
 .poc-account-popup ul {
+  box-sizing: border-box;
   list-style: none;
   margin: 0;
   padding: 4px;
   max-height: min(320px, 40vh);
   overflow-y: auto;
 }
+.poc-account-popup.opens-above { top: auto; bottom: calc(100% + 4px); }
 .poc-account-popup li {
   padding: 8px 12px;
   border-radius: var(--radius-md);

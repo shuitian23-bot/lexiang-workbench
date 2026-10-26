@@ -40,14 +40,14 @@ export interface AccountEnableRequest {
   time: string
   logs: Array<{ node: string; detail: string; time: string }>
 }
-export interface EnableSubmission { request: AccountEnableRequest; duplicate: boolean }
+export interface EnableSubmission { request: AccountEnableRequest; duplicate: boolean; persistence?: 'lab' | 'browser' }
 type RequestStorage = Pick<Storage, 'getItem' | 'setItem'>
 
 export function validateEnableRequest(draft: EnableRequestDraft): EnableErrors {
   const errors: EnableErrors = {}
   if (!draft.itcode.trim() || !draft.systemApprover.trim()
     || !['internal', 'external'].includes(draft.personType)) errors.identity = '申请身份或审批人信息不完整，请重新进入申请。'
-  if (draft.personType === 'internal' && !draft.targetItcode.trim()) errors.targetItcode = '请填写被申请人 ITCode。'
+  if (draft.personType === 'internal' && !draft.targetItcode.trim()) errors.targetItcode = '请填写被申请人账号。'
   if (draft.personType === 'external') {
     if (!draft.targetUser.trim()) errors.targetUser = '请填写被申请人用户名。'
     if (!draft.relatedAccount.trim()) errors.relatedAccount = '请填写负责对接的内部员工 ITCode。'

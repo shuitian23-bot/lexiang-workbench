@@ -87,3 +87,5 @@ public/leaip0/brand/index.html|brand-card-hover-20261021-7|P0品牌频道卡片�
 public/leaip0/modules/pages/brand-home/index.css|lxbrand-card-overlay|P0品牌频道卡片悬浮蒙层
 public/leaip0/modules/pages/brand-home/index.js|lxbrand-card-interpret|P0品牌频道卡片乐享解读按钮
 public/leaip0/assets/icons/global-sparkle-white.svg|<svg|P0品牌频道乐享解读四芒星图标
+public/leaip0/modules/shared/agent-content/index.css|split-toggle-topnav-20261023-1|P0对话全屏按钮移至右上角快捷导航
+public/leaip0/modules/shared/agent-content/index.css|reco-subtitle-under-title-20261023-3|P0商品推荐结果说明移至标题下方

@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
 import { useAppStore } from '@/stores/app'
-import { allowPreviewAuth } from '@/config/runtimeMode'
+import { allowPocLogin, appBase, isPocSandbox, normalAppBase } from '@/config/runtimeMode'
 import { aiInspectRoutes } from '@/views/aiinspect/routes'
 import { ACTIVITY_POINTS_MENU, canUseActivityPoints } from '@/services/activityPointsAccess'
 import { showWorkbenchToast } from '@/services/toast'
@@ -169,22 +169,35 @@ const routes: RouteRecordRaw[] = [
   }
 ]
 
+// A separate route tree prevents demo identities from entering the real workbench.
+const demoRoutes: RouteRecordRaw[] = [{
+  path: '/',
+  component: () => import('@/views/PocDemoLayout.vue'),
+  children: [
+    ...routes.filter(route => route.meta?.public),
+    { path: '/agent/permissions', component: AgentPermissions, meta: { public: true } },
+    { path: '/:pathMatch(.*)*', redirect: '/login' }
+  ]
+}]
+
 const router = createRouter({
-  history: createWebHistory(import.meta.env.BASE_URL),
-  routes
+  history: createWebHistory(appBase),
+  routes: isPocSandbox ? demoRoutes : routes
 })
 
 // 全局导航守卫：未登录跳转 /login
 router.beforeEach(async (to) => {
+  if (isPocSandbox) {
+    if (!allowPocLogin) {
+      window.location.replace(normalAppBase + 'login')
+      return false
+    }
+    return true
+  }
   const appStore = useAppStore()
 
   if (to.path === '/login' || to.path === '/adfs-login') {
     if (appStore.user) return '/portal/home'
-    const previewUser = localStorage.getItem('preview_user')
-    if (allowPreviewAuth && previewUser) {
-      appStore.usePreviewSession(previewUser)
-      return '/portal/home'
-    }
     return true
   }
 
@@ -195,9 +208,8 @@ router.beforeEach(async (to) => {
     try {
       await appStore.loadUserContext()
     } catch {
-      if (allowPreviewAuth) appStore.usePreviewSession('demo')
+      appStore.user = null
     }
-    if (!appStore.user && allowPreviewAuth) appStore.usePreviewSession('demo')
     if (!appStore.user) {
       return { path: '/login', query: { redirect: to.fullPath } }
     }

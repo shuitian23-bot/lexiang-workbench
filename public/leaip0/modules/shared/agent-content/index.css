@@ -1936,6 +1936,24 @@ html body:is([data-page="home"],[data-page="personal"],[data-page="business"],[d
     height: 82px !important;
   }
 }
+
+/* Release marker: reco-subtitle-under-title-20261023-3 */
+/* Keep product-result guidance below its heading on every split-view entry, including root. */
+html body.lx-home-split:not(.assistant-fullscreen) main.shell > section.content[data-view="reco"] .reco-page > .reco-head {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  justify-content: flex-start !important;
+  gap: 4px !important;
+}
+
+html body.lx-home-split:not(.assistant-fullscreen) main.shell > section.content[data-view="reco"] .reco-page > .reco-head > span {
+  align-self: flex-start !important;
+  max-width: 100% !important;
+  padding-top: 0 !important;
+  text-align: left !important;
+  white-space: normal !important;
+}
 }
 @media (-p0-part: pb444b39b16c812276a72) {
 
@@ -8729,4 +8747,39 @@ body.assistant-fullscreen .lxfd:has(.lxfd-stage.lxfd-gallery-home:not(.is-chatti
   min-height:100vh!important;
   max-height:none!important;
   overflow:visible!important;
+}
+
+
+/* Release marker: split-toggle-topnav-20261023-1 */
+/* Keep the conversation toggle aligned with the global utility navigation. */
+.topbar .topbar-assistant-toggle {
+  display: inline-flex !important;
+  flex: 0 0 32px !important;
+  width: 32px !important;
+  height: 32px !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 !important;
+  border: 1px solid #e2ddeb !important;
+  border-radius: 8px !important;
+  background: #ffffff !important;
+  color: #321d39 !important;
+  box-shadow: 0 2px 8px rgba(50, 29, 57, 0.06) !important;
+}
+.topbar .topbar-assistant-toggle .icon {
+  width: 17px !important;
+  height: 17px !important;
+}
+.topbar .topbar-assistant-toggle:hover,
+.topbar .topbar-assistant-toggle:focus-visible {
+  border-color: #cbbbd7 !important;
+  background: #f6f0f8 !important;
+  box-shadow: 0 4px 12px rgba(50, 29, 57, 0.1) !important;
+}
+@media (max-width: 1500px) {
+  .topbar .topbar-assistant-toggle {
+    flex-basis: 26px !important;
+    width: 26px !important;
+    height: 26px !important;
+  }
 }

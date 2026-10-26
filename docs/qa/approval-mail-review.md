@@ -14,7 +14,7 @@
 - 2026-10-20：有账号弹窗和无账号独立页同步移除独立的「业务负责人审批进度」面板。负责人信息由基本信息展示，节点状态由完整审批链路展示；审批任务数据、历史兼容、所属组织校验与流转逻辑不变。
 - 有账号入口继续打开系统内审批列表和原弹窗，权限调整能力不变。无账号入口仅供直线经理、业务负责人审批；申请人、被申请人通知和系统管理员审批仍走原入口。
 - 1440×900、1280×720、390×844；独立页卡片正文滚动，底部动作可见；已处理/未流转到本人时只读，错误/过期链接不得展示申请数据。
-- 仅本地 preview 或 NEW 域名 `new.leaibot.cn` 开放审批 POC。NEW 保持 `server` 登录模式，通过独立的 `allowApprovalMailDemo` 控制审批演示，不创建预览登录会话。无真实邮件或后端匿名审批接口；token 是本地模拟校验，不能作为生产安全方案。正式接入需后端签发并校验收件人、单号、节点、有效期、撤销状态和幂等性。正式域名和其他域名的 server 模式独立页仍拒绝处理。
+- 本地 preview、NEW 域名 `new.leaibot.cn` 和正式域名 `leaibot.cn` 开放审批 POC。两个已授权域名保持 `server` 登录模式，通过独立的 `allowApprovalMailDemo` 控制审批演示，不创建预览登录会话。无真实邮件或后端匿名审批接口；token 是本地模拟校验，不能作为生产安全方案。正式接入需后端签发并校验收件人、单号、节点、有效期、撤销状态和幂等性。其他域名的 server 模式独立页仍拒绝处理。2026-10-26 用户明确要求正式链接也可演示，按此新授权扩展精确域名范围，不改变此前记录的原验收历史。
 
 ## 演示步骤
 
@@ -31,7 +31,7 @@
 - 单元：支持原生 TypeScript 的 Node 执行 `node --test scripts/approval-mail-review.test.mjs`。
 - 浏览器：在 vue-app 下设置 `PERMISSION_QA_BASE_URL` 指向 preview 服务，执行 `node scripts/verify-approval-mail-review-browser.mjs`。使用隔离浏览器上下文，不改用户演示数据；截图在系统临时目录 `approval-mail-review-qa`。
 - 工程：类型、lint、设计守卫、相关权限/登录回归、隔离目录构建、shell smoke。构建禁止覆盖 public/admin-vue。
-- 正式模式隔离可复验：先构建 server 认证模式并启动隔离 preview，再设置 `APPROVAL_SERVER_QA_BASE_URL` 后执行同一浏览器脚本。即使注入一条有效的 POC 本地记录，也不得展示申请内容或允许审批。
+- 非授权域名的 server 模式隔离可复验：先构建 server 认证模式并在 localhost/127.0.0.1 启动隔离 preview，再设置 `APPROVAL_SERVER_QA_BASE_URL` 后执行同一浏览器脚本。即使注入一条有效的 POC 本地记录，也不得展示申请内容或允许审批。
 
 ## 2026-10-19 验证证据
 
