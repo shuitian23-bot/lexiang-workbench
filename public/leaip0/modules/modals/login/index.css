@@ -179,3 +179,6 @@ html body .lx-p0-modal.lx-auth-modal .lx-auth-primary:focus-visible {
 
 /* Match the parent authentication dialog corner radius at both breakpoints. */
 @media(max-width:760px){.lx-login-consent{border-radius:20px}}
+
+/* Scale the consent surface and its contents together, keeping viewport centering. */
+.lx-login-consent{transform:scale(.92);transform-origin:center}
