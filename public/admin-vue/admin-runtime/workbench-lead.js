@@ -1667,7 +1667,7 @@
     { key: 'budgetCA', label: '预算（CA）', options: ['1-5台', '5-10台', '10台以上'] },
   ];
   const RULE_SITES=[{value:'enterprise',label:'企业购'},{value:'government',label:'政企'}];
-  const PAGE_SITES=['政企','企业购','自定义页面'],NO_BROWSE_SITES=['政企','企业购','官网','自定义页面'],COUPON_CATEGORIES=['主机','选件','服务','通用券'];
+  const PAGE_SITES=['政企','企业购','自定义页面'],NO_BROWSE_SITES=['政企','企业购','官网','自定义页面'];
   const BEHAVIOR_FIELDS = [
     { key: 'consultCount', label: '在线咨询次数', target: 'select', opts: ['1次', '2-3次', '4-7次', '7次以上'], noCount: true },
     { key: 'phoneDuration', label: '电话沟通时长', target: 'select', opts: ['小于30s', '大于30s'], noCount: true },
@@ -1688,6 +1688,13 @@
   const COUNT_OPS = [{ value: 'eq', label: '=' }, { value: 'gte', label: '≥' }, { value: 'lte', label: '≤' }];
   const SCORE_FA_OPTIONS = ['ThinkPad', 'ThinkBook', 'Yoga', '拯救者', '扬天'];
   const SCORE_PRODUCT_GROUP_OPTIONS = ['笔记本', '台式机', '工作站', '服务器', '选件'];
+  const SCORE_PRODUCT_CATEGORY_OPTIONS = ['笔记本标准化版', '分体式台式机标准化版', '一体式台式机标准化版', '平板标准分类', '显示器标准化版'];
+  function hasCouponProductTarget(c) {
+    return c.targetMode === 'code'
+      ? String(c.target || '').split(',').some(code => code.trim())
+      : c.targetMode === 'faProduct' && !!String(c.fa || '').trim() && !!String(c.productGroup || '').trim();
+  }
+  function isLegacyCouponCondition(c) { return c.behavior === 'coupon' && !!c.couponCategory && !hasCouponProductTarget(c); }
   const attrField = k => ATTR_FIELDS.find(f => f.key === k) || ATTR_FIELDS[0];
   const behField = k => BEHAVIOR_FIELDS.find(f => f.key === k) || BEHAVIOR_FIELDS[0];
   const srReqTarget = k => { const f = behField(k); return !!(f.url || f.code || f.productTarget || f.searchTarget); }; // 需填 url/编码/业务对象
@@ -1696,7 +1703,10 @@
     { name: '长期未登录', site: 'government', kind: 'sub', score: 5, cap: 1, enabled: true, attrLogic: 'and', attrConditions: [], groupLogic: 'and', behaviorLogic: 'and', behaviorConditions: [{ dayFrom: '', dayTo: '', verb: 'not', behavior: 'login', sub: '', target: '', count: '180', device: 'PC端' }] },
   ];
   function normalizeScoreRule(rule,i){const z=Object.assign({id:'SR-'+(Date.now()+i),createdAt:Date.now()+i,site:'enterprise'},rule);z.behaviorConditions=(z.behaviorConditions||[]).map(raw=>{const c=Object.assign({toNow:false,verb:'did',urlMatch:'contains',siteTarget:'政企',couponCategory:'',links:[''],keywords:[]},raw);if(c.behavior==='touch')c.behavior='pageView';if(c.behavior==='pageView'&&raw.verb==='not'){c.behavior='noBrowse';c.siteTarget=NO_BROWSE_SITES.includes(c.sub)?c.sub:'政企'}c.verb='did';return c});const dated=z.behaviorConditions.find(c=>c.dayFrom||c.dayTo||c.toNow)||{};if(z.behaviorDayFrom==null)z.behaviorDayFrom=dated.dayFrom||'';if(z.behaviorDayTo==null)z.behaviorDayTo=dated.dayTo||'';if(z.behaviorToNow==null)z.behaviorToNow=!!dated.toNow;return z}
-  LEAD.scoreRules=((JSON.parse(localStorage.getItem(SR_KEY)||'null'))||DEFAULT_RULES).map(normalizeScoreRule);
+  const storedScoreRules = JSON.parse(localStorage.getItem(SR_KEY) || 'null') || DEFAULT_RULES;
+  const migratedScoreRules = storedScoreRules.map(rule => (rule.behaviorConditions || []).some(isLegacyCouponCondition) && rule.enabled !== false ? { ...rule, enabled: false } : rule);
+  if (migratedScoreRules.some((rule, i) => rule !== storedScoreRules[i])) localStorage.setItem(SR_KEY, JSON.stringify(migratedScoreRules));
+  LEAD.scoreRules = migratedScoreRules.map(normalizeScoreRule);
   LEAD.srf = null; LEAD.srEditId = null; LEAD.scoreSiteFilter = 'enterprise';
   function saveScoreRules() { localStorage.setItem(SR_KEY, JSON.stringify(LEAD.scoreRules)); }
   function makeAttrCond() { return { field: ATTR_FIELDS[0].key, op: 'eq', value: ATTR_FIELDS[0].options[0] }; }
@@ -1737,7 +1747,7 @@
         }
         if(bf.key==='search'&&c.sub==='搜索关键词')tg=' 搜索关键词：' + (c.keywords || []).filter(Boolean).join('、');
         if(bf.key==='pageView')tg=c.sub==='自定义页面'?' '+(c.urlMatch==='equals'?'等于':'包含')+'：'+(c.target||'-'):'';
-        if(bf.key==='coupon')tg=' 品类：'+(c.couponCategory||'-');
+        if(bf.key==='coupon')tg=isLegacyCouponCondition(c)?' 品类：'+c.couponCategory+'（待重新配置）':c.targetMode==='faProduct'?' FA + 商品分类：'+(c.fa||'-')+' / '+(c.productGroup||'-'):' 商品编号：'+(c.target||'-');
         if(bf.key==='noBrowse')tg=' 站点：'+(c.siteTarget||'-')+(c.siteTarget==='自定义页面'?' URL：'+(c.target||'-'):'');
         return verbT + bf.label + (subT ? '·' + subT : '') + tg + condCountText(c);
       }).join(rule.behaviorLogic === 'or' ? ' 或 ' : ' 且 ');
@@ -1811,7 +1821,7 @@
   window.leadScoreSetSite = function (site) { if (!RULE_SITES.some(x => x.value === site)) return; LEAD.scoreSiteFilter = site; scoreRefresh(); };
   window.leadScoreOpenAdd = function () { if (!canEditScore()) return; LEAD.srEditId = null; LEAD.srf = blankRuleForm(); LEAD.srf.site = LEAD.scoreSiteFilter; renderRuleModal(); };
   window.leadScoreOpenEdit = function (id) { if (!canEditScore()) return; const r = LEAD.scoreRules.find(x => x.id === id); if (!r) return; LEAD.srEditId = id; LEAD.srf = JSON.parse(JSON.stringify(r)); renderRuleModal(); };
-  window.leadScoreToggle = function (id) { const r = LEAD.scoreRules.find(x => x.id === id); if (!r) return; r.enabled = !r.enabled; saveScoreRules(); scoreRefresh(); toast(r.enabled ? '规则已启用' : '规则已停用'); };
+  window.leadScoreToggle = function (id) { const r = LEAD.scoreRules.find(x => x.id === id); if (!r) return; if (!r.enabled && r.behaviorConditions.some(isLegacyCouponCondition)) return toast('请按新条件重新配置后再启用', 'warn'); r.enabled = !r.enabled; saveScoreRules(); scoreRefresh(); toast(r.enabled ? '规则已启用' : '规则已停用'); };
 
   function srSeg(curr, key) {
     return `<div class="lead-seg">
@@ -1853,7 +1863,15 @@
         const codeCtl = mode === 'code' ? `<input class="lead-inp" style="flex:1;min-width:260px" placeholder="请输入商品编码，多个用英文,隔开" value="${esc(c.target || '')}" oninput="leadSRBeh(${i},'target',this.value)">` : '';
         inputCtl = modeCtl + (mode === 'code' ? codeCtl : faCtl + pgCtl);
       }
-      if(bf.key==='coupon')inputCtl=`<select class="lead-inp" onchange="leadSRBeh(${i},'couponCategory',this.value)"><option value="">请选择</option>${COUPON_CATEGORIES.map(v=>`<option ${c.couponCategory===v?'selected':''}>${v}</option>`).join('')}</select>`;
+      if(bf.key==='coupon'){
+        const couponMode=c.targetMode==='faProduct'?'faProduct':'code';
+        const couponModeCtl=`<select class="lead-inp" style="min-width:150px" aria-label="优惠券选择方式" onchange="leadSRProductTargetMode(${i},this.value)"><option value="code" ${couponMode==='code'?'selected':''}>商品编号</option><option value="faProduct" ${couponMode==='faProduct'?'selected':''}>FA + 商品分类</option></select>`;
+        const couponCodeCtl=`<input class="lead-inp" style="flex:1;min-width:260px" aria-label="商品编号" placeholder="请输入商品编号，多个用英文,隔开" value="${esc(c.target||'')}" oninput="leadSRBeh(${i},'target',this.value)">`;
+        const couponFaCtl=`<select class="lead-inp" style="min-width:120px" aria-label="FA" onchange="leadSRBeh(${i},'fa',this.value)"><option value="">选择FA</option>${SCORE_FA_OPTIONS.map(v=>`<option ${c.fa===v?'selected':''}>${v}</option>`).join('')}</select>`;
+        const couponProductCategoryCtl=`<select class="lead-inp" style="min-width:190px" aria-label="商品分类" onchange="leadSRBeh(${i},'productGroup',this.value)"><option value="">选择商品分类</option>${SCORE_PRODUCT_CATEGORY_OPTIONS.map(v=>`<option ${c.productGroup===v?'selected':''}>${v}</option>`).join('')}</select>`;
+        const legacyNotice=isLegacyCouponCondition(c)?`<span style="flex-basis:100%;color:var(--text-secondary)">原条件：品类：${esc(c.couponCategory)}（已停用，请按新条件重新配置）</span>`:'';
+        inputCtl=couponModeCtl+(couponMode==='code'?couponCodeCtl:couponFaCtl+couponProductCategoryCtl)+legacyNotice;
+      }
       if(bf.key==='noBrowse'){subCtl='';inputCtl=`<select class="lead-inp" onchange="leadSRBeh(${i},'siteTarget',this.value)">${NO_BROWSE_SITES.map(v=>`<option ${c.siteTarget===v?'selected':''}>${v}</option>`).join('')}</select>`+(c.siteTarget==='自定义页面'?`<input class="lead-inp" placeholder="请输入URL" value="${esc(c.target||'')}" oninput="leadSRBeh(${i},'target',this.value)">`:'')}
       if (bf.key === 'search') {
         if (c.sub === '搜索关键词') {
@@ -1905,10 +1923,10 @@
   window.leadSRAttrField = function (i, v) { const c = LEAD.srf.attrConditions[i]; c.field = v; c.value = attrField(v).options[0]; renderRuleModal(); };
   window.leadSRAttrAdd = function () { LEAD.srf.attrConditions.push(makeAttrCond()); renderRuleModal(); };
   window.leadSRAttrDel = function (i) { LEAD.srf.attrConditions.splice(i, 1); renderRuleModal(); };
-  window.leadSRBeh = function (i, k, v) { const c = LEAD.srf.behaviorConditions[i]; c[k] = v; if (k === 'target' || k === 'sub' || k === 'siteTarget') renderRuleModal(); };
+  window.leadSRBeh = function (i, k, v) { const c = LEAD.srf.behaviorConditions[i]; c[k] = v; if ((k === 'target' && c.behavior !== 'coupon') || k === 'sub' || k === 'siteTarget') renderRuleModal(); };
   window.leadSRBehField = function (i, v) {
     const c = LEAD.srf.behaviorConditions[i], bf = behField(v);
-    c.behavior=v;c.verb='did';c.target='';c.count='';c.urlMatch='contains';c.siteTarget='政企';c.couponCategory=''; c.targetMode = bf.productTarget ? 'fa' : 'fa'; c.fa = ''; c.productGroup = ''; c.links = ['']; c.keywords = ['']; c.toNow = false;
+    c.behavior=v;c.verb='did';c.target='';c.count='';c.urlMatch='contains';c.siteTarget='政企';c.couponCategory=''; c.targetMode = v === 'coupon' ? 'code' : 'fa'; c.fa = ''; c.productGroup = ''; c.links = ['']; c.keywords = ['']; c.toNow = false;
     c.sub = bf.sub ? bf.sub[0] : (bf.opts ? bf.opts[0] : '');
     renderRuleModal();
   };
@@ -1954,7 +1972,14 @@
           if (!c.keywords.length) return toast('请至少填写 1 个搜索关键词', 'warn');
         } else if (!String(c.target || '').trim()) return toast('搜索页面请填写 URL', 'warn');
       }else if(bf.key==='pageView'&&c.sub==='自定义页面'&&!String(c.target||'').trim())return toast('自定义页面请填写 URL','warn');
-      else if(bf.key==='coupon'&&!c.couponCategory)return toast('请选择优惠券品类','warn');
+      else if(bf.key==='coupon'){
+        const mode=c.targetMode==='faProduct'?'faProduct':'code';
+        if(mode==='code'&&!String(c.target||'').split(',').some(code=>code.trim()))return toast('领取优惠券请至少填写 1 个商品编号','warn');
+        if(mode==='faProduct'&&!String(c.fa||'').trim())return toast('领取优惠券请选择 FA','warn');
+        if(mode==='faProduct'&&!String(c.productGroup||'').trim())return toast('领取优惠券请选择商品分类','warn');
+        c.targetMode=mode;
+        delete c.couponCategory;
+      }
       else if(bf.key==='noBrowse'&&c.siteTarget==='自定义页面'&&!String(c.target||'').trim())return toast('未浏览选择自定义页面时请填写 URL','warn');
       else if ((bf.url || bf.code) && !c.target) return toast(`行为「${bf.label}」需填写${bf.code ? '商品编码' : 'URL'}`, 'warn');
       if (bf.noCount || bf.key === 'noOpportunity') continue;
