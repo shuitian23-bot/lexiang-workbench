@@ -1761,8 +1761,8 @@ window.__p0Modules.sources["uc7d8102785209270"]=function(){
     };
 
     thread.scrollTop = thread.scrollHeight;
-    await window.__lxGeneration.wait(__lxGenerationToken,(pushTrace("联想乐享正在判断", 1240, true)));
-    await window.__lxGeneration.wait(__lxGenerationToken,(pushTrace("已判断：文档解读任务", 840)));
+    await window.__lxGeneration.wait(__lxGenerationToken,(pushTrace("联想乐享正在识别", 1240, true)));
+    await window.__lxGeneration.wait(__lxGenerationToken,(pushTrace("已识别：文档解读任务", 840)));
     await window.__lxGeneration.wait(__lxGenerationToken,(pushTrace("联想乐享官方 SKILL：正在调用 Skill(文档解读)", 1040)));
     await window.__lxGeneration.wait(__lxGenerationToken,(pushTrace("正在读取文档结构与正文", 1240)));
 
@@ -1810,13 +1810,13 @@ window.__p0Modules.sources["uc7d8102785209270"]=function(){
     const ai = document.createElement("div");
     ai.className = "lxfd-msg-ai";
     ai._loadingStarted = Date.now();
-    ai._traceLines = ["联想乐享正在判断你的门店需求"];
+    ai._traceLines = ["联想乐享正在识别你的门店需求"];
     ai._traceSkills = new Set();
     ai.innerHTML = '<div class="lxfd-ai-body"></div>';
     thread?.appendChild(ai);
     lxfdRenderTraceLive(ai);
     await window.__lxGeneration.wait(__lxGenerationToken,(lxfdWait(420)));
-    ai._traceLines.push("已判断：需要查询当前位置附近的联想授权门店");
+    ai._traceLines.push("已识别：需要查询当前位置附近的联想授权门店");
     lxfdRenderTraceLive(ai);
     await window.__lxGeneration.wait(__lxGenerationToken,(lxfdWait(520)));
     ai._traceSkills.add("Skill(附近门店查询)");
@@ -1887,14 +1887,14 @@ window.__p0Modules.sources["uc7d8102785209270"]=function(){
     const ai = document.createElement("div");
     ai.className = "lxfd-msg-ai lx-chat-skin lx-auth-flow-answer";
     ai._loadingStarted = Date.now();
-    ai._traceLines = ["联想乐享正在判断你的企业留资需求"];
+    ai._traceLines = ["联想乐享正在识别你的企业留资需求"];
     ai._traceSkills = new Set();
     ai.innerHTML = '<div class="lxfd-ai-body"></div>';
     thread?.appendChild(ai);
     lxfdRenderTraceLive(ai);
     try {
       await window.__lxGeneration.wait(__lxGenerationToken,(lxfdWait(reduceMotion ? 0 : 420)));
-      ai._traceLines.push("已判断：需要进入企业采购需求留资流程");
+      ai._traceLines.push("已识别：需要进入企业采购需求留资流程");
       lxfdRenderTraceLive(ai);
       await window.__lxGeneration.wait(__lxGenerationToken,(lxfdWait(reduceMotion ? 0 : 520)));
       const skillName = "Skill(企业采购需求留资)";
@@ -1964,14 +1964,14 @@ window.__p0Modules.sources["uc7d8102785209270"]=function(){
     const ai = document.createElement("div");
     ai.className = "lxfd-msg-ai lx-chat-skin lx-payment-confirm-answer";
     ai._loadingStarted = Date.now();
-    ai._traceLines = ["联想乐享正在判断你的优惠下单需求"];
+    ai._traceLines = ["联想乐享正在识别你的优惠下单需求"];
     ai._traceSkills = new Set();
     ai.innerHTML = '<div class="lxfd-ai-body"></div>';
     thread?.appendChild(ai);
     lxfdRenderTraceLive(ai);
     try {
       await window.__lxGeneration.wait(__lxGenerationToken,(lxfdWait(reduceMotion ? 0 : 420)));
-      ai._traceLines.push(`已判断：需要核对${item.name || "当前商品"}与当前账户可用优惠`);
+      ai._traceLines.push(`已识别：需要核对${item.name || "当前商品"}与当前账户可用优惠`);
       lxfdRenderTraceLive(ai);
       await window.__lxGeneration.wait(__lxGenerationToken,(lxfdWait(reduceMotion ? 0 : 520)));
       ai._traceSkills.add("Skill(优惠领取与订单生成)");
@@ -2011,14 +2011,14 @@ window.__p0Modules.sources["uc7d8102785209270"]=function(){
     const ai = document.createElement("div");
     ai.className = "lxfd-msg-ai lx-chat-skin";
     ai._loadingStarted = Date.now();
-    ai._traceLines = [isDiamond ? "联想乐享正在判断你的企业钻石会员升级需求" : (isEnterprise ? "联想乐享正在判断你的企业会员认证需求" : (isWorkplace ? "联想乐享正在判断你的职场认证需求" : "联想乐享正在判断你的教育认证需求"))];
+    ai._traceLines = [isDiamond ? "联想乐享正在识别你的企业钻石会员升级需求" : (isEnterprise ? "联想乐享正在识别你的企业会员认证需求" : (isWorkplace ? "联想乐享正在识别你的职场认证需求" : "联想乐享正在识别你的教育认证需求"))];
     ai._traceSkills = new Set();
     ai.innerHTML = '<div class="lxfd-ai-body"></div>';
     thread?.appendChild(ai);
     lxfdRenderTraceLive(ai);
     try {
       await window.__lxGeneration.wait(__lxGenerationToken,(lxfdWait(reduceMotion ? 0 : 420)));
-      ai._traceLines.push(isDiamond ? "已判断：需要进入企业钻石会员升级认证流程" : (isEnterprise ? "已判断：需要进入企业采购负责人认证流程" : (isWorkplace ? "已判断：需要进入企业在职身份认证流程" : "已判断：需要进入教育身份认证流程")));
+      ai._traceLines.push(isDiamond ? "已识别：需要进入企业钻石会员升级认证流程" : (isEnterprise ? "已识别：需要进入企业采购负责人认证流程" : (isWorkplace ? "已识别：需要进入企业在职身份认证流程" : "已识别：需要进入教育身份认证流程")));
       lxfdRenderTraceLive(ai);
       await window.__lxGeneration.wait(__lxGenerationToken,(lxfdWait(reduceMotion ? 0 : 520)));
       const skillName = isDiamond ? "Skill(企业钻石会员升级认证)" : (isEnterprise ? "Skill(企业会员身份认证)" : (isWorkplace ? "Skill(职场身份认证)" : "Skill(教育身份认证)"));
@@ -2145,7 +2145,7 @@ window.__p0Modules.sources["uc7d8102785209270"]=function(){
         const solutionAi = document.createElement("div");
         solutionAi.className = "lxfd-msg-ai";
         solutionAi._loadingStarted = Date.now();
-        solutionAi._traceLines = ["联想乐享正在判断"];
+        solutionAi._traceLines = ["联想乐享正在识别"];
         solutionAi._traceSkills = new Set();
         solutionAi._traceCollapsed = false;
         solutionAi.innerHTML = '<div class="lxfd-ai-body"></div>';
@@ -2154,7 +2154,7 @@ window.__p0Modules.sources["uc7d8102785209270"]=function(){
         solutionAi.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "end" });
 
         await window.__lxGeneration.wait(__lxGenerationToken,(lxfdWait(reduceMotion ? 0 : 520)));
-        solutionAi._traceLines.push("已判断："+(scoped?scoped.title:"全集解决方案")+"检索任务");
+        solutionAi._traceLines.push("已识别："+(scoped?scoped.title:"全集解决方案")+"检索任务");
         lxfdRenderTraceLive(solutionAi);
         await window.__lxGeneration.wait(__lxGenerationToken,(lxfdWait(reduceMotion ? 0 : 680)));
         solutionAi._traceSkills.add("Skill(解决方案推荐)");
@@ -2471,14 +2471,14 @@ async function lxfdRunEducationOfferQuery(query) {
       const deviceAi = document.createElement("div");
       deviceAi.className = "lxfd-msg-ai lx-chat-skin lx-device-query-answer";
       deviceAi._loadingStarted = Date.now();
-      deviceAi._traceLines = ["联想乐享正在判断你的设备资产需求"];
+      deviceAi._traceLines = ["联想乐享正在识别你的设备资产需求"];
       deviceAi._traceSkills = new Set();
       deviceAi.innerHTML = '<div class="lxfd-ai-body"></div>';
       thread?.appendChild(deviceAi);
       lxfdRenderTraceLive(deviceAi);
       deviceAi.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "end" });
       await window.__lxGeneration.wait(__lxGenerationToken,(lxfdWait(reduceMotion ? 0 : 420)));
-      deviceAi._traceLines.push("已判断：需要查询当前 Lenovo ID 下的设备资产");
+      deviceAi._traceLines.push("已识别：需要查询当前 Lenovo ID 下的设备资产");
       lxfdRenderTraceLive(deviceAi);
       await window.__lxGeneration.wait(__lxGenerationToken,(lxfdWait(reduceMotion ? 0 : 520)));
       deviceAi._traceSkills.add("Skill(设备资产查询)");
@@ -2513,7 +2513,7 @@ async function lxfdRunEducationOfferQuery(query) {
       const serviceAi = document.createElement("div");
       serviceAi.className = "lxfd-msg-ai lx-chat-skin";
       serviceAi._loadingStarted = Date.now();
-      serviceAi._traceLines = ["联想乐享正在判断你的设备服务需求"];
+      serviceAi._traceLines = ["联想乐享正在识别你的设备服务需求"];
       serviceAi._traceSkills = new Set();
       serviceAi._traceCollapsed = false;
       serviceAi.innerHTML = '<div class="lxfd-ai-body"></div>';
@@ -2521,7 +2521,7 @@ async function lxfdRunEducationOfferQuery(query) {
       lxfdRenderTraceLive(serviceAi);
       serviceAi.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "end" });
       await window.__lxGeneration.wait(__lxGenerationToken,(lxfdWait(reduceMotion ? 0 : 420)));
-      serviceAi._traceLines.push("已判断：清灰/换硅脂服务商品匹配");
+      serviceAi._traceLines.push("已识别：清灰/换硅脂服务商品匹配");
       lxfdRenderTraceLive(serviceAi);
       await window.__lxGeneration.wait(__lxGenerationToken,(lxfdWait(reduceMotion ? 0 : 520)));
       serviceAi._traceSkills.add("Skill(服务产品推荐)");
@@ -2716,9 +2716,9 @@ async function lxfdRunEducationOfferQuery(query) {
     }
 
     // 思考过程时间线（件2）：气泡必须在远程意图路由 fetch **之前**上屏——路由最长 4.5s，
-    // 放在后面用户盯着空白（真机反馈）。首行"正在判断"发送瞬间出现，"已判断"等路由分流
+    // 放在后面用户盯着空白（真机反馈）。首行"正在识别"发送瞬间出现，"已识别"等路由分流
     // 落定再追加（走 control 分支时整个气泡移除）。渲染复用主面板 renderSkillTrace 桥接。
-    const _traceLines = ["联想乐享正在判断"]; // 省略号由 .current::after 三点循环动画补，文本不写死
+    const _traceLines = ["联想乐享正在识别"]; // 省略号由 .current::after 三点循环动画补，文本不写死
     const _renderTrace = window.__lxBridge && window.__lxBridge.renderSkillTrace;
     const ai = document.createElement("div");
     ai.className = "lxfd-msg-ai";
@@ -2734,7 +2734,7 @@ async function lxfdRunEducationOfferQuery(query) {
     const _lxfdPushJudged = () => {
       if (ai._judgedPushed) return;
       ai._judgedPushed = true;
-      _traceLines.push(_lxfdAutoBuy ? "已判断：多步代买任务，推荐完成后进入执行视图" : "已判断：商品咨询 → 调用联想乐享官方 SKILL");
+      _traceLines.push(_lxfdAutoBuy ? "已识别：多步代买任务，推荐完成后进入执行视图" : "已识别：商品咨询 → 调用联想乐享官方 SKILL");
       lxfdRenderTraceLive(ai);
     };
 
@@ -2753,7 +2753,7 @@ async function lxfdRunEducationOfferQuery(query) {
       if (_lxfdIntentRes.ok) _lxfdIntentResult = await window.__lxGeneration.wait(__lxGenerationToken,(_lxfdIntentRes.json()));
     } catch (_lxfdIntentErr) {if(!window.__lxGeneration.current(__lxGenerationToken))throw new DOMException('已停止生成','AbortError'); /* 超时/失败 → 降级 chat */ }
     if (_lxfdIntentResult && _lxfdIntentResult.type === "control" && _lxfdIntentResult.op) {
-      ai.remove(); // 操作指令：撤掉"正在判断"时间线气泡，走操作确认消息（同主面板做法）
+      ai.remove(); // 操作指令：撤掉"正在识别"时间线气泡，走操作确认消息（同主面板做法）
       const _lxfdCtrlAi = document.createElement("div");
       _lxfdCtrlAi.className = "lxfd-msg-ai";
       const _lxfdCtrlBody = document.createElement("div");
@@ -2787,7 +2787,7 @@ async function lxfdRunEducationOfferQuery(query) {
     }
     // ── lxfd 意图路由分流结束 ─────────────────────────────────────────
 
-    // 走到这里说明不是操作指令：补"已判断"行——意图路由刚落定，天然有 0.5~4.5s 节奏，
+    // 走到这里说明不是操作指令：补"已识别"行——意图路由刚落定，天然有 0.5~4.5s 节奏，
     // 不和首行同帧蹦出；代买跳过了意图路由没有天然节奏，给 500ms 微延迟（同主面板做法）。
     if (_lxfdAutoBuy) window.__lxGeneration.timeout(__lxGenerationToken,_lxfdPushJudged, 500); else _lxfdPushJudged();
     const body = ai.querySelector(".lxfd-ai-body");
@@ -5071,8 +5071,8 @@ window.__p0Modules.sources["uf1395f77f2f04caa"]=function(){
     };
 
     thread.scrollTop = thread.scrollHeight;
-    await window.__lxGeneration.wait(__lxGenerationToken,(pushTrace("联想乐享正在判断", 1240, true)));
-    await window.__lxGeneration.wait(__lxGenerationToken,(pushTrace("已判断：文档解读任务", 840)));
+    await window.__lxGeneration.wait(__lxGenerationToken,(pushTrace("联想乐享正在识别", 1240, true)));
+    await window.__lxGeneration.wait(__lxGenerationToken,(pushTrace("已识别：文档解读任务", 840)));
     await window.__lxGeneration.wait(__lxGenerationToken,(pushTrace("联想乐享官方 SKILL：正在调用 Skill(文档解读)", 1040)));
     await window.__lxGeneration.wait(__lxGenerationToken,(pushTrace("正在读取文档结构与正文", 1240)));
 
@@ -5120,13 +5120,13 @@ window.__p0Modules.sources["uf1395f77f2f04caa"]=function(){
     const ai = document.createElement("div");
     ai.className = "lxfd-msg-ai";
     ai._loadingStarted = Date.now();
-    ai._traceLines = ["联想乐享正在判断你的门店需求"];
+    ai._traceLines = ["联想乐享正在识别你的门店需求"];
     ai._traceSkills = new Set();
     ai.innerHTML = '<div class="lxfd-ai-body"></div>';
     thread?.appendChild(ai);
     lxfdRenderTraceLive(ai);
     await window.__lxGeneration.wait(__lxGenerationToken,(lxfdWait(420)));
-    ai._traceLines.push("已判断：需要查询当前位置附近的联想授权门店");
+    ai._traceLines.push("已识别：需要查询当前位置附近的联想授权门店");
     lxfdRenderTraceLive(ai);
     await window.__lxGeneration.wait(__lxGenerationToken,(lxfdWait(520)));
     ai._traceSkills.add("Skill(附近门店查询)");
@@ -5197,14 +5197,14 @@ window.__p0Modules.sources["uf1395f77f2f04caa"]=function(){
     const ai = document.createElement("div");
     ai.className = "lxfd-msg-ai lx-chat-skin lx-auth-flow-answer";
     ai._loadingStarted = Date.now();
-    ai._traceLines = ["联想乐享正在判断你的企业留资需求"];
+    ai._traceLines = ["联想乐享正在识别你的企业留资需求"];
     ai._traceSkills = new Set();
     ai.innerHTML = '<div class="lxfd-ai-body"></div>';
     thread?.appendChild(ai);
     lxfdRenderTraceLive(ai);
     try {
       await window.__lxGeneration.wait(__lxGenerationToken,(lxfdWait(reduceMotion ? 0 : 420)));
-      ai._traceLines.push("已判断：需要进入企业采购需求留资流程");
+      ai._traceLines.push("已识别：需要进入企业采购需求留资流程");
       lxfdRenderTraceLive(ai);
       await window.__lxGeneration.wait(__lxGenerationToken,(lxfdWait(reduceMotion ? 0 : 520)));
       const skillName = "Skill(企业采购需求留资)";
@@ -5274,14 +5274,14 @@ window.__p0Modules.sources["uf1395f77f2f04caa"]=function(){
     const ai = document.createElement("div");
     ai.className = "lxfd-msg-ai lx-chat-skin lx-payment-confirm-answer";
     ai._loadingStarted = Date.now();
-    ai._traceLines = ["联想乐享正在判断你的优惠下单需求"];
+    ai._traceLines = ["联想乐享正在识别你的优惠下单需求"];
     ai._traceSkills = new Set();
     ai.innerHTML = '<div class="lxfd-ai-body"></div>';
     thread?.appendChild(ai);
     lxfdRenderTraceLive(ai);
     try {
       await window.__lxGeneration.wait(__lxGenerationToken,(lxfdWait(reduceMotion ? 0 : 420)));
-      ai._traceLines.push(`已判断：需要核对${item.name || "当前商品"}与当前账户可用优惠`);
+      ai._traceLines.push(`已识别：需要核对${item.name || "当前商品"}与当前账户可用优惠`);
       lxfdRenderTraceLive(ai);
       await window.__lxGeneration.wait(__lxGenerationToken,(lxfdWait(reduceMotion ? 0 : 520)));
       ai._traceSkills.add("Skill(优惠领取与订单生成)");
@@ -5321,14 +5321,14 @@ window.__p0Modules.sources["uf1395f77f2f04caa"]=function(){
     const ai = document.createElement("div");
     ai.className = "lxfd-msg-ai lx-chat-skin";
     ai._loadingStarted = Date.now();
-    ai._traceLines = [isDiamond ? "联想乐享正在判断你的企业钻石会员升级需求" : (isEnterprise ? "联想乐享正在判断你的企业会员认证需求" : (isWorkplace ? "联想乐享正在判断你的职场认证需求" : "联想乐享正在判断你的教育认证需求"))];
+    ai._traceLines = [isDiamond ? "联想乐享正在识别你的企业钻石会员升级需求" : (isEnterprise ? "联想乐享正在识别你的企业会员认证需求" : (isWorkplace ? "联想乐享正在识别你的职场认证需求" : "联想乐享正在识别你的教育认证需求"))];
     ai._traceSkills = new Set();
     ai.innerHTML = '<div class="lxfd-ai-body"></div>';
     thread?.appendChild(ai);
     lxfdRenderTraceLive(ai);
     try {
       await window.__lxGeneration.wait(__lxGenerationToken,(lxfdWait(reduceMotion ? 0 : 420)));
-      ai._traceLines.push(isDiamond ? "已判断：需要进入企业钻石会员升级认证流程" : (isEnterprise ? "已判断：需要进入企业采购负责人认证流程" : (isWorkplace ? "已判断：需要进入企业在职身份认证流程" : "已判断：需要进入教育身份认证流程")));
+      ai._traceLines.push(isDiamond ? "已识别：需要进入企业钻石会员升级认证流程" : (isEnterprise ? "已识别：需要进入企业采购负责人认证流程" : (isWorkplace ? "已识别：需要进入企业在职身份认证流程" : "已识别：需要进入教育身份认证流程")));
       lxfdRenderTraceLive(ai);
       await window.__lxGeneration.wait(__lxGenerationToken,(lxfdWait(reduceMotion ? 0 : 520)));
       const skillName = isDiamond ? "Skill(企业钻石会员升级认证)" : (isEnterprise ? "Skill(企业会员身份认证)" : (isWorkplace ? "Skill(职场身份认证)" : "Skill(教育身份认证)"));
@@ -5418,7 +5418,7 @@ window.__p0Modules.sources["uf1395f77f2f04caa"]=function(){
         const solutionAi = document.createElement("div");
         solutionAi.className = "lxfd-msg-ai";
         solutionAi._loadingStarted = Date.now();
-        solutionAi._traceLines = ["联想乐享正在判断"];
+        solutionAi._traceLines = ["联想乐享正在识别"];
         solutionAi._traceSkills = new Set();
         solutionAi._traceCollapsed = false;
         solutionAi.innerHTML = '<div class="lxfd-ai-body"></div>';
@@ -5427,7 +5427,7 @@ window.__p0Modules.sources["uf1395f77f2f04caa"]=function(){
         solutionAi.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "end" });
 
         await window.__lxGeneration.wait(__lxGenerationToken,(lxfdWait(reduceMotion ? 0 : 520)));
-        solutionAi._traceLines.push("已判断："+(scoped?scoped.title:"全集解决方案")+"检索任务");
+        solutionAi._traceLines.push("已识别："+(scoped?scoped.title:"全集解决方案")+"检索任务");
         lxfdRenderTraceLive(solutionAi);
         await window.__lxGeneration.wait(__lxGenerationToken,(lxfdWait(reduceMotion ? 0 : 680)));
         solutionAi._traceSkills.add("Skill(解决方案推荐)");
@@ -5704,14 +5704,14 @@ async function lxfdRunEducationOfferQuery(query) {
       const deviceAi = document.createElement("div");
       deviceAi.className = "lxfd-msg-ai lx-chat-skin lx-device-query-answer";
       deviceAi._loadingStarted = Date.now();
-      deviceAi._traceLines = ["联想乐享正在判断你的设备资产需求"];
+      deviceAi._traceLines = ["联想乐享正在识别你的设备资产需求"];
       deviceAi._traceSkills = new Set();
       deviceAi.innerHTML = '<div class="lxfd-ai-body"></div>';
       thread?.appendChild(deviceAi);
       lxfdRenderTraceLive(deviceAi);
       deviceAi.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "end" });
       await window.__lxGeneration.wait(__lxGenerationToken,(lxfdWait(reduceMotion ? 0 : 420)));
-      deviceAi._traceLines.push("已判断：需要查询当前 Lenovo ID 下的设备资产");
+      deviceAi._traceLines.push("已识别：需要查询当前 Lenovo ID 下的设备资产");
       lxfdRenderTraceLive(deviceAi);
       await window.__lxGeneration.wait(__lxGenerationToken,(lxfdWait(reduceMotion ? 0 : 520)));
       deviceAi._traceSkills.add("Skill(设备资产查询)");
@@ -5746,7 +5746,7 @@ async function lxfdRunEducationOfferQuery(query) {
       const serviceAi = document.createElement("div");
       serviceAi.className = "lxfd-msg-ai lx-chat-skin";
       serviceAi._loadingStarted = Date.now();
-      serviceAi._traceLines = ["联想乐享正在判断你的设备服务需求"];
+      serviceAi._traceLines = ["联想乐享正在识别你的设备服务需求"];
       serviceAi._traceSkills = new Set();
       serviceAi._traceCollapsed = false;
       serviceAi.innerHTML = '<div class="lxfd-ai-body"></div>';
@@ -5754,7 +5754,7 @@ async function lxfdRunEducationOfferQuery(query) {
       lxfdRenderTraceLive(serviceAi);
       serviceAi.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "end" });
       await window.__lxGeneration.wait(__lxGenerationToken,(lxfdWait(reduceMotion ? 0 : 420)));
-      serviceAi._traceLines.push("已判断：清灰/换硅脂服务商品匹配");
+      serviceAi._traceLines.push("已识别：清灰/换硅脂服务商品匹配");
       lxfdRenderTraceLive(serviceAi);
       await window.__lxGeneration.wait(__lxGenerationToken,(lxfdWait(reduceMotion ? 0 : 520)));
       serviceAi._traceSkills.add("Skill(服务产品推荐)");
@@ -5943,9 +5943,9 @@ async function lxfdRunEducationOfferQuery(query) {
     }
 
     // 思考过程时间线（件2）：气泡必须在远程意图路由 fetch **之前**上屏——路由最长 4.5s，
-    // 放在后面用户盯着空白（真机反馈）。首行"正在判断"发送瞬间出现，"已判断"等路由分流
+    // 放在后面用户盯着空白（真机反馈）。首行"正在识别"发送瞬间出现，"已识别"等路由分流
     // 落定再追加（走 control 分支时整个气泡移除）。渲染复用主面板 renderSkillTrace 桥接。
-    const _traceLines = ["联想乐享正在判断"]; // 省略号由 .current::after 三点循环动画补，文本不写死
+    const _traceLines = ["联想乐享正在识别"]; // 省略号由 .current::after 三点循环动画补，文本不写死
     const _renderTrace = window.__lxBridge && window.__lxBridge.renderSkillTrace;
     const ai = document.createElement("div");
     ai.className = "lxfd-msg-ai";
@@ -5961,7 +5961,7 @@ async function lxfdRunEducationOfferQuery(query) {
     const _lxfdPushJudged = () => {
       if (ai._judgedPushed) return;
       ai._judgedPushed = true;
-      _traceLines.push(_lxfdAutoBuy ? "已判断：多步代买任务，推荐完成后进入执行视图" : "已判断：商品咨询 → 调用联想乐享官方 SKILL");
+      _traceLines.push(_lxfdAutoBuy ? "已识别：多步代买任务，推荐完成后进入执行视图" : "已识别：商品咨询 → 调用联想乐享官方 SKILL");
       lxfdRenderTraceLive(ai);
     };
 
@@ -5980,7 +5980,7 @@ async function lxfdRunEducationOfferQuery(query) {
       if (_lxfdIntentRes.ok) _lxfdIntentResult = await window.__lxGeneration.wait(__lxGenerationToken,(_lxfdIntentRes.json()));
     } catch (_lxfdIntentErr) {if(!window.__lxGeneration.current(__lxGenerationToken))throw new DOMException('已停止生成','AbortError'); /* 超时/失败 → 降级 chat */ }
     if (_lxfdIntentResult && _lxfdIntentResult.type === "control" && _lxfdIntentResult.op) {
-      ai.remove(); // 操作指令：撤掉"正在判断"时间线气泡，走操作确认消息（同主面板做法）
+      ai.remove(); // 操作指令：撤掉"正在识别"时间线气泡，走操作确认消息（同主面板做法）
       const _lxfdCtrlAi = document.createElement("div");
       _lxfdCtrlAi.className = "lxfd-msg-ai";
       const _lxfdCtrlBody = document.createElement("div");
@@ -6014,7 +6014,7 @@ async function lxfdRunEducationOfferQuery(query) {
     }
     // ── lxfd 意图路由分流结束 ─────────────────────────────────────────
 
-    // 走到这里说明不是操作指令：补"已判断"行——意图路由刚落定，天然有 0.5~4.5s 节奏，
+    // 走到这里说明不是操作指令：补"已识别"行——意图路由刚落定，天然有 0.5~4.5s 节奏，
     // 不和首行同帧蹦出；代买跳过了意图路由没有天然节奏，给 500ms 微延迟（同主面板做法）。
     if (_lxfdAutoBuy) window.__lxGeneration.timeout(__lxGenerationToken,_lxfdPushJudged, 500); else _lxfdPushJudged();
     const body = ai.querySelector(".lxfd-ai-body");
@@ -9262,8 +9262,8 @@ window.__p0Modules.sources["ucfd257a885af82b6"]=function(){
     };
 
     thread.scrollTop = thread.scrollHeight;
-    await window.__lxGeneration.wait(__lxGenerationToken,(pushTrace("联想乐享正在判断", 1240, true)));
-    await window.__lxGeneration.wait(__lxGenerationToken,(pushTrace("已判断：文档解读任务", 840)));
+    await window.__lxGeneration.wait(__lxGenerationToken,(pushTrace("联想乐享正在识别", 1240, true)));
+    await window.__lxGeneration.wait(__lxGenerationToken,(pushTrace("已识别：文档解读任务", 840)));
     await window.__lxGeneration.wait(__lxGenerationToken,(pushTrace("联想乐享官方 SKILL：正在调用 Skill(文档解读)", 1040)));
     await window.__lxGeneration.wait(__lxGenerationToken,(pushTrace("正在读取文档结构与正文", 1240)));
 
@@ -9311,13 +9311,13 @@ window.__p0Modules.sources["ucfd257a885af82b6"]=function(){
     const ai = document.createElement("div");
     ai.className = "lxfd-msg-ai";
     ai._loadingStarted = Date.now();
-    ai._traceLines = ["联想乐享正在判断你的门店需求"];
+    ai._traceLines = ["联想乐享正在识别你的门店需求"];
     ai._traceSkills = new Set();
     ai.innerHTML = '<div class="lxfd-ai-body"></div>';
     thread?.appendChild(ai);
     lxfdRenderTraceLive(ai);
     await window.__lxGeneration.wait(__lxGenerationToken,(lxfdWait(420)));
-    ai._traceLines.push("已判断：需要查询当前位置附近的联想授权门店");
+    ai._traceLines.push("已识别：需要查询当前位置附近的联想授权门店");
     lxfdRenderTraceLive(ai);
     await window.__lxGeneration.wait(__lxGenerationToken,(lxfdWait(520)));
     ai._traceSkills.add("Skill(附近门店查询)");
@@ -9388,14 +9388,14 @@ window.__p0Modules.sources["ucfd257a885af82b6"]=function(){
     const ai = document.createElement("div");
     ai.className = "lxfd-msg-ai lx-chat-skin lx-auth-flow-answer";
     ai._loadingStarted = Date.now();
-    ai._traceLines = ["联想乐享正在判断你的企业留资需求"];
+    ai._traceLines = ["联想乐享正在识别你的企业留资需求"];
     ai._traceSkills = new Set();
     ai.innerHTML = '<div class="lxfd-ai-body"></div>';
     thread?.appendChild(ai);
     lxfdRenderTraceLive(ai);
     try {
       await window.__lxGeneration.wait(__lxGenerationToken,(lxfdWait(reduceMotion ? 0 : 420)));
-      ai._traceLines.push("已判断：需要进入企业采购需求留资流程");
+      ai._traceLines.push("已识别：需要进入企业采购需求留资流程");
       lxfdRenderTraceLive(ai);
       await window.__lxGeneration.wait(__lxGenerationToken,(lxfdWait(reduceMotion ? 0 : 520)));
       const skillName = "Skill(企业采购需求留资)";
@@ -9465,14 +9465,14 @@ window.__p0Modules.sources["ucfd257a885af82b6"]=function(){
     const ai = document.createElement("div");
     ai.className = "lxfd-msg-ai lx-chat-skin lx-payment-confirm-answer";
     ai._loadingStarted = Date.now();
-    ai._traceLines = ["联想乐享正在判断你的优惠下单需求"];
+    ai._traceLines = ["联想乐享正在识别你的优惠下单需求"];
     ai._traceSkills = new Set();
     ai.innerHTML = '<div class="lxfd-ai-body"></div>';
     thread?.appendChild(ai);
     lxfdRenderTraceLive(ai);
     try {
       await window.__lxGeneration.wait(__lxGenerationToken,(lxfdWait(reduceMotion ? 0 : 420)));
-      ai._traceLines.push(`已判断：需要核对${item.name || "当前商品"}与当前账户可用优惠`);
+      ai._traceLines.push(`已识别：需要核对${item.name || "当前商品"}与当前账户可用优惠`);
       lxfdRenderTraceLive(ai);
       await window.__lxGeneration.wait(__lxGenerationToken,(lxfdWait(reduceMotion ? 0 : 520)));
       ai._traceSkills.add("Skill(优惠领取与订单生成)");
@@ -9512,14 +9512,14 @@ window.__p0Modules.sources["ucfd257a885af82b6"]=function(){
     const ai = document.createElement("div");
     ai.className = "lxfd-msg-ai lx-chat-skin";
     ai._loadingStarted = Date.now();
-    ai._traceLines = [isDiamond ? "联想乐享正在判断你的企业钻石会员升级需求" : (isEnterprise ? "联想乐享正在判断你的企业会员认证需求" : (isWorkplace ? "联想乐享正在判断你的职场认证需求" : "联想乐享正在判断你的教育认证需求"))];
+    ai._traceLines = [isDiamond ? "联想乐享正在识别你的企业钻石会员升级需求" : (isEnterprise ? "联想乐享正在识别你的企业会员认证需求" : (isWorkplace ? "联想乐享正在识别你的职场认证需求" : "联想乐享正在识别你的教育认证需求"))];
     ai._traceSkills = new Set();
     ai.innerHTML = '<div class="lxfd-ai-body"></div>';
     thread?.appendChild(ai);
     lxfdRenderTraceLive(ai);
     try {
       await window.__lxGeneration.wait(__lxGenerationToken,(lxfdWait(reduceMotion ? 0 : 420)));
-      ai._traceLines.push(isDiamond ? "已判断：需要进入企业钻石会员升级认证流程" : (isEnterprise ? "已判断：需要进入企业采购负责人认证流程" : (isWorkplace ? "已判断：需要进入企业在职身份认证流程" : "已判断：需要进入教育身份认证流程")));
+      ai._traceLines.push(isDiamond ? "已识别：需要进入企业钻石会员升级认证流程" : (isEnterprise ? "已识别：需要进入企业采购负责人认证流程" : (isWorkplace ? "已识别：需要进入企业在职身份认证流程" : "已识别：需要进入教育身份认证流程")));
       lxfdRenderTraceLive(ai);
       await window.__lxGeneration.wait(__lxGenerationToken,(lxfdWait(reduceMotion ? 0 : 520)));
       const skillName = isDiamond ? "Skill(企业钻石会员升级认证)" : (isEnterprise ? "Skill(企业会员身份认证)" : (isWorkplace ? "Skill(职场身份认证)" : "Skill(教育身份认证)"));
@@ -9646,7 +9646,7 @@ window.__p0Modules.sources["ucfd257a885af82b6"]=function(){
         const solutionAi = document.createElement("div");
         solutionAi.className = "lxfd-msg-ai";
         solutionAi._loadingStarted = Date.now();
-        solutionAi._traceLines = ["联想乐享正在判断"];
+        solutionAi._traceLines = ["联想乐享正在识别"];
         solutionAi._traceSkills = new Set();
         solutionAi._traceCollapsed = false;
         solutionAi.innerHTML = '<div class="lxfd-ai-body"></div>';
@@ -9655,7 +9655,7 @@ window.__p0Modules.sources["ucfd257a885af82b6"]=function(){
         solutionAi.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "end" });
 
         await window.__lxGeneration.wait(__lxGenerationToken,(lxfdWait(reduceMotion ? 0 : 520)));
-        solutionAi._traceLines.push("已判断："+(scoped?scoped.title:"全集解决方案")+"检索任务");
+        solutionAi._traceLines.push("已识别："+(scoped?scoped.title:"全集解决方案")+"检索任务");
         lxfdRenderTraceLive(solutionAi);
         await window.__lxGeneration.wait(__lxGenerationToken,(lxfdWait(reduceMotion ? 0 : 680)));
         solutionAi._traceSkills.add("Skill(解决方案推荐)");
@@ -9951,14 +9951,14 @@ async function lxfdRunEducationOfferQuery(query) {
       const deviceAi = document.createElement("div");
       deviceAi.className = "lxfd-msg-ai lx-chat-skin lx-device-query-answer";
       deviceAi._loadingStarted = Date.now();
-      deviceAi._traceLines = ["联想乐享正在判断你的设备资产需求"];
+      deviceAi._traceLines = ["联想乐享正在识别你的设备资产需求"];
       deviceAi._traceSkills = new Set();
       deviceAi.innerHTML = '<div class="lxfd-ai-body"></div>';
       thread?.appendChild(deviceAi);
       lxfdRenderTraceLive(deviceAi);
       deviceAi.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "end" });
       await window.__lxGeneration.wait(__lxGenerationToken,(lxfdWait(reduceMotion ? 0 : 420)));
-      deviceAi._traceLines.push("已判断：需要查询当前 Lenovo ID 下的设备资产");
+      deviceAi._traceLines.push("已识别：需要查询当前 Lenovo ID 下的设备资产");
       lxfdRenderTraceLive(deviceAi);
       await window.__lxGeneration.wait(__lxGenerationToken,(lxfdWait(reduceMotion ? 0 : 520)));
       deviceAi._traceSkills.add("Skill(设备资产查询)");
@@ -9993,7 +9993,7 @@ async function lxfdRunEducationOfferQuery(query) {
       const serviceAi = document.createElement("div");
       serviceAi.className = "lxfd-msg-ai lx-chat-skin";
       serviceAi._loadingStarted = Date.now();
-      serviceAi._traceLines = ["联想乐享正在判断你的设备服务需求"];
+      serviceAi._traceLines = ["联想乐享正在识别你的设备服务需求"];
       serviceAi._traceSkills = new Set();
       serviceAi._traceCollapsed = false;
       serviceAi.innerHTML = '<div class="lxfd-ai-body"></div>';
@@ -10001,7 +10001,7 @@ async function lxfdRunEducationOfferQuery(query) {
       lxfdRenderTraceLive(serviceAi);
       serviceAi.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "end" });
       await window.__lxGeneration.wait(__lxGenerationToken,(lxfdWait(reduceMotion ? 0 : 420)));
-      serviceAi._traceLines.push("已判断：清灰/换硅脂服务商品匹配");
+      serviceAi._traceLines.push("已识别：清灰/换硅脂服务商品匹配");
       lxfdRenderTraceLive(serviceAi);
       await window.__lxGeneration.wait(__lxGenerationToken,(lxfdWait(reduceMotion ? 0 : 520)));
       serviceAi._traceSkills.add("Skill(服务产品推荐)");
@@ -10190,9 +10190,9 @@ async function lxfdRunEducationOfferQuery(query) {
     }
 
     // 思考过程时间线（件2）：气泡必须在远程意图路由 fetch **之前**上屏——路由最长 4.5s，
-    // 放在后面用户盯着空白（真机反馈）。首行"正在判断"发送瞬间出现，"已判断"等路由分流
+    // 放在后面用户盯着空白（真机反馈）。首行"正在识别"发送瞬间出现，"已识别"等路由分流
     // 落定再追加（走 control 分支时整个气泡移除）。渲染复用主面板 renderSkillTrace 桥接。
-    const _traceLines = ["联想乐享正在判断"]; // 省略号由 .current::after 三点循环动画补，文本不写死
+    const _traceLines = ["联想乐享正在识别"]; // 省略号由 .current::after 三点循环动画补，文本不写死
     const _renderTrace = window.__lxBridge && window.__lxBridge.renderSkillTrace;
     const ai = document.createElement("div");
     ai.className = "lxfd-msg-ai";
@@ -10208,7 +10208,7 @@ async function lxfdRunEducationOfferQuery(query) {
     const _lxfdPushJudged = () => {
       if (ai._judgedPushed) return;
       ai._judgedPushed = true;
-      _traceLines.push(_lxfdAutoBuy ? "已判断：多步代买任务，推荐完成后进入执行视图" : "已判断：商品咨询 → 调用联想乐享官方 SKILL");
+      _traceLines.push(_lxfdAutoBuy ? "已识别：多步代买任务，推荐完成后进入执行视图" : "已识别：商品咨询 → 调用联想乐享官方 SKILL");
       lxfdRenderTraceLive(ai);
     };
 
@@ -10227,7 +10227,7 @@ async function lxfdRunEducationOfferQuery(query) {
       if (_lxfdIntentRes.ok) _lxfdIntentResult = await window.__lxGeneration.wait(__lxGenerationToken,(_lxfdIntentRes.json()));
     } catch (_lxfdIntentErr) {if(!window.__lxGeneration.current(__lxGenerationToken))throw new DOMException('已停止生成','AbortError'); /* 超时/失败 → 降级 chat */ }
     if (_lxfdIntentResult && _lxfdIntentResult.type === "control" && _lxfdIntentResult.op) {
-      ai.remove(); // 操作指令：撤掉"正在判断"时间线气泡，走操作确认消息（同主面板做法）
+      ai.remove(); // 操作指令：撤掉"正在识别"时间线气泡，走操作确认消息（同主面板做法）
       const _lxfdCtrlAi = document.createElement("div");
       _lxfdCtrlAi.className = "lxfd-msg-ai";
       const _lxfdCtrlBody = document.createElement("div");
@@ -10261,7 +10261,7 @@ async function lxfdRunEducationOfferQuery(query) {
     }
     // ── lxfd 意图路由分流结束 ─────────────────────────────────────────
 
-    // 走到这里说明不是操作指令：补"已判断"行——意图路由刚落定，天然有 0.5~4.5s 节奏，
+    // 走到这里说明不是操作指令：补"已识别"行——意图路由刚落定，天然有 0.5~4.5s 节奏，
     // 不和首行同帧蹦出；代买跳过了意图路由没有天然节奏，给 500ms 微延迟（同主面板做法）。
     if (_lxfdAutoBuy) window.__lxGeneration.timeout(__lxGenerationToken,_lxfdPushJudged, 500); else _lxfdPushJudged();
     const body = ai.querySelector(".lxfd-ai-body");
@@ -12399,8 +12399,8 @@ window.__p0Modules.sources["u0b3c115072cbfa90"]=function(){
     };
 
     thread.scrollTop = thread.scrollHeight;
-    await pushTrace("联想乐享正在判断", 1240, true);
-    await pushTrace("已判断：文档解读任务", 840);
+    await pushTrace("联想乐享正在识别", 1240, true);
+    await pushTrace("已识别：文档解读任务", 840);
     await pushTrace("联想乐享官方 SKILL：正在调用 Skill(文档解读)", 1040);
     await pushTrace("正在读取文档结构与正文", 1240);
 
@@ -12448,13 +12448,13 @@ window.__p0Modules.sources["u0b3c115072cbfa90"]=function(){
     const ai = document.createElement("div");
     ai.className = "lxfd-msg-ai";
     ai._loadingStarted = Date.now();
-    ai._traceLines = ["联想乐享正在判断你的门店需求"];
+    ai._traceLines = ["联想乐享正在识别你的门店需求"];
     ai._traceSkills = new Set();
     ai.innerHTML = '<div class="lxfd-ai-body"></div>';
     thread?.appendChild(ai);
     lxfdRenderTraceLive(ai);
     await lxfdWait(420);
-    ai._traceLines.push("已判断：需要查询当前位置附近的联想授权门店");
+    ai._traceLines.push("已识别：需要查询当前位置附近的联想授权门店");
     lxfdRenderTraceLive(ai);
     await lxfdWait(520);
     ai._traceSkills.add("Skill(附近门店查询)");
@@ -12519,14 +12519,14 @@ window.__p0Modules.sources["u0b3c115072cbfa90"]=function(){
     const ai = document.createElement("div");
     ai.className = "lxfd-msg-ai lx-chat-skin lx-auth-flow-answer";
     ai._loadingStarted = Date.now();
-    ai._traceLines = ["联想乐享正在判断你的企业留资需求"];
+    ai._traceLines = ["联想乐享正在识别你的企业留资需求"];
     ai._traceSkills = new Set();
     ai.innerHTML = '<div class="lxfd-ai-body"></div>';
     thread?.appendChild(ai);
     lxfdRenderTraceLive(ai);
     try {
       await lxfdWait(reduceMotion ? 0 : 420);
-      ai._traceLines.push("已判断：需要进入企业采购需求留资流程");
+      ai._traceLines.push("已识别：需要进入企业采购需求留资流程");
       lxfdRenderTraceLive(ai);
       await lxfdWait(reduceMotion ? 0 : 520);
       const skillName = "Skill(企业采购需求留资)";
@@ -12596,14 +12596,14 @@ window.__p0Modules.sources["u0b3c115072cbfa90"]=function(){
     const ai = document.createElement("div");
     ai.className = "lxfd-msg-ai lx-chat-skin lx-payment-confirm-answer";
     ai._loadingStarted = Date.now();
-    ai._traceLines = ["联想乐享正在判断你的优惠下单需求"];
+    ai._traceLines = ["联想乐享正在识别你的优惠下单需求"];
     ai._traceSkills = new Set();
     ai.innerHTML = '<div class="lxfd-ai-body"></div>';
     thread?.appendChild(ai);
     lxfdRenderTraceLive(ai);
     try {
       await lxfdWait(reduceMotion ? 0 : 420);
-      ai._traceLines.push(`已判断：需要核对${item.name || "当前商品"}与当前账户可用优惠`);
+      ai._traceLines.push(`已识别：需要核对${item.name || "当前商品"}与当前账户可用优惠`);
       lxfdRenderTraceLive(ai);
       await lxfdWait(reduceMotion ? 0 : 520);
       ai._traceSkills.add("Skill(优惠领取与订单生成)");
@@ -12643,14 +12643,14 @@ window.__p0Modules.sources["u0b3c115072cbfa90"]=function(){
     const ai = document.createElement("div");
     ai.className = "lxfd-msg-ai lx-chat-skin";
     ai._loadingStarted = Date.now();
-    ai._traceLines = [isDiamond ? "联想乐享正在判断你的企业钻石会员升级需求" : (isEnterprise ? "联想乐享正在判断你的企业会员认证需求" : (isWorkplace ? "联想乐享正在判断你的职场认证需求" : "联想乐享正在判断你的教育认证需求"))];
+    ai._traceLines = [isDiamond ? "联想乐享正在识别你的企业钻石会员升级需求" : (isEnterprise ? "联想乐享正在识别你的企业会员认证需求" : (isWorkplace ? "联想乐享正在识别你的职场认证需求" : "联想乐享正在识别你的教育认证需求"))];
     ai._traceSkills = new Set();
     ai.innerHTML = '<div class="lxfd-ai-body"></div>';
     thread?.appendChild(ai);
     lxfdRenderTraceLive(ai);
     try {
       await lxfdWait(reduceMotion ? 0 : 420);
-      ai._traceLines.push(isDiamond ? "已判断：需要进入企业钻石会员升级认证流程" : (isEnterprise ? "已判断：需要进入企业采购负责人认证流程" : (isWorkplace ? "已判断：需要进入企业在职身份认证流程" : "已判断：需要进入教育身份认证流程")));
+      ai._traceLines.push(isDiamond ? "已识别：需要进入企业钻石会员升级认证流程" : (isEnterprise ? "已识别：需要进入企业采购负责人认证流程" : (isWorkplace ? "已识别：需要进入企业在职身份认证流程" : "已识别：需要进入教育身份认证流程")));
       lxfdRenderTraceLive(ai);
       await lxfdWait(reduceMotion ? 0 : 520);
       const skillName = isDiamond ? "Skill(企业钻石会员升级认证)" : (isEnterprise ? "Skill(企业会员身份认证)" : (isWorkplace ? "Skill(职场身份认证)" : "Skill(教育身份认证)"));
@@ -12798,14 +12798,14 @@ window.__p0Modules.sources["u0b3c115072cbfa90"]=function(){
       const deviceAi = document.createElement("div");
       deviceAi.className = "lxfd-msg-ai lx-chat-skin lx-device-query-answer";
       deviceAi._loadingStarted = Date.now();
-      deviceAi._traceLines = ["联想乐享正在判断你的设备资产需求"];
+      deviceAi._traceLines = ["联想乐享正在识别你的设备资产需求"];
       deviceAi._traceSkills = new Set();
       deviceAi.innerHTML = '<div class="lxfd-ai-body"></div>';
       thread?.appendChild(deviceAi);
       lxfdRenderTraceLive(deviceAi);
       deviceAi.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "end" });
       await lxfdWait(reduceMotion ? 0 : 420);
-      deviceAi._traceLines.push("已判断：需要查询当前 Lenovo ID 下的设备资产");
+      deviceAi._traceLines.push("已识别：需要查询当前 Lenovo ID 下的设备资产");
       lxfdRenderTraceLive(deviceAi);
       await lxfdWait(reduceMotion ? 0 : 520);
       deviceAi._traceSkills.add("Skill(设备资产查询)");
@@ -12840,7 +12840,7 @@ window.__p0Modules.sources["u0b3c115072cbfa90"]=function(){
       const serviceAi = document.createElement("div");
       serviceAi.className = "lxfd-msg-ai lx-chat-skin";
       serviceAi._loadingStarted = Date.now();
-      serviceAi._traceLines = ["联想乐享正在判断你的设备服务需求"];
+      serviceAi._traceLines = ["联想乐享正在识别你的设备服务需求"];
       serviceAi._traceSkills = new Set();
       serviceAi._traceCollapsed = false;
       serviceAi.innerHTML = '<div class="lxfd-ai-body"></div>';
@@ -12848,7 +12848,7 @@ window.__p0Modules.sources["u0b3c115072cbfa90"]=function(){
       lxfdRenderTraceLive(serviceAi);
       serviceAi.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "end" });
       await lxfdWait(reduceMotion ? 0 : 420);
-      serviceAi._traceLines.push("已判断：清灰/换硅脂服务商品匹配");
+      serviceAi._traceLines.push("已识别：清灰/换硅脂服务商品匹配");
       lxfdRenderTraceLive(serviceAi);
       await lxfdWait(reduceMotion ? 0 : 520);
       serviceAi._traceSkills.add("Skill(服务产品推荐)");
@@ -13004,7 +13004,7 @@ window.__p0Modules.sources["u0b3c115072cbfa90"]=function(){
         const solutionAi = document.createElement("div");
         solutionAi.className = "lxfd-msg-ai";
         solutionAi._loadingStarted = Date.now();
-        solutionAi._traceLines = ["联想乐享正在判断"];
+        solutionAi._traceLines = ["联想乐享正在识别"];
         solutionAi._traceSkills = new Set();
         solutionAi._traceCollapsed = false;
         solutionAi.innerHTML = '<div class="lxfd-ai-body"></div>';
@@ -13013,7 +13013,7 @@ window.__p0Modules.sources["u0b3c115072cbfa90"]=function(){
         solutionAi.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "end" });
 
         await lxfdWait(reduceMotion ? 0 : 520);
-        solutionAi._traceLines.push("已判断：全集解决方案检索任务");
+        solutionAi._traceLines.push("已识别：全集解决方案检索任务");
         lxfdRenderTraceLive(solutionAi);
         await lxfdWait(reduceMotion ? 0 : 680);
         solutionAi._traceSkills.add("Skill(解决方案推荐)");
@@ -13079,9 +13079,9 @@ window.__p0Modules.sources["u0b3c115072cbfa90"]=function(){
     }
 
     // 思考过程时间线（件2）：气泡必须在远程意图路由 fetch **之前**上屏——路由最长 4.5s，
-    // 放在后面用户盯着空白（真机反馈）。首行"正在判断"发送瞬间出现，"已判断"等路由分流
+    // 放在后面用户盯着空白（真机反馈）。首行"正在识别"发送瞬间出现，"已识别"等路由分流
     // 落定再追加（走 control 分支时整个气泡移除）。渲染复用主面板 renderSkillTrace 桥接。
-    const _traceLines = ["联想乐享正在判断"]; // 省略号由 .current::after 三点循环动画补，文本不写死
+    const _traceLines = ["联想乐享正在识别"]; // 省略号由 .current::after 三点循环动画补，文本不写死
     const _renderTrace = window.__lxBridge && window.__lxBridge.renderSkillTrace;
     const ai = document.createElement("div");
     ai.className = "lxfd-msg-ai";
@@ -13097,7 +13097,7 @@ window.__p0Modules.sources["u0b3c115072cbfa90"]=function(){
     const _lxfdPushJudged = () => {
       if (ai._judgedPushed) return;
       ai._judgedPushed = true;
-      _traceLines.push(_lxfdAutoBuy ? "已判断：多步代买任务，推荐完成后进入执行视图" : "已判断：商品咨询 → 调用联想乐享官方 SKILL");
+      _traceLines.push(_lxfdAutoBuy ? "已识别：多步代买任务，推荐完成后进入执行视图" : "已识别：商品咨询 → 调用联想乐享官方 SKILL");
       lxfdRenderTraceLive(ai);
     };
 
@@ -13116,7 +13116,7 @@ window.__p0Modules.sources["u0b3c115072cbfa90"]=function(){
       if (_lxfdIntentRes.ok) _lxfdIntentResult = await _lxfdIntentRes.json();
     } catch (_lxfdIntentErr) { /* 超时/失败 → 降级 chat */ }
     if (_lxfdIntentResult && _lxfdIntentResult.type === "control" && _lxfdIntentResult.op) {
-      ai.remove(); // 操作指令：撤掉"正在判断"时间线气泡，走操作确认消息（同主面板做法）
+      ai.remove(); // 操作指令：撤掉"正在识别"时间线气泡，走操作确认消息（同主面板做法）
       const _lxfdCtrlAi = document.createElement("div");
       _lxfdCtrlAi.className = "lxfd-msg-ai";
       const _lxfdCtrlBody = document.createElement("div");
@@ -13150,7 +13150,7 @@ window.__p0Modules.sources["u0b3c115072cbfa90"]=function(){
     }
     // ── lxfd 意图路由分流结束 ─────────────────────────────────────────
 
-    // 走到这里说明不是操作指令：补"已判断"行——意图路由刚落定，天然有 0.5~4.5s 节奏，
+    // 走到这里说明不是操作指令：补"已识别"行——意图路由刚落定，天然有 0.5~4.5s 节奏，
     // 不和首行同帧蹦出；代买跳过了意图路由没有天然节奏，给 500ms 微延迟（同主面板做法）。
     if (_lxfdAutoBuy) setTimeout(_lxfdPushJudged, 500); else _lxfdPushJudged();
     const body = ai.querySelector(".lxfd-ai-body");
