@@ -160,7 +160,7 @@ html body .lx-p0-modal.lx-auth-modal .lx-auth-primary:focus-visible {
 
 
 /* PC 5.0: governed surface, brand CTA and compact close control. */
-.lx-login-consent{box-sizing:border-box;width:min(480px,calc(100vw - 40px));max-height:calc(100dvh - 40px);overflow:auto;padding:64px 40px 40px;border:1px solid var(--lx-border,#e2ddeb);border-radius:8px;background:var(--lx-surface,#ffffff);color:var(--lx-text,#252525);box-shadow:0 10px 26px rgba(50,29,57,.08);font-family:"Source Han Sans CN","PingFang SC","Microsoft YaHei",Arial,sans-serif;letter-spacing:0}
+.lx-login-consent{box-sizing:border-box;width:min(480px,calc(100vw - 40px));max-height:calc(100dvh - 40px);overflow:auto;padding:64px 40px 40px;border:1px solid var(--lx-border,#e2ddeb);border-radius:24px;background:var(--lx-surface,#ffffff);color:var(--lx-text,#252525);box-shadow:0 10px 26px rgba(50,29,57,.08);font-family:"Source Han Sans CN","PingFang SC","Microsoft YaHei",Arial,sans-serif;letter-spacing:0}
 .lx-login-consent::backdrop{background:rgba(42,20,48,.18)}
 .lx-login-consent h2{margin:0 0 24px;text-align:center;font-size:22px;font-weight:600;line-height:1.5}
 .lx-login-consent p{margin:0 0 32px;color:var(--lx-text-secondary,#454545);font-size:16px;line-height:1.7}
@@ -176,3 +176,6 @@ html body .lx-p0-modal.lx-auth-modal .lx-auth-primary:focus-visible {
 .lx-login-consent-accept:disabled{background:var(--lx-border,#e2ddeb);color:var(--lx-text-muted,#979797);filter:none;cursor:default}
 .lx-login-consent button:focus-visible,.lx-login-consent a:focus-visible{outline:2px solid var(--lx-focus,#4d144a);outline-offset:4px}
 @media(max-width:520px){.lx-login-consent{padding:60px 24px 32px}.lx-login-consent h2{font-size:20px}}
+
+/* Match the parent authentication dialog corner radius at both breakpoints. */
+@media(max-width:760px){.lx-login-consent{border-radius:20px}}
