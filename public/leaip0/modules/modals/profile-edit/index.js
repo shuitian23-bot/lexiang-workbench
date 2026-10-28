@@ -40,10 +40,11 @@ window.__p0Modules.factories["modals/profile-edit#openProfileEditorModal:5de6a94
     form.onsubmit = null;
     var actions = form.querySelector(".leai-profile-actions");
     actions.classList.add("leai-order-action-pair");
+    var actionLayout={display:"flex","justify-content":"flex-end","align-items":"center",gap:"12px",width:"100%","min-width":"340px","grid-template-columns":"none","box-sizing":"border-box"};Object.keys(actionLayout).forEach(function(key){actions.style.setProperty(key,actionLayout[key],"important")});
     actions.insertAdjacentHTML("afterbegin", "<button class=\"leai-secondary\" type=\"button\" data-modal-close>取消</button>");
     var save = actions.querySelector(".leai-primary");
     save.textContent = "保存";
-    actions.querySelectorAll("button").forEach(function(button){var spec={width:"164px","min-width":"164px","max-width":"164px",height:"44px","min-height":"44px","font-size":"14px","border-radius":"12px",flex:"0 0 164px"};if(button.classList.contains("leai-primary"))spec.background="linear-gradient(90deg,#4d144a 11%,#b8252e)";Object.keys(spec).forEach(function(key){button.style.setProperty(key,spec[key],"important")});});
+    actions.querySelectorAll("button").forEach(function(button){var spec={width:"164px","min-width":"164px","max-width":"164px",height:"44px","min-height":"44px","font-size":"14px","border-radius":"12px",flex:"0 0 164px",position:"static",margin:"0",inset:"auto"};if(button.classList.contains("leai-primary"))spec.background="linear-gradient(90deg,#4d144a 11%,#b8252e)";Object.keys(spec).forEach(function(key){button.style.setProperty(key,spec[key],"important")});});
     mask.classList.add("is-open");
     mask.setAttribute("aria-hidden", "false");
     trigger.dataset.modalTrigger = "active";
