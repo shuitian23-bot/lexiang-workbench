@@ -1751,3 +1751,6 @@ window.__p0Modules.dispatch(document.currentScript);
 
 /* Feedback uses the same action contract as the other modal primary buttons. */
 (()=>{const style=document.createElement("style");style.id="p0-feedback-button-contract-20261028";style.textContent="html body .lx-feedback-mask .lx-feedback-actions > .lx-feedback-submit{box-sizing:border-box!important;flex:0 0 164px!important;width:164px!important;min-width:164px!important;max-width:164px!important;height:44px!important;min-height:44px!important;max-height:44px!important;padding:0 16px!important;font-size:14px!important;border-radius:12px!important;background:linear-gradient(90deg,#4d144a 11%,#b8252e)!important;filter:none!important;transform:none!important;box-shadow:none!important}";(document.head||document.documentElement).append(style)})();
+
+/* Configuration and appointment-time choices share the 12px control radius. */
+(()=>{const style=document.createElement("style");style.id="p0-modal-option-radius-20261028";style.textContent="html body :is(.lx-config-option,.lx-product-config-option,.lx-product-config-color,.lx-time-option){border-radius:12px!important}";(document.head||document.documentElement).append(style)})();
