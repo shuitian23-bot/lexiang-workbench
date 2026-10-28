@@ -43,6 +43,7 @@ window.__p0Modules.factories["modals/profile-edit#openProfileEditorModal:5de6a94
     actions.insertAdjacentHTML("afterbegin", "<button class=\"leai-secondary\" type=\"button\" data-modal-close>取消</button>");
     var save = actions.querySelector(".leai-primary");
     save.textContent = "保存";
+    actions.querySelectorAll("button").forEach(function(button){var spec={width:"164px","min-width":"164px","max-width":"164px",height:"44px","min-height":"44px","font-size":"14px","border-radius":"12px",background:"linear-gradient(90deg,#4d144a 11%,#b8252e)",flex:"0 0 164px"};Object.keys(spec).forEach(function(key){button.style.setProperty(key,spec[key],"important")});});
     mask.classList.add("is-open");
     mask.setAttribute("aria-hidden", "false");
     trigger.dataset.modalTrigger = "active";
