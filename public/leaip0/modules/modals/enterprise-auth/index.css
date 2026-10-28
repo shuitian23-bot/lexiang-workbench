@@ -45,12 +45,12 @@ html body #lxEnterpriseAuthOriginal:is(.lx-lead-cancel),
 html body #lxEnterpriseAuthOriginal :is(.lx-lead-cancel){border: 1.5px solid rgb(91, 20, 82); color: rgb(91, 20, 82); background: rgb(255, 255, 255);}
 html body #lxEnterpriseAuthOriginal:is(.lx-lead-submit),
 html body #lxEnterpriseAuthOriginal :is(.lx-lead-submit){border: 0px; color: rgb(255, 255, 255); background: linear-gradient(90deg, rgb(91, 20, 82) 0%, rgb(184, 37, 46) 100%); box-shadow: rgba(146, 86, 214, 0.16) 0px 14px 28px;}
-html body #lxEnterpriseAuthOriginal:is(.lx-lead-cancel:hover),
-html body #lxEnterpriseAuthOriginal :is(.lx-lead-cancel:hover),
-html body #lxEnterpriseAuthOriginal:is(.lx-lead-submit:hover),
-html body #lxEnterpriseAuthOriginal :is(.lx-lead-submit:hover){transform: translateY(-1px);}
-html body #lxEnterpriseAuthOriginal:is(.lx-lead-submit:hover),
-html body #lxEnterpriseAuthOriginal :is(.lx-lead-submit:hover){filter: brightness(1.03);}
+html body #lxEnterpriseAuthOriginal:is(.lx-lead-cancel:where(.p0-disabled-hover-state):hover),
+html body #lxEnterpriseAuthOriginal :is(.lx-lead-cancel:where(.p0-disabled-hover-state):hover),
+html body #lxEnterpriseAuthOriginal:is(.lx-lead-submit:where(.p0-disabled-hover-state):hover),
+html body #lxEnterpriseAuthOriginal :is(.lx-lead-submit:where(.p0-disabled-hover-state):hover){transform: translateY(-1px);}
+html body #lxEnterpriseAuthOriginal:is(.lx-lead-submit:where(.p0-disabled-hover-state):hover),
+html body #lxEnterpriseAuthOriginal :is(.lx-lead-submit:where(.p0-disabled-hover-state):hover){filter: brightness(1.03);}
 @media (max-width: 640px){html body #lxEnterpriseAuthOriginal:is(.lx-lead-actions),
 html body #lxEnterpriseAuthOriginal :is(.lx-lead-actions){grid-template-columns: 1fr;}
 }
@@ -86,10 +86,10 @@ html body #lxEnterpriseAuthOriginal:is(.lx-p0-modal.lx-lead-shell .lx-lead-cance
 html body #lxEnterpriseAuthOriginal :is(.lx-p0-modal.lx-lead-shell .lx-lead-cancel){border: 1.5px solid rgb(91, 20, 82) !important; background: rgb(255, 255, 255) !important; color: rgb(91, 20, 82) !important; box-shadow: none !important;}
 html body #lxEnterpriseAuthOriginal:is(.lx-p0-modal.lx-lead-shell .lx-lead-submit),
 html body #lxEnterpriseAuthOriginal :is(.lx-p0-modal.lx-lead-shell .lx-lead-submit){border: 0px !important; background: linear-gradient(90deg, rgb(91, 20, 82) 0%, rgb(184, 37, 46) 100%) !important; color: rgb(255, 255, 255) !important; box-shadow: rgba(146, 86, 214, 0.16) 0px 12px 24px !important;}
-html body #lxEnterpriseAuthOriginal:is(.lx-p0-modal.lx-lead-shell .lx-lead-cancel:hover),
-html body #lxEnterpriseAuthOriginal :is(.lx-p0-modal.lx-lead-shell .lx-lead-cancel:hover),
-html body #lxEnterpriseAuthOriginal:is(.lx-p0-modal.lx-lead-shell .lx-lead-submit:hover),
-html body #lxEnterpriseAuthOriginal :is(.lx-p0-modal.lx-lead-shell .lx-lead-submit:hover){transform: translateY(-1px) !important;}
+html body #lxEnterpriseAuthOriginal:is(.lx-p0-modal.lx-lead-shell .lx-lead-cancel:where(.p0-disabled-hover-state):hover),
+html body #lxEnterpriseAuthOriginal :is(.lx-p0-modal.lx-lead-shell .lx-lead-cancel:where(.p0-disabled-hover-state):hover),
+html body #lxEnterpriseAuthOriginal:is(.lx-p0-modal.lx-lead-shell .lx-lead-submit:where(.p0-disabled-hover-state):hover),
+html body #lxEnterpriseAuthOriginal :is(.lx-p0-modal.lx-lead-shell .lx-lead-submit:where(.p0-disabled-hover-state):hover){transform: translateY(-1px) !important;}
 html body #lxEnterpriseAuthOriginal:is(.lx-p0-modal.lx-lead-shell .lx-lead-cancel:active),
 html body #lxEnterpriseAuthOriginal :is(.lx-p0-modal.lx-lead-shell .lx-lead-cancel:active),
 html body #lxEnterpriseAuthOriginal:is(.lx-p0-modal.lx-lead-shell .lx-lead-submit:active),
@@ -124,12 +124,12 @@ html body #lxEnterpriseAuthOriginal:is(.lx-p0-modal.lx-lead-shell .lx-lead-submi
 html body #lxEnterpriseAuthOriginal :is(.lx-p0-modal.lx-lead-shell .lx-lead-submit){height: 50px !important; min-height: 50px !important; border-radius: 13px !important; font-size: 16px !important; line-height: 20px !important; font-weight: 850 !important;}
 html body #lxEnterpriseAuthOriginal:is(.lx-p0-modal.lx-lead-shell .lx-lead-cancel),
 html body #lxEnterpriseAuthOriginal :is(.lx-p0-modal.lx-lead-shell .lx-lead-cancel){border: 1px solid rgb(226, 221, 235) !important; background: rgb(255, 255, 255) !important; color: rgb(91, 20, 82) !important;}
-html body #lxEnterpriseAuthOriginal:is(.lx-p0-modal.lx-lead-shell .lx-lead-cancel:hover),
-html body #lxEnterpriseAuthOriginal :is(.lx-p0-modal.lx-lead-shell .lx-lead-cancel:hover){border-color: rgb(91, 20, 82) !important; background: rgb(252, 250, 255) !important;}
+html body #lxEnterpriseAuthOriginal:is(.lx-p0-modal.lx-lead-shell .lx-lead-cancel:where(.p0-disabled-hover-state):hover),
+html body #lxEnterpriseAuthOriginal :is(.lx-p0-modal.lx-lead-shell .lx-lead-cancel:where(.p0-disabled-hover-state):hover){border-color: rgb(91, 20, 82) !important; background: rgb(252, 250, 255) !important;}
 html body #lxEnterpriseAuthOriginal:is(.lx-p0-modal.lx-lead-shell .lx-lead-submit),
 html body #lxEnterpriseAuthOriginal :is(.lx-p0-modal.lx-lead-shell .lx-lead-submit){border: 0px !important; background: linear-gradient(90deg, rgb(77, 20, 74) 11.9%, rgb(184, 37, 46) 100%) !important; color: rgb(255, 255, 255) !important; box-shadow: rgba(146, 86, 214, 0.16) 0px 12px 26px !important;}
-html body #lxEnterpriseAuthOriginal:is(.lx-p0-modal.lx-lead-shell .lx-lead-submit:hover),
-html body #lxEnterpriseAuthOriginal :is(.lx-p0-modal.lx-lead-shell .lx-lead-submit:hover){transform: translateY(-1px) !important; box-shadow: rgba(146, 86, 214, 0.16) 0px 16px 30px !important;}
+html body #lxEnterpriseAuthOriginal:is(.lx-p0-modal.lx-lead-shell .lx-lead-submit:where(.p0-disabled-hover-state):hover),
+html body #lxEnterpriseAuthOriginal :is(.lx-p0-modal.lx-lead-shell .lx-lead-submit:where(.p0-disabled-hover-state):hover){transform: translateY(-1px) !important; box-shadow: rgba(146, 86, 214, 0.16) 0px 16px 30px !important;}
 @media (max-width: 640px){html body #lxEnterpriseAuthOriginal:is(.lx-p0-modal.lx-lead-shell),
 html body #lxEnterpriseAuthOriginal :is(.lx-p0-modal.lx-lead-shell){width: calc(-24px + 100vw) !important;}
 }
