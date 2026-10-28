@@ -954,3 +954,6 @@ html body .lxfd-msg-ai .lx-enterprise-lead-reco:hover,
 html body .lxfd-msg-ai .lx-enterprise-lead-reco:focus-visible { border-color:#4d144a!important; background:#fcfaff!important; outline:none!important; }
 }
 
+
+/* Requested operation-button radius, shared by all interaction states. */
+html body .lx-p0-modal.lx-lead-shell:has(.lx-lead-modal) .lx-lead-actions > button{border-radius:12px!important}

@@ -958,3 +958,8 @@ html body .lxfd-msg-ai .lx-edu-auth-reco:focus-visible { border-color:#4d144a!im
 @media (-p0-part: p3491cdeedf09ea92b275) {.lx-edu-auth-actions{flex:none;display:flex;align-items:center;gap:12px;white-space:nowrap}.lx-edu-auth-actions .lx-p0-btn{height:36px;min-height:36px;padding:0 20px;border-radius:999px;font-size:13px;font-weight:850}.lx-edu-auth-actions .lx-auth-reset{height:32px;padding:0 12px;border:1px solid #e6e0ed;border-radius:999px;background:#FFFFFF;color:#bb1836;font-size:12px;font-weight:750;cursor:pointer}
 }
 
+
+/* Requested operation-button radius, shared by all interaction states. */
+html body .lx-p0-modal:has(.lx-edu-auth-modal) .lx-lead-actions > button,
+html body .lx-p0-modal:has(.lx-stuauth-modal) .lx-stuauth-actions > button,
+html body #leaiModalForm:has(#leaiStudentSubmit) .leai-modal-actions > button{border-radius:12px!important}
