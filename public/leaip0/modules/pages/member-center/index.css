@@ -166,7 +166,7 @@ body[data-page="personal"] > .shell > .content.leai-aui-active { position: relat
 .leai-summary-card, .leai-panel, .leai-service-card { border: 1px solid var(--ms-line); border-radius: 14px; background: var(--ms-surface); box-shadow: var(--ms-card-shadow); }
 .leai-summary-card { min-height: 118px; padding: 18px; }
 .leai-summary-button { width: 100%; color: inherit; text-align: left; cursor: pointer; }
-.leai-summary-button:where(.p0-disabled-hover-state):hover, .leai-summary-button:focus-visible { border-color: var(--ms-brand); background: var(--ms-hover); outline: none; }
+.leai-summary-button:hover:not(:where(.lx-p0-modal *,.leai-modal *,.lx-appointment-mask *,[data-buy-modal-direct] *)), .leai-summary-button:focus-visible { border-color: var(--ms-brand); background: var(--ms-hover); outline: none; }
 .leai-member-main { background: var(--answer-card-bg); }
 .leai-summary-label { display: block; color: var(--ms-muted); font-size: 12px; }
 .leai-summary-value { display: block; margin-top: 9px; color: var(--ms-text); font-size: 23px; line-height: 30px; font-weight: 700; }
@@ -222,7 +222,7 @@ body[data-page="personal"] > .shell > .content.leai-aui-active { position: relat
 .leai-identity-track-action img { width: 12px; height: 12px; }
 .leai-identity-track-actions { display: flex; flex-wrap: wrap; gap: 6px; }
 .leai-identity-track-actions button { min-height: 28px; padding: 0 7px; border: 1px solid var(--ms-line-soft); border-radius: 8px; background: var(--ms-surface); color: var(--ms-brand); font-size: 9px; }
-.leai-identity-track-actions button:where(.p0-disabled-hover-state):hover, .leai-identity-track-actions button:focus-visible { border-color: var(--ms-brand); background: var(--ms-hover); outline: none; }
+.leai-identity-track-actions button:hover:not(:where(.lx-p0-modal *,.leai-modal *,.lx-appointment-mask *,[data-buy-modal-direct] *)), .leai-identity-track-actions button:focus-visible { border-color: var(--ms-brand); background: var(--ms-hover); outline: none; }
 .leai-member-level-panel { padding-top: 14px; }
 .leai-member-assets { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; margin-top: 12px; }
 .leai-member-asset { min-height: 92px; display: grid; align-content: center; gap: 3px; padding: 13px; border: 1px solid var(--ms-line); border-radius: 12px; background: var(--ms-surface); color: var(--ms-text); text-align: left; box-shadow: var(--ms-card-shadow); }
@@ -298,7 +298,7 @@ body[data-page="personal"] > .shell > .content.leai-aui-active { position: relat
 .leai-panel-head p, .leai-service-actions p { margin: -7px 0 14px; color: var(--ms-text-soft); font-size: 12px; line-height: 19px; }
 .leai-task-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
 .leai-task-button { min-height: 72px; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 13px; border: 1px solid var(--ms-line); border-radius: 12px; background: var(--ms-surface); color: var(--ms-text); text-align: left; }
-.leai-task-button:where(.p0-disabled-hover-state):hover, .leai-task-button:focus-visible { border-color: var(--ms-brand); background: var(--ms-hover); outline: none; }
+.leai-task-button:hover:not(:where(.lx-p0-modal *,.leai-modal *,.lx-appointment-mask *,[data-buy-modal-direct] *)), .leai-task-button:focus-visible { border-color: var(--ms-brand); background: var(--ms-hover); outline: none; }
 .leai-task-button[disabled] { cursor: default; opacity: .6; }
 .leai-task-button strong, .leai-task-button small { display: block; }
 .leai-task-button strong { color: var(--ms-brand); font-size: 13px; }
@@ -412,9 +412,9 @@ body[data-page="personal"] > .shell > .content.leai-aui-active { position: relat
 .leai-service-list .reco-row-price { color: var(--ms-danger); font-size: 23px; font-weight: 700; white-space: nowrap; }
 .leai-service-list .reco-row-actions { display: flex; gap: 8px; }
 .leai-service-list .reco-row-actions .lx-p0-btn { min-height: 38px; padding: 0 18px; border: 1px solid var(--ms-line); border-radius: 9px; background: var(--ms-surface); color: var(--ms-text); font-size: 13px; font-weight: 600; white-space: nowrap; }
-.leai-service-list .reco-row-actions .lx-p0-btn:where(.p0-disabled-hover-state):hover, .leai-service-list .reco-row-actions .lx-p0-btn:focus-visible { border-color: var(--ms-brand); color: var(--ms-brand); outline: none; }
+.leai-service-list .reco-row-actions .lx-p0-btn:hover:not(:where(.lx-p0-modal *,.leai-modal *,.lx-appointment-mask *,[data-buy-modal-direct] *)), .leai-service-list .reco-row-actions .lx-p0-btn:focus-visible { border-color: var(--ms-brand); color: var(--ms-brand); outline: none; }
 .leai-service-list .reco-row-actions .lx-p0-btn:last-child { border-color: var(--ms-brand); background: var(--ms-brand); color: var(--ms-surface); }
-.leai-service-list .reco-row-actions .lx-p0-btn:last-child:where(.p0-disabled-hover-state):hover, .leai-service-list .reco-row-actions .lx-p0-btn:last-child:focus-visible { background: var(--ms-brand-2); color: var(--ms-surface); }
+.leai-service-list .reco-row-actions .lx-p0-btn:last-child:hover:not(:where(.lx-p0-modal *,.leai-modal *,.lx-appointment-mask *,[data-buy-modal-direct] *)), .leai-service-list .reco-row-actions .lx-p0-btn:last-child:focus-visible { background: var(--ms-brand-2); color: var(--ms-surface); }
 .leai-warranty-note { margin-top: 14px; }
 .leai-warranty-note .leai-panel-title { margin-bottom: 8px; }
 .leai-warranty-note p { margin: 0; color: var(--ms-text-soft); font-size: 12px; line-height: 19px; }
@@ -440,8 +440,8 @@ body[data-page="personal"] > .shell > .content.leai-aui-active { position: relat
 .leai-orders-page .obtn { min-height: 36px; padding: 0 12px; border-radius: 8px; font-size: 12px; font-weight: 600; }
 .leai-orders-page .obtn.order-ghost { border: 1px solid var(--ms-line); background: var(--ms-surface); color: var(--ms-brand); }
 .leai-orders-page .obtn.solid { border: 0; background: var(--ms-brand); color: var(--ms-surface); }
-.leai-orders-page .obtn:where(.p0-disabled-hover-state):hover, .leai-orders-page .obtn:focus-visible { background: var(--ms-hover); color: var(--ms-brand); outline: none; }
-.leai-orders-page .obtn.solid:where(.p0-disabled-hover-state):hover, .leai-orders-page .obtn.solid:focus-visible { background: var(--ms-brand-2); color: var(--ms-surface); }
+.leai-orders-page .obtn:hover:not(:where(.lx-p0-modal *,.leai-modal *,.lx-appointment-mask *,[data-buy-modal-direct] *)), .leai-orders-page .obtn:focus-visible { background: var(--ms-hover); color: var(--ms-brand); outline: none; }
+.leai-orders-page .obtn.solid:hover:not(:where(.lx-p0-modal *,.leai-modal *,.lx-appointment-mask *,[data-buy-modal-direct] *)), .leai-orders-page .obtn.solid:focus-visible { background: var(--ms-brand-2); color: var(--ms-surface); }
 .leai-order-sync { display: none; }
 }
 @media (-p0-part: p0e88609342a759758863) {
@@ -455,10 +455,10 @@ body[data-page="personal"] > .shell > .content.leai-aui-active { position: relat
 .leai-compare-actions { display: flex; gap: 8px; }
 .leai-primary, .leai-secondary { min-height: 38px; padding: 0 16px; border-radius: 8px; font-size: 13px; font-weight: 600; }
 .leai-primary { border: 0; background: var(--ms-brand); color: var(--ms-surface); }
-.leai-primary:where(.p0-disabled-hover-state):hover, .leai-primary:focus-visible { background: var(--ms-brand-2); outline: none; }
+.leai-primary:hover:not(:where(.lx-p0-modal *,.leai-modal *,.lx-appointment-mask *,[data-buy-modal-direct] *)), .leai-primary:focus-visible { background: var(--ms-brand-2); outline: none; }
 .leai-primary:disabled { background: var(--ms-line); color: var(--ms-muted); cursor: not-allowed; }
 .leai-secondary { border: 1px solid var(--ms-line); background: var(--ms-surface); color: var(--ms-brand); }
-.leai-secondary:where(.p0-disabled-hover-state):hover, .leai-secondary:focus-visible { background: var(--ms-hover); outline: none; }
+.leai-secondary:hover:not(:where(.lx-p0-modal *,.leai-modal *,.lx-appointment-mask *,[data-buy-modal-direct] *)), .leai-secondary:focus-visible { background: var(--ms-hover); outline: none; }
 
 .leai-modal-mask { position: fixed; inset: 0; z-index: 10020; display: none; place-items: center; padding: 24px; background: rgba(25, 14, 33, 0.7); }
 .leai-modal-mask.is-open { display: grid; }
@@ -1312,7 +1312,7 @@ body .leai-member-page .leai-member-checkin-copy em {
   font-size: 11px;
 }
 
-.leai-warranty-device-actions button:where(.p0-disabled-hover-state):hover,
+.leai-warranty-device-actions button:hover:not(:where(.lx-p0-modal *,.leai-modal *,.lx-appointment-mask *,[data-buy-modal-direct] *)),
 .leai-warranty-device-actions button:focus-visible {
   border-color: var(--ms-brand);
   background: var(--ms-hover);
@@ -1490,9 +1490,9 @@ body .leai-member-page .leai-member-checkin-prompt:focus-visible {
  * Cleaner hover, divider-free identity hierarchy, compact devices header,
  * and one spacing baseline across member secondary pages.
  */
-.leai-member-page .leai-member-insight:where(.p0-disabled-hover-state):hover,
-.leai-member-page .leai-member-asset:where(.p0-disabled-hover-state):hover,
-.leai-member-page .leai-member-checkin-prompt:where(.p0-disabled-hover-state):hover {
+.leai-member-page .leai-member-insight:hover:not(:where(.lx-p0-modal *,.leai-modal *,.lx-appointment-mask *,[data-buy-modal-direct] *)),
+.leai-member-page .leai-member-asset:hover:not(:where(.lx-p0-modal *,.leai-modal *,.lx-appointment-mask *,[data-buy-modal-direct] *)),
+.leai-member-page .leai-member-checkin-prompt:hover:not(:where(.lx-p0-modal *,.leai-modal *,.lx-appointment-mask *,[data-buy-modal-direct] *)) {
   border-color: var(--ms-line-soft);
   background: var(--ms-hover);
   transform: none;
@@ -5056,7 +5056,7 @@ body [data-member-checkin-page-view] .leai-checkin-hero > .leai-primary {
   box-shadow: 0 6px 14px rgba(77, 20, 74, .12);
 }
 
-body [data-member-checkin-page-view] .leai-checkin-hero > .leai-primary:where(.p0-disabled-hover-state):hover,
+body [data-member-checkin-page-view] .leai-checkin-hero > .leai-primary:hover:not(:where(.lx-p0-modal *,.leai-modal *,.lx-appointment-mask *,[data-buy-modal-direct] *)),
 body [data-member-checkin-page-view] .leai-checkin-hero > .leai-primary:focus-visible {
   background: linear-gradient(90deg, #4d144a 11.9%, #b8252e 100%);
   box-shadow: 0 7px 16px rgba(77, 20, 74, .14);
@@ -5923,9 +5923,9 @@ body .leai-member-page > .leai-member-education-slot .leai-identity-track-action
   text-decoration: none;
 }
 
-body .leai-member-page > .leai-member-education-slot .leai-identity-track-action:where(.p0-disabled-hover-state):hover,
+body .leai-member-page > .leai-member-education-slot .leai-identity-track-action:hover:not(:where(.lx-p0-modal *,.leai-modal *,.lx-appointment-mask *,[data-buy-modal-direct] *)),
 body .leai-member-page > .leai-member-education-slot .leai-identity-track-action:focus-visible,
-body .leai-member-page > .leai-member-education-slot .leai-identity-track-actions button:where(.p0-disabled-hover-state):hover,
+body .leai-member-page > .leai-member-education-slot .leai-identity-track-actions button:hover:not(:where(.lx-p0-modal *,.leai-modal *,.lx-appointment-mask *,[data-buy-modal-direct] *)),
 body .leai-member-page > .leai-member-education-slot .leai-identity-track-actions button:focus-visible {
   border-color: var(--ms-brand-2);
   background: var(--ms-brand-2);
@@ -6527,9 +6527,9 @@ body .leai-service-list .reco-row-actions .lx-p0-btn.primary {
   box-shadow: none;
 }
 
-body .leai-service-list .reco-row-actions .lx-p0-btn:where(.p0-disabled-hover-state):hover,
+body .leai-service-list .reco-row-actions .lx-p0-btn:hover:not(:where(.lx-p0-modal *,.leai-modal *,.lx-appointment-mask *,[data-buy-modal-direct] *)),
 body .leai-service-list .reco-row-actions .lx-p0-btn:focus-visible,
-body .leai-service-list .reco-row-actions .lx-p0-btn.primary:where(.p0-disabled-hover-state):hover,
+body .leai-service-list .reco-row-actions .lx-p0-btn.primary:hover:not(:where(.lx-p0-modal *,.leai-modal *,.lx-appointment-mask *,[data-buy-modal-direct] *)),
 body .leai-service-list .reco-row-actions .lx-p0-btn.primary:focus-visible {
   border-color: var(--ms-brand-2);
   background: var(--ms-brand-2);
@@ -6663,7 +6663,7 @@ body .leai-member-page .leai-member-overview > .leai-member-insights .leai-membe
   font-size: 12px;
 }
 
-.leai-asset-filter-tabs button:where(.p0-disabled-hover-state):hover,
+.leai-asset-filter-tabs button:hover:not(:where(.lx-p0-modal *,.leai-modal *,.lx-appointment-mask *,[data-buy-modal-direct] *)),
 .leai-asset-filter-tabs button:focus-visible,
 .leai-asset-filter-tabs button.is-active {
   border-color: var(--ms-brand);
@@ -6787,7 +6787,7 @@ body .leai-member-asset-page > .leai-asset-filterbar .leai-asset-filter-tabs but
   font-size: 12px;
 }
 
-body .leai-member-asset-page > .leai-asset-filterbar .leai-asset-filter-tabs button:where(.p0-disabled-hover-state):hover,
+body .leai-member-asset-page > .leai-asset-filterbar .leai-asset-filter-tabs button:hover:not(:where(.lx-p0-modal *,.leai-modal *,.lx-appointment-mask *,[data-buy-modal-direct] *)),
 body .leai-member-asset-page > .leai-asset-filterbar .leai-asset-filter-tabs button:focus-visible {
   border: 0;
   background: transparent;
@@ -8569,7 +8569,7 @@ body [data-member-service-page] .leai-service-list .reco-row-actions .lx-p0-btn.
   box-shadow: 0 3px 9px rgba(77, 20, 74, .10);
 }
 
-body [data-member-service-page] .leai-service-list .reco-row-actions .lx-p0-btn.primary:where(.p0-disabled-hover-state):hover,
+body [data-member-service-page] .leai-service-list .reco-row-actions .lx-p0-btn.primary:hover:not(:where(.lx-p0-modal *,.leai-modal *,.lx-appointment-mask *,[data-buy-modal-direct] *)),
 body [data-member-service-page] .leai-service-list .reco-row-actions .lx-p0-btn.primary:focus-visible {
   border-color: transparent;
   background: linear-gradient(90deg, #4d144a 11.9%, #b8252e 100%);
@@ -10060,7 +10060,7 @@ body .leai-member-page .leai-member-overview > .leai-member-insights .leai-membe
   font-size: 12px;
 }
 
-.leai-asset-filter-tabs button:where(.p0-disabled-hover-state):hover,
+.leai-asset-filter-tabs button:hover:not(:where(.lx-p0-modal *,.leai-modal *,.lx-appointment-mask *,[data-buy-modal-direct] *)),
 .leai-asset-filter-tabs button:focus-visible,
 .leai-asset-filter-tabs button.is-active {
   border-color: var(--ms-brand);
@@ -10164,7 +10164,7 @@ body .leai-member-asset-page > .leai-asset-filterbar .leai-asset-filter-tabs but
   font-size: 12px;
 }
 
-body .leai-member-asset-page > .leai-asset-filterbar .leai-asset-filter-tabs button:where(.p0-disabled-hover-state):hover,
+body .leai-member-asset-page > .leai-asset-filterbar .leai-asset-filter-tabs button:hover:not(:where(.lx-p0-modal *,.leai-modal *,.lx-appointment-mask *,[data-buy-modal-direct] *)),
 body .leai-member-asset-page > .leai-asset-filterbar .leai-asset-filter-tabs button:focus-visible {
   border: 0;
   background: transparent;
