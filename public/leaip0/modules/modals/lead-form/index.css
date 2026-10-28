@@ -183,7 +183,7 @@ html body .lx-p0-modal.lx-lead-shell:has(.lx-lead-modal) .lx-lead-actions > butt
   min-height:44px!important;
   padding:0!important;
   border:1px solid #e2ddeb!important;
-  border-radius:22px!important;
+  border-radius:12px!important;
   background:#fff!important;
   color:#4d144a!important;
   font-size:15px!important;
@@ -424,7 +424,7 @@ html body .lx-p0-modal.lx-lead-shell:has(#lxEntCompany) #lxEnterpriseAuthForm > 
 html body .lx-p0-modal.lx-lead-shell:has(#lxEntCompany) .lx-lead-actions > button {
   box-sizing:border-box!important; flex:0 0 auto!important;
   width:120px!important; min-width:120px!important; height:44px!important; min-height:44px!important;
-  padding:0 22px!important; border:1px solid #e2ddeb!important; border-radius:22px!important;
+  padding:0 22px!important; border:1px solid #e2ddeb!important; border-radius:12px!important;
   background:#fff!important; color:#4d144a!important;
   font-size:15px!important; line-height:22px!important; font-weight:600!important;
   box-shadow:none!important; transform:none!important;
