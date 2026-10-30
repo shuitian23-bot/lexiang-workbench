@@ -1754,3 +1754,5 @@ window.__p0Modules.dispatch(document.currentScript);
 
 /* Configuration and appointment-time choices share the 12px control radius. */
 (()=>{const style=document.createElement("style");style.id="p0-modal-option-radius-20261028";style.textContent="html body :is(.lx-config-option,.lx-product-config-option,.lx-product-config-color,.lx-time-option){border-radius:12px!important}";(document.head||document.documentElement).append(style)})();
+
+(()=>{const style=document.createElement('style');style.textContent=".lx-reco-poc-page .reco-row-price{display:inline-flex!important;align-items:baseline!important;gap:6px!important;flex-wrap:wrap}.lx-reco-poc-page .lx-reco-subsidy-label{font-size:12px;font-weight:400}.lx-reco-poc-page .reco-row-price .lx-reco-original-price{color:#606060!important;font-size:12px!important;font-weight:400!important;text-decoration:line-through!important}";(document.head||document.documentElement).append(style)})();
