@@ -1762,10 +1762,10 @@ window.__p0Modules.dispatch(document.currentScript);
 (()=>{
  const prices=new Map();let pending=false;
  function original(sku){if(!prices.has(sku))prices.set(sku,fetch('/api/products/'+encodeURIComponent(sku)).then(r=>r.ok?r.json():null).then(p=>Number(p?.original_price||p?.originalPrice)||0).catch(()=>0));return prices.get(sku);}
- function scan(){pending=false;document.querySelectorAll('.lx-reco-poc-page .reco-row-price').forEach(price=>{
+ function scan(){pending=false;document.querySelectorAll('.lx-reco-poc-page .reco-row-price,.lx-product-compare .lx-pc-price-line').forEach(price=>{if(price.matches('.lx-pc-price-line')&&!price.querySelector('.lx-reco-subsidy-label')){const label=document.createElement('span');label.className='lx-reco-subsidy-label';label.textContent='国补后';price.prepend(label);}
   if(price.querySelector('.lx-reco-original-price'))return;
-  const row=price.closest('[data-open-product],.lx-reco-poc-row');
-  const sku=row?.dataset.openProduct||row?.dataset.sku||row?.querySelector('[data-reco-buy]')?.dataset.recoBuy;
+  const row=price.closest('[data-cmp-recommend],[data-open-product],.lx-reco-poc-row');
+  const sku=row?.dataset.cmpRecommend||row?.dataset.openProduct||row?.dataset.sku||row?.querySelector('[data-reco-buy]')?.dataset.recoBuy;
   if(!sku||price.dataset.originalPriceLoading)return;price.dataset.originalPriceLoading='true';
   original(sku).then(value=>{if(!price.isConnected||!value)return;if(!price.querySelector('.lx-reco-original-price')){const del=document.createElement('del');del.className='lx-reco-original-price';del.textContent='¥'+value.toLocaleString();price.append(del);}});
  });}
@@ -1773,3 +1773,5 @@ window.__p0Modules.dispatch(document.currentScript);
  const style=document.createElement('style');style.textContent='.lx-reco-poc-page .reco-row-price .lx-reco-original-price{display:inline!important;visibility:visible!important;opacity:1!important;color:#979797!important;font-size:12px!important;font-weight:400!important;text-decoration:line-through!important;text-decoration-color:#979797!important;white-space:nowrap;flex-shrink:0}';document.head.append(style);
  new MutationObserver(schedule).observe(document.documentElement,{childList:true,subtree:true});schedule();
 })();
+
+(()=>{const style=document.createElement('style');style.textContent=".lx-product-compare .lx-pc-price-line{display:flex!important;align-items:baseline!important;gap:6px!important;flex-wrap:wrap!important}.lx-product-compare .lx-pc-price-line .lx-reco-subsidy-label{color:#ff2f2f;font-size:12px;font-weight:400}.lx-product-compare .lx-pc-price-line .lx-reco-original-price{display:inline!important;visibility:visible!important;opacity:1!important;color:#979797!important;font-size:12px!important;font-weight:400!important;text-decoration:line-through!important;text-decoration-color:#979797!important;white-space:nowrap}";(document.head||document.documentElement).append(style)})();
