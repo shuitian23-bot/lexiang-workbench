@@ -1755,7 +1755,7 @@ window.__p0Modules.dispatch(document.currentScript);
 /* Configuration and appointment-time choices share the 12px control radius. */
 (()=>{const style=document.createElement("style");style.id="p0-modal-option-radius-20261028";style.textContent="html body :is(.lx-config-option,.lx-product-config-option,.lx-product-config-color,.lx-time-option){border-radius:12px!important}";(document.head||document.documentElement).append(style)})();
 
-(()=>{const style=document.createElement('style');style.textContent=".lx-reco-poc-page .reco-row-price{display:inline-flex!important;align-items:baseline!important;gap:6px!important;flex-wrap:wrap}.lx-reco-poc-page .lx-reco-subsidy-label{font-size:12px;font-weight:400}.lx-reco-poc-page .reco-row-price .lx-reco-original-price{color:#606060!important;font-size:12px!important;font-weight:400!important;text-decoration:line-through!important}";(document.head||document.documentElement).append(style)})();
+(()=>{const style=document.createElement('style');style.textContent=".lx-reco-poc-page .reco-row-price{display:inline-flex!important;align-items:baseline!important;gap:6px!important;flex-wrap:wrap}.lx-reco-poc-page .lx-reco-subsidy-label{font-size:12px;font-weight:400}.lx-reco-poc-page .reco-row-price .lx-reco-original-price{color:#979797!important;font-size:12px!important;font-weight:400!important;text-decoration:line-through!important;text-decoration-color:#979797!important}";(document.head||document.documentElement).append(style)})();
 
 
 /* Restore missing original-price fields after recommendation normalization/history rendering. */
@@ -1770,6 +1770,6 @@ window.__p0Modules.dispatch(document.currentScript);
   original(sku).then(value=>{if(!price.isConnected||!value)return;if(!price.querySelector('.lx-reco-original-price')){const del=document.createElement('del');del.className='lx-reco-original-price';del.textContent='¥'+value.toLocaleString();price.append(del);}});
  });}
  function schedule(){if(!pending){pending=true;requestAnimationFrame(scan);}}
- const style=document.createElement('style');style.textContent='.lx-reco-poc-page .reco-row-price .lx-reco-original-price{display:inline!important;visibility:visible!important;opacity:1!important;color:#606060!important;font-size:12px!important;font-weight:400!important;text-decoration:line-through!important;white-space:nowrap;flex-shrink:0}';document.head.append(style);
+ const style=document.createElement('style');style.textContent='.lx-reco-poc-page .reco-row-price .lx-reco-original-price{display:inline!important;visibility:visible!important;opacity:1!important;color:#979797!important;font-size:12px!important;font-weight:400!important;text-decoration:line-through!important;text-decoration-color:#979797!important;white-space:nowrap;flex-shrink:0}';document.head.append(style);
  new MutationObserver(schedule).observe(document.documentElement,{childList:true,subtree:true});schedule();
 })();
