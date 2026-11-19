@@ -27,8 +27,32 @@ if [ "${1:-}" = "--list" ]; then
 fi
 
 name="${1:-$(id -un)}"
+if [[ ! "$name" =~ ^[A-Za-z0-9_.][A-Za-z0-9_.-]*$ || "$name" = "." || "$name" = ".." ]]; then
+  echo "工作区名称只能包含字母、数字、点、下划线和连字符，且不能以连字符开头或使用 .、.." >&2
+  exit 1
+fi
 wt="$WTROOT/$name"
 branch="dev/$name"
+
+# 新建时与合并、检查点共用锁；锁内再次确认目录与空间，已有工作区不受限制。
+if [ ! -d "$wt" ]; then
+  { exec 9<>"$PROD/.locks/worktree.lock"; } || {
+    echo "无法打开工作区共享锁，请检查当前账号的 dev 组权限。" >&2
+    exit 1
+  }
+  flock -w 30 9 || { echo "工作区正由其他任务维护，请稍后重试。" >&2; exit 1; }
+  if [ ! -d "$wt" ]; then
+    available=$(df -B1 --output=avail "$WTROOT" | awk 'NR == 2 { print $1 }')
+    if [[ ! "$available" =~ ^[0-9]+$ ]]; then
+      echo "无法确认工作区所在磁盘的可用空间，已暂停新建。" >&2
+      exit 1
+    fi
+    if (( available < 20 * 1024 * 1024 * 1024 )); then
+      echo "磁盘可用空间不足 20GiB，已暂停新建工作区；请先保存并整理已完成任务的临时工作区。已有工作区仍可使用。" >&2
+      exit 1
+    fi
+  fi
+fi
 
 # 端口来源优先级：命令行 > scripts/dev-ports.txt 里按名字查 > 从 3012 自动挑。
 # 之所以要 dev-ports.txt：纯自动分配会无视早就定好的约定（生产 3001 /
