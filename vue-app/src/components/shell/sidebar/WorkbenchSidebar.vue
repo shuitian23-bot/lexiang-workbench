@@ -28,23 +28,6 @@
         @toggle="toggleGroup"
         @navigate="navigateTo"
       />
-      <div v-if="user" class="nav-group" data-group="sales">
-        <div
-          class="nav-item"
-          :class="{ active: currentPageId === 'sales.workbench' }"
-          :aria-current="currentPageId === 'sales.workbench' ? 'page' : undefined"
-          data-tip="销售工作台"
-          aria-label="销售工作台"
-          role="button"
-          tabindex="0"
-          @click="navigateTo('/sales/workbench', 'sales.workbench')"
-          @keydown.enter.prevent="navigateTo('/sales/workbench', 'sales.workbench')"
-          @keydown.space.prevent="navigateTo('/sales/workbench', 'sales.workbench')"
-        >
-          <span class="ni" v-html="MENU_TREE.lead.icon"></span>
-          <span>销售工作台</span>
-        </div>
-      </div>
     </div>
 
     <SidebarFooter

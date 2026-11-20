@@ -36,7 +36,8 @@
     "test:permission-scope:browser": "node scripts/verify-permission-scope-browser.mjs",
     "test:login-password-recovery:browser": "node scripts/verify-login-password-recovery-browser.mjs",
     "smoke:shell": "node scripts/smoke-shell.mjs",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "test:sales-workbench": "node --test scripts/sales-workbench-navigation.test.mjs scripts/customer-orders.test.mjs scripts/agreement-product-relations.test.mjs scripts/agreement-products.test.mjs"
   },
   "dependencies": {
     "vue": "^3.4.0",

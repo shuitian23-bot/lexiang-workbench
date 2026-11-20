@@ -163,7 +163,9 @@ test('Full-workbench routes reuse AppLayout and every existing business and Agen
   assert.ok(workspace, 'The full workspace must contain the original portal route tree')
   assert.equal(workspace.component.name, 'AppLayout')
   const pageIds = new Set(workspace.children.map(route => route.meta?.pageId))
-  for (const pageId of ['portal.home', 'sales.workbench', 'dashboard.overview', 'dashboard.geo', 'employee.overview',
+  assert.equal(workspace.children.find(route => route.path === 'sales/workbench')?.redirect, '/sales/customer-orders')
+  for (const pageId of ['portal.home', 'sales.customerOrders', 'sales.agreementProductRelations', 'sales.agreementProducts',
+    'sales.dashboard', 'sales.agreementMembers', 'dashboard.overview', 'dashboard.geo', 'employee.overview',
     'lead.dashboard', 'order.purchaseOrders', 'advertising.productVideo', 'points.accounts', 'points.activity',
     'reviews.summary', 'agent.skills', 'agent.skillCreate', 'agent.scenarioPackageCreate', 'agent.permissions', 'agent.usageDashboard']) {
     assert.ok(pageIds.has(pageId), pageId)
@@ -178,7 +180,7 @@ test('A valid full-workbench browser marker restores all administrator menus on 
   assert.equal(page.store.user, 'admin')
   assert.equal(page.store.role, '平台管理员')
   assert.deepEqual(plain(page.store.permissions), ['*'])
-  assert.deepEqual(Object.keys(page.store.filteredMenuTree), ['dashboard', 'geo', 'employee', 'lead', 'order', 'advertising', 'aiinspect', 'promotion', 'reviews'])
+  assert.deepEqual(Object.keys(page.store.filteredMenuTree), ['dashboard', 'geo', 'employee', 'lead', 'order', 'advertising', 'aiinspect', 'promotion', 'reviews', 'sales'])
   assert.equal(page.requests.length, 0)
   assert.equal(page.paths.routerBase, '/admin-vue/poc/workbench/')
 })
@@ -229,7 +231,7 @@ test('The existing standalone approval POC does not acquire a full-workbench ide
   await page.visit('/agent/permissions', 'agent.permissions')
   assert.equal(page.store.user, null)
   assert.equal(page.requests.length, 0)
-  assert.ok(!page.routes.some(route => route.children?.some(child => child.meta?.pageId === 'sales.workbench')))
+  assert.ok(!page.routes.some(route => route.children?.some(child => String(child.meta?.pageId).startsWith('sales.'))))
 })
 
 test('Full-workbench logout clears only its demo marker and in-memory identity without logging out a real backend session', async () => {

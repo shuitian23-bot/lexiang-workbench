@@ -1,5 +1,5 @@
 <script setup lang="ts">
-withDefaults(defineProps<{ label: string; layout?: 'stacked' | 'inset'; group?: boolean }>(), { layout: 'stacked', group: false })
+withDefaults(defineProps<{ label: string; layout?: 'stacked' | 'inset' | 'placeholder'; group?: boolean }>(), { layout: 'stacked', group: false })
 </script>
 
 <template>
@@ -69,5 +69,17 @@ withDefaults(defineProps<{ label: string; layout?: 'stacked' | 'inset'; group?: 
   border-radius: 0 !important;
   background: transparent !important;
   box-shadow: none !important;
+}
+
+.cs-filter-field[data-field-layout='placeholder'] { gap: 0; }
+.cs-filter-field[data-field-layout='placeholder'] .cs-filter-field__label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 </style>

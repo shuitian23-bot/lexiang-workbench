@@ -11,7 +11,11 @@ const AppLayout = () => import('@/components/AppLayout.vue')
 
 // 页面组件（懒加载，首屏不打包进去）
 const PortalHome      = () => import('@/views/PortalHomeView.vue')
-const SalesWorkbench = () => import('@/views/sales/SalesWorkbenchView.vue')
+const CustomerOrders = () => import('@/views/order/CustomerOrdersView.vue')
+const AgreementProductRelations = () => import('@/views/order/AgreementProductRelationsView.vue')
+const AgreementProducts = () => import('@/views/order/AgreementProductsView.vue')
+const AgreementMembers = () => import('@/views/order/AgreementMembersView.vue')
+const SalesDashboard = () => import('@/views/order/SalesDashboardView.vue')
 const NativeWorkbenchPage = () => import('@/views/NativeWorkbenchPage.vue')
 const WIPView           = () => import('@/views/WIPView.vue')  // 开发中占位页
 const DashboardOverview = () => import('@/views/dashboard/DashboardOverviewView.vue')
@@ -91,7 +95,12 @@ const routes: RouteRecordRaw[] = [
     children: [
       { path: '',              redirect: '/portal/home' },
       { path: 'portal/home',  component: PortalHome, meta: { pageId: 'portal.home' } },
-      { path: 'sales/workbench', component: SalesWorkbench, meta: { pageId: 'sales.workbench' } },
+      { path: 'sales/workbench', redirect: '/sales/customer-orders' },
+      { path: 'sales/customer-orders', component: CustomerOrders, meta: { pageId: 'sales.customerOrders', group: 'sales' } },
+      { path: 'sales/agreement-product-relations', component: AgreementProductRelations, meta: { pageId: 'sales.agreementProductRelations', group: 'sales' } },
+      { path: 'sales/agreement-products', component: AgreementProducts, meta: { pageId: 'sales.agreementProducts', group: 'sales' } },
+      { path: 'sales/dashboard', component: SalesDashboard, meta: { pageId: 'sales.dashboard', group: 'sales' } },
+      { path: 'sales/agreement-members', component: AgreementMembers, meta: { pageId: 'sales.agreementMembers', group: 'sales' } },
 
       // 乐享运营
       { path: 'dashboard/overview',   component: DashboardOverview, meta: { pageId: 'dashboard.overview',  group: 'dashboard' } },

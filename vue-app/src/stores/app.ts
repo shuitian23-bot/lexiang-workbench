@@ -24,7 +24,7 @@ import { labHeaders } from '@/services/permissionLab'
 import { AI_INSPECT_MENU, withAiInspectMenu } from '@/services/aiInspectAccess'
 import { ACTIVITY_POINTS_MENU, withActivityPointsMenu } from '@/services/activityPointsAccess'
 
-type MenuGroupKey = 'dashboard' | 'geo' | 'employee' | 'lead' | 'order' | 'advertising' | 'aiinspect' | 'promotion' | 'reviews'
+type MenuGroupKey = 'dashboard' | 'geo' | 'employee' | 'lead' | 'order' | 'advertising' | 'aiinspect' | 'promotion' | 'reviews' | 'sales'
 export type PageId = string
 
 interface MenuItem {
@@ -182,6 +182,17 @@ export const MENU_TREE: Record<MenuGroupKey, MenuGroup> = {
       'reviews.summary': { label: '评价总结', path: '/reviews/summary' },
       'reviews.assist': { label: '辅助生成', path: '/reviews/assist' }
     }
+  },
+  sales: {
+    icon: menuIcon('<path d="M3.5 15.8V7.2l6.5-3.4 6.5 3.4v8.6"/><path d="M6.2 9.2h7.6M6.2 12h7.6M8 15h4"/>'),
+    label: '销售工作台',
+    children: {
+      'sales.customerOrders': { label: '客户订单管理', path: '/sales/customer-orders' },
+      'sales.agreementProductRelations': { label: '协议产品关系维护', path: '/sales/agreement-product-relations' },
+      'sales.agreementProducts': { label: '协议产品查询', path: '/sales/agreement-products' },
+      'sales.dashboard': { label: '销售看板', path: '/sales/dashboard' },
+      'sales.agreementMembers': { label: '协议会员管理', path: '/sales/agreement-members' }
+    }
   }
 }
 
@@ -307,11 +318,13 @@ export const useAppStore = defineStore('app', () => {
   // ---- 过滤后的菜单树（对应原 STATE.visibleMenus 过滤 MENU_TREE）----
   const filteredMenuTree = computed(() => {
     const existingMenus = withActivityPointsMenu(withAiInspectMenu(Object.fromEntries(
-      Object.entries(MENU_TREE).filter(([key]) => key !== 'reviews' && visibleMenus.value.includes(key as MenuGroupKey))
+      Object.entries(MENU_TREE).filter(([key]) => key !== 'reviews' && key !== 'sales' && visibleMenus.value.includes(key as MenuGroupKey))
     ), user.value, role.value, permissions.value), user.value, role.value, permissions.value)
-    return visibleMenus.value.includes('reviews')
+    const withReviews = visibleMenus.value.includes('reviews')
       ? { ...existingMenus, reviews: MENU_TREE.reviews }
       : existingMenus
+    // Preserve the existing sales entry's visibility for signed-in workbench users.
+    return user.value ? { ...withReviews, sales: MENU_TREE.sales } : withReviews
   })
 
   // ===== 对应原 loadUserContext() =====

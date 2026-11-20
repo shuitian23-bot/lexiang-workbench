@@ -1,0 +1,32 @@
+:is(.sales-dashboard-page, .member-page):where(.sales-workbench-page) {
+  --sales-page-text-strong: var(--color-text);
+  --sales-page-text: var(--color-text-secondary);
+  --sales-page-text-muted: var(--color-text-tertiary);
+  gap: var(--space-3, 12px);
+  color: var(--sales-page-text);
+  font-family: "Segoe UI", "Microsoft YaHei UI", "PingFang SC", sans-serif;
+  font-size: var(--text-sm, 13px);
+}
+
+:is(.sales-dashboard-page, .member-page):where(.sales-workbench-page) .content-page-header__title {
+  color: var(--sales-page-text-strong);
+  font-size: var(--text-xl, 20px);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+:is(.sales-dashboard-page, .member-page):where(.sales-workbench-page) .content-page-header__description {
+  color: var(--sales-page-text);
+  font-size: var(--text-sm, 13px);
+  line-height: 1.55;
+}
+
+.sales-dashboard-page:where(.sales-workbench-page) .cs-content-tabs button {
+  color: var(--sales-page-text);
+  font-weight: 500;
+}
+
+.sales-dashboard-page:where(.sales-workbench-page) .cs-content-tabs button.is-selected {
+  color: var(--color-primary);
+  font-weight: 700;
+}

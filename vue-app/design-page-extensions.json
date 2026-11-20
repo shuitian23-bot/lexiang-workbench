@@ -152,14 +152,69 @@
       ]
     },
     {
-      "pageId": "sales.workbench",
-      "label": "销售工作台",
-      "route": "/sales/workbench",
-      "pageType": "T7",
-      "components": ["C1", "C9"],
+      "pageId": "sales.customerOrders",
+      "label": "客户订单管理",
+      "route": "/sales/customer-orders",
+      "pageType": "T2",
+      "components": ["C1", "C2", "C3", "C8", "C9"],
       "implementation": "O1",
       "visualStatus": "VA-0",
-      "remainingStates": ["独立一级入口与登录守卫验收", "侧栏折叠和键盘操作验收", "Agent关闭、展开和最大宽度验收", "销售业务内容尚未提供"]
+      "remainingStates": [
+        "本轮本地交互、键盘与Agent宽度验收见独立浏览器证据",
+        "仅本地演示，真实业务接口未接入"
+      ]
+    },
+    {
+      "pageId": "sales.agreementProductRelations",
+      "label": "协议产品关系维护",
+      "route": "/sales/agreement-product-relations",
+      "pageType": "T7",
+      "components": ["C1", "C2", "C3", "C8", "C9"],
+      "implementation": "O1",
+      "visualStatus": "VA-0",
+      "remainingStates": [
+        "本轮本地交互、键盘与Agent宽度验收见独立浏览器证据",
+        "仅本地演示，真实业务接口未接入"
+      ]
+    },
+    {
+      "pageId": "sales.agreementProducts",
+      "label": "协议产品查询",
+      "route": "/sales/agreement-products",
+      "pageType": "T2",
+      "components": ["C1", "C2", "C3", "C8", "C9"],
+      "implementation": "O1",
+      "visualStatus": "VA-0",
+      "remainingStates": [
+        "本轮本地交互、键盘与Agent宽度验收见独立浏览器证据",
+        "仅本地演示，真实业务接口未接入"
+      ]
+    },
+    {
+      "pageId": "sales.dashboard",
+      "label": "销售看板",
+      "route": "/sales/dashboard",
+      "pageType": "T3",
+      "components": ["C1", "C3", "C4", "C5", "C9"],
+      "implementation": "O1",
+      "visualStatus": "VA-0",
+      "remainingStates": [
+        "使用本地演示数据，真实销售、榜单与客户分析服务未接入",
+        "四个看板页签的默认宽屏与键盘切换待浏览器验收"
+      ]
+    },
+    {
+      "pageId": "sales.agreementMembers",
+      "label": "协议会员管理",
+      "route": "/sales/agreement-members",
+      "pageType": "T2",
+      "components": ["C1", "C2", "C3", "C8", "C9"],
+      "implementation": "O1",
+      "visualStatus": "VA-0",
+      "remainingStates": [
+        "使用本地演示数据，真实会员查询、审核与账号服务未接入",
+        "宽屏与窄屏筛选布局待浏览器验收"
+      ]
     }
   ]
 }
