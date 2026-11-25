@@ -11,7 +11,7 @@ test('odd and even call medians include the whole supplied scope before success 
   assert.deepEqual(ids(odd.successRate), ['above'])
   const even = getUsageRankings([row('low', 1), row('below', 3), row('above', 5, 0.8), row('high', 9, 0.9)])
   assert.equal(even.medianCalls, 4)
-  assert.deepEqual(ids(even.successRate), ['high', 'above'])
+  assert.deepEqual(ids(even.successRate), ['above', 'high'])
 })
 
 test('calls equal to the median are strictly excluded from success rankings', () => {
@@ -43,8 +43,8 @@ test('known zero calls participate in the median and zero success rates remain v
   const result = getUsageRankings([row('zero-a', 0), row('zero-b', 0), row('two', 2, 0), row('four', 4, 1)])
   assert.equal(result.medianCalls, 1)
   assert.deepEqual(ids(result.calls), ['four', 'two'])
-  assert.deepEqual(ids(result.successRate), ['four', 'two'])
-  assert.equal(result.successRate[1].successRate, 0)
+  assert.deepEqual(ids(result.successRate), ['two', 'four'])
+  assert.equal(result.successRate[0].successRate, 0)
   const zeros = getUsageRankings([row('a', 0), row('b', 0)])
   assert.equal(zeros.medianCalls, 0)
   assert.deepEqual(zeros.calls, [])
@@ -65,7 +65,7 @@ test('missing or invalid success rates cannot change the call median or enter th
   assert.deepEqual(ids(invalidRates.successRate), ['valid'])
 })
 
-test('both Skill rankings apply Top10 after sorting more than ten eligible Skills without changing input rows', () => {
+test('takes the ten lowest eligible success rates and keeps call-count ranking and ties stable', () => {
   const rows = [
     ...Array.from({ length: 14 }, (_, index) => row(`zero-${index}`, 0, null)),
     row('z', 40, 0.95), row('c', 30, 0.9), row('b', 30, 0.9), row('a', 25, 0.9),
@@ -78,7 +78,7 @@ test('both Skill rankings apply Top10 after sorting more than ten eligible Skill
   const result = getUsageRankings(rows)
   assert.equal(result.medianCalls, 0)
   assert.deepEqual(ids(result.calls), ['k', 'j', 'i', 'h', 'g', 'f', 'z', 'b', 'c', 'a'])
-  assert.deepEqual(ids(result.successRate), ['z', 'b', 'c', 'a', 'd', 'e', 'f', 'g', 'h', 'i'])
+  assert.deepEqual(ids(result.successRate), ['k', 'j', 'i', 'h', 'g', 'f', 'b', 'c', 'a', 'd'])
   assert.equal(result.calls[0].creator, 'creator-k')
   assert.deepEqual(rows, before)
 })

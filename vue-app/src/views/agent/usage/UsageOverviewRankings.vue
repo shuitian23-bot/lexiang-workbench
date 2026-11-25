@@ -14,7 +14,7 @@ const rankings = computed(() => {
   const threshold = result.medianCalls == null ? '无有效调用次数' : `调用次数 > ${n(result.medianCalls)}（本周期中位数）`
   return [
     { key: 'calls' as const, title: 'Skill调用排行', rows: result.calls, empty: '暂无Skill调用', description: '按调用次数降序 · Top 10', emptyDescription: '仅对所选范围内已提供且大于零的调用次数排行。' },
-    { key: 'successRate' as const, title: 'Skill执行成功率排行', rows: result.successRate, empty: '暂无符合条件的Skill', description: `${threshold} · 按执行成功率降序 · Top 10`, emptyDescription: '仅调用次数严格超过中位数且执行成功率可计算的Skill参与；等于中位数的不参与。' }
+    { key: 'successRate' as const, title: 'Skill执行成功率排行', rows: result.successRate, empty: '暂无符合条件的Skill', description: `${threshold} · 按执行成功率从低到高 · 取前 10`, emptyDescription: '仅调用次数严格超过中位数且执行成功率可计算的Skill参与；等于中位数的不参与。' }
   ]
 })
 </script>

@@ -23,6 +23,6 @@ export function getUsageRankings(rows = []) {
     (row.calls ?? 0) > medianCalls
     && typeof row.successRate === 'number' && Number.isFinite(row.successRate)
     && row.successRate >= 0 && row.successRate <= 1
-  )).sort((a, b) => (b.successRate ?? 0) - (a.successRate ?? 0) || byCalls(a, b)).slice(0, 10)
+  )).sort((a, b) => (a.successRate ?? 0) - (b.successRate ?? 0) || byCalls(a, b)).slice(0, 10)
   return { calls, successRate, medianCalls }
 }
