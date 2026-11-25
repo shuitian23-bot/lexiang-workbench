@@ -9,6 +9,7 @@ import FeedbackState from '@/components/content/FeedbackState.vue'
 import UsageDailyDetails from './UsageDailyDetails.vue'
 import UsageOverviewContent from './UsageOverviewContent.vue'
 import { getDailyAnalysis, USAGE_DAILY_SOURCE, USAGE_DAILY_MODULES } from '@/domain/usageDailyReport.js'
+import { EXCLUDED_USAGE_CREATOR_IDS } from '@/domain/usageSkillScope.js'
 
 const props = defineProps<{ view: string; startDate: string; endDate: string; allowGlobal: boolean; currentCreatorId?: string | null; canOpenDetail: (dimension: 'skills' | 'creators', id: string) => boolean }>()
 const emit = defineEmits<{ 'show-skills': []; 'show-creators': [] }>()
@@ -47,7 +48,7 @@ watch(() => [props.allowGlobal, props.currentCreatorId], () => { reset(); detail
 
 <template>
   <div class="daily-panel">
-    <p class="daily-source-note" data-flow-role="notice">Skill统计已剔除 xinghy4 和未标注创建人关联的Skill，调用量、质量、排行、明细按同一范围重算。用户活跃、Query、任务及首字时长为独立的平台汇总。日报缺少完整的线上开启清单与创建归属，剔除后的Skill总量、新增及调用率暂不可得，显示“—”。</p>
+    <p class="daily-source-note" data-flow-role="notice">Skill统计已剔除 {{ EXCLUDED_USAGE_CREATOR_IDS.join('、') }} 和未标注创建人关联的Skill，调用量、质量、排行、明细按同一范围重算。用户活跃、Query、任务及首字时长为独立的平台汇总。日报缺少完整的线上开启清单与创建归属，剔除后的Skill总量、新增及调用率暂不可得，显示“—”。</p>
     <UsageOverviewContent v-if="view === 'overview' || view === 'rankings'" source="daily" :start-date="startDate" :end-date="endDate" :allow-global="allowGlobal" :current-creator-id="currentCreatorId" @open-skill="openDetail('skills', $event)" @open-creator="openDetail('creators', $event)" @view-skills="emit('show-skills')" @view-creators="emit('show-creators')" />
     <template v-else-if="(view === 'skills' && allowGlobal) || view === 'creators'">
       <section class="daily-filter daily-surface" data-flow-role="filters" :aria-label="creators ? '日报创建人筛选' : '日报Skill筛选'">

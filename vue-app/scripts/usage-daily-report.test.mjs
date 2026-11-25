@@ -315,19 +315,27 @@ test('daily-report API preserves source aggregates without inventing deduplicate
 test('published daily API consistently removes excluded Skill data from overview, lists, filters and exports', async () => {
   const api = await import('../src/domain/usageDailyReport.js')
   const report = api.getDailyAnalysis()
-  assert.equal(report.summary.calls, 142)
-  assert.equal(report.summary.success, 125)
-  assert.equal(report.creators.length, 9)
-  assert.equal(report.skills.length, 21)
-  assert.ok(report.dailyRows.every(row => row.creatorKnown && row.creatorId !== 'xinghy4' && row.creatorId !== 'unattributed'))
+  assert.equal(report.summary.calls, 71)
+  assert.equal(report.summary.success, 67)
+  assert.equal(report.creators.length, 7)
+  assert.equal(report.skills.length, 17)
+  const excludedCreators = ['xinghy4', 'yuanming3', 'yanxw1', 'unattributed']
+  assert.ok(report.dailyRows.every(row => row.creatorKnown && !excludedCreators.includes(row.creatorId)))
+  assert.equal(report.trend.reduce((sum, row) => sum + row.calls, 0), 71)
   assert.equal(api.getDailyOverview().summary.calls, report.summary.calls)
   assert.equal(api.getDailyOverview().summary.totalSkills, null)
   assert.equal(api.getDailyOverview().summary.newSkills, null)
   assert.ok(report.creators.every(row => row.skillCallRate === null))
-  assert.equal(api.getDailyAnalysis({ search: 'xinghy4' }).skills.length, 0)
-  assert.equal(api.getDailyAnalysis({ skillId: 'chatbi-analysis' }).dailyRows.length, 0)
+  for (const creatorId of excludedCreators) {
+    assert.deepEqual(api.getDailyAnalysis({ creatorId }).dailyRows, [])
+  }
+  assert.equal(api.getDailyOverview().summary.queries, 192)
+  assert.equal(api.getDailyOverview().summary.tasks, 136)
+  for (const skillId of ['chatbi-analysis', 'data-query', 'pg-data-query', 'all-data-analysis', 'operation-overview']) {
+    assert.deepEqual(api.getDailyAnalysis({ skillId }).dailyRows, [])
+  }
   for (const csv of [api.dailyCreatorRowsToCsv(report.creators), api.dailySkillRowsToCsv(report.skills)]) {
-    assert.ok(!csv.includes('xinghy4'))
+    assert.ok(excludedCreators.every(creatorId => !csv.includes(creatorId)))
     assert.ok(!csv.includes('chatbi-analysis'))
   }
   const full = api.getDailyAnalysis({ startDate: '2026-10-08', endDate: '2026-11-05' })
@@ -335,8 +343,9 @@ test('published daily API consistently removes excluded Skill data from overview
   assert.ok(full.dailyRows.every(row => row.creatorKnown && row.creatorId !== 'xinghy4'))
   const recentMonth = api.getDailyAnalysis({ startDate: '2026-10-26', endDate: '2026-11-24' })
   assert.equal(recentMonth.quality.detailCoveragePartial, false)
-  assert.equal(recentMonth.summary.calls, 560)
-  assert.equal(recentMonth.summary.success, 525)
+  assert.equal(recentMonth.summary.calls, 451)
+  assert.equal(recentMonth.summary.success, 429)
+  assert.ok(recentMonth.dailyRows.every(row => !excludedCreators.includes(row.creatorId)))
 })
 
 test('Skill statistics exclusions do not revoke existing verified creator admission', async () => {

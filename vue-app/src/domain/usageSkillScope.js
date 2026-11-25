@@ -1,8 +1,10 @@
 /** Shared business scope for Skill analytics; source snapshots stay intact. */
+export const EXCLUDED_USAGE_CREATOR_IDS = Object.freeze(['xinghy4', 'yuanming3', 'yanxw1'])
+
 /** @param {{ creatorId?: string, creator?: string, creatorKnown?: boolean }} row */
 export function isExcludedUsageCreator(row) {
   const id = (row.creatorId || '').trim().toLowerCase()
-  return row.creatorKnown === false || !id || ['xinghy4', 'unattributed', '未标注'].includes(id) || row.creator === '未标注'
+  return row.creatorKnown === false || !id || EXCLUDED_USAGE_CREATOR_IDS.includes(id) || id === 'unattributed' || id === '未标注' || row.creator === '未标注'
 }
 
 /**
