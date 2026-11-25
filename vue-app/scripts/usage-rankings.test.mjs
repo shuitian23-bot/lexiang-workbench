@@ -8,20 +8,20 @@ const ids = rows => rows.map(item => item.id)
 test('odd and even call medians include the whole supplied scope before success eligibility', () => {
   const odd = getUsageRankings([row('low', 1), row('median', 3), row('above', 8)])
   assert.equal(odd.medianCalls, 3)
-  assert.deepEqual(ids(odd.successRate), ['above'])
+  assert.deepEqual(ids(odd.successRate), ['low', 'median', 'above'])
   const even = getUsageRankings([row('low', 1), row('below', 3), row('above', 5, 0.8), row('high', 9, 0.9)])
   assert.equal(even.medianCalls, 4)
-  assert.deepEqual(ids(even.successRate), ['above', 'high'])
+  assert.deepEqual(ids(even.successRate), ['above', 'high', 'low', 'below'])
 })
 
-test('calls equal to the median are strictly excluded from success rankings', () => {
+test('median and lower call counts can fill slots when the priority group is short', () => {
   const result = getUsageRankings([row('zero', 0), row('equal-a', 2), row('equal-b', 2), row('above', 4)])
   assert.equal(result.medianCalls, 2)
-  assert.deepEqual(ids(result.successRate), ['above'])
+  assert.deepEqual(ids(result.successRate), ['equal-a', 'equal-b', 'above'])
   for (const rows of [[], [row('single', 4)], [row('a', 4), row('b', 4), row('c', 4)]]) {
     const ranked = getUsageRankings(rows)
     assert.equal(ranked.medianCalls, rows.length ? 4 : null)
-    assert.deepEqual(ranked.successRate, [])
+    assert.deepEqual(ids(ranked.successRate), ids(rows))
   }
 })
 
@@ -32,7 +32,7 @@ test('missing and invalid calls are excluded rather than silently counted as zer
   ])
   assert.equal(result.medianCalls, 4)
   assert.deepEqual(ids(result.calls), ['six', 'four', 'two'])
-  assert.deepEqual(ids(result.successRate), ['six'])
+  assert.deepEqual(ids(result.successRate), ['two', 'four', 'six'])
   const empty = getUsageRankings([row('missing', null), row('invalid', Infinity)])
   assert.equal(empty.medianCalls, null)
   assert.deepEqual(empty.calls, [])
@@ -54,7 +54,7 @@ test('known zero calls participate in the median and zero success rates remain v
 test('missing or invalid success rates cannot change the call median or enter the success ranking', () => {
   const missing = getUsageRankings([row('one', 1, 1), row('two', 2, 0.9), row('high-missing', 100, null)])
   assert.equal(missing.medianCalls, 2)
-  assert.deepEqual(missing.successRate, [])
+  assert.deepEqual(ids(missing.successRate), ['two', 'one'])
   assert.equal(missing.calls[0].id, 'high-missing')
   const invalidRates = getUsageRankings([
     ...Array.from({ length: 6 }, (_, index) => row(`zero-${index}`, 0, null)),
@@ -78,15 +78,27 @@ test('takes the ten lowest eligible success rates and keeps call-count ranking a
   const result = getUsageRankings(rows)
   assert.equal(result.medianCalls, 0)
   assert.deepEqual(ids(result.calls), ['k', 'j', 'i', 'h', 'g', 'f', 'z', 'b', 'c', 'a'])
-  assert.deepEqual(ids(result.successRate), ['k', 'j', 'i', 'h', 'g', 'f', 'b', 'c', 'a', 'd'])
+  assert.deepEqual(ids(result.successRate), ['k', 'j', 'i', 'h', 'g', 'f', 'e', 'd', 'a', 'b'])
   assert.equal(result.calls[0].creator, 'creator-k')
   assert.deepEqual(rows, before)
 })
 
-test('Top10 success eligibility keeps the full-scope median and strict threshold before truncating', () => {
+test('a full priority group excludes below-median rows and sorts tied rates by calls ascending', () => {
   const rows = Array.from({ length: 25 }, (_, index) => row(`skill-${index + 1}`, index + 1))
   const result = getUsageRankings(rows)
   assert.equal(result.medianCalls, 13)
-  assert.deepEqual(ids(result.successRate), ['skill-25', 'skill-24', 'skill-23', 'skill-22', 'skill-21', 'skill-20', 'skill-19', 'skill-18', 'skill-17', 'skill-16'])
+  assert.deepEqual(ids(result.successRate), ['skill-14', 'skill-15', 'skill-16', 'skill-17', 'skill-18', 'skill-19', 'skill-20', 'skill-21', 'skill-22', 'skill-23'])
   assert.equal(result.successRate.some(item => item.calls <= 13), false)
+})
+
+
+test('uses only enough valid lower-volume rows to reach ten, then sorts the whole list', () => {
+  const preferred = Array.from({ length: 8 }, (_, index) => row(`preferred-${index}`, index + 4, 0.9))
+  const result = getUsageRankings([
+    ...preferred,
+    ...Array.from({ length: 8 }, (_, index) => row(`median-${index}`, 3, 0.5)),
+    row('zero-calls', 0, 0), row('missing-rate', 2, null), row('low-rate', 2, 0.1), row('next-rate', 1, 0.2),
+  ])
+  assert.equal(result.medianCalls, 3)
+  assert.deepEqual(ids(result.successRate), ['low-rate', 'next-rate', ...ids(preferred)])
 })

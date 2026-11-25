@@ -78,7 +78,7 @@ watch(() => [props.allowGlobal, props.currentCreatorId], () => { reset(); detail
       <p>DAU / WAU / MAU与授权用户取截止日原表值，跨日人数不能直接相加；按创建人剔除后的线上开启Skill总量、新增和创建总量无法从附件恢复，保持缺失。创建人跨Skill去重人数无法恢复。运行成功不等于业务已解决，好评率仅代表已收到的赞踩。</p>
       <p>任务按traceId去重，任务成功按日报定义为最终结果正确且任务内Skill调用成功；Skill执行成功率按执行成功次数/总执行次数。首字等待按每日均值和Query数加权估算，原均值已四舍五入；无问答时留空，不能当0秒。</p>
       <p>Skill调用统计从剔除后的日期×Skill明细重算，原始日报保留用于溯源；未能与原始调用量对账的日期保留缺失。日报不含逐次调用日志、用户清单、输入输出或运行耗时。</p>
-      <p>执行成功率排行以当前范围内已提供的有效调用次数（含0）计算中位数；仅调用次数严格大于该中位数且执行成功率可计算的Skill参与。</p>
+      <p>执行成功率排行以当前范围内已提供的有效调用次数（含 0）计算中位数。优先选取调用次数严格超过中位数的 Skill，不足 10 项时从其余有调用且可计算成功率的 Skill 中补足。按成功率从低到高排列，同率按调用次数从少到多排列。</p>
     </details>
     <UsageDailyDetails v-if="detailTarget && canOpenDetail(detailTarget.dimension, detailTarget.id)" :key="`${detailTarget.dimension}-${detailTarget.id}`" :dimension="detailTarget.dimension" :target-id="detailTarget.id" :start-date="startDate" :end-date="endDate" :module="view === 'overview' || view === 'rankings' ? 'all' : module" :search="view === 'overview' || view === 'rankings' ? '' : search" :creator-scope-id="allowGlobal ? undefined : currentCreatorId || '__unauthorized__'" @close="detailTarget = null" />
   </div>
