@@ -36,6 +36,7 @@
       :user-initial="userInitial"
       :user-menu-visible="userMenuVisible"
       :can-create-scenario-package="canCreateScenarioPackage"
+      :can-view-usage-dashboard="canEnterUsageDashboard"
       @toggle-user-menu="toggleUserMenu"
       @close-user-menu="closeUserMenu"
       @logout="doLogout"
@@ -129,10 +130,12 @@ import SidebarHeader from '@/components/sidebar/SidebarHeader.vue'
 import SidebarNavGroup from '@/components/sidebar/SidebarNavGroup.vue'
 import SidebarFooter from '@/components/sidebar/SidebarFooter.vue'
 import { canAuthorScenarioPackage } from '@/domain/scenarioSkillPackages.js'
+import { useUsageDashboardAccess } from '@/composables/useUsageDashboardAccess'
 
 const router   = useRouter()
 const route    = useRoute()
 const appStore = useAppStore()
+const { canEnter: canEnterUsageDashboard, scope: usageDashboardScope, ensureLoaded: ensureUsageDashboardAccess } = useUsageDashboardAccess()
 
 const { user, role, userInitial, sidebarCollapsed, filteredMenuTree } = storeToRefs(appStore)
 const canCreateScenarioPackage = computed(() => Boolean(user.value)
@@ -170,11 +173,11 @@ const basePocLogRecords = [
     status: '入口接入，销售内容待提供'
   },
   {
-    time: '2026-11-10',
+    time: '2026-11-13',
     releaseKey: 'workbench-usage-dashboard-20261105',
     title: '工作台使用数据看板',
-    changePoint: '数据概览先以两排十卡集中展示使用与Skill核心指标，再展示用户活跃四卡，最后展示调用、点赞、点踩排行；创建人数、被调用Skill数和反馈好评率各展示一次。概览移除趋势图与日报明细，Skill和创建人页仅保留筛选、明细、导出及下钻；查看全部和分页恢复、创建人归属规则保持。',
-    detail: '左下角个人入口保留数据概览、Skill分析、创建人分析。默认使用11月5日日报快照，核心80天与Skill明细148行按原表导入；核心累计与截止日活跃分开，创建人、被调用Skill、反馈和排行注明已有明细范围，任务与Skill成功率使用各自分母。创建人分析仅含已有明确IT Code归属的数据，原始日报及Skill明细保留缺失归属信息；明细支持时间、菜单、搜索、查看全部、导出及创建人到Skill下钻。概览排行可进入Skill明细，核心日报仍可从口径说明导出。样例独立切换，不混合真实日报；当前未接入邮件自动同步，不补造逐次调用、原始输入输出或跨日/跨Skill去重人数。沿用现有外壳、共享样式和Agent，各环境发布状态以实际记录为准。',
+    changePoint: '授权用户总数明确为已开通门户工作台权限的去重用户（含未登录）；Skill存量更名为Skill总量，仅计对应日期线上开启的Skill，关闭、禁用和下线不计入；看板全部移除导出入口和下载处理，管理员、个人、日报、样例及两层明细保持一致。看板按“用户规模与活跃”“对话与执行”“Skill数量与质量”“排行榜”分区呈现，Skill数量与执行质量合并为同一模块，核心指标卡参照运营样式，左上指标、右上环比，卡内采用平滑面积曲线呈现趋势及底部口径，明细趋势同步采用平滑曲线，保留已提供的逐日原值，趋势无数据日期统一按0连续展示，悬停读数同步为0，不把展示补零计入周期汇总，撤去相邻大图。趋势支持鼠标悬浮及键盘逐日查看日期与完整绝对值，无任务、无 Query 日期的对应趋势按0展示，周期成功率及加权时长保持原统计口径，周期指标未提供仍保留空值；DAU/WAU/MAU 的人数比例明确为登录率、互动率，沿用同日授权总用户分母。创建人明细新增 Skill 调用率，缺创建总量时显示“—”。全看板 Skill 统计统一剔除 xinghy4 与未标注创建人相关 Skill，明细、排行和趋势采用同一范围；用户活跃、Query、任务和首字时长仍为明确标注的独立平台汇总，不能按创建人拆分；日报无法恢复剔除后的线上开启资产总量、新增及调用率分母时显示“—”，不补造未知资产。创建人数卡改为 Skill 调用率，按周期被调用 Skill 去重数除以截止日线上开启 Skill 总量计算。环比跟随所选区间：一天对比前一天、七天对比前七天、自定义区间对比紧邻的等长前期；人数采用对应日期快照，比率展示百分点变化。环比直接呈现在各指标卡内，无法计算时仅以明确标注的 Mock 演示，实际指标保持原值；交互区保留四项核心指标。管理角色看全局概览和明细；个人视图仅看公共排行与本人贡献、本人Skill明细，访问按身份归属限制。明细页签统一命名，切换保留各自筛选。Skill两榜保留调用次数与执行成功率，成功率榜仅纳入调用次数严格超过中位数的Skill，名称后标创建人IT Code；Skill 调用与执行成功率两榜统一展示 Top 10，创建人调用贡献排行保持全量。创建总量与被调用Skill数分列，缺全量资产不补造总量。',
+    detail: '入口、页面标题和页签统一命名为“Skill使用数据看板”，入口继续位于左下角个人区域。默认近七天、Skill两榜Top 10；样例与11月5日日报快照独立切换。演示视角仅保留“管理员视图”和“个人视图”，不再按创建者身份或账号编号选择。切换沿用当前数据来源，个人演示使用固定的个人数据范围，不改变统计口径和实际账号权限。真实来源只覆盖已导入日报，不把已有明细当完整资产目录，不补造创建总量、跨日去重互动人数、逐次调用、原始输入输出或邮件自动同步。人均交互次数为Query总量除以同周期去重互动人数，跨日无法去重时留空；样例未建模的独立任务指标留空。明细保留搜索、菜单、查看全部及本人创建人到Skill下钻；权限管理、外壳、共享样式、Agent和受保护运行时保持。各环境发布状态以实际记录为准。',
     deployTargets: [],
     status: '发布状态以环境记录为准'
   },
@@ -1121,12 +1124,14 @@ function openPermissionManagerPage() {
   appStore.setActiveStaticTab('agent.permissions')
   router.push('/agent/permissions')
 }
-function openUsageDashboardPage() {
+async function openUsageDashboardPage() {
+  await ensureUsageDashboardAccess()
+  if (!canEnterUsageDashboard.value) return
   closeUserMenu()
   appStore.setActiveTempTab(null)
   appStore.ensureStaticTab('agent.usageDashboard')
   appStore.setActiveStaticTab('agent.usageDashboard')
-  router.push('/agent/usage-dashboard')
+  router.push({ path: '/agent/usage-dashboard', query: usageDashboardScope.value === 'person' ? { view: 'rankings' } : {} })
 }
 async function refreshPocReleaseLedger() {
   pocReleaseLedger.value = await loadPocReleaseLedger()

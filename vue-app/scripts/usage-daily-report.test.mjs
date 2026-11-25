@@ -13,34 +13,110 @@ register(`data:text/javascript,${encodeURIComponent(`
   }
 `)}`, import.meta.url)
 
+test('business scope excludes whole Skill identities across dates and recomputes supported aggregates', async () => {
+  const api = await import('../src/domain/usageDailyReport.js')
+  const overviewRows = [{ date: '2026-11-04', queries: 12, calls: 10, success: 10, failed: 0, totalSkills: 20, newSkills: 2 }, { date: '2026-11-05', queries: 9, calls: 7, success: 7, failed: 0, totalSkills: 22, newSkills: 2 }]
+  const detail = (date, skillId, creatorId, calls) => ({ date, skillId, creatorId, creator: creatorId || '未标注', creatorKnown: !!creatorId, calls, success: calls, failed: 0, likes: 0, dislikes: 0, feedbackCount: 0 })
+  const dataset = { overviewRows, detailRows: [detail('2026-11-04', 'good', 'alice', 2), detail('2026-11-04', 'bad', 'xinghy4', 3), detail('2026-11-04', 'unknown', '', 5), detail('2026-11-05', 'good', 'alice', 4), detail('2026-11-05', 'bad', 'bob', 3)] }
+  const before = structuredClone(dataset)
+  const range = { startDate: '2026-11-04', endDate: '2026-11-05' }
+  const scoped = api.createDailyReportApi(dataset, { excludeSkillCreators: true })
+  const report = scoped.getDailyAnalysis(range)
+  assert.deepEqual(report.skills.map(row => row.id), ['good'])
+  assert.deepEqual(report.creators.map(row => row.id), ['alice'])
+  assert.equal(report.summary.calls, 6)
+  assert.deepEqual(report.trend.map(row => row.calls), [2, 4])
+  assert.equal(scoped.getDailyAnalysis({ ...range, skillId: 'bad' }).skills.length, 0)
+  assert.equal(scoped.getDailyAnalysis({ ...range, creatorId: 'xinghy4' }).creators.length, 0)
+  const overview = scoped.getDailyOverview(range)
+  assert.equal(overview.summary.calls, 6)
+  assert.equal(overview.summary.success, 6)
+  assert.equal(overview.summary.queries, 21, 'Query remains a separately labelled platform aggregate')
+  assert.equal(overview.summary.totalSkills, null)
+  assert.equal(overview.summary.newSkills, null)
+  assert.equal(report.creators[0].skillCallRate, null)
+  assert.deepEqual(dataset, before)
+  const lines = api.dailyCreatorRowsToCsv(report.creators).replace(/^\uFEFF/, '').split('\r\n').map(line => line.split(','))
+  const at = lines[0].indexOf('Skill调用率')
+  assert.ok(at > 0)
+  assert.equal(lines[1][at], '')
+  assert.ok(!api.dailySkillRowsToCsv(report.skills).includes('xinghy4'))
+  assert.ok(!api.dailySkillRowsToCsv(report.skills).includes('unknown'))
+})
+
+test('distinguishes creator inventory from called Skills and preserves missing call counts in CSV', async () => {
+  const api = await import('../src/domain/usageDailyReport.js')
+  const scope = { startDate: '2026-11-04', endDate: '2026-11-05', dimension: 'creators' }
+  const overviewRows = [{ date: scope.startDate }, { date: scope.endDate }]
+  const ownership = { creatorId: 'alice', creator: 'alice', module: '会员管理' }
+  const daily = api.createDailyReportApi({ overviewRows, detailRows: [
+    { date: scope.startDate, skillId: 'used', ...ownership, calls: 2 },
+    { date: scope.endDate, skillId: 'used', ...ownership, calls: 3 },
+    { date: scope.endDate, skillId: 'not-called', ...ownership, calls: 0 },
+  ] })
+  const creator = daily.getDailyAnalysis(scope).creators[0]
+  assert.equal(creator.skillCount, 2, 'Observed identities include the zero-call Skill and deduplicate days')
+  assert.equal(creator.calledSkills, 1, 'Only the distinct Skill with positive calls was called')
+  assert.equal(creator.createdSkills, null, 'Call reports cannot reveal the full creator inventory')
+
+  const [header, values] = api.dailyCreatorRowsToCsv([creator]).split('\r\n').map(line => line.replace(/^\uFEFF/, '').split(','))
+  const inventoryIndex = header.indexOf('创建总量')
+  assert.ok(inventoryIndex >= 0)
+  assert.deepEqual(header.slice(inventoryIndex, inventoryIndex + 2), ['创建总量', '被调用Skill数'])
+  assert.deepEqual(values.slice(inventoryIndex, inventoryIndex + 2), ['', '1'])
+
+  const incomplete = api.createDailyReportApi({ overviewRows, detailRows: [
+    { date: scope.startDate, skillId: 'unknown-calls', ...ownership, calls: null },
+    { date: scope.endDate, skillId: 'not-called', ...ownership, calls: 0 },
+  ] }).getDailyAnalysis(scope).creators[0]
+  assert.equal(incomplete.calledSkills, null, 'Missing calls do not prove that zero Skills were called')
+  assert.equal(incomplete.createdSkills, null)
+  const incompleteValues = api.dailyCreatorRowsToCsv([incomplete]).split('\r\n')[1].split(',')
+  assert.deepEqual(incompleteValues.slice(inventoryIndex, inventoryIndex + 2), ['', ''])
+})
+
 test('daily-report API preserves source aggregates without inventing deduplicated users', async (t) => {
   let api
-  try { api = await import('../src/domain/usageDailyReport.js') }
+  try {
+    const module = await import('../src/domain/usageDailyReport.js')
+    const { default: source } = await import('../src/domain/usageDailyReportData.json')
+    // Source provenance/parser tests verify the imported snapshot before exclusions.
+    // Business exclusions have a separate runtime contract above and below.
+    api = { ...module, ...module.createDailyReportApi(source) }
+  }
   catch (error) { assert.fail(`The real daily-report API must exist: ${error.message}`) }
 
   await t.test('keeps the supplied source provenance and both distinct coverage ranges', () => {
-    assert.equal(api.USAGE_DAILY_SOURCE.sha256, '681df3d465f49298ea73e9493d0d3cc389a0c1a1c1b6c3f93a5abc2586bcf080')
-    assert.deepEqual(api.USAGE_DAILY_SOURCE.counts, { overviewRows: 80, detailRows: 148, skills: 66, creators: 13, unknownCreatorRows: 18, missingModuleRows: 28 })
+    assert.equal(api.USAGE_DAILY_SOURCE.filename, 'aiwork日报-20261124.xlsx')
+    assert.equal(api.USAGE_DAILY_SOURCE.sha256, 'a8259fbade7b18fc181c50bdc11ad80cdd54b4a542b26ef590fa48a759786097')
+    assert.deepEqual(api.USAGE_DAILY_SOURCE.reportDetailRange, { startDate: '2026-10-27', endDate: '2026-11-24' })
+    assert.deepEqual(api.USAGE_DAILY_SOURCE.detailRange, { startDate: '2026-10-08', endDate: '2026-11-24' })
+    assert.deepEqual(api.USAGE_DAILY_SOURCE.detailHistory, {
+      filename: 'aiwork日报-20261105.xlsx',
+      sha256: '681df3d465f49298ea73e9493d0d3cc389a0c1a1c1b6c3f93a5abc2586bcf080',
+      startDate: '2026-10-08', endDate: '2026-10-26', detailRows: 56,
+    })
+    assert.deepEqual(api.USAGE_DAILY_SOURCE.counts, { overviewRows: 99, detailRows: 267, skills: 86, creators: 15, unknownCreatorRows: 29, missingModuleRows: 48 })
     assert.equal(api.USAGE_DAILY_START_DATE, '2026-08-18')
-    assert.equal(api.USAGE_DAILY_END_DATE, '2026-11-05')
+    assert.equal(api.USAGE_DAILY_END_DATE, '2026-11-24')
     assert.equal(api.USAGE_DAILY_DEFINITIONS.length, 35)
   })
 
   await t.test('sums additive metrics but uses the cutoff snapshot and original rolling counts', () => {
     const report = api.getDailyOverview()
-    assert.equal(report.startDate, '2026-10-30')
-    assert.equal(report.endDate, '2026-11-05')
-    assert.deepEqual(report.windows, { login: { dau: 59, wau: 117, mau: 145 }, ai: { dau: 11, wau: 29, mau: 43 } })
-    for (const [key, expected] of Object.entries({ queries: 206, tasks: 118, taskSuccess: 112, taskFailed: 6, calls: 141, success: 133, failed: 8, newSkills: 19, totalUsers: 255, totalSkills: 138 })) assert.equal(report.summary[key], expected, key)
-    assert.equal(report.summary.asOfDate, '2026-11-05')
+    assert.equal(report.startDate, '2026-11-18')
+    assert.equal(report.endDate, '2026-11-24')
+    assert.deepEqual(report.windows, { login: { dau: 57, wau: 112, mau: 156 }, ai: { dau: 8, wau: 34, mau: 68 } })
+    for (const [key, expected] of Object.entries({ queries: 192, tasks: 136, taskSuccess: 118, taskFailed: 18, calls: 155, success: 136, failed: 19, newSkills: 0, totalUsers: 267, totalSkills: 152 })) assert.equal(report.summary[key], expected, key)
+    assert.equal(report.summary.asOfDate, '2026-11-24')
     assert.equal(report.summary.loginUsers, null)
     assert.equal(report.summary.aiUsers, null)
     assert.equal(report.summary.calledSkills, null)
-    assert.equal(report.dailyRows.at(-1).loginWauRate, 0.4588)
-    assert.equal(report.dailyRows.at(-1).aiWauRate, 0.1137)
-    assert.equal(report.summary.taskSuccessRate, 112 / 118)
-    assert.equal(report.summary.successRate, 133 / 141)
-    assert.ok(Math.abs(report.summary.firstTokenSeconds - 6.933398058252426) < 1e-12)
+    assert.equal(report.dailyRows.at(-1).loginWauRate, 0.4195)
+    assert.equal(report.dailyRows.at(-1).aiWauRate, 0.1273)
+    assert.equal(report.summary.taskSuccessRate, 118 / 136)
+    assert.equal(report.summary.successRate, 136 / 155)
+    assert.ok(Math.abs(report.summary.firstTokenSeconds - 6.443958333333334) < 1e-12)
     assert.equal(report.quality.firstTokenEstimated, true)
     assert.equal(report.quality.missingQueryCount, 0)
   })
@@ -185,19 +261,21 @@ test('daily-report API preserves source aggregates without inventing deduplicate
     assert.deepEqual(daily.getDailyAnalysis({ ...scope, dimension: 'creators', creatorId: 'unattributed' }).dailyRows, [])
   })
 
-  await t.test('reconciles every covered date, accepting zero-call dates without detail rows', () => {
-    const report = api.getDailyOverview({ startDate: '2026-10-08', endDate: '2026-11-05' })
-    assert.equal(report.reconciliation.length, 29)
+  await t.test('reconciles historical and latest detail, accepting zero-call dates without rows', () => {
+    const report = api.getDailyOverview({ startDate: '2026-10-08', endDate: '2026-11-24' })
+    assert.equal(report.reconciliation.length, 48)
     assert.ok(report.reconciliation.every(row => row.matches))
     assert.equal(report.reconciliation.find(row => row.date === '2026-10-11').detailCalls, 0)
-    assert.equal(report.reconciliation.find(row => row.date === '2026-11-05').detailCalls, 30)
+    assert.equal(report.reconciliation.find(row => row.date === '2026-10-26').detailCalls, 20)
+    assert.equal(report.reconciliation.find(row => row.date === '2026-10-27').detailCalls, 44)
+    assert.equal(report.reconciliation.find(row => row.date === '2026-11-24').detailCalls, 24)
     const custom = api.createDailyReportApi({ overviewRows: [{ date: '2026-11-05', calls: 5, queries: 0 }], detailRows: [{ date: '2026-11-05', skillId: 'one', calls: 3 }] }).getDailyOverview({ startDate: '2026-11-05', endDate: '2026-11-05' })
     assert.equal(custom.reconciliation[0].delta, -2)
     assert.equal(custom.reconciliation[0].matches, false)
   })
 
   await t.test('rejects malformed, reversed and out-of-range windows without stale snapshots', () => {
-    for (const [startDate, endDate] of [['2026-02-30', '2026-11-05'], ['2026-11-05', '2026-11-04'], ['2026-08-01', '2026-11-05'], ['2026-11-05', '2026-11-06']]) {
+    for (const [startDate, endDate] of [['2026-02-30', '2026-11-05'], ['2026-11-05', '2026-11-04'], ['2026-08-01', '2026-11-05'], ['2026-11-24', '2026-11-25']]) {
       const overview = api.getDailyOverview({ startDate, endDate })
       assert.deepEqual(overview.dailyRows, [])
       assert.equal(overview.summary.totalUsers, null)
@@ -226,10 +304,70 @@ test('daily-report API preserves source aggregates without inventing deduplicate
     const report = api.getDailyOverview()
     report.dailyRows[0].queries = -1
     report.summary.totalUsers = -1
-    assert.equal(api.getDailyOverview().dailyRows[0].queries, 36)
-    assert.equal(api.getDailyOverview().summary.totalUsers, 255)
+    assert.equal(api.getDailyOverview().dailyRows[0].queries, 19)
+    assert.equal(api.getDailyOverview().summary.totalUsers, 267)
     const details = api.getDailyAnalysis()
     details.dailyRows[0].name = 'changed'
     assert.notEqual(api.getDailyAnalysis().dailyRows[0].name, 'changed')
   })
+})
+
+test('published daily API consistently removes excluded Skill data from overview, lists, filters and exports', async () => {
+  const api = await import('../src/domain/usageDailyReport.js')
+  const report = api.getDailyAnalysis()
+  assert.equal(report.summary.calls, 142)
+  assert.equal(report.summary.success, 125)
+  assert.equal(report.creators.length, 9)
+  assert.equal(report.skills.length, 21)
+  assert.ok(report.dailyRows.every(row => row.creatorKnown && row.creatorId !== 'xinghy4' && row.creatorId !== 'unattributed'))
+  assert.equal(api.getDailyOverview().summary.calls, report.summary.calls)
+  assert.equal(api.getDailyOverview().summary.totalSkills, null)
+  assert.equal(api.getDailyOverview().summary.newSkills, null)
+  assert.ok(report.creators.every(row => row.skillCallRate === null))
+  assert.equal(api.getDailyAnalysis({ search: 'xinghy4' }).skills.length, 0)
+  assert.equal(api.getDailyAnalysis({ skillId: 'chatbi-analysis' }).dailyRows.length, 0)
+  for (const csv of [api.dailyCreatorRowsToCsv(report.creators), api.dailySkillRowsToCsv(report.skills)]) {
+    assert.ok(!csv.includes('xinghy4'))
+    assert.ok(!csv.includes('chatbi-analysis'))
+  }
+  const full = api.getDailyAnalysis({ startDate: '2026-10-08', endDate: '2026-11-05' })
+  assert.equal(full.summary.calls, 296)
+  assert.ok(full.dailyRows.every(row => row.creatorKnown && row.creatorId !== 'xinghy4'))
+  const recentMonth = api.getDailyAnalysis({ startDate: '2026-10-26', endDate: '2026-11-24' })
+  assert.equal(recentMonth.quality.detailCoveragePartial, false)
+  assert.equal(recentMonth.summary.calls, 560)
+  assert.equal(recentMonth.summary.success, 525)
+})
+
+test('Skill statistics exclusions do not revoke existing verified creator admission', async () => {
+  const api = await import('../src/domain/usageDailyReport.js')
+  const { resolveUsageDashboardAccess, canViewUsageDashboard, canExportUsageRows } = await import('../src/domain/usageDashboardAccess.js')
+  assert.ok(Array.isArray(api.USAGE_DAILY_CREATOR_EVIDENCE), 'Admission evidence must remain independent of filtered statistics')
+  const access = resolveUsageDashboardAccess({ identity: { verified: true, userId: 'xinghy4', permissions: [] }, creatorEvidence: api.USAGE_DAILY_CREATOR_EVIDENCE })
+  assert.equal(access.scope, 'person')
+  assert.equal(canViewUsageDashboard(access, 'rankings'), true)
+  assert.equal(canViewUsageDashboard(access, 'overview'), false)
+  const own = api.getDailyAnalysis({ creatorId: 'xinghy4' })
+  assert.deepEqual(own.skills, [])
+  assert.deepEqual(own.creators, [])
+  assert.equal(canExportUsageRows(access, own.creators, 'creators'), false)
+  assert.ok(api.USAGE_DAILY_CREATOR_EVIDENCE.every(row => row.creatorId !== 'unattributed'))
+})
+
+test('unreconciled internal days stay unknown in filtered overview, analysis and daily trends', async () => {
+  const { createDailyReportApi } = await import('../src/domain/usageDailyReport.js')
+  const dates = ['2026-11-03', '2026-11-04', '2026-11-05']
+  const scoped = createDailyReportApi({
+    overviewRows: dates.map(date => ({ date, calls: 2, success: 2, failed: 0 })),
+    detailRows: [dates[0], dates[2]].map(date => ({ date, skillId: 'kept', creatorId: 'alice', creator: 'alice', calls: 2, success: 2, failed: 0 })),
+  }, { excludeSkillCreators: true })
+  const options = { startDate: dates[0], endDate: dates[2] }
+  const analysis = scoped.getDailyAnalysis(options)
+  assert.equal(scoped.getDailyOverview(options).summary.calls, null)
+  assert.equal(analysis.summary.calls, null)
+  assert.equal(analysis.summary.successRate, null)
+  assert.equal(analysis.summary.skillCount, null)
+  assert.equal(analysis.quality.detailCoveragePartial, true)
+  assert.deepEqual(analysis.trend.map(row => row.calls), [2, null, 2])
+  assert.deepEqual(analysis.quality.missingDetailDates, [dates[1]])
 })

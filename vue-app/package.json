@@ -12,7 +12,7 @@
     "typecheck": "vue-tsc --noEmit",
     "lint": "eslint .",
     "test:product-contract": "node --test scripts/product-contract-regression.test.mjs",
-    "test:usage-dashboard": "node --test scripts/usage-dashboard.test.mjs scripts/usage-daily-report.test.mjs",
+    "test:usage-dashboard": "node --test scripts/usage-dashboard.test.mjs scripts/usage-daily-report.test.mjs scripts/usage-rankings.test.mjs scripts/usage-activity-overview.test.mjs scripts/usage-period-overview.test.mjs scripts/usage-overview-adapters.test.mjs scripts/usage-dashboard-access.test.mjs scripts/usage-dashboard-reactivity.test.mjs scripts/usage-card-comparison.test.mjs scripts/usage-mini-trend.test.mjs",
     "test:design-skill-guard": "node --test scripts/design-skill-guard.test.mjs",
     "test:scenario-skill-packages": "node --test scripts/scenario-skill-packages.test.mjs scripts/scenario-skill-package-graph.test.mjs",
     "test:application-info": "node scripts/test-application-info.mjs",

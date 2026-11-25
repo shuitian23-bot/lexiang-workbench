@@ -238,7 +238,7 @@ export function getPageLabel(pageId: PageId) {
     'agent.skillCreate': 'Skill 创建',
     'agent.scenarioPackageCreate': '场景技能包创建',
     'agent.permissions': '权限管理',
-    'agent.usageDashboard': '使用数据看板',
+    'agent.usageDashboard': 'Skill使用数据看板',
     'portal.home': '联想门户工作台',
     'dashboard.query': 'Query 明细',
     'dashboard.behavior': '用户行为',

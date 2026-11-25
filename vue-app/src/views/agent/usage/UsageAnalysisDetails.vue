@@ -12,7 +12,7 @@ import { getUsageAnalysis } from '@/domain/usageDashboard.js'
 
 const props = defineProps<{
   dimension: 'skills' | 'creators'; targetId: string; scopeDimension: 'skills' | 'creators'
-  startDate: string; endDate: string; module: string; search: string
+  startDate: string; endDate: string; module: string; search: string; creatorScopeId?: string
 }>()
 const emit = defineEmits<{ close: [] }>()
 const dialog = ref<HTMLDialogElement | null>(null)
@@ -20,7 +20,7 @@ const closeButton = ref<HTMLButtonElement | null>(null)
 const selectedSkillId = ref(props.dimension === 'skills' ? props.targetId : '')
 const trendMode = ref<'volume' | 'quality'>('volume')
 let trigger: HTMLElement | null = null
-const creatorId = computed(() => props.dimension === 'creators' ? props.targetId : undefined)
+const creatorId = computed(() => props.creatorScopeId || (props.dimension === 'creators' ? props.targetId : undefined))
 const analysis = computed(() => {
   try {
     return getUsageAnalysis({
@@ -41,7 +41,7 @@ const skillColumns = [
   { key: 'module', label: '业务模块', width: '120px' },
   { key: 'users', label: '使用人数', width: '92px', align: 'right' as const },
   { key: 'calls', label: '调用次数', width: '92px', align: 'right' as const },
-  { key: 'successRate', label: '成功率', width: '92px', align: 'right' as const },
+  { key: 'successRate', label: '执行成功率', width: '92px', align: 'right' as const },
   { key: 'feedback', label: '赞 / 踩', width: '92px', align: 'right' as const },
   { key: 'likeRate', label: '好评率', width: '92px', align: 'right' as const },
   { key: 'actions', label: '操作', width: '100px' }
@@ -57,6 +57,7 @@ function close(restoreFocus = true) {
   trigger = null
 }
 async function changeSubject(skillId: string) {
+  if (skillId && !analysis.value?.skills.some(row => row.id === skillId)) return
   selectedSkillId.value = skillId
   trendMode.value = 'volume'
   await nextTick()
@@ -92,20 +93,20 @@ onBeforeUnmount(() => close())
           </template>
           <template v-else-if="selectedCreator">
             <div><dt>创建人ID</dt><dd class="usage-detail-code">{{ selectedCreator.id }}</dd></div>
-            <div><dt>旗下 / 被用Skill</dt><dd>{{ n(analysis.summary.skillCount) }} / {{ n(analysis.summary.calledSkills) }}</dd></div>
+            <div><dt>创建总量 / 被调用Skill数</dt><dd>{{ n(analysis.summary.skillCount) }} / {{ n(analysis.summary.calledSkills) }}</dd></div>
             <div><dt>统计含义</dt><dd>旗下Skill的使用贡献，非本人使用</dd></div>
           </template>
         </dl>
         <MetricGrid>
           <MetricCard label="调用次数" :value="n(analysis.summary.calls)" :meta="`成功 ${n(analysis.summary.success)} / 失败 ${n(analysis.summary.failed)}`" />
           <MetricCard label="使用人数" :value="n(analysis.summary.users)" meta="所选周期跨Skill去重" />
-          <MetricCard label="运行成功率" :value="rate(analysis.summary.successRate)" :meta="`成功 / 总调用 ${n(analysis.summary.calls)}`" />
+          <MetricCard label="执行成功率" :value="rate(analysis.summary.successRate)" :meta="`成功 / 总调用 ${n(analysis.summary.calls)}`" />
           <MetricCard label="反馈好评率" :value="rate(analysis.summary.likeRate)" :meta="`点赞 ${n(analysis.summary.likes)} / 反馈 ${n(analysis.summary.feedbackCount)}`" />
         </MetricGrid>
         <p class="usage-detail-quality-note">平均调用耗时 {{ duration(analysis.summary.avgDurationSeconds) }} · 赞 / 踩 {{ n(analysis.summary.likes) }} / {{ n(analysis.summary.dislikes) }}。运行成功≠业务解决，赞踩只反映已收到的反馈。</p>
         <section class="usage-detail-section">
-          <SectionHeader title="每日调用与质量趋势" description="每日人数去重；无调用或反馈时，对应比率不计算。">
-            <template #actions><div class="usage-detail-segmented" role="group" aria-label="详情趋势指标"><button type="button" :class="{ selected: trendMode === 'volume' }" :aria-pressed="trendMode === 'volume'" @click="trendMode = 'volume'">调用与人数</button><button type="button" :class="{ selected: trendMode === 'quality' }" :aria-pressed="trendMode === 'quality'" @click="trendMode = 'quality'">成功率与好评率</button></div></template>
+          <SectionHeader title="每日调用与质量趋势" description="每日人数去重；无数据日期趋势按0展示。">
+            <template #actions><div class="usage-detail-segmented" role="group" aria-label="详情趋势指标"><button type="button" :class="{ selected: trendMode === 'volume' }" :aria-pressed="trendMode === 'volume'" @click="trendMode = 'volume'">调用与人数</button><button type="button" :class="{ selected: trendMode === 'quality' }" :aria-pressed="trendMode === 'quality'" @click="trendMode = 'quality'">执行成功率与好评率</button></div></template>
           </SectionHeader>
           <UsageTrendChart :rows="analysis.trend" :mode="trendMode" />
         </section>
@@ -123,7 +124,7 @@ onBeforeUnmount(() => close())
             </DataTable>
           </ListSurface>
         </section>
-        <UsageCallDetails :calls="analysis.calls" :export-name="`${title}_${startDate}_${endDate}`" />
+        <UsageCallDetails :calls="analysis.calls" />
         <p class="usage-detail-boundary">仅展示安全的样例调用记录，不含用户原始标识、输入或结果正文。当前仅有最终成功/失败状态；生产超时、取消、部分成功与重试口径待确认。</p>
       </template>
     </div>

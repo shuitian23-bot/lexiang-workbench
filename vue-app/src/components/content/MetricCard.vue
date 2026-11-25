@@ -19,7 +19,7 @@ withDefaults(
     :class="[{ 'is-primary': primary, 'is-stale': state === 'stale' }]"
     :aria-busy="state === 'loading' || undefined"
   >
-    <span class="cs-metric-card__label">{{ label }}</span>
+    <slot name="header"><span class="cs-metric-card__label">{{ label }}</span></slot>
     <div class="cs-metric-card__value">
       <template v-if="state === 'loading'">加载中</template>
       <template v-else-if="state === 'missing'">—</template>

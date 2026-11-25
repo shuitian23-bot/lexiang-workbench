@@ -46,7 +46,7 @@ onBeforeUnmount(() => close())
       <MetricGrid :columns="3">
         <MetricCard label="使用人数" :value="n(row.users)" meta="周期去重" />
         <MetricCard label="调用次数" :value="n(row.calls)" meta="含成功与失败" />
-        <MetricCard label="调用成功率" :value="rate(row.successRate)" :meta="row.calls ? '成功调用 / 总调用' : '无调用，不计算'" />
+        <MetricCard label="执行成功率" :value="rate(row.successRate)" :meta="row.calls ? '成功调用 / 总调用' : '无调用，不计算'" />
       </MetricGrid>
       <section class="usage-detail-section">
         <SectionHeader title="运行与反馈" description="反馈仅统计已收到的赞踩，不代表所有调用评价。" />

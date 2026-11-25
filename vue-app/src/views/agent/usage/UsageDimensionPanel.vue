@@ -9,7 +9,7 @@ import { USAGE_MODULES, getUsageAnalysis } from '@/domain/usageDashboard.js'
 
 type Analysis = ReturnType<typeof getUsageAnalysis>
 type DimensionRow = {
-  id: string; name: string; creator?: string; module?: string; skillCount?: number; calledSkills?: number
+  id: string; name: string; creator?: string; module?: string; skillCount?: number; calledSkills?: number; skillCallRate?: number | null
   users: number; calls: number; success: number; failed: number; successRate: number | null
   likes: number; dislikes: number; feedbackCount: number; likeRate: number | null; avgDurationSeconds: number | null
 }
@@ -30,7 +30,7 @@ const baseColumns = [
   { key: 'users', label: '使用人数', width: '92px', align: 'right' as const },
   { key: 'calls', label: '调用次数', width: '92px', align: 'right' as const },
   { key: 'outcomes', label: '成功 / 失败', width: '112px', align: 'right' as const },
-  { key: 'successRate', label: '成功率', width: '92px', align: 'right' as const },
+  { key: 'successRate', label: '执行成功率', width: '92px', align: 'right' as const },
   { key: 'feedback', label: '赞 / 踩', width: '92px', align: 'right' as const },
   { key: 'likeRate', label: '好评率', width: '92px', align: 'right' as const },
   { key: 'avgDurationSeconds', label: '平均耗时', width: '104px', align: 'right' as const },
@@ -39,7 +39,7 @@ const baseColumns = [
 const columns = computed(() => [
   { key: 'name', label: creators.value ? '创建人' : 'Skill', width: creators.value ? '170px' : '220px' },
   ...(creators.value
-    ? [{ key: 'skillCount', label: '旗下Skill', width: '92px', align: 'right' as const }, { key: 'calledSkills', label: '被用Skill', width: '92px', align: 'right' as const }]
+    ? [{ key: 'skillCount', label: '创建总量', width: '100px', align: 'right' as const }, { key: 'calledSkills', label: '被调用Skill数', width: '120px', align: 'right' as const }, { key: 'skillCallRate', label: 'Skill调用率', width: '110px', align: 'right' as const }]
     : [{ key: 'creator', label: '创建人', width: '140px' }, { key: 'module', label: '业务模块', width: '120px' }]),
   ...baseColumns
 ])
@@ -49,19 +49,20 @@ watch(() => [props.module, props.search, props.dimension, props.analysis.startDa
 </script>
 
 <template>
-  <section class="usage-dimension" :aria-label="creators ? '创建人分析' : 'Skill分析'">
+  <section class="usage-dimension" :aria-label="creators ? '创建人明细' : 'Skill明细'">
     <div class="usage-dimension-filter usage-analysis-surface">
       <FilterField :label="creators ? '搜索创建人' : '搜索Skill'"><input v-model="keyword" type="search" :placeholder="creators ? '创建人名称 / ID' : '名称 / ID / 创建人'" /></FilterField>
       <FilterField label="业务模块"><select v-model="selectedModule"><option value="all">全部模块</option><option v-for="item in USAGE_MODULES" :key="item" :value="item">{{ item }}</option></select></FilterField>
       <button type="button" class="btn btn-secondary" @click="reset">重置</button>
     </div>
-    <p class="usage-dimension-hint">{{ creators ? '按创建人旗下Skill的使用贡献聚合，非创建人本人使用；' : '' }}明细、导出与详情均随当前日期、模块与搜索联动。使用人数按账号跨Skill去重，不能直接相加。运行成功≠业务解决。</p>
+    <p class="usage-dimension-hint">{{ creators ? '按创建人旗下Skill的使用贡献聚合，非创建人本人使用。创建总量为截至所选截止日、当前模块内线上开启的样例Skill（含未调用）；被调用Skill数按所选周期去重，Skill调用率=被调用Skill数÷创建总量。' : '' }}明细与详情均随当前日期、模块与搜索联动。使用人数按账号跨Skill去重，不能直接相加。运行成功≠业务解决。</p>
     <ListSurface>
       <template #toolbar><div class="usage-dimension-toolbar"><strong>{{ creators ? '创建人贡献明细' : 'Skill使用明细' }}</strong><div class="usage-dimension-toolbar"><span>{{ rows.length }} {{ creators ? '位创建人' : '个Skill' }}</span><button v-if="rows.length > pageSize || showAll" type="button" class="btn btn-secondary" :aria-pressed="showAll" @click="toggleAll">{{ showAll ? '分页显示' : `查看全部（${rows.length}）` }}</button></div></div></template>
       <DataTable v-if="rows.length" :columns="columns" :rows="pageRows" row-key="id" :caption="creators ? '创建人旗下Skill贡献聚合统计，示例数据' : 'Skill调用与质量聚合统计，示例数据'" density="two-line">
         <template #cell-name="{ row }"><div class="usage-analysis-name">{{ row.name }}</div><div class="usage-analysis-meta"><span class="usage-analysis-code">{{ row.id }}</span></div></template>
-        <template #cell-skillCount="{ row }">{{ n(row.skillCount) }}</template>
+        <template #cell-skillCount="{ row }"><span title="截至所选截止日、当前模块内线上开启的样例Skill，含未调用；不含未建模的草稿或待审批Skill">{{ n(row.skillCount) }}</span></template>
         <template #cell-calledSkills="{ row }">{{ n(row.calledSkills) }}</template>
+        <template #cell-skillCallRate="{ row }">{{ rate(row.skillCallRate ?? null) }}</template>
         <template #cell-users="{ row }">{{ n(row.users) }}</template>
         <template #cell-calls="{ row }">{{ n(row.calls) }}</template>
         <template #cell-outcomes="{ row }">{{ n(row.success) }} / {{ n(row.failed) }}</template>

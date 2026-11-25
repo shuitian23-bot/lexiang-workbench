@@ -5,6 +5,7 @@ import { findPocLoginChoice } from '@/services/pocLoginChoices'
 import { aiInspectRoutes } from '@/views/aiinspect/routes'
 import { ACTIVITY_POINTS_MENU, canUseActivityPoints } from '@/services/activityPointsAccess'
 import { showWorkbenchToast } from '@/services/toast'
+import { useUsageDashboardAccess } from '@/composables/useUsageDashboardAccess'
 
 // 布局
 const AppLayout = () => import('@/components/AppLayout.vue')
@@ -199,6 +200,21 @@ const router = createRouter({
   routes: isPocSandbox && !isPocWorkbench ? demoRoutes : routes
 })
 
+async function guardUsageDashboard(query: Record<string, unknown>) {
+  const access = useUsageDashboardAccess()
+  await access.ensureLoaded()
+  if (!access.canEnter.value) {
+    showWorkbenchToast('当前账号没有已确认的数据看板访问资格。')
+    return { path: '/portal/home' }
+  }
+  if (!access.routeAllowed(query)) return {
+    path: '/agent/usage-dashboard',
+    query: { view: access.scope.value === 'person' ? 'rankings' : 'overview' },
+    replace: true
+  }
+  return true
+}
+
 // 全局导航守卫：未登录跳转 /login
 router.beforeEach(async (to) => {
   if (isPocSandbox) {
@@ -211,7 +227,7 @@ router.beforeEach(async (to) => {
         window.location.replace(normalAppBase + 'login')
         return false
       }
-      return true
+      return to.path === '/agent/usage-dashboard' ? guardUsageDashboard(to.query) : true
     }
     if ((to.path === '/login' || to.path === '/adfs-login')
       && to.query.mode !== 'scenarios' && !findPocLoginChoice(to.query.pocAccount)) return '/agent/permissions'
@@ -241,6 +257,7 @@ router.beforeEach(async (to) => {
     showWorkbenchToast('当前账号没有积分查看权限，请联系管理员开通。')
     return { path: '/portal/home' }
   }
+  if (to.path === '/agent/usage-dashboard') return guardUsageDashboard(to.query)
   return true
 })
 

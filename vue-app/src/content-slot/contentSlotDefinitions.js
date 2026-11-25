@@ -67,7 +67,7 @@ export const CONTENT_SLOT_GROUPS = [
     defaultLayout: CONTENT_SLOT_LAYOUTS.analysisDashboard,
     pages: [{
       pageId: 'agent.usageDashboard',
-      label: '使用数据看板',
+      label: 'Skill使用数据看板',
       path: '/agent/usage-dashboard',
       layout: CONTENT_SLOT_LAYOUTS.analysisDashboard,
       sourceRenderer: 'src/views/agent/UsageDashboardView.vue',

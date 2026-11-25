@@ -1,10 +1,32 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
+import * as scope from '../src/domain/usageSkillScope.js'
 
 const DAY_MS = 24 * 60 * 60 * 1000
 const shiftDate = (date, days) => new Date(Date.parse(`${date}T00:00:00Z`) + days * DAY_MS).toISOString().slice(0, 10)
 const sum = (rows, key) => rows.reduce((total, row) => total + row[key], 0)
 const closeTo = (actual, expected) => assert.ok(Math.abs(actual - expected) < 1e-10, `${actual} should equal ${expected}`)
+
+test('creator Skill call rate uses filtered inventory and rejects unavailable denominators', async () => {
+  let policy
+  try { policy = await import('../src/domain/usageSkillScope.js') }
+  catch { assert.fail('The shared Skill scope and call-rate policy must exist') }
+  const { getSkillCallRate, isExcludedUsageCreator } = policy
+  assert.equal(getSkillCallRate(1, 4), 0.25)
+  assert.equal(getSkillCallRate(0, 4), 0)
+  for (const [called, stock] of [[null, 4], [1, null], [0, 0], [2, 1], [-1, 4], [1, NaN]]) assert.equal(getSkillCallRate(called, stock), null)
+  for (const row of [{ creatorId: ' XINGHY4 ', creatorKnown: true }, { creatorId: 'unattributed' }, { creatorId: 'alice', creatorKnown: false }, { creatorId: '', creator: '未标注' }]) assert.equal(isExcludedUsageCreator(row), true)
+  assert.equal(isExcludedUsageCreator({ creatorId: 'alice', creatorKnown: true }), false)
+  const { getUsageAnalysis, usageCreatorsToCsv } = await import('../src/domain/usageDashboard.js')
+  for (const options of [{}, { startDate: '2026-11-02', endDate: '2026-11-03', module: '会员管理' }, { creatorId: 'sample.creator-a', skillId: 'sample.customer-query' }]) {
+    const report = getUsageAnalysis(options)
+    for (const row of report.creators) assert.equal(row.skillCallRate, row.calledSkills / row.skillCount)
+    const lines = usageCreatorsToCsv(report.creators).replace(/^\uFEFF/, '').split('\r\n').map(line => line.split(','))
+    const at = lines[0].indexOf('Skill调用率')
+    assert.ok(at > 0)
+    report.creators.forEach((row, i) => assert.equal(lines[i + 1][at], `${(row.skillCallRate * 100).toFixed(2)}%`))
+  }
+})
 
 test('usage dashboard computes an internally consistent synthetic report', async (t) => {
   let api
@@ -160,7 +182,7 @@ test('usage dashboard computes an internally consistent synthetic report', async
 
   await t.test('exports Chinese aggregate columns without adding people or result payloads', () => {
     const csv = usageRowsToCsv(getUsageReport().filteredSkills)
-    assert.ok(csv.startsWith('\uFEFFSkill ID,Skill名称,所属模块,创建人,调用用户数,调用次数,成功次数,失败次数,成功率,点赞次数,点踩次数,评价次数,点赞率\r\n'))
+    assert.ok(csv.startsWith('\uFEFFSkill ID,Skill名称,所属模块,创建人,调用用户数,调用次数,成功次数,失败次数,执行成功率,点赞次数,点踩次数,评价次数,点赞率\r\n'))
     assert.ok(!csv.includes('调用结果'))
     assert.ok(!csv.includes('用户ID'))
     assert.equal(usageRowsToCsv([]).split('\r\n').length, 1)
@@ -396,9 +418,45 @@ test('usage analysis keeps Skill and creator quality views in one filtered scope
     }
     assert.ok(usageCreatorsToCsv([{ ...report.creators[0], name: '创建者,"A"\nB' }]).includes('"创建者,""A""\nB"'))
     const zero = getUsageAnalysis({ startDate: '2026-11-03', endDate: '2026-11-03', creatorId: 'sample.creator-a' }).creators[0]
-    const cells = usageCreatorsToCsv([zero]).split('\r\n')[1].split(',')
-    assert.equal(cells[9], '')
-    assert.equal(cells[13], '')
-    assert.equal(cells[14], '')
+    const [headers, cells] = usageCreatorsToCsv([zero]).replace(/^\uFEFF/, '').split('\r\n').map(line => line.split(','))
+    for (const key of ['执行成功率', '点赞率', '平均调用耗时（秒）']) assert.equal(cells[headers.indexOf(key)], '')
+    assert.equal(cells[headers.indexOf('Skill调用率')], '0.00%')
   })
+})
+
+
+const asset = (id, onlineStatus, overrides = {}) => ({
+  id, onlineStatus, publishedAt: '2026-11-01', creatorId: 'creator-a', ...overrides,
+})
+
+test('Skill total includes only the enabled online version, independent of an editing workflow', () => {
+  assert.equal(typeof scope.countEnabledUsageSkills, 'function')
+  assert.equal(scope.countEnabledUsageSkills([
+    asset('enabled', 'published'),
+    asset('editing', 'published', { status: 'review' }),
+    asset('disabled', 'disabled', { status: 'published' }),
+    asset('unpublished', 'unpublished'),
+    asset('unknown', undefined),
+    asset('future', 'published', { publishedAt: '2026-11-06' }),
+  ], '2026-11-05'), 2)
+})
+
+test('Skill total deduplicates online identities and keeps the existing creator exclusions', () => {
+  assert.equal(typeof scope.countEnabledUsageSkills, 'function')
+  assert.equal(scope.countEnabledUsageSkills([
+    asset('one', 'published'), asset('one', 'published', { version: 'v2' }),
+    asset('excluded', 'published', { creatorId: 'xinghy4' }),
+    asset('unattributed', 'published', { creatorId: 'unattributed' }),
+    asset('unknown-owner', 'published', { creatorKnown: false }),
+    asset('', 'published'),
+  ], '2026-11-05'), 1)
+})
+
+test('Skill totals use each cutoff independently without mutating historical asset facts', () => {
+  assert.equal(typeof scope.countEnabledUsageSkills, 'function')
+  const assets = [asset('old', 'published'), asset('later', 'published', { publishedAt: '2026-11-04' })]
+  const before = structuredClone(assets)
+  assert.equal(scope.countEnabledUsageSkills(assets, '2026-11-03'), 1)
+  assert.equal(scope.countEnabledUsageSkills(assets, '2026-11-05'), 2)
+  assert.deepEqual(assets, before)
 })

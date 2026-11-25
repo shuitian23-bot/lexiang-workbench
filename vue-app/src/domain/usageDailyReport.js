@@ -1,4 +1,5 @@
 import sourceData from './usageDailyReportData.json'
+import { isExcludedUsageCreator } from './usageSkillScope.js'
 
 /**
  * Real daily aggregates imported from the supplied XLSX. No individual calls,
@@ -14,6 +15,11 @@ export const USAGE_DAILY_START_DATE = sourceData.source.overviewRange.startDate
 export const USAGE_DAILY_END_DATE = sourceData.source.overviewRange.endDate
 export const USAGE_DAILY_MODULES = Object.freeze([...new Set(sourceData.detailRows.map(row => row.module))].sort())
 export const USAGE_DAILY_DEFINITIONS = Object.freeze(sourceData.metricDefinitions.map(row => Object.freeze({ ...row })))
+// Stable ownership evidence is used only after server identity verification.
+// Statistical exclusions must not silently revoke existing creator admission.
+export const USAGE_DAILY_CREATOR_EVIDENCE = Object.freeze(sourceData.detailRows
+  .filter(row => row.creatorKnown && row.creatorId && row.creatorId !== 'unattributed')
+  .map(row => Object.freeze({ creatorId: row.creatorId, skillId: row.skillId })))
 
 const OVERVIEW_NUMBERS = /** @type {const} */ (['loginDau', 'loginWau', 'loginMau', 'aiDau', 'aiWau', 'aiMau', 'totalUsers', 'loginWauRate', 'aiWauRate', 'queries', 'tasks', 'taskSuccess', 'taskFailed', 'totalSkills', 'newSkills', 'calledSkills', 'calls', 'success', 'failed', 'firstTokenSeconds'])
 const DETAIL_NUMBERS = /** @type {const} */ (['users', 'calls', 'success', 'failed', 'feedbackCount', 'likes', 'dislikes', 'likeRate', 'dislikeRate'])
@@ -41,22 +47,44 @@ function dateList(from, to) {
  * Pure source adapter, also used to verify missing-data and reconciliation
  * behavior independently of this particular workbook snapshot.
  * @param {{ overviewRows: (Partial<DailyOverviewRow> & { date: string })[], detailRows: (Partial<DailySkillRow> & { date: string, skillId: string })[] }} dataset
+ * @param {{ excludeSkillCreators?: boolean }} [policy]
  */
-export function createDailyReportApi(dataset) {
+export function createDailyReportApi(dataset, { excludeSkillCreators = false } = {}) {
   /** @type {DailyOverviewRow[]} */
   const overviewRows = dataset.overviewRows.map(row => ({ ...row, ...Object.fromEntries(OVERVIEW_NUMBERS.map(key => [key, row[key] ?? null])) }))
   /** @type {DailySkillRow[]} */
-  const detailRows = dataset.detailRows.map(row => ({
+  const sourceDetailRows = dataset.detailRows.map(row => ({
     ...row, name: row.name || row.skillId, module: row.module || '未标注', creatorId: row.creatorId || 'unattributed', creator: row.creator || '未标注',
     nameKnown: row.nameKnown ?? !!row.name, moduleKnown: row.moduleKnown ?? !!row.module, creatorKnown: row.creatorKnown ?? !!row.creatorId,
     ...Object.fromEntries(DETAIL_NUMBERS.map(key => [key, row[key] ?? null])),
   }))
+  // Exclude the entire known Skill identity, including other dates/owners.
+  const excludedSkillIds = new Set(sourceDetailRows.filter(isExcludedUsageCreator).map(row => row.skillId))
+  const detailRows = excludeSkillCreators ? sourceDetailRows.filter(row => !excludedSkillIds.has(row.skillId)) : sourceDetailRows
+  const reconciledDates = new Set(overviewRows.filter(row => row.calls != null
+    && total(sourceDetailRows.filter(detail => detail.date === row.date), 'calls') === row.calls).map(row => row.date))
+  if (excludeSkillCreators) {
+    for (const row of overviewRows) {
+      const included = detailRows.filter(detail => detail.date === row.date)
+      // Only reconciled source days prove complete call coverage, including 0.
+      const complete = reconciledDates.has(row.date)
+      row.calls = complete ? total(included, 'calls') : null
+      row.success = complete && row.success != null ? total(included, 'success') : null
+      row.failed = complete && row.failed != null ? total(included, 'failed') : null
+      row.calledSkills = complete && included.every(detail => detail.calls != null)
+        ? new Set(included.filter(detail => (detail.calls ?? 0) > 0).map(detail => detail.skillId)).size : null
+      // Call reports cannot reconstruct a creator-scoped full asset catalog.
+      row.totalSkills = null
+      row.newSkills = null
+    }
+  }
   overviewRows.sort((a, b) => a.date.localeCompare(b.date))
   detailRows.sort((a, b) => a.date.localeCompare(b.date))
   const minDate = overviewRows[0]?.date || USAGE_DAILY_START_DATE
   const maxDate = overviewRows.at(-1)?.date || USAGE_DAILY_END_DATE
-  const detailStart = detailRows[0]?.date || null
-  const detailEnd = detailRows.at(-1)?.date || null
+  const sourceDates = sourceDetailRows.map(row => row.date).sort()
+  const detailStart = sourceDates[0] || null
+  const detailEnd = sourceDates.at(-1) || null
 
   /** @param {DailyRange} options */
   function windowFor(options) {
@@ -70,6 +98,8 @@ export function createDailyReportApi(dataset) {
 
   /** @param {ReturnType<typeof windowFor>} range @param {DailySkillRow[]} [rows] */
   function qualityFor(range, rows = []) {
+    const missingDetailDates = excludeSkillCreators && !range.dateError
+      ? dateList(range.startDate, range.endDate).filter(date => !reconciledDates.has(date)) : []
     return {
       firstTokenEstimated: true,
       missingQueryCount: 0,
@@ -77,10 +107,12 @@ export function createDailyReportApi(dataset) {
       missingDates: range.dateError ? [] : dateList(range.startDate, range.endDate).filter(date => !overviewRows.some(row => row.date === date)),
       detailCoverageStart: detailStart,
       detailCoverageEnd: detailEnd,
-      detailCoveragePartial: !detailStart || !detailEnd || range.startDate < detailStart || range.endDate > detailEnd,
+      detailCoveragePartial: !detailStart || !detailEnd || range.startDate < detailStart || range.endDate > detailEnd || missingDetailDates.length > 0,
+      missingDetailDates,
       unknownCreatorRows: rows.filter(row => !row.creatorKnown).length,
       missingModuleRows: rows.filter(row => !row.moduleKnown).length,
       dateError: range.dateError,
+      creatorExclusionsApplied: excludeSkillCreators,
     }
   }
 
@@ -150,6 +182,9 @@ export function createDailyReportApi(dataset) {
         creatorKnown: group.every(row => row.creatorKnown), moduleKnown: group.every(row => row.moduleKnown),
         users: key === 'skillId' && group.length === 1 ? group[0].users : null,
         ...counters(group), skillCount: new Set(group.map(row => row.skillId)).size,
+        createdSkills: /** @type {number|null} */ (null), // The daily report has no complete creator asset catalog.
+        skillCallRate: /** @type {number|null} */ (null),
+        calledSkills: group.some(row => row.calls == null) ? null : new Set(group.filter(row => (row.calls ?? 0) > 0).map(row => row.skillId)).size,
         activeDays: dates.length, firstUsedAt: dates[0], lastUsedAt: dates.at(-1), newSkills: null,
       }
     }).sort((a, b) => (b.calls ?? 0) - (a.calls ?? 0) || a.id.localeCompare(b.id))
@@ -171,16 +206,22 @@ export function createDailyReportApi(dataset) {
     const skills = groupRows(dailyRows, 'skillId')
     const creators = groupRows(dailyRows.filter(row => row.creatorKnown && row.creatorId !== 'unattributed'), 'creatorId')
     const counts = counters(dailyRows)
+    const completePeriod = covered && (!excludeSkillCreators || dateList(range.startDate, range.endDate).every(date => reconciledDates.has(date)))
     const summary = {
-      ...counts, calls: covered ? counts.calls : null, success: covered ? counts.success : null, failed: covered ? counts.failed : null,
-      likes: covered ? counts.likes : null, dislikes: covered ? counts.dislikes : null, feedbackCount: covered ? counts.feedbackCount : null,
-      skillCount: covered ? skills.length : null,
-      creatorCount: covered ? creators.filter(row => row.id !== 'unattributed').length : null,
+      ...counts, calls: completePeriod ? counts.calls : null, success: completePeriod ? counts.success : null, failed: completePeriod ? counts.failed : null,
+      successRate: completePeriod ? counts.successRate : null, likeRate: completePeriod ? counts.likeRate : null,
+      likes: completePeriod ? counts.likes : null, dislikes: completePeriod ? counts.dislikes : null, feedbackCount: completePeriod ? counts.feedbackCount : null,
+      skillCount: completePeriod ? skills.length : null,
+      creatorCount: completePeriod ? creators.filter(row => row.id !== 'unattributed').length : null,
       users: null, newSkills: null,
     }
     const trendDates = range.dateError || !detailStart || !detailEnd ? [] : dateList(range.startDate > detailStart ? range.startDate : detailStart, range.endDate < detailEnd ? range.endDate : detailEnd)
     const trend = trendDates.map(date => {
       const rows = dailyRows.filter(row => row.date === date)
+      if (excludeSkillCreators && !reconciledDates.has(date)) return {
+        date, calls: null, success: null, failed: null, successRate: null, likes: null, dislikes: null,
+        feedbackCount: null, likeRate: null, skillCount: null, users: null,
+      }
       return { date, ...counters(rows), skillCount: new Set(rows.map(row => row.skillId)).size, users: null }
     })
     return { startDate: range.startDate, endDate: range.endDate, dimension: options.dimension || 'skills', summary, trend, skills, creators, dailyRows, calls: [], quality: qualityFor(range, dailyRows) }
@@ -189,7 +230,7 @@ export function createDailyReportApi(dataset) {
   return { getDailyOverview, getDailyAnalysis }
 }
 
-const api = createDailyReportApi(sourceData)
+const api = createDailyReportApi(sourceData, { excludeSkillCreators: true })
 export const getDailyOverview = api.getDailyOverview
 export const getDailyAnalysis = api.getDailyAnalysis
 
@@ -211,11 +252,11 @@ export function dailyOverviewToCsv(rows) {
 }
 /** @param {ReturnType<typeof getDailyAnalysis>['skills']} rows */
 export function dailySkillRowsToCsv(rows) {
-  return csv(['Skill ID', 'Skill名称', '菜单', '创建人', '调用用户数（不可跨日去重）', '调用次数', '成功次数', '失败次数', '成功率', '评价次数', '点赞次数', '点踩次数', '点赞率', '有调用日期数'], rows.map(row => [row.id, row.name, row.module, row.creator, row.users, row.calls, row.success, row.failed, percent(row.successRate), row.feedbackCount, row.likes, row.dislikes, percent(row.likeRate), row.activeDays]))
+  return csv(['Skill ID', 'Skill名称', '菜单', '创建人', '调用用户数（不可跨日去重）', '调用次数', '成功次数', '失败次数', '执行成功率', '评价次数', '点赞次数', '点踩次数', '点赞率', '有调用日期数'], rows.map(row => [row.id, row.name, row.module, row.creator, row.users, row.calls, row.success, row.failed, percent(row.successRate), row.feedbackCount, row.likes, row.dislikes, percent(row.likeRate), row.activeDays]))
 }
 /** @param {ReturnType<typeof getDailyAnalysis>['creators']} rows */
 export function dailyCreatorRowsToCsv(rows) {
-  return csv(['创建人', '菜单', '范围内有明细Skill数', '调用用户数（不可跨Skill去重）', '调用次数', '成功次数', '失败次数', '成功率', '评价次数', '点赞次数', '点踩次数', '点赞率'], rows.map(row => [row.name, row.module, row.skillCount, row.users, row.calls, row.success, row.failed, percent(row.successRate), row.feedbackCount, row.likes, row.dislikes, percent(row.likeRate)]))
+  return csv(['创建人', '菜单', '创建总量', '被调用Skill数', 'Skill调用率', '调用用户数（不可跨Skill去重）', '调用次数', '成功次数', '失败次数', '执行成功率', '评价次数', '点赞次数', '点踩次数', '点赞率'], rows.map(row => [row.name, row.module, row.createdSkills, row.calledSkills, percent(row.skillCallRate), row.users, row.calls, row.success, row.failed, percent(row.successRate), row.feedbackCount, row.likes, row.dislikes, percent(row.likeRate)]))
 }
 /** @param {ReadonlyArray<DailySkillRow>} rows */
 export function dailyDetailRowsToCsv(rows) {

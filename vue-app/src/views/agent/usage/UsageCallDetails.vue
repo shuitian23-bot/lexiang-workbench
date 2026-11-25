@@ -7,7 +7,6 @@ import ListSurface from '@/components/content/ListSurface.vue'
 import Pagination from '@/components/content/Pagination.vue'
 import StatusTag from '@/components/content/StatusTag.vue'
 import FeedbackState from '@/components/content/FeedbackState.vue'
-import { usageCallsToCsv } from '@/domain/usageDashboard.js'
 
 type UsageCall = {
   id: string
@@ -26,13 +25,11 @@ type UsageCall = {
 type StatusFilter = 'all' | UsageCall['status']
 type FeedbackFilter = 'all' | 'like' | 'dislike' | 'none'
 
-const props = defineProps<{ calls: UsageCall[]; exportName: string }>()
+const props = defineProps<{ calls: UsageCall[] }>()
 const status = ref<StatusFilter>('all')
 const feedback = ref<FeedbackFilter>('all')
 const page = ref(1)
 const pageSize = 5
-const exportState = ref<'idle' | 'success' | 'error'>('idle')
-const exportedCount = ref(0)
 const numberFormat = new Intl.NumberFormat('zh-CN', { maximumFractionDigits: 2 })
 const columns = [
   { key: 'id', label: '样例调用 ID', width: '152px' },
@@ -52,50 +49,16 @@ const pageCalls = computed(() => filteredCalls.value.slice((page.value - 1) * pa
 const successCount = computed(() => filteredCalls.value.filter(call => call.status === 'success').length)
 const failedCount = computed(() => filteredCalls.value.length - successCount.value)
 
-function resetExportState() {
-  exportState.value = 'idle'
-  exportedCount.value = 0
-}
-
 function clearFilters() {
   status.value = 'all'
   feedback.value = 'all'
   page.value = 1
-  resetExportState()
 }
 
 watch([status, feedback], () => {
   page.value = 1
-  resetExportState()
 }, { flush: 'sync' })
 watch(() => props.calls, clearFilters, { deep: true, flush: 'sync' })
-watch(() => props.exportName, resetExportState)
-
-function exportCalls() {
-  if (!filteredCalls.value.length) return
-  resetExportState()
-  let downloadUrl: string | undefined
-  let link: HTMLAnchorElement | undefined
-  try {
-    const csv = usageCallsToCsv(filteredCalls.value)
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
-    downloadUrl = URL.createObjectURL(blob)
-    const safeName = props.exportName.trim().replace(/\.csv$/i, '').replace(/[\u0000-\u001f\u007f<>:"/\\|?*]/g, '-').slice(0, 72) || '使用数据'
-    link = document.createElement('a')
-    link.href = downloadUrl
-    link.download = `${safeName}-调用明细.csv`
-    document.body.appendChild(link)
-    link.click()
-    exportedCount.value = filteredCalls.value.length
-    exportState.value = 'success'
-  } catch {
-    exportState.value = 'error'
-  } finally {
-    link?.remove()
-    const urlToRevoke = downloadUrl
-    if (urlToRevoke) setTimeout(() => URL.revokeObjectURL(urlToRevoke), 0)
-  }
-}
 
 function feedbackLabel(value: UsageCall['feedback']) {
   return value === 'like' ? '点赞' : value === 'dislike' ? '点踩' : '未反馈'
@@ -104,11 +67,7 @@ function feedbackLabel(value: UsageCall['feedback']) {
 
 <template>
   <section class="usage-calls" aria-label="样例调用明细">
-    <SectionHeader title="调用明细" :heading-level="3" description="仅展示样例调用记录，不包含使用人标识、输入或结果正文。">
-      <template #actions>
-        <button type="button" class="btn btn-secondary" :disabled="!filteredCalls.length" @click="exportCalls">导出当前筛选</button>
-      </template>
-    </SectionHeader>
+    <SectionHeader title="调用明细" :heading-level="3" description="仅展示样例调用记录，不包含使用人标识、输入或结果正文。" />
     <ListSurface :state="filteredCalls.length ? 'data' : 'empty'">
       <template #toolbar>
         <div class="usage-calls-filters">
@@ -148,9 +107,7 @@ function feedbackLabel(value: UsageCall['feedback']) {
       </FeedbackState>
       <template v-if="filteredCalls.length" #pagination><Pagination v-model:page="page" :page-size="pageSize" :total="filteredCalls.length" /></template>
     </ListSurface>
-    <p class="usage-calls-note">成功与失败按每条样例调用的最终运行状态计数；运行成功不代表业务结果质量。导出包含当前筛选下的全部 {{ numberFormat.format(filteredCalls.length) }} 条记录。</p>
-    <p v-if="exportState === 'success'" class="usage-calls-note" role="status">已发起 {{ numberFormat.format(exportedCount) }} 条样例调用的 CSV 下载，请在浏览器下载记录中查看。</p>
-    <p v-else-if="exportState === 'error'" class="usage-calls-export-error" role="alert">导出未完成，请重试。</p>
+    <p class="usage-calls-note">成功与失败按每条样例调用的最终运行状态计数；运行成功不代表业务结果质量。</p>
   </section>
 </template>
 
@@ -165,7 +122,6 @@ function feedbackLabel(value: UsageCall['feedback']) {
 .usage-calls-time { white-space: nowrap; font-variant-numeric: tabular-nums; }
 .usage-calls-number { font-variant-numeric: tabular-nums; }
 .usage-calls-reason { overflow-wrap: anywhere; }
-.usage-calls-note, .usage-calls-export-error { margin: 0; color: var(--color-text-secondary); font-size: var(--text-xs, 12px); line-height: 1.6; }
-.usage-calls-export-error { color: var(--color-danger); }
+.usage-calls-note { margin: 0; color: var(--color-text-secondary); font-size: var(--text-xs, 12px); line-height: 1.6; }
 @container (max-width: 719px) { .usage-calls-filters { grid-template-columns: minmax(0, 1fr); } }
 </style>

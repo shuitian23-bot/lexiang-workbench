@@ -47,9 +47,9 @@
             <b>权限管理</b>
             <small>管理菜单权限、Skill 权限、数据范围和审批边界。</small>
           </button>
-          <button type="button" class="account-hub-card account-hub-card-manage" @click="$emit('open-usage-dashboard')">
+          <button v-if="canViewUsageDashboard" type="button" class="account-hub-card account-hub-card-manage" @click="$emit('open-usage-dashboard')">
             <span class="account-hub-icon account-hub-create-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4v16h16M8 15v-4M13 15V7M18 15V4"/></svg></span>
-            <b>使用数据看板</b>
+            <b>Skill使用数据看板</b>
             <small>查看平台访问、AI 互动、Skill 及创建人统计。</small>
           </button>
           <button type="button" class="account-hub-card account-hub-card-manage account-hub-card-log" @click="$emit('open-poc-log')">
@@ -65,6 +65,10 @@
 
 <script setup>
 defineProps({
+  canViewUsageDashboard: {
+    type: Boolean,
+    default: false
+  },
   canCreateScenarioPackage: {
     type: Boolean,
     default: false
