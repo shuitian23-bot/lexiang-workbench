@@ -1,0 +1,52 @@
+{
+  "projectId": "lexiang-workbench",
+  "skillId": "portal-workbench-ui",
+  "skillVersion": "2026-11-24",
+  "skillRelease": "1124",
+  "baselineName": "1124-responsive-filters-and-workbench-charts",
+  "updatedAt": "2026-11-24",
+  "candidateRequirement": "2026-11-24-responsive-filter-and-chart-polish",
+  "referenceBaseline": {
+    "projectRelease": "1124",
+    "appRootHint": "vue-app"
+  },
+  "audiences": [
+    "pm",
+    "ui-ux",
+    "frontend-development",
+    "review-qa"
+  ],
+  "distributionPolicy": "single-authoritative-skill",
+  "compatibilityPolicy": "portable-target-repository",
+  "sharedRoleComponentLibrary": "assets/vue-content-slot-components",
+  "productSourceWritePolicy": "development-request-with-identified-target-authorizes-in-scope-edits",
+  "inheritedDesignContract": "portal-workbench-ui-1109",
+  "maintenanceNote": "1124 local POC archive with confirmed responsive filters and trend charts",
+  "confirmedSupplements": [
+    {
+      "date": "2026-11-09",
+      "contract": "references/filter-placeholder-contract.md",
+      "scope": "query/filter regions; preserve stacked labels in business forms and existing permission approval filter exception"
+    },
+    {
+      "date": "2026-11-12",
+      "contract": "SKILL.md",
+      "scope": "Skill upgrades do not trigger redesign or migration of approved pages; apply new rules only to new content and explicitly requested changes; preserve approved behavior outside that scope"
+    },
+    {
+      "date": "2026-11-12",
+      "contract": "references/design-guard.md",
+      "scope": "User-authorized local Skill audit: current-rule precedence, optional Git baseline comparison, declaration checks and reference FormControl error association; no product page migration"
+    },
+    {
+      "date": "2026-11-24",
+      "contract": "references/filter-placeholder-contract.md",
+      "scope": "responsive columns, two visible rows, single expand control, action alignment, and audit of equivalent filters"
+    },
+    {
+      "date": "2026-11-24",
+      "contract": "references/style-contract.md",
+      "scope": "responsive trend geometry and metric-card hierarchy"
+    }
+  ]
+}
