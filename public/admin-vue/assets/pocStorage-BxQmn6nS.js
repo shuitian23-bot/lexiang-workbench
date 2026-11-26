@@ -1,0 +1,1 @@
+import{ae as t,af as a,ag as s}from"./index-1tqIOn-N.js";const n=t(()=>window.localStorage,a),r=t(()=>window.sessionStorage,a);function c(o){return!a||o===null?o:o.startsWith(s)?o.slice(s.length):""}export{c as a,r as b,n as p};
