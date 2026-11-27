@@ -1,0 +1,1 @@
+import{a2 as t,a3 as a,a4 as s}from"./index-CVfDy-VP.js";const n=t(()=>window.localStorage,a),r=t(()=>window.sessionStorage,a);function c(o){return!a||o===null?o:o.startsWith(s)?o.slice(s.length):""}export{c as a,r as b,n as p};
